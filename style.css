@@ -41,7 +41,7 @@ select, input[type="search"] { padding: 5px 8px; min-height: 34px; font: 16px va
 select option, select optgroup { background: #000; color: var(--ink); }
 input[type="search"]::placeholder { color: var(--mute); }
 .sl-muted { color: var(--mute); font-size: 15px; }
-h3 { margin: 0 0 8px; font: 600 15px var(--ui); color: var(--mute); letter-spacing: .3px; }
+h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 
 /* ---------- the HUD layout ---------- */
 #slRoot.sx {

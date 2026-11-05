@@ -1,5 +1,5 @@
 /* Solarist offline support. Bump VERSION whenever any file changes, so phones and installed apps pick up the update. */
-const VERSION = 'solarist-3';
+const VERSION = 'solarist-4';
 const FILES = [
   './', 'index.html', 'style.css', 'shell.js', 'solarist.js', 'manifest.webmanifest', 'economy.json', 'items.json',
   'fonts/barlow-condensed-latin-400-normal.woff2', 'fonts/barlow-condensed-latin-500-normal.woff2', 'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2',

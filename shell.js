@@ -70,29 +70,28 @@ float bayer(vec2 p){ vec2 q = mod(floor(p), 4.); float x = q.x, y = q.y;
 vec3 snap(vec3 c){ vec3 b = pal[0]; float bd = 1e9; for (int i = 0; i < 33; i++){ vec3 d = c - pal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = pal[i]; } } return b; }
 vec3 surface(vec3 q, out float emit){
   emit = 0.; float h = fbm(q * 2.2 + seed); vec3 c;
-  if (fBands > .5){ float b = fract(q.y * 2.6 + fbm(q * vec3(1., 3., 1.) + seed) * .9); c = b < .25 ? pc[0] : b < .5 ? pc[1] : b < .75 ? pc[2] : pc[3]; }
+  if (fBands > .5){ float b = fract(q.y * 1.9 + fbm(q * vec3(1., 3., 1.) + seed) * .9); c = b < .25 ? pc[0] : b < .5 ? pc[1] : b < .75 ? pc[2] : pc[3]; }
   else if (fLand > .5){ if (h < .52){ float k = (.52 - h) * 6.; c = k < .25 ? pc[0] : k < .55 ? pc[1] : k < .85 ? pc[2] : pc[3]; } else c = h < .6 ? lc[0] : lc[1]; }
   else { c = h < .4 ? pc[3] : h < .5 ? pc[2] : h < .6 ? pc[1] : pc[0]; }
   if (fLava > .5){ float r = abs(fbm(q * 3. + seed + 7.) - .5); if (r < .035){ c = r < .015 ? pc[0] : pc[1]; emit = 1.; } else c = h < .5 ? pc[3] : pc[2]; }
-  if (fLand > .5 || fClouds > .5) if (fLava < .5 && fLocked < .5 && abs(q.y) > .86) c = vec3(1.);
-  if (fClouds > .5){ float cl = fbm(q * 3. + vec3(tt * .015, 0., 0.) + seed + 20.); if (cl > .6) c = mix(c, vec3(1.), .85); }
+  if (fLand > .5 || fClouds > .5) if (fLava < .5 && fLocked < .5 && abs(q.y) > 1.33) c = vec3(1.);
+  if (fClouds > .5){ float cl = fbm(q * 3. + vec3(tt * .03, 0., 0.) + seed + 20.); if (cl > .6) c = mix(c, vec3(1.), .85); }
   if (fSpark > .5 && h3(floor(q * 40.)) > .985) { c = vec3(1.); emit = 1.; }
   return c; }
 void main(){
   vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false;
   // stars: two layers, streaming past while you travel
-  float spd = run * (kind < .5 || kind == 4. || kind == 5. ? 1. : .06);
-  for (int l = 0; l < 2; l++){ float fl = float(l); vec2 sp = floor(fc + vec2(tt * spd * (10. + fl * 26.) + fl * 91., fl * 37.));
-    float s = h1(sp); if (s > (fl < .5 ? .993 : .9972)) col = fl < .5 ? pal[21] : pal[23];
-    if (fl > .5 && s > .9992) col = vec3(1.); }
+  // space stays pure black
   vec2 uv = (fc - ctr) / R; float d2 = dot(uv, uv);
   float tl = tilt; mat2 rz = mat2(cos(tl), -sin(tl), sin(tl), cos(tl)); vec2 tu = rz * uv;
   // rings (an ellipse in a plane tilted towards you); the part behind the planet is hidden
   float ringZ = -9., ringHit = 0.;
   if (fRings > .5 && hasP > .5 && sil < .5){ float rr = length(vec2(tu.x, tu.y / .32)); if (rr > 1.35 && rr < 2.1){ float band = fract(rr * 7.); if (band > .18){ ringHit = 1.; ringZ = tu.y / .32 * -.4; } } }
   if (hasP > .5 && d2 <= 1.){
-    vec3 n = vec3(uv, sqrt(1. - d2)); float a = fLocked > .5 ? 0. : tt * .05;
-    vec3 nt = vec3(rz * n.xy, n.z); mat3 ry = mat3(cos(a), 0., -sin(a), 0., 1., 0., sin(a), 0., cos(a)); vec3 q = ry * nt;
+    vec3 n = vec3(uv, sqrt(1. - d2));
+    // fake spin: map the disc to longitude/latitude and slide a flat noise texture sideways
+    float lon = atan(n.x, n.z), lat = asin(clamp(n.y, -1., 1.));
+    vec3 q = vec3(lon * 1.25 + (fLocked > .5 ? 0. : tt * .045), lat * 1.25, 0.);
     vec3 L = normalize(fLocked > .5 ? vec3(-1., .1, .25) : vec3(-.55, .35, .75)); float lit = clamp(dot(n, L), 0., 1.);
     if (sil > .5){ col = pal[20] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = coord > .5 ? pal[5] : pal[28]; }
     else {
@@ -109,7 +108,6 @@ void main(){
     dith = true;
     if (ringHit > .5 && ringZ > n.z * .2 && tu.y < 0.) { col = ringC * (.35 + .65 * clamp(.5 - tu.x * .3, 0., 1.)); }
   } else if (ringHit > .5) { col = ringC * (.4 + .6 * clamp(.5 - tu.x * .3, 0., 1.)) * (d2 < 1.6 && tu.y > 0. ? .45 : 1.); dith = true; }
-  else if (hasP > .5 && sil < .5){ float g = smoothstep(1.07, 1., sqrt(d2)); if (g > 0.) { col = mix(col, vec3(.55, .7, 1.), g * .4); dith = true; } }
   // distress: a red beacon ahead that pulses and grows
   if (kind == 5.){ float r = .05 + pct * .0012; float d = length(uv); float pulse = fract(tt * .6);
     if (d < r) col = mod(floor(tt * 2.), 2.) > 0. || run < .5 ? pal[6] : pal[12];
