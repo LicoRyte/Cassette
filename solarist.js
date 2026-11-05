@@ -564,6 +564,7 @@
     if (S.at == null && S.found.length) S.at = S.found[S.found.length - 1].p.num;
     if (!S.nextNum) S.nextNum = S.found.reduce((m, f) => Math.max(m, f.p.num), 0) + 1; // numbers keep counting up even after selling
     if (!S.sold) S.sold = { n: 0, dust: 0, ly: 0 };
+    if (S.txSeen == null) S.txSeen = Date.now();
     if (!S.cnt) { // lifetime counters for the Stats page, seeded from what's already in the save
       const key = t => { const x = new Date(t); return x.getFullYear() + '-' + x.getMonth() + '-' + x.getDate(); };
       S.cnt = { rar: {}, lucky: 0, outlaws: 0, enc: 0, ev: (S.events || []).filter(e => e.ic !== '⚔').length, fc: 0, charge: 0, days: new Set(S.found.map(f => key(f.at))).size || (S.total ? 1 : 0), hiDist: 0 };
@@ -995,7 +996,28 @@
         sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far')),
         sec('Interplanetary Coordinator', el('p', {}, S.coord ? 'Charged. Your next Explore heads somewhere promising.' : 'Empty. One study session of Charge makes your next Explore a lucky one.'), coordB));
     }
+    // the right side has two tabs: Upgrades (what resources buy) and Transmissions (everything your posts and the ship heard)
+    let rightTab = 'up';
+    function txFeed() {
+      const feed = [];
+      posts().forEach(f => f.p.post.reports.forEach(r => feed.push(repItem(f.p, r))));
+      S.events.forEach(e => feed.push({ at: e.at, k: 'ev', icon: e.ic, title: e.title, t: e.t, extra: e.got }));
+      return feed.sort((a, b) => b.at - a.at);
+    }
+    const txUnread = () => txFeed().filter(it => it.at > (S.txSeen || 0)).length;
     function drawRight() {
+      const unread = txUnread();
+      if (rightTab === 'tx' && unread) { S.txSeen = Date.now(); save(); }
+      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' },
+        el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === 'up'), onclick: () => { rightTab = 'up'; drawRight(); } }, 'Upgrades'),
+        el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === 'tx'), onclick: () => { rightTab = 'tx'; drawRight(); } }, 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
+      if (rightTab === 'tx') {
+        const feed = txFeed();
+        rightCol.replaceChildren(tabsR, feed.length ? el('div', { class: 'sx-tx' }, renderFeed(feed, 'rtx', true, drawRight))
+          : el('p', { class: 'sl-muted' }, 'Nothing yet. Build a Listening Post on a world and it sends a transmission every study session. Deep-space events show up here too.'));
+        return;
+      }
+      const newTx = unread ? el('button', { type: 'button', class: 'sx-newtx', onclick: () => { rightTab = 'tx'; drawRight(); } }, el('b', {}, 'New transmission received'), el('span', {}, unread === 1 ? '1 new message' : unread + ' new messages')) : null;
       const locked = running && mode === 'focus', bj = building(), trade = Math.round(tradeIncome() * INCOME);
       const up = (name, small, btn) => el('div', { class: 'sx-up' }, el('b', {}, name), el('small', {}, small), btn);
       const buy = (cost, onclick, label) => el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < cost || null, onclick }, label || '✦ ' + cost.toLocaleString());
@@ -1019,7 +1041,7 @@
         }
         postSec = sec((a.post ? (a.post.tp ? 'Travelers\' Post' : 'Listening Post') : 'Build') + ' at ' + nm(a), ...rows);
       }
-      rightCol.replaceChildren(
+      rightCol.replaceChildren(tabsR, newTx,
         el('div', { class: 'sx-res' }, el('b', {}, '✦ ' + S.dust.toLocaleString()), el('small', {}, 'resources' + (trade ? ', +' + trade + ' trade per session' : ''))),
         sec('Ship', ...mods), postSec,
         el('button', { type: 'button', class: 'sl-link sx-more', onclick: () => { shipTab = 'Posts'; tab('ship'); } }, 'All posts and facilities'));

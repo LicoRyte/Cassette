@@ -143,6 +143,17 @@ h3 { margin: 0 0 8px; font: 600 15px var(--ui); color: var(--mute); letter-spaci
 .sx-q em { font-style: normal; font-weight: 600; color: var(--amber); white-space: nowrap; }
 
 /* ---------- right: things that cost resources ---------- */
+.sx-rtabs { display: flex; gap: 18px; margin-bottom: 20px; }
+.sx-rtabs button { position: relative; padding: 2px 0 6px; background: none; border: 0; font: 600 18px var(--ui); color: var(--soft); cursor: pointer; box-shadow: inset 0 -2px 0 var(--line); }
+.sx-rtabs button:hover { color: var(--white); }
+.sx-rtabs button[aria-selected="true"] { color: var(--white); box-shadow: inset 0 -2px 0 var(--amber); }
+.sx-dot { margin-left: 6px; padding: 0 6px; font: 700 13px/18px var(--ui); font-style: normal; color: #000; background: var(--sky); vertical-align: 2px; }
+.sx-newtx { display: block; width: 100%; margin-bottom: 22px; padding: 8px 0 8px 12px; text-align: left; background: none; border: 0; border-left: 3px solid var(--sky); cursor: pointer; }
+.sx-newtx b { display: block; font: 700 18px var(--ui); color: var(--sky); }
+.sx-newtx span { font-size: 14px; color: var(--mute); }
+.sx-newtx:hover b { color: var(--white); }
+.sx-tx .sl-msg-x { font-size: 14px; }
+.sx-tx .sl-day { background: transparent; position: static; }
 .sx-res b { display: block; font: 700 42px/1 var(--ui); color: var(--amber); }
 .sx-res small { font-size: 15px; color: var(--mute); }
 .sx-res { margin-bottom: 26px; }
