@@ -30,7 +30,7 @@
   "encounters": { "chance": 0.1, "scale": 1, "rareWorldMultiplier": 1.5 },
   "_encounters": "Arrival encounters on new worlds: chance per Explore trip (0.1 = 1 in 10), scale multiplies every encounter's own min-max range, rareWorldMultiplier applies on Rare and Legendary worlds.",
 
-  "trade": { "perFacilityLevel": 1, "cap": 60 },
+  "trade": { "perFacilityLevel": 2, "cap": 100 },
   "_trade": "Travelers' Posts pay perFacilityLevel per facility level (all posts together) every study session, up to cap.",
 
   "sell": {
@@ -59,7 +59,7 @@
   "roomCost": { "base": 160, "growth": 1.7, "maxLevel": 5 },
   "_roomCost": "Upgrading a ship room to level L costs base x growth ^ (L - 1). The first level is built with a study session instead.",
 
-  "crewCost": { "base": 200, "perCrew": 160 },
+  "crewCost": { "base": 200, "perCrew": 125 },
   "_crewCost": "Hiring costs base + perCrew x crew already aboard.",
 
   "shipStyleCost": { "color": 300, "design": 800 },
@@ -68,7 +68,7 @@
   "campaign": { "base": 40, "perLog": 2 },
   "_campaign": "Each Meridian log pays base + perLog x the log's number.",
 
-  "coordChips": { "start": 5, "base": 1500, "growth": 1.25, "max": 60 },
+  "coordChips": { "start": 5, "base": 800, "growth": 1.25, "max": 30 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
 
   "quests": { "expedition": 450, "expeditionSafe": 60, "expeditionBold": 15, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
