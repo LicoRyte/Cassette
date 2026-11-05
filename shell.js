@@ -140,9 +140,10 @@ void main(){
     } catch (e) { ok = false; }
   }
   const g2 = ok ? null : cv.getContext('2d'); // fallback: the pixel portrait, no shader
+  const sv = mk('canvas', { class: 'sx-view sx-shipview', 'aria-hidden': 'true' }); cv.after(sv); const gs = sv.getContext('2d'); // your ship, drawn over the planet scene
   let info = null, raf = 0, lastDraw = 0, simT = 0, spinT = 0, lastNow = 0, curSeed = null;
   const fallbackImg = new Map();
-  function size() { cv.width = Math.max(1, Math.round(innerWidth / PX)); cv.height = Math.max(1, Math.round(innerHeight / PX)); }
+  function size() { cv.width = sv.width = Math.max(1, Math.round(innerWidth / PX)); cv.height = sv.height = Math.max(1, Math.round(innerHeight / PX)); }
   size(); addEventListener('resize', () => { size(); lastDraw = 0; kick(); });
   addEventListener('scroll', () => { lastDraw = 0; kick(); }, { passive: true }); // on phones the planet scrolls with the page
   function setPlanet(p) {
@@ -184,7 +185,24 @@ void main(){
           if (im.complete) { const s = Math.round(rad * 2.3); g2.drawImage(im, Math.round(cx - s / 2), Math.round(cv.height - cy - s / 2), s, s); } }
       }
     }
+    if (now - lastShip >= 1000 / 15 - 2) { lastShip = now; drawShipSprite(now); }
     if (!document.hidden) raf = requestAnimationFrame(render);
+  }
+  let lastShip = 0;
+  function drawShipSprite(now) { // the ship sits to the left of the planet; it bobs while the timer runs and leaves a flame while traveling
+    gs.clearRect(0, 0, sv.width, sv.height);
+    if (!info || !info.ship || !window.Solarist.shipSprite) return;
+    const r = info.spot && info.spot.getBoundingClientRect(); if (!r || !r.width) return;
+    const img = window.Solarist.shipSprite(info.ship.design, info.ship.color, 1);
+    const cx = (r.left + r.width / 2) / PX, cy = (r.top + r.height / 2) / PX, rad = Math.min(r.width, r.height) / PX * .44;
+    const moving = info.running && !reduceMotion.matches, t = now / 1000;
+    const bob = moving ? Math.round(Math.sin(t * 2.2)) : 0;
+    const travel = info.running && (info.kind === 'explore' || info.kind === 'distress' || info.kind === 'fight');
+    const half = r.width / PX / 2;
+    let x = Math.round(cx - Math.min(rad * (travel ? 1.25 : 1.2), half - 4) - 18), y = Math.round(cy + (travel ? 0 : rad * .6) - 4 + bob);
+    x = Math.max(Math.round(r.left / PX) + 4, x);
+    if (travel && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#ffb879'; gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x - f - 1, y + 4, 2, 1); }
+    gs.imageSmoothingEnabled = false; gs.drawImage(img, x, y);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(render); }
   document.addEventListener('visibilitychange', () => { lastNow = 0; if (!document.hidden) kick(); });

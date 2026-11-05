@@ -24,7 +24,7 @@ button, select, input { font: inherit; color: inherit; }
 img { image-rendering: pixelated; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 [hidden] { display: none !important; }
-.sx-view { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; z-index: 0; display: block; }
+.sx-view { pointer-events: none; position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; z-index: 0; display: block; }
 .boot { position: relative; z-index: 1; margin: 0; padding: 40vh 0 0; font: 600 20px var(--ui); color: var(--mute); text-align: center; }
 
 /* ---------- buttons and fields ---------- */
@@ -37,7 +37,7 @@ img { image-rendering: pixelated; }
 .sl-link { padding: 0; background: none; border: 0; color: var(--amber); font: 500 16px var(--ui); cursor: pointer; text-decoration: underline; text-decoration-color: var(--dim); text-underline-offset: 3px; }
 .sl-link:hover:not(:disabled) { text-decoration-color: var(--amber); }
 .sl-link:disabled { color: var(--mute); text-decoration: none; cursor: default; }
-select, input[type="search"] { padding: 5px 8px; min-height: 34px; font: 16px var(--ui); color: var(--ink); background: #000; border: 1px solid var(--dim); border-radius: 0; }
+select, input[type="search"], input[type="text"] { padding: 5px 8px; min-height: 34px; font: 16px var(--ui); color: var(--ink); background: #000; border: 1px solid var(--dim); border-radius: 0; }
 select option, select optgroup { background: #000; color: var(--ink); }
 input[type="search"]::placeholder { color: var(--mute); }
 .sl-muted { color: var(--mute); font-size: 15px; }
@@ -329,6 +329,19 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sl-reports li { margin: 3px 0; } .sl-reports small { color: var(--mute); }
 .sl-reports .sl-rep-core, .sl-reports .sl-rep-species, .sl-reports .sl-rep-odd { color: var(--white); } .sl-reports .sl-rep-secret { font-style: italic; }
 .sl-reports .sl-rep-fac { color: var(--amber); } .sl-reports .sl-rep-ev small { color: var(--red); }
+
+/* ---------- hangar ---------- */
+.sx-hangar { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.sx-shipbig { width: 216px; height: 108px; image-rendering: pixelated; }
+.sx-hangar .sl-find { width: 260px; display: block; margin: 4px 0 8px; }
+.sx-swatches, .sx-designs { display: flex; flex-wrap: wrap; gap: 8px; }
+.sx-swatch { display: flex; align-items: center; gap: 8px; padding: 5px 10px 5px 6px; background: none; border: 1px solid var(--line); color: var(--ink); font: 500 15px var(--ui); cursor: pointer; }
+.sx-swatch i { width: 18px; height: 18px; display: block; }
+.sx-swatch.on, .sx-design.on { border-color: var(--amber); }
+.sx-swatch:disabled, .sx-design:disabled { opacity: .45; cursor: default; }
+.sx-design { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 116px; padding: 10px 6px 8px; background: none; border: 1px solid var(--line); color: var(--ink); cursor: pointer; }
+.sx-design img { width: 72px; height: 36px; image-rendering: pixelated; }
+.sx-design b { font: 600 17px var(--ui); color: var(--white); } .sx-design small { font-size: 14px; color: var(--mute); }
 
 /* ---------- collection ---------- */
 .sl-col-g { padding-bottom: 6px; border-bottom: 1px solid var(--line); }

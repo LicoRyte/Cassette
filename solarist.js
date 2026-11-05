@@ -400,6 +400,26 @@
   const itemCat = id => CATS.find(([c]) => c === parseId(id).c) || CATS[0];
   // where it was found decides what kind of thing it is: living worlds give specimens, outlaws give weapon parts...
   let TECH = {}; // researched techs (set when the game starts)
+  // Ship designs (18 x 9 pixels, facing right). h hull, s hull shade, d dark trim, c cockpit, r accent stripe
+  const SHIP_DESIGNS = {
+    Scout: ['.....ddd..........', '....dssdd.........', '..r.dhhhhdd.......', '.rrdhhhhhhhccd....', 'rrrdhhhhhhhcccchh.', '.rrdsssssssssssd..', '..r.dssssdd.......', '....dssdd.........', '.....ddd..........'],
+    Hauler: ['..................', '.dddddddddd.......', 'rdhhhhhhhhhdd.....', 'rdhhshhshhhhccd...', 'rdhhshhshhhhcccdd.', 'rdssssssssssssd...', 'rdddddddddddd.....', '.r..r..r..........', '..................'],
+    Needle: ['..................', '..................', 'r..dd.............', 'rrdhhhhhhhhhhhd...', 'rrdhhhhhhhhhhccchh', 'rrdssssssssssssd..', 'r..dd.............', '..................', '..................'],
+    Saucer: ['......dddddd......', '....ddhhhhhhdd....', '...dhhhccccchhd...', '.ddhhhhhhhhhhhhdd.', 'rhhhhhhhhhhhhhhhhr', '.ddssssssssssssdd.', '...ddssssssssdd...', '.....r..r..r......', '..................'],
+    Manta: ['d.................', 'dsd...............', 'dhhsd.............', '.dhhhhhhhhhdd.....', 'rrhhhhhhhhhhcccdd.', '.dsssssssssdd.....', 'dsssd.............', 'dsd...............', 'd.................'],
+  };
+  const HULL_COLORS = { Lilac: '#d9bdc8', White: '#ffffff', Sky: '#aee2ff', Peach: '#ffb879', Rose: '#ee8fcb', Lime: '#abdd64', Indigo: '#6d80fa', Crimson: '#ea6262' };
+  const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return snap([(n >> 16 & 255) * f, (n >> 8 & 255) * f, (n & 255) * f]); };
+  const shipCache = new Map();
+  function shipSprite(design, color, scale) { // returns a canvas with the ship drawn, palette-snapped
+    const key = design + color + scale; if (shipCache.has(key)) return shipCache.get(key);
+    const rows = SHIP_DESIGNS[design] || SHIP_DESIGNS.Scout, hull = HULL_COLORS[color] || HULL_COLORS.Lilac, sc = scale || 1;
+    const cv = document.createElement('canvas'); cv.width = 18 * sc; cv.height = 9 * sc; const g = cv.getContext('2d');
+    const rgbS = c => 'rgb(' + c.join(',') + ')';
+    const map = { h: hull, s: rgbS(shade(hull, .72)), d: rgbS(shade(hull, .45)), c: '#aee2ff', r: color === 'Crimson' ? '#ffb879' : '#ea6262' };
+    rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const k = row[i]; if (k !== '.') { g.fillStyle = map[k]; g.fillRect(i * sc, j * sc, sc, sc); } } });
+    shipCache.set(key, cv); return cv;
+  }
   function catWeights(p, kind) {
     if (kind === 'loot') return { wpn: 5, tec: 3, cur: 1, mat: 1, map: 1 };
     if (kind === 'gift') return { cur: 2, art: 2, rel: 2, map: 1, tec: 1 };
@@ -526,7 +546,7 @@
     engineBonusPerLevel: .03, fight: { min: 40, max: 80 }, fullCycle: { base: 50, perHullLevel: 15 }, bountyMultiplier: 1.5,
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 10, Uncommon: 25, Rare: 70, Legendary: 200 }, perHabitabilityPercent: .5, earthLike: 25, earthLikeAt: 80, perLifeLevel: 8, anomaly: 25, rings: 8, perMoon: 2, moonCap: 20, perRecord: 30 },
-    distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 60, Uncommon: 150, Rare: 400, Legendary: 1200 }, sellRatio: .35 }, moduleCost: { base: 50, growth: 1.25 }, facilityCost: { base: 64, growth: 1.6, maxLevel: 10 },
+    distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 60, Uncommon: 150, Rare: 400, Legendary: 1200 }, sellRatio: .35 }, roomCost: { base: 120, growth: 1.7, maxLevel: 5 }, crewCost: { base: 150, perCrew: 120 }, shipStyleCost: { color: 200, design: 600 }, moduleCost: { base: 50, growth: 1.25 }, facilityCost: { base: 64, growth: 1.6, maxLevel: 10 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
     if (!o || typeof o !== 'object') return d;
@@ -583,13 +603,14 @@
     const hasFac = (p, k) => !!(p.post && p.post.tp && p.post.tp.fac.some(x => x.k === k));
     function building() {
       if (!(S.mission > 0) || !S.job) return null;
+      if (S.job.k === 'room') return ROOMS[S.job.fac] && !roomLv(S.job.fac) ? { k: 'room', fac: S.job.fac, p: null, num: 0 } : null;
       const j = S.job, f = byNum(j.num); if (!f) return null; const p = f.p;
       if (j.k === 'post' && !p.post) return { k: 'post', p };
       if (j.k === 'upgrade' && p.post && !p.post.tp) return { k: 'upgrade', p };
       if (j.k === 'add' && p.post && p.post.tp && FAC[j.fac] && !hasFac(p, j.fac)) return { k: 'add', p, fac: j.fac };
       return null;
     }
-    const jobText = j => j.k === 'post' ? 'Building a Listening Post on ' + nm(j.p) : j.k === 'upgrade' ? 'Upgrading ' + nm(j.p) + ' to a Travelers\' Post' : 'Building a ' + FAC[j.fac][1] + ' at ' + nm(j.p);
+    const jobText = j => j.k === 'room' ? 'Building the ' + ROOMS[j.fac][1] + ' on your ship' : j.k === 'post' ? 'Building a Listening Post on ' + nm(j.p) : j.k === 'upgrade' ? 'Upgrading ' + nm(j.p) + ' to a Travelers\' Post' : 'Building a ' + FAC[j.fac][1] + ' at ' + nm(j.p);
     const jobKey = j => j.k + ':' + (j.p ? j.p.num : j.num) + ':' + (j.fac || '');
     function buildOptions() { // every job you could do next, grouped
       const out = { Facilities: [], Upgrades: [], 'New Listening Posts': [] };
@@ -717,7 +738,57 @@
       comms: ['📻', 'Comms', l => '1 in ' + Math.round(1 / evChance(l)), 'sessions has a deep-space event'],
       hull: ['🛡', 'Hull', l => '+' + Math.round((E.fullCycle.base + (l - 1) * E.fullCycle.perHullLevel) * E.incomeMultiplier) + ' ✦', 'for every Full Cycle'],
     };
-    const modCost = k => Math.round(E.moduleCost.base * Math.pow(E.moduleCost.growth, lvl(k) - 1));
+    // ---------- your ship: rooms (built with a study session, upgraded with resources), crew, and its look ----------
+    const ROOMS = {
+      quarters: ['🛏', 'Crew Quarters', 'Two bunks per level, so you can recruit crew'],
+      galley: ['🍳', 'Galley', 'Good food: +5% resources from every session per level'],
+      lab: ['🧪', 'Science Lab', '+4 Knowledge from every session per level'],
+      workshop: ['🔧', 'Workshop', 'Ship module upgrades cost 5% less per level'],
+      deck: ['🔭', 'Observation Deck', 'Arrival encounters 2 percentage points more likely per level'],
+      hold: ['📦', 'Cargo Hold', 'Trade Stations stock one more item per level, and pay 5% more for spares'],
+      medbay: ['🩹', 'Med Bay', 'Distress Runs pay 5% more per level'],
+    };
+    if (!S.rooms) S.rooms = {}; if (!S.crew) S.crew = []; if (!S.ship) S.ship = { name: 'The Lantern', color: 'Lilac', design: 'Scout', colors: ['Lilac'], designs: ['Scout'] };
+    const roomLv = k => S.rooms[k] || 0, ROOM_MAX = Math.max(1, Math.round(E.roomCost.maxLevel));
+    const roomCost = lv => Math.round(E.roomCost.base * Math.pow(E.roomCost.growth, lv - 1)); // lv = level you upgrade to
+    const bunks = () => roomLv('quarters') * 2;
+    function upgradeRoom(k) { const lv = roomLv(k), c = roomCost(lv + 1); if (!lv || lv >= ROOM_MAX || S.dust < c) return; S.dust -= c; S.rooms[k] = lv + 1; shopXP(12); save(); draw(); }
+    const ROLES = {
+      Engineer: ['🔧', '+8 resources every session', ['{n} rewired the coffee machine. It now makes tea, which is worse.', '{n} spent the session inside an engine panel and came out humming.', '{n} found one loose bolt in the reactor housing and kept it as a lucky charm.', '{n} tuned the thrusters by ear. Nobody knows how.']],
+      Cook: ['🍳', '+6 XP every session', ['{n} made soup out of whatever was left. Everyone asked for seconds.', '{n} burned the toast on purpose. "Character," they said.', '{n} grew basil in a helmet. The galley smells amazing.', '{n} held a tasting of mystery sauces. Two crew members are still thinking about sauce #3.']],
+      Scientist: ['🔬', '+6 Knowledge every session', ['{n} filled three whiteboards with equations and then erased them, satisfied.', '{n} named a microbe after the ship\'s cat. The ship has no cat.', '{n} spent the session staring at the planet through a spectrometer.', '{n} wrote a paper titled "Probably Not Aliens: A Study".']],
+      Pilot: ['🧑‍✈️', '+5 resources and +4 XP every session', ['{n} flew the whole stretch with one hand and a sandwich in the other.', '{n} found a shortcut through an asteroid field. The rest of the crew screamed politely.', '{n} practiced barrel rolls in the simulator for an hour.', '{n} insists the ship pulls slightly to the left.']],
+      Scout: ['🛰', 'Arrival encounters 3 points more likely', ['{n} spotted something shiny on the scanners and won\'t stop talking about it.', '{n} mapped three nearby comets just for fun.', '{n} kept watch at the window the whole session. Saw a lot of space.', '{n} marked a "probably interesting" spot on the chart.']],
+      Trader: ['💰', 'Trade Station prices 10% lower', ['{n} haggled with the vending machine and won.', '{n} reorganized the cargo hold by resale value.', '{n} sold a story about the last planet to a passing freighter.', '{n} practiced their "I\'m walking away" face in the mirror.']],
+      Medic: ['🩹', 'Distress Runs pay 10% more', ['{n} ran a check-up on everyone. Prescription: more sleep.', '{n} reorganized the Med Bay by color.', '{n} patched up a crew member who lost a fight with a door.', '{n} taught a first-aid class. Attendance was mandatory and cookies were provided.']],
+      Storyteller: ['📖', '+4 Knowledge and +3 XP every session', ['{n} told the story of the first explorer during dinner. Nobody moved.', '{n} wrote a song about the last outlaw fight. It has nine verses.', '{n} read old transmissions aloud with dramatic voices.', '{n} started a book club. The book is the ship\'s manual.']],
+    };
+    const CREW_FIRST = ['Ines', 'Tomo', 'Ruth', 'Oskar', 'Mira', 'Juno', 'Sol', 'Kit', 'Ada', 'Bram', 'Lio', 'Noor', 'Pim', 'Vera', 'Dex', 'Haru', 'Zia', 'Otto', 'Wen', 'Esme', 'Rafi', 'Yuki', 'Bo', 'Cass'];
+    const CREW_LAST = ['Varga', 'Okafor', 'Lindqvist', 'Moreau', 'Tanaka', 'Reyes', 'Kowalski', 'Achebe', 'Haddad', 'Novak', 'Sato', 'Brandt', 'Quinn', 'Ferro', 'Ishii', 'Dunmore'];
+    const TRAITS = ['hums while working', 'is afraid of comets', 'collects rocks from every world', 'never takes off their jacket', 'talks to the ship', 'keeps a plant named Gerald', 'can\'t sleep without the engine noise', 'writes letters nobody will read', 'laughs at their own jokes first', 'has a different hat every day', 'is very good at cards', 'claims to have been born on a comet'];
+    const crewCost = () => Math.round(E.crewCost.base + E.crewCost.perCrew * S.crew.length);
+    function crewPool() { // three people looking for work, refreshed every day
+      if (S.crewPool && S.crewPool.day === today()) return S.crewPool.list;
+      const pk = a => a[Math.floor(Math.random() * a.length)], roles = Object.keys(ROLES).sort(() => Math.random() - .5);
+      S.crewPool = { day: today(), list: roles.slice(0, 3).map(role => ({ name: pk(CREW_FIRST) + ' ' + pk(CREW_LAST), role, trait: pk(TRAITS) })) }; save();
+      return S.crewPool.list;
+    }
+    function recruit(i) { const c = crewPool()[i], cost = crewCost(); if (!c || S.crew.length >= bunks() || S.dust < cost) return; S.dust -= cost; S.crew.push(Object.assign({ joined: Date.now() }, c)); S.crewPool.list.splice(i, 1);
+      S.events.push({ ic: ROLES[c.role][0], title: c.name + ' joined the crew', t: c.name + ' (' + c.role.toLowerCase() + ') ' + c.trait + '.', at: Date.now() }); shopXP(20); save(); draw(); }
+    function dismiss(i) { const c = S.crew[i]; if (!c) return; S.crew.splice(i, 1); S.events.push({ ic: '👋', title: c.name + ' left the crew', t: 'They\'ll find another ship. Probably a worse one.', at: Date.now() }); save(); draw(); }
+    const crewN = role => S.crew.filter(c => c.role === role).length;
+    function shipActivity(reps) { // what the crew got up to this session, with their small bonuses
+      if (!S.crew.length) return;
+      const pk = a => a[Math.floor(Math.random() * a.length)];
+      let res = crewN('Engineer') * 8 + crewN('Pilot') * 5, xp = crewN('Cook') * 6 + crewN('Pilot') * 4 + crewN('Storyteller') * 3, kn = crewN('Scientist') * 6 + crewN('Storyteller') * 4;
+      if (res) addDust(res); award(xp, kn);
+      const who = S.crew.slice().sort(() => Math.random() - .5).slice(0, S.crew.length > 2 ? 2 : 1);
+      who.forEach(c => { const t = pk(ROLES[c.role][2]).replace('{n}', c.name.split(' ')[0]); reps.push({ ev: { battle: true, ic: ROLES[c.role][0], title: 'Ship activity', t } }); S.events.push({ ic: ROLES[c.role][0], title: 'Ship activity: ' + c.name, t, at: Date.now() }); });
+    }
+    function buyStyle(kind, v) { const cost = kind === 'color' ? E.shipStyleCost.color : E.shipStyleCost.design, list = kind === 'color' ? S.ship.colors : S.ship.designs;
+      if (!list.includes(v)) { if (S.dust < cost) return; S.dust -= cost; list.push(v); shopXP(10); }
+      S.ship[kind] = v; save(); draw(); }
+    const modCost = k => Math.round(E.moduleCost.base * Math.pow(E.moduleCost.growth, lvl(k) - 1) * (1 - .05 * roomLv('workshop')));
     const facCost = lv => Math.round(E.facilityCost.base * Math.pow(E.facilityCost.growth, lv - 2) * (hasT('eco3') ? .85 : 1)); // lv = the level you're upgrading to
     const FAC_MAX = Math.max(1, Math.round(E.facilityCost.maxLevel));
     const INCOME = E.incomeMultiplier; // every stardust payout is multiplied by this (apps/solarist-economy.json)
@@ -842,7 +913,7 @@
         reps.unshift({ ev: { battle: true, ic: '🆘', title: title + ' · Act ' + ROMAN(d.n), t: beats[bi] } });
         return 'Act ' + ROMAN(d.n) + ' of the Distress Run done. ' + (d.need - d.n) + (d.need - d.n === 1 ? ' act' : ' acts') + ' to go.';
       }
-      const dust = Math.round(E.distressRun.base + Math.random() * E.distressRun.random); S.dust += dust; S.dustTotal += dust;
+      const dust = Math.round((E.distressRun.base + Math.random() * E.distressRun.random) * (1 + .05 * roomLv('medbay') + Math.min(.3, .1 * crewN('Medic')))); S.dust += dust; S.dustTotal += dust;
       const bonus = [];
       const opts = ['dust', 'item', 'event'].concat(S.coord ? [] : ['coord']), pick = opts[Math.floor(Math.random() * opts.length)];
       if (pick === 'dust') { const b = Math.round(E.distressRun.bonusMin + Math.random() * Math.max(0, E.distressRun.bonusMax - E.distressRun.bonusMin)); S.dust += b; S.dustTotal += b; bonus.push('a bonus of ✦ ' + b + ' from a grateful passenger'); }
@@ -891,10 +962,11 @@
     // and buys your spares. It leaves when you travel on.
     const TRADERS = ['The Wandering Bazaar', 'Kessa Freeport', 'The Rusty Ledger', 'Station Halfway', 'The Collector\'s Barge', 'Moonlight Exchange', 'The Last Stop Market', 'Brother Ilo\'s Curio Shop', 'The Orbit Swap', 'Dockside Antiques'];
     const TPRICE = r => Math.round(E.tradeStation.prices[r] || 100);
+    const buyDisc = () => 1 - Math.min(.3, .1 * crewN('Trader'));
     function loseItem(id) { const it = S.items[id]; if (!it) return; it.n -= 1; if (it.n <= 0) delete S.items[id]; }
     function makeTrader(p) {
       const stock = [], seen = new Set();
-      for (let k = 0; k < 12 && stock.length < 4; k++) { const it = rollItem(p, true, 'trade'); if (seen.has(it.id)) continue; seen.add(it.id); stock.push({ id: it.id, price: Math.round(TPRICE(it.rar) * (.85 + Math.random() * .3)) }); }
+      for (let k = 0; k < 16 && stock.length < 4 + roomLv('hold'); k++) { const it = rollItem(p, true, 'trade'); if (seen.has(it.id)) continue; seen.add(it.id); stock.push({ id: it.id, price: Math.round(TPRICE(it.rar) * (.85 + Math.random() * .3) * buyDisc()) }); }
       const owned = Object.keys(S.items).filter(k => itemName(k) !== '???').sort((a, b) => S.items[b].n - S.items[a].n), wants = [];
       owned.slice(0, 6).sort(() => Math.random() - .5).slice(0, 2).forEach(want => {
         const r = parseId(want).r, up = ITEM_RARS[Math.min(3, ITEM_RARS.indexOf(r) + (Math.random() < .35 ? 1 : 0))];
@@ -906,12 +978,12 @@
     function tradeLog(t) { S.events.push({ ic: '🏪', title: S.trader.name, t, at: Date.now() }); }
     function traderBuy(i) { const o = S.trader.stock[i]; if (!o || S.dust < o.price) return; S.dust -= o.price; const nw = gainItem({ id: o.id }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(5, 0); S.trader.stock.splice(i, 1); S.cnt.bought = (S.cnt.bought || 0) + 1; tradeLog('Bought ' + itemName(o.id) + ' for ✦ ' + o.price + '.'); shopXP(0); save(); draw(); }
     function traderSwap(i) { const w = S.trader.wants[i]; if (!w || !S.items[w.want]) return; loseItem(w.want); const nw = gainItem({ id: w.give }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(8, 0); S.trader.wants.splice(i, 1); S.cnt.swaps = (S.cnt.swaps || 0) + 1; tradeLog('Swapped ' + itemName(w.want) + ' for ' + itemName(w.give) + '.'); shopXP(0); save(); draw(); }
-    function traderSell(id) { const it = S.items[id]; if (!it || it.n < 2) return; const v = Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME); loseItem(id); S.dust += v; S.dustTotal += v; S.cnt.spares = (S.cnt.spares || 0) + 1; save(); draw(); }
+    function traderSell(id) { const it = S.items[id]; if (!it || it.n < 2) return; const v = Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME * (1 + .05 * roomLv('hold'))); loseItem(id); S.dust += v; S.dustTotal += v; S.cnt.spares = (S.cnt.spares || 0) + 1; save(); draw(); }
     // everything that happens at the end of a study session, shown together under the timer
     function sessionEnd(reps, p, ev) {
       const notes = [];
       let earned = Math.max(E.session.minimum, Math.round(S.set.focus * E.session.perStudyMinute)) + (p ? RAR_BONUS[p.rarity] || 0 : 0) + (ev ? E.session.eventBonus : 0);
-      earned *= (1 + (lvl('engine') - 1) * E.engineBonusPerLevel) * (hasT('shp1') ? 1.1 : 1);
+      earned *= (1 + (lvl('engine') - 1) * E.engineBonusPerLevel) * (hasT('shp1') ? 1.1 : 1) * (1 + .05 * roomLv('galley'));
       notes.push('✦ +' + addDust(earned) + ' resources');
       if (traderNew) { notes.push('🏪 ' + traderNew.name + ' is docked at ' + nm(p) + '. Visit it under Trade on the right before you travel on.'); traderNew = null; }
       if (encGot) { notes.push(encGot.ic + ' +' + encGot.dust + ' resources (' + encGot.title.replace(/!$/, '') + ')'); encGot = null; }
@@ -919,6 +991,7 @@
       if (p) { checkRecords(p, notes); checkBounties({ planet: p }, notes); }
       checkBounties({ session: true }, notes);
       growPosts(notes);
+      shipActivity(reps); if (roomLv('lab')) award(0, 4 * roomLv('lab'));
       if (!S.rec.dayN || S.todayN > S.rec.dayN.v) { if (S.rec.dayN && S.todayN > S.rec.dayN.v) notes.push('🏆 New record! Most sessions in a day: ' + S.todayN); S.rec.dayN = { v: S.todayN, date: Date.now() }; }
       reps.forEach(({ rep }) => { if (rep) award(0, KN_REP[rep.k] || 10); }); // everything heard teaches you something
       if (ev && !ev.battle) award(10, 15);
@@ -1059,7 +1132,7 @@
     // the world shown in the middle of the screen
     function scenePlanet(kind) {
       const b = building();
-      return kind === 'build' ? b.p : kind === 'fight' ? heldP() : kind === 'distress' ? null : kind === 'explore' && running ? null : atP();
+      return kind === 'build' ? (b.p || atP()) : kind === 'fight' ? heldP() : kind === 'distress' ? null : kind === 'explore' && running ? null : atP();
     }
     const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : building() ? 'build' : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
     function drawName() {
@@ -1138,16 +1211,23 @@
       out.push(el('div', { class: 'sx-queue' + (bj ? ' on' : '') }, el('small', {}, 'Next study session'),
         el('b', {}, bj ? jobText(bj) : S.dr ? 'The Distress Run comes first' : 'Nothing queued'),
         bj && !locked ? el('button', { type: 'button', class: 'sl-link', onclick: () => { S.mission = 0; S.job = null; save(); hint.textContent = ''; draw(); } }, 'Cancel') : null));
-      if (!S.found.length) { out.push(el('p', { class: 'sl-muted' }, 'Find a world first (Explore), then build a Listening Post on it.')); return out; }
       const all = S.found.slice().reverse().map(f => f.p);
-      if (buildNum == null || !byNum(buildNum)) { const a = atP(); buildNum = (a && !held(a) ? a : posts().length ? posts()[posts().length - 1].p : all[0]).num; }
+      if (!all.length) buildNum = 0;
+      if (buildNum == null || (buildNum !== 0 && !byNum(buildNum))) { const a = atP(); buildNum = (a && !held(a) ? a : posts().length ? posts()[posts().length - 1].p : all[0]).num; }
       const label = p => nm(p) + (S.at === p.num ? ' (here)' : '') + (p.post ? (p.post.tp ? ', Travelers\' Post' : ', Listening Post') : '') + (held(p) ? ', outlaws' : '');
       const withPost = all.filter(p => p.post), without = all.filter(p => !p.post);
       const pick = el('select', { class: 'sx-wpick', 'aria-label': 'World to build on' },
+        el('option', { value: 0, selected: buildNum === 0 || null }, 'Your ship: ' + S.ship.name),
         withPost.length ? el('optgroup', { label: 'Your posts' }, withPost.map(p => el('option', { value: p.num, selected: p.num === buildNum || null }, label(p)))) : null,
         without.length ? el('optgroup', { label: 'Other worlds' }, without.slice(0, 300).map(p => el('option', { value: p.num, selected: p.num === buildNum || null }, label(p)))) : null);
       pick.addEventListener('change', () => { buildNum = +pick.value; drawRight(); });
-      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'World'), pick));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Where'), pick));
+      if (buildNum === 0) { // rooms on your own ship
+        const rows = Object.entries(ROOMS).map(([k, [ic, name, what]]) => { const lv = roomLv(k), c = roomCost(lv + 1);
+          return up(ic + ' ' + name + (lv ? ' ' + lv : ''), what + (lv ? '' : '. Takes one study session.'), !lv ? queue('room:0:' + k) : lv >= ROOM_MAX ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < c || null, onclick: () => upgradeRoom(k) }, '✦ ' + c.toLocaleString()), lv ? '' : 'unbuilt'); });
+        out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Rooms'), el('p', { class: 'sl-muted' }, 'New rooms take a study session. Upgrades cost resources. Crew live in the Crew Quarters (Ship page, Crew).'), ...rows));
+        return out;
+      }
       const p = byNum(buildNum).p, rows = [];
       if (held(p)) rows.push(el('p', { class: 'sl-muted' }, 'Outlaws hold ' + nm(p) + '. Fight them off (Explore turns into Fight) before building here.'));
       else {
@@ -1387,7 +1467,10 @@
           hint.textContent = '🧭 Interplanetary Coordinator charged. Your next trip will head somewhere promising. Now a ' + MODES[mode].toLowerCase() + '.';
         } else if (target) {
           const tp2 = target.p; let msg;
-          if (target.k === 'post') {
+          if (target.k === 'room') {
+            S.rooms[target.fac] = 1;
+            msg = 'The ' + ROOMS[target.fac][1] + ' is ready. ' + ROOMS[target.fac][2] + '.';
+          } else if (target.k === 'post') {
             tp2.post = { built: Date.now(), reports: [] };
             const autoTune = !tp; if (autoTune) S.tuned = tp2.num;
             msg = 'Listening Post built on ' + nm(tp2) + '. ' + (autoTune ? 'The satellite is tuned to it, so it reports in every study session.' : 'Tune the satellite to it on the Ship tab to hear from it.');
@@ -1398,11 +1481,11 @@
             tp2.post.tp.fac.push({ k: target.fac, at: Date.now() });
             msg = FAC[target.fac][0] + ' ' + FAC[target.fac][1] + ' opened at ' + nm(tp2) + '. When the post is tuned, you\'ll hear what goes on there.';
           }
-          award(target.k === 'post' ? 30 : target.k === 'upgrade' ? 40 : 25, 0);
+          award(target.k === 'post' ? 30 : target.k === 'upgrade' ? 40 : 25, 0); if (target.k === 'room') S.events.push({ ic: ROOMS[target.fac][0], title: 'New room: ' + ROOMS[target.fac][1], t: msg, at: Date.now() });
           S.mission = 0; S.job = null;
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
-          showCard(tp2, target.k === 'post' ? 'built' : target.k === 'upgrade' ? 'upgraded' : 'opened');
+          showCard(tp2 || null, target.k === 'post' ? 'built' : target.k === 'upgrade' ? 'upgraded' : 'opened');
           toBreak();
           hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
         } else if (discovering()) {
@@ -1436,7 +1519,7 @@
           S.found.push({ at: Date.now(), p }); S.at = p.num;
           S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; if (lucky) S.cnt.lucky++; if (outlaws) S.cnt.outlaws++;
           award(20 + ({ Uncommon: 10, Rare: 25, Legendary: 60 }[p.rarity] || 0), 0);
-          if (!outlaws && Math.random() < ENC_CHANCE + (hasT('nav1') ? .05 : 0)) {
+          if (!outlaws && Math.random() < ENC_CHANCE + (hasT('nav1') ? .05 : 0) + .02 * roomLv('deck') + .03 * crewN('Scout')) {
             const [ic, title, tpl, lo, hi] = ENCOUNTERS[Math.floor(Math.random() * ENCOUNTERS.length)];
             const dust = addDust((lo + Math.random() * (hi - lo)) * E.encounters.scale * (RANK[p.rarity] >= 2 ? E.encounters.rareWorldMultiplier : 1)), t = tpl.split('{p}').join(nm(p));
             p.enc = { ic, title, t, dust }; encGot = p.enc; award(10, 5); S.cnt.enc++;
@@ -1483,7 +1566,7 @@
       barFill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', Math.round(pct));
       if (hooks.scene) { // what the flight scene should show
         const kind = sceneKind();
-        hooks.scene({ mode, kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: scenePlanet(kind), coord: !!S.coord, spot: planetSpot });
+        hooks.scene({ mode, kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: scenePlanet(kind), coord: !!S.coord, spot: planetSpot, ship: S.ship });
       }
       if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
     }
@@ -1506,7 +1589,7 @@
         if (k === 'discover') b.title = !atP() ? 'Find a world first' : held(atP()) ? 'Outlaws hold ' + nm(atP()) + '. Drive them out first' : 'Survey ' + nm(atP()) + ' (where you are now) for collectibles';
         if (k === 'explore') { const o = heldP(); b.firstChild.textContent = o ? '⚔' : '🚀'; b.lastChild.textContent = o ? 'Fight' : S.coord ? 'Explore (lucky)' : 'Explore'; b.title = o ? 'Outlaws hold ' + nm(o) + ': fight them off with one study session before you can travel again' : MISSIONS[0][3]; b.classList.toggle('sl-fight', !!o); }
         if (k === 'charge') b.title = S.coord ? 'Already charged: your next Explore is a lucky one' : MISSIONS[3][3];
-        if (k === 'build') { b.title = canBuild ? MISSIONS[2][3] : 'Nothing left to build'; const bj = building(); b.lastChild.textContent = bj ? 'Build: ' + (bj.k === 'post' ? 'Listening Post' : bj.k === 'upgrade' ? 'Travelers\' Post' : FAC[bj.fac][1]) : 'Build'; b.hidden = !bj && cm !== 'build'; }
+        if (k === 'build') { b.title = canBuild ? MISSIONS[2][3] : 'Nothing left to build'; const bj = building(); b.lastChild.textContent = bj ? 'Build: ' + (bj.k === 'room' ? ROOMS[bj.fac][1] : bj.k === 'post' ? 'Listening Post' : bj.k === 'upgrade' ? 'Travelers\' Post' : FAC[bj.fac][1]) : 'Build'; b.hidden = !bj && cm !== 'build'; }
       });
       buildSel.hidden = cm !== 'build'; buildSel.disabled = locked;
       if (cm === 'build') { fillBuildSel(buildSel); buildSel.value = jobKey(building()); }
@@ -1579,13 +1662,39 @@
         lvMsg && Date.now() - lvMsgAt < 10000 ? el('p', { class: 'sl-lv-msg' }, lvMsg) : null, lvBar('xp', '⭐', CAPT, true), lvBar('kn', '📚', KNOW, true));
       const drGroup = group('🆘 Distress Run', el('p', {}, S.dr ? 'In progress: ' + DISTRESS[S.dr.sc][1] + ', Act ' + ROMAN(S.dr.n + 1) + ' of ' + ROMAN(S.dr.need) + '.' : S.drDay === today() ? 'Today\'s run is used up. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'Available at the start of your next cycle (right after a long break).' : 'Earn a ★ Full Cycle today (no skipping for a whole cycle) and a distress call comes in when the long break ends.'),
         el('p', { class: 'sl-muted' }, 'Once a day: a whole cycle of study sessions with no other missions, for about ✦ ' + E.distressRun.base + '–' + (E.distressRun.base + E.distressRun.random) + ', a random bonus, 250 XP and 120 Knowledge. ' + (S.drN || 0) + ' completed so far.'));
-      const SUB = { Captain: [rank], Goals: [drGroup, bounties, records],
+      const SUB = { Captain: [rank], Crew: crewView(group), Hangar: hangarView(group), Goals: [drGroup, bounties, records],
         Logs: [trans, evLog], Stats: statsView(group) };
       if (!SUB[shipTab]) shipTab = 'Captain';
       const subBtns = Object.keys(SUB).map(k => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === shipTab), onclick: () => { shipTab = k; drawShip(); } }, k));
       shipPane.replaceChildren(el('div', { class: 'sl-stabs sl-shiptabs', role: 'tablist' }, subBtns), el('div', { class: 'sl-subpane' }, SUB[shipTab]));
     }
 
+    function crewView(group) {
+      const out = [], cost = crewCost(), free = bunks() - S.crew.length;
+      out.push(group('Your crew (' + S.crew.length + ' / ' + bunks() + ' bunks)', bunks() ? null : el('p', {}, 'Build the Crew Quarters first (Build tab, "Your ship"). Each level holds two crew.'),
+        S.crew.length ? el('div', { class: 'sl-mods' }, S.crew.map((c, i) => el('div', { class: 'sl-mod' }, el('span', { class: 'sl-mod-i' }, ROLES[c.role][0]),
+          el('span', { class: 'sl-row-t' }, el('b', {}, c.name), el('small', {}, c.role + '. ' + c.name.split(' ')[0] + ' ' + c.trait + '. ' + ROLES[c.role][1] + '.')), armBtn('Let go', 'Sure?', () => dismiss(i))))) : el('p', { class: 'sl-muted' }, 'Nobody aboard yet. Each crew member adds a Ship Activity: a little story and a small bonus every study session.')));
+      const pool = crewPool();
+      out.push(group('Looking for a ship', el('p', { class: 'sl-muted' }, 'New faces every day. Hiring costs ✦ ' + cost.toLocaleString() + (free > 0 ? '.' : '. You need a free bunk: upgrade the Crew Quarters.')),
+        pool.length ? el('div', { class: 'sl-mods' }, pool.map((c, i) => el('div', { class: 'sl-mod' }, el('span', { class: 'sl-mod-i' }, ROLES[c.role][0]),
+          el('span', { class: 'sl-row-t' }, el('b', {}, c.name + ', ' + c.role.toLowerCase()), el('small', {}, 'Says they ' + c.trait + '. ' + ROLES[c.role][1] + '.')),
+          el('button', { type: 'button', class: 'btn', disabled: free <= 0 || S.dust < cost || null, onclick: () => recruit(i) }, 'Hire ✦ ' + cost.toLocaleString())))) : el('p', { class: 'sl-muted' }, 'Everyone today has been hired. Check back tomorrow.')));
+      return out;
+    }
+    function hangarView(group) {
+      const big = el('img', { class: 'sx-shipbig', src: shipSprite(S.ship.design, S.ship.color, 12).toDataURL(), alt: S.ship.design + ' in ' + S.ship.color });
+      const nameIn = el('input', { type: 'text', class: 'sl-find', value: S.ship.name, maxlength: 28, 'aria-label': 'Ship name' });
+      nameIn.addEventListener('change', () => { S.ship.name = nameIn.value.trim().slice(0, 28) || 'The Lantern'; save(); draw(); });
+      const capL = lvInfo(S.xp).L;
+      const colors = Object.entries(HULL_COLORS).map(([k, hex]) => { const own = S.ship.colors.includes(k), on = S.ship.color === k;
+        return el('button', { type: 'button', class: 'sx-swatch' + (on ? ' on' : ''), title: k + (own ? '' : ' (✦ ' + E.shipStyleCost.color + ')'), disabled: (!own && S.dust < E.shipStyleCost.color) || null, onclick: () => buyStyle('color', k) }, el('i', { style: 'background:' + hex }), el('span', {}, own ? k : '✦ ' + E.shipStyleCost.color)); });
+      const DES_LV = { Scout: 1, Hauler: 5, Needle: 10, Saucer: 15, Manta: 20 };
+      const designs = Object.keys(SHIP_DESIGNS).map(k => { const own = S.ship.designs.includes(k), on = S.ship.design === k, lvOk = capL >= DES_LV[k];
+        return el('button', { type: 'button', class: 'sx-design' + (on ? ' on' : ''), disabled: (!own && (!lvOk || S.dust < E.shipStyleCost.design)) || null, onclick: () => buyStyle('design', k) },
+          el('img', { src: shipSprite(k, S.ship.color, 4).toDataURL(), alt: '' }), el('b', {}, k), el('small', {}, own ? (on ? 'Flying it' : 'Owned') : lvOk ? '✦ ' + E.shipStyleCost.design : 'Captain level ' + DES_LV[k])); });
+      return [group('Your ship', el('div', { class: 'sx-hangar' }, big, el('div', {}, el('label', { class: 'sl-muted' }, 'Name'), nameIn, el('p', { class: 'sl-muted' }, Object.keys(S.rooms).length + ' rooms, ' + S.crew.length + ' crew.')))),
+        group('Hull color', el('div', { class: 'sx-swatches' }, colors)), group('Design', el('p', { class: 'sl-muted' }, 'New designs unlock at higher Captain levels.'), el('div', { class: 'sx-designs' }, designs))];
+    }
     function statsView(group) { // everything you've done, for bragging rights
       const fmtN = n => (n || 0).toLocaleString(), allP = S.found.map(f => f.p), pl = posts().map(f => f.p), tps = pl.filter(p => p.post.tp);
       const facs = tps.reduce((a, p) => a.concat(p.post.tp.fac), []), facLv = facs.reduce((a, f) => a + (f.lv || 1), 0), maxed = facs.filter(f => (f.lv || 1) >= FAC_MAX).length;
@@ -1694,5 +1803,5 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden && running && remaining() <= 0) finish(); });
     return { running: () => running };
   }
-  window.Solarist = { mount, makePlanet, makeExtra, paint, lookOf };
+  window.Solarist = { mount, makePlanet, makeExtra, paint, lookOf, shipSprite };
 })();
