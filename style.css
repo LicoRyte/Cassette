@@ -330,6 +330,15 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sl-reports .sl-rep-core, .sl-reports .sl-rep-species, .sl-reports .sl-rep-odd { color: var(--white); } .sl-reports .sl-rep-secret { font-style: italic; }
 .sl-reports .sl-rep-fac { color: var(--amber); } .sl-reports .sl-rep-ev small { color: var(--red); }
 
+/* ---------- achievements ---------- */
+.sx-medals { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.sx-medal { display: grid; grid-template-columns: 30px 1fr; column-gap: 8px; padding: 8px 10px; border: 1px solid var(--line); opacity: .45; }
+.sx-medal.on { opacity: 1; border-color: var(--dim); }
+.sx-medal-i { grid-row: 1 / span 2; font-size: 20px; line-height: 1.2; filter: grayscale(1); } .sx-medal.on .sx-medal-i { filter: none; }
+.sx-medal b { font: 600 17px var(--ui); color: var(--white); } .sx-medal small { font-size: 14px; color: var(--mute); }
+.sx-toast { position: fixed; left: 24px; bottom: 24px; z-index: 7; max-width: 380px; padding: 10px 14px; background: #000; border: 1px solid var(--amber); font: 600 16px/1.4 var(--ui); color: var(--white); }
+.sx-toast div + div { font-weight: 500; color: var(--soft); }
+
 /* ---------- star map ---------- */
 .sx-mappane { max-width: 1200px; }
 .sx-maptools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

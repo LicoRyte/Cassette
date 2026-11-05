@@ -1635,7 +1635,7 @@
       status2.textContent = '✦ ' + S.dust.toLocaleString() + ' · ' + S.found.length + ' world' + (S.found.length === 1 ? '' : 's') + (tp ? ' · 📡 ' + nm(tp) : '') + (S.coord ? ' · 🧭 charged' : '');
       tabLog.textContent = 'Logbook ' + S.found.length;
       if (S.trader && S.at !== S.trader.num) S.trader = null;
-      drawName(); drawLeft(); drawRight(); drawFeed();
+      drawName(); drawLeft(); drawRight(); drawFeed(); checkAch();
       if (!shipPane.hidden) drawShip();
     }
 
@@ -1695,7 +1695,7 @@
         lvMsg && Date.now() - lvMsgAt < 10000 ? el('p', { class: 'sl-lv-msg' }, lvMsg) : null, lvBar('xp', '⭐', CAPT, true), lvBar('kn', '📚', KNOW, true));
       const drGroup = group('🆘 Distress Run', el('p', {}, S.dr ? 'In progress: ' + DISTRESS[S.dr.sc][1] + ', Act ' + ROMAN(S.dr.n + 1) + ' of ' + ROMAN(S.dr.need) + '.' : S.drDay === today() ? 'Today\'s run is used up. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'Available at the start of your next cycle (right after a long break).' : 'Earn a ★ Full Cycle today (no skipping for a whole cycle) and a distress call comes in when the long break ends.'),
         el('p', { class: 'sl-muted' }, 'Once a day: a whole cycle of study sessions with no other missions, for about ✦ ' + E.distressRun.base + '–' + (E.distressRun.base + E.distressRun.random) + ', a random bonus, 250 XP and 120 Knowledge. ' + (S.drN || 0) + ' completed so far.'));
-      const SUB = { Captain: [rank], Crew: crewView(group), Meridian: campArchive(group), Hangar: hangarView(group), Goals: [drGroup, bounties, records],
+      const SUB = { Captain: [rank], Medals: medalsView(group), Crew: crewView(group), Meridian: campArchive(group), Hangar: hangarView(group), Goals: [drGroup, bounties, records],
         Logs: [trans, evLog], Stats: statsView(group) };
       if (!SUB[shipTab]) shipTab = 'Captain';
       const subBtns = Object.keys(SUB).map(k => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === shipTab), onclick: () => { shipTab = k; drawShip(); } }, k));
@@ -1765,6 +1765,75 @@
         if (S.at === p.num) { g.strokeStyle = '#6bc96c'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, big + 7, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1; }
         if (mapView.zoom >= 2.5 || p.post || p.rarity === 'Legendary' || S.at === p.num) { g.fillStyle = '#a6859f'; g.fillText(nm(p), x + 8, y - 6); }
       });
+    }
+    // ---------- achievements ----------
+    if (!S.ach) S.ach = {};
+    const ACH = [];
+    const A = (grp, id, ic, name, desc, test) => ACH.push({ grp, id, ic, name, desc, test });
+    const tiers = (grp, key, ic, list, val, fmt) => list.forEach(([n, name]) => A(grp, key + n, ic, name, fmt(n), () => val() >= n));
+    const facAll = () => posts().reduce((a, f) => a.concat(f.p.post.tp ? f.p.post.tp.fac : []), []);
+    const charted = () => Object.values(S.cnt.rar).reduce((a, n) => a + n, 0);
+    tiers('Study', 'ses', '⏱', [[1, 'First Light'], [10, 'Getting Started'], [50, 'Regular'], [100, 'Centurion'], [250, 'Devoted'], [500, 'Unstoppable'], [1000, 'Legend of Focus']], () => S.total, n => 'Finish ' + n + ' study session' + (n === 1 ? '' : 's'));
+    tiers('Study', 'hrs', '⌛', [[10, 'Ten Hours In'], [50, 'Fifty Hours'], [100, 'Hundred Hours'], [250, 'Deep Space Scholar'], [500, 'Five Hundred Hours']], () => S.minutes / 60, n => 'Study for ' + n + ' hours in total');
+    tiers('Study', 'days', '📅', [[3, 'Three Days'], [7, 'A Week of Voyages'], [30, 'A Month Aboard'], [100, 'Hundred Days']], () => S.cnt.days, n => 'Study on ' + n + ' different days');
+    tiers('Study', 'day', '🔥', [[4, 'Busy Day'], [8, 'Marathon'], [12, 'Overdrive']], () => S.rec.dayN ? S.rec.dayN.v : 0, n => 'Finish ' + n + ' sessions in one day');
+    tiers('Study', 'fc', '★', [[1, 'Full Cycle'], [10, 'Steady Hands'], [50, 'Clockwork']], () => S.cnt.fc, n => 'Earn ' + n + ' Full Cycle' + (n === 1 ? '' : 's') + ' (no skipping)');
+    tiers('Worlds', 'wld', '🪐', [[1, 'First Contact'], [10, 'Explorer'], [50, 'Cartographer'], [100, 'Pathfinder'], [250, 'Star Charter'], [500, 'Galaxy Mapper']], charted, n => 'Discover ' + n + ' world' + (n === 1 ? '' : 's'));
+    tiers('Worlds', 'rare', '💎', [[1, 'Something Rare'], [10, 'Rare Taste']], () => (S.cnt.rar.Rare || 0) + (S.cnt.rar.Legendary || 0), n => 'Discover ' + n + ' Rare or Legendary world' + (n === 1 ? '' : 's'));
+    tiers('Worlds', 'leg', '👑', [[1, 'Legendary Find'], [5, 'Legend Hunter'], [20, 'Myth Maker']], () => S.cnt.rar.Legendary || 0, n => 'Discover ' + n + ' Legendary world' + (n === 1 ? '' : 's'));
+    A('Worlds', 'earth', '🌍', 'Home Away from Home', 'Find a world at least 80% habitable', () => S.rec.hab && S.rec.hab.v >= 80);
+    A('Worlds', 'intel', '👽', 'We Are Not Alone', 'Find a world with signs of intelligence', () => S.found.some(f => (f.p.lifeLvl || 0) >= 6));
+    A('Worlds', 'far', '🔭', 'The Far Edge', 'Find a world more than 10,000 light-years from Earth', () => S.rec.far && S.rec.far.v >= 10000);
+    A('Worlds', 'allrec', '🏆', 'Record Keeper', 'Hold every world record at once, with 25 or more worlds charted', () => S.found.length >= 25 && REC.every(([k]) => S.rec[k]) && REC.every(([k]) => byNum(S.rec[k].num)));
+    tiers('Worlds', 'luck', '🧭', [[1, 'Lucky Break'], [10, 'Fortune Favors']], () => S.cnt.lucky, n => 'Make ' + n + ' lucky Coordinator trip' + (n === 1 ? '' : 's'));
+    tiers('Worlds', 'sold', '💰', [[1, 'First Sale'], [25, 'Guild Regular'], [100, 'Real Estate Mogul']], () => S.sold.n, n => 'Sell ' + n + ' world' + (n === 1 ? '' : 's'));
+    tiers('Posts', 'post', '🗼', [[1, 'Listening In'], [3, 'Network'], [5, 'Wide Net'], [10, 'Everywhere at Once']], () => posts().length, n => 'Own ' + n + ' Listening Post' + (n === 1 ? '' : 's'));
+    tiers('Posts', 'tp', '🏘', [[1, 'Settler'], [3, 'Founder'], [5, 'Colonial Office']], () => posts().filter(f => f.p.post.tp).length, n => 'Own ' + n + ' Travelers\' Post' + (n === 1 ? '' : 's'));
+    tiers('Posts', 'fac', '🏗', [[1, 'Open for Business'], [14, 'Fully Built'], [42, 'Three Full Posts']], () => facAll().length, n => 'Build ' + n + ' facilit' + (n === 1 ? 'y' : 'ies'));
+    tiers('Posts', 'max', '⭐', [[1, 'Top Shelf'], [14, 'Five Star Post']], () => facAll().filter(f => (f.lv || 1) >= FAC_MAX).length, n => 'Upgrade ' + n + ' facilit' + (n === 1 ? 'y' : 'ies') + ' to the max level');
+    tiers('Posts', 'city', '🏙', [[1, 'City Lights']], () => posts().filter(f => f.p.post.tp && (f.p.post.tp.pop || 0) >= 5000).length, () => 'Grow a Travelers\' Post to 5,000 settlers');
+    tiers('Adventure', 'bty', '🎯', [[1, 'Bounty Hunter'], [10, 'Contract Work'], [50, 'Professional'], [100, 'Most Wanted List']], () => S.bDone, n => 'Complete ' + n + ' bount' + (n === 1 ? 'y' : 'ies'));
+    tiers('Adventure', 'fight', '⚔', [[1, 'Sheriff'], [10, 'Outlaw Bane'], [50, 'Peacekeeper']], () => S.fights || 0, n => 'Drive out ' + n + ' outlaw gang' + (n === 1 ? '' : 's'));
+    tiers('Adventure', 'dr', '🆘', [[1, 'First Responder'], [10, 'Search and Rescue'], [30, 'Guardian']], () => S.drN || 0, n => 'Complete ' + n + ' Distress Run' + (n === 1 ? '' : 's'));
+    tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
+    tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
+    tiers('Adventure', 'srv', '🔍', [[1, 'Surveyor'], [25, 'Field Researcher'], [100, 'Planetary Scientist']], () => S.surveys || 0, n => 'Survey ' + n + ' world' + (n === 1 ? '' : 's'));
+    tiers('Collection', 'itm', '🎒', [[10, 'Pack Rat'], [50, 'Curator'], [100, 'Museum Wing'], [200, 'Grand Museum']], () => itemCount(), n => 'Own ' + n + ' different collectibles');
+    A('Collection', 'itmall', '🏛', 'The Complete Collection', 'Own every collectible in the universe', () => itemCount() >= ITEM_TOTAL);
+    CATS.forEach(([c, name]) => A('Collection', 'cat-' + c, '📚', 'All the ' + name, 'Own every item in ' + name, () => catTotal(c) > 0 && ITEM_RARS.every(r => catList(c, r).every((_, i) => S.items[itemId(c, r, i)]))));
+    A('Collection', 'legit', '🌟', 'Legendary Curator', 'Own 10 Legendary collectibles', () => Object.keys(S.items).filter(k => parseId(k).r === 'Legendary' && itemName(k) !== '???').length >= 10);
+    tiers('Collection', 'trade', '🏪', [[1, 'Window Shopper'], [10, 'Haggler']], () => (S.cnt.bought || 0) + (S.cnt.swaps || 0), n => 'Buy or swap ' + n + ' item' + (n === 1 ? '' : 's') + ' at Trade Stations');
+    tiers('Ship', 'room', '🛠', [[1, 'Home Improvement'], [7, 'Fully Fitted']], () => Object.keys(S.rooms).length, n => 'Build ' + n + ' room' + (n === 1 ? '' : 's') + ' on your ship');
+    A('Ship', 'roommax', '🏰', 'Luxury Liner', 'Upgrade every room to the max level', () => Object.keys(ROOMS).every(k => roomLv(k) >= ROOM_MAX));
+    tiers('Ship', 'crew', '👥', [[1, 'Not Alone Anymore'], [4, 'Full Table'], [8, 'Big Family']], () => S.crew.length, n => 'Have ' + n + ' crew aboard');
+    A('Ship', 'roles', '🎭', 'A Bit of Everyone', 'Have one crew member of every role aboard', () => Object.keys(ROLES).every(r => crewN(r) > 0));
+    A('Ship', 'color', '🎨', 'Fresh Paint', 'Paint your ship a new color', () => S.ship.colors.length > 1);
+    A('Ship', 'design', '🚀', 'New Ride', 'Fly a new ship design', () => S.ship.designs.length > 1);
+    A('Ship', 'designs', '🛸', 'Collector\'s Hangar', 'Own every ship design', () => Object.keys(SHIP_DESIGNS).every(k => S.ship.designs.includes(k)));
+    tiers('Ship', 'mods', '⚙', [[10, 'Tinkerer'], [30, 'Overclocked'], [60, 'Ship of Theseus']], () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0), n => 'Buy ' + n + ' ship module upgrades');
+    tiers('Knowledge', 'tech', '🔬', [[1, 'Eureka'], [6, 'Lab Coat'], [12, 'Everything Researched']], () => Object.keys(S.tech).length, n => 'Finish ' + n + ' research' + (n === 1 ? '' : 'es'));
+    tiers('Knowledge', 'cap', '⭐', [[10, 'Ensign'], [25, 'Seasoned'], [50, 'Veteran'], [100, 'Star Legend']], () => lvInfo(S.xp).L, n => 'Reach Captain Level ' + n);
+    tiers('Knowledge', 'kn', '📚', [[10, 'Bookworm'], [25, 'Well Read'], [50, 'Sage of the Stars'], [100, 'Keeper of the Cosmos']], () => lvInfo(S.kn).L, n => 'Reach Knowledge Level ' + n);
+    tiers('Knowledge', 'camp', '📼', [[1, 'The First Log'], [20, 'The Signal'], [40, 'The Long Way'], [60, 'The Quiet Zone'], [80, 'Echoes'], [100, 'The Light Is On']], () => S.camp.n, n => n === 1 ? 'Recover the first Meridian log' : 'Recover ' + n + ' Meridian logs');
+    tiers('Knowledge', 'dust', '✦', [[1000, 'Pocket Money'], [10000, 'Well Funded'], [100000, 'Rich Beyond Measure']], () => S.dustTotal, n => 'Earn ' + n.toLocaleString() + ' resources in total');
+    const toast = el('div', { class: 'sx-toast', 'aria-live': 'polite', hidden: true }); root.append(toast);
+    let toastT = 0;
+    function showToast(lines) { toast.replaceChildren(...lines.map(t => el('div', {}, t))); toast.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { toast.hidden = true; }, 6000); }
+    let achFirst = true;
+    function checkAch() {
+      const fresh = ACH.filter(a => !S.ach[a.id] && (() => { try { return !!a.test(); } catch (e) { return false; } })());
+      if (!fresh.length) { achFirst = false; return; }
+      fresh.forEach(a => { S.ach[a.id] = Date.now(); });
+      if (achFirst && fresh.length > 2) { showToast(['🏅 ' + fresh.length + ' achievements unlocked', 'See them on the Ship page, under Medals.']); }
+      else { fresh.forEach(a => S.events.push({ ic: '🏅', title: 'Achievement: ' + a.name, t: a.desc + '.', at: Date.now() })); award(10 * fresh.length, 0); flushXP([]); showToast(fresh.slice(0, 3).map(a => '🏅 ' + a.name + ': ' + a.desc)); }
+      achFirst = false; save();
+    }
+    function medalsView(group) {
+      const got = ACH.filter(a => S.ach[a.id]).length, out = [el('p', { class: 'sl-muted' }, got + ' of ' + ACH.length + ' unlocked.')];
+      [...new Set(ACH.map(a => a.grp))].forEach(g => { const list = ACH.filter(a => a.grp === g);
+        out.push(group(g + ' (' + list.filter(a => S.ach[a.id]).length + ' / ' + list.length + ')', el('div', { class: 'sx-medals' }, list.map(a => el('div', { class: 'sx-medal' + (S.ach[a.id] ? ' on' : '') }, el('span', { class: 'sx-medal-i' }, a.ic), el('b', {}, a.name), el('small', {}, a.desc + (S.ach[a.id] ? '. ' + new Date(S.ach[a.id]).toLocaleDateString() : '')))))));
+      });
+      return out;
     }
     function crewView(group) {
       const out = [], cost = crewCost(), free = bunks() - S.crew.length;
