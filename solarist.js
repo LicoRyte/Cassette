@@ -837,9 +837,9 @@
     function upgradeFac(p, f) { const lv = f.lv || 1, c = facCost(lv + 1); if (lv >= FAC_MAX || S.dust < c) return; S.dust -= c; f.lv = lv + 1; shopXP(10 + 5 * lv); save(); draw(); }
 
     /* ---------- UI ---------- */
-    const tabTimer = el('button', { type: 'button', role: 'tab', 'aria-selected': 'true', onclick: () => tab('timer') }, '🚀 Voyage');
-    const tabLog = el('button', { type: 'button', role: 'tab', 'aria-selected': 'false', onclick: () => tab('log') }, '🪐 Logbook');
-    const tabShip = el('button', { type: 'button', role: 'tab', 'aria-selected': 'false', onclick: () => tab('ship') }, '🛰 Ship');
+    const tabTimer = el('button', { type: 'button', role: 'tab', 'aria-selected': 'true', onclick: () => tab('timer') }, 'Voyage');
+    const tabLog = el('button', { type: 'button', role: 'tab', 'aria-selected': 'false', onclick: () => tab('log') }, 'Logbook');
+    const tabShip = el('button', { type: 'button', role: 'tab', 'aria-selected': 'false', onclick: () => tab('ship') }, 'Ship');
     const modeBtns = Object.keys(MODES).map(m => el('button', { type: 'button', class: 'sl-mode', 'data-m': m, onclick: () => { if (!running) setMode(m); } }, MODES[m]));
     const bigText = el('span', {}), dots = el('span', { class: 'sl-dots', 'aria-hidden': 'true' });
     const timeText = el('div', { class: 'sl-time' }, '25:00');
@@ -881,7 +881,8 @@
       else { if (building()) { S.mission = 1; } else { const o = buildOptions(), first = (o.Facilities[0] || o.Upgrades[0] || o['New Listening Posts'][0]); if (!first) return; S.mission = 1; S.job = { k: first.k, num: first.num, fac: first.fac }; } }
       save(); hint.textContent = ''; draw();
     }
-    const misBtns = MISSIONS.map(([k, ic, label, tip]) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, role: 'radio', title: tip, onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
+    const MIS_ORDER = ['explore', 'discover', 'charge', 'build'];
+    const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip], i) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, 'data-key': i + 1, role: 'radio', title: tip + ' (key ' + (i + 1) + ')', onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
     const buildSel = el('select', { class: 'sl-build-sel', 'aria-label': 'World to build on' });
     buildSel.addEventListener('change', () => setJob(buildSel.value));
     const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), buildSel);
@@ -909,28 +910,134 @@
           el('div', { class: 'sl-dr-row' }, el('button', { type: 'button', class: 'btn sl-go', onclick: drAccept }, 'Accept Distress Run')));
       } else { drBox.hidden = true; drBox.replaceChildren(); }
     }
-    const timerPane = el('div', { class: 'sl-pane' }, lvStrip, el('div', { class: 'sl-modes' }, modeBtns), screen, bar, el('div', { class: 'sl-btns' }, startB, resetB, skipB), drBox, mission, hint, trans, encBox, card, settings);
-
+    // ---------- the HUD: everything floats on black space. The page shell draws the planet into .sx-planet ----------
+    const sec = (title, ...kids) => el('div', { class: 'sx-sec' }, title ? el('h3', {}, title) : null, ...kids);
+    const cycleBar = el('div', { class: 'sx-cycle', 'aria-hidden': 'true' });
+    const nameBox = el('button', { type: 'button', class: 'sx-name', title: 'Open in the Logbook' });
+    const planetSpot = el('div', { class: 'sx-planet', 'aria-hidden': 'true' });
+    const leftCol = el('section', { class: 'sx-side sx-left', 'aria-label': 'Quests' });
+    const rightCol = el('section', { class: 'sx-side sx-right', 'aria-label': 'Resources and upgrades' });
+    const feedLine = el('button', { type: 'button', class: 'sx-feed', title: 'All transmissions and the ship\'s log', onclick: () => { shipTab = 'Logs'; tab('ship'); } });
+    const reportBtn = el('button', { type: 'button', class: 'sl-link sx-replay', hidden: true, onclick: () => openReport() }, 'Last session report');
+    const report = el('div', { class: 'sx-report', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Session report' },
+      el('div', { class: 'sx-report-in' }, el('h2', {}, 'Session report'), encBox, trans, card, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeReport() }, 'Continue'))));
+    report.addEventListener('click', e => { if (e.target === report) closeReport(); });
+    function openReport() { if (trans.hidden && card.hidden && encBox.hidden) return; report.hidden = false; reportBtn.hidden = false; const b = report.querySelector('.sx-report-ft .btn'); if (b) b.focus({ preventScroll: true }); }
+    function closeReport() { report.hidden = true; }
+    const status = el('span', { class: 'sx-cap' }), status2 = el('span', { hidden: true });
+    const timeBlock = el('div', { class: 'sx-clock' }, screen, cycleBar, status);
+    const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, timeBlock, mission, el('div', { class: 'sl-btns' }, startB, resetB, skipB), hint, reportBtn);
+    settings.open = true;
+    const appSettings = el('div', { class: 'sx-appset' });
+    const settingsPane = el('div', { class: 'sl-pane', hidden: true },
+      sec('Timer', settings), sec('Switch the timer by hand', el('p', { class: 'sl-muted' }, 'Normally Solarist moves between study and breaks for you.'), el('div', { class: 'sl-modes' }, modeBtns)), sec('App', appSettings));
     const find = el('input', { type: 'search', class: 'sl-find', placeholder: 'Search worlds...', 'aria-label': 'Search your logbook' });
-    const typeSel = el('select', { 'aria-label': 'Planet class' }, el('option', { value: '' }, 'All classes'), el('option', { value: '@post' }, '🗼 With a Listening Post'), ...Object.keys(TYPES).map(t => el('option', { value: t }, t)));
+    const typeSel = el('select', { 'aria-label': 'Planet class' }, el('option', { value: '' }, 'All classes'), el('option', { value: '@post' }, 'With a Listening Post'), ...Object.keys(TYPES).map(t => el('option', { value: t }, t)));
     const rarSel = el('select', { 'aria-label': 'Rarity' }, el('option', { value: '' }, 'Any rarity'), ...RARITY.map(([k]) => el('option', { value: k }, k)));
     const logHead = el('div', { class: 'sl-ahead' });
     const logList = el('div', { class: 'sl-list' });
     const logPane = el('div', { class: 'sl-pane', hidden: true }, logHead, el('div', { class: 'sl-tools' }, typeSel, rarSel, find), logList);
     const shipPane = el('div', { class: 'sl-pane', hidden: true });
     const itemsPane = el('div', { class: 'sl-pane', hidden: true });
-    const tabItems = el('button', { type: 'button', role: 'tab', 'aria-selected': 'false', onclick: () => tab('items') }, '🎒 Collection');
-
-    const status = el('span', {}), status2 = el('span', {});
-    root.replaceChildren(el('div', { class: 'sl-tabs', role: 'tablist' }, tabTimer, tabLog, tabShip, tabItems), el('div', { class: 'sl-body sunken' }, timerPane, logPane, shipPane, itemsPane), el('div', { class: 'statusbar' }, status, status2));
+    const tabItems = el('button', { type: 'button', onclick: () => tab('items') }, 'Collection');
+    const tabSet = el('button', { type: 'button', onclick: () => tab('settings') }, 'Settings');
+    const pageTitle = el('h2', { class: 'sx-page-t' });
+    const page = el('div', { class: 'sx-page', hidden: true },
+      el('div', { class: 'sx-page-h' }, pageTitle, el('button', { type: 'button', class: 'btn', onclick: () => tab('timer') }, 'Back to the voyage')),
+      el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, settingsPane));
+    [tabTimer, tabLog, tabShip].forEach(b => b.removeAttribute('role'));
+    root.classList.add('sx');
+    root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabLog, tabShip, tabItems, tabSet)), leftCol, midCol, rightCol, feedLine, report, page, el('div', { hidden: true }, tabTimer, status2));
     function tab(t) {
-      if (t === 'log' && !logPane.hidden) openNum = null; // clicking Logbook again goes back to the grid
-      tabTimer.setAttribute('aria-selected', String(t === 'timer')); tabLog.setAttribute('aria-selected', String(t === 'log')); tabShip.setAttribute('aria-selected', String(t === 'ship')); tabItems.setAttribute('aria-selected', String(t === 'items'));
-      timerPane.hidden = t !== 'timer'; logPane.hidden = t !== 'log'; shipPane.hidden = t !== 'ship'; itemsPane.hidden = t !== 'items';
+      if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Logbook again goes back to the grid
+      const names = { log: 'Logbook', ship: 'Ship', items: 'Collection', settings: 'Settings' };
+      page.hidden = t === 'timer'; pageTitle.textContent = names[t] || '';
+      [[tabLog, 'log'], [tabShip, 'ship'], [tabItems, 'items'], [tabSet, 'settings']].forEach(([b, k]) => { if (k === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+      logPane.hidden = t !== 'log'; shipPane.hidden = t !== 'ship'; itemsPane.hidden = t !== 'items'; settingsPane.hidden = t !== 'settings';
+      root.classList.toggle('paged', t !== 'timer');
       if (t === 'ship') drawShip();
       if (t === 'items') drawItems();
       if (t === 'log') drawLog();
+      if (t === 'settings' && hooks.settings) hooks.settings(appSettings);
+      if (t !== 'timer') { const bd = root.querySelector('.sl-body'); if (bd && t !== 'log') bd.scrollTop = 0; }
     }
+    // the world shown in the middle of the screen
+    function scenePlanet(kind) {
+      const b = building();
+      return kind === 'build' ? b.p : kind === 'fight' ? heldP() : kind === 'distress' ? null : kind === 'explore' && running ? null : atP();
+    }
+    const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : building() ? 'build' : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
+    function drawName() {
+      const kind = sceneKind(), p = scenePlanet(kind);
+      nameBox.disabled = !p;
+      nameBox.replaceChildren(...(p ? [el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable' + (held(p) ? ', held by outlaws' : ''))]
+        : kind === 'distress' ? [el('b', {}, DISTRESS[S.dr.sc][1]), el('span', {}, 'Distress Run, Act ' + ROMAN(S.dr.n + 1) + ' of ' + ROMAN(S.dr.need))]
+          : [el('b', {}, 'Uncharted world'), el('span', {}, S.coord ? 'Following the Coordinator' : 'Somewhere ahead')]));
+      nameBox.onclick = p ? () => { tab('log'); openWorld(p.num); } : null;
+    }
+    function drawCycle(pct) { // one segment per study session, a short tick per short break, a long one for the long break
+      const n = S.set.every, done = mode === 'focus' ? S.cycle % n : (S.cycle % n || n), kids = [];
+      for (let i = 0; i < n; i++) {
+        const st = i < done ? 'done' : i === done && mode === 'focus' ? 'now' : '';
+        kids.push(el('span', { class: 'st ' + st, style: st === 'now' ? '--p:' + pct + '%' : null }));
+        const bst = mode !== 'focus' && i === done - 1 ? 'now' : i < done - 1 ? 'done' : '';
+        kids.push(el('span', { class: (i === n - 1 ? 'lb ' : 'sb ') + bst, style: bst === 'now' ? '--p:' + pct + '%' : null }));
+      }
+      cycleBar.replaceChildren(...kids);
+      cycleBar.classList.toggle('broken', !!S.fc.broken);
+    }
+    function drawLeft() {
+      const drInfo = !S.dr && !drAvail() ? el('p', { class: 'sl-muted' }, S.drDay === today() ? 'Today\'s run is done. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'A distress call comes in at the start of your next cycle.' : 'Finish a whole cycle without skipping (a Full Cycle) and a distress call comes in after the long break.') : null;
+      const qs = S.bounties.map(b => el('div', { class: 'sx-q' }, el('span', {}, b.t, el('small', {}, b.k === 'sessions' ? (b.prog || 0) + ' of ' + b.v + ' done' : b.k === 'cycle' ? 'finish a whole cycle, nothing skipped' : 'on any Explore trip')), el('em', {}, '✦ ' + Math.round(b.reward * INCOME))));
+      const coordB = !S.coord && !S.dr ? el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || charging() || null, onclick: () => setMission('charge') }, charging() ? 'Charging next session' : 'Charge it next session') : null;
+      leftCol.replaceChildren(
+        sec('Distress Run', drBox, drInfo),
+        sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far')),
+        sec('Interplanetary Coordinator', el('p', {}, S.coord ? 'Charged. Your next Explore heads somewhere promising.' : 'Empty. One study session of Charge makes your next Explore a lucky one.'), coordB));
+    }
+    function drawRight() {
+      const locked = running && mode === 'focus', bj = building(), trade = Math.round(tradeIncome() * INCOME);
+      const up = (name, small, btn) => el('div', { class: 'sx-up' }, el('b', {}, name), el('small', {}, small), btn);
+      const buy = (cost, onclick, label) => el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < cost || null, onclick }, label || '✦ ' + cost.toLocaleString());
+      const queue = key => { const on = bj && jobKey(bj) === key; return el('button', { type: 'button', class: 'btn sx-buy' + (on ? ' on' : ''), disabled: locked || on || !!S.dr || null, title: 'Your next study session builds it', onclick: () => setJob(key) }, on ? 'Queued' : 'Queue'); };
+      const mods = Object.entries(MODS).map(([k, [, name, eff, what]]) => { const l = lvl(k), c = modCost(k); return up(name + ' ' + l, eff(l) + ' ' + what + ' (next ' + eff(l + 1) + ')', buy(c, () => upgradeMod(k))); });
+      const a = atP(); let postSec = null;
+      if (a) {
+        const rows = [];
+        if (held(a)) rows.push(el('p', { class: 'sl-muted' }, 'Outlaws hold ' + nm(a) + '. Drive them out before building here.'));
+        else if (!a.post) rows.push(up('Listening Post', 'Hear transmissions from ' + nm(a) + '. Takes one study session.', queue('post:' + a.num + ':')));
+        else if (!a.post.tp) rows.push(up('Travelers\' Post', 'Settlers, trade and facilities. Takes one study session.', queue('upgrade:' + a.num + ':')));
+        else {
+          a.post.tp.fac.forEach(f => { const lv = f.lv || 1, max = lv >= FAC_MAX; rows.push(up(FAC[f.k][1] + ' ' + lv, max ? 'Max level' : FAC_DESC[f.k], max ? el('span', { class: 'sx-max' }, 'Max') : buy(facCost(lv + 1), () => upgradeFac(a, f)))); });
+          const left2 = Object.keys(FAC).filter(k => !hasFac(a, k));
+          if (left2.length) {
+            const pick = el('select', { 'aria-label': 'Facility to build next' }, left2.map(k => el('option', { value: k, selected: bj && bj.k === 'add' && bj.p === a && bj.fac === k || null }, FAC[k][1])));
+            const qb = () => queue('add:' + a.num + ':' + pick.value);
+            const holder = el('span', {}, qb()); pick.addEventListener('change', () => holder.replaceChildren(qb()));
+            rows.push(el('div', { class: 'sx-up sx-newfac' }, el('b', {}, 'New facility'), el('small', {}, 'Takes one study session'), el('span', { class: 'sx-pick' }, pick, holder)));
+          }
+        }
+        postSec = sec((a.post ? (a.post.tp ? 'Travelers\' Post' : 'Listening Post') : 'Build') + ' at ' + nm(a), ...rows);
+      }
+      rightCol.replaceChildren(
+        el('div', { class: 'sx-res' }, el('b', {}, '✦ ' + S.dust.toLocaleString()), el('small', {}, 'resources' + (trade ? ', +' + trade + ' trade per session' : ''))),
+        sec('Ship', ...mods), postSec,
+        el('button', { type: 'button', class: 'sl-link sx-more', onclick: () => { shipTab = 'Posts'; tab('ship'); } }, 'All posts and facilities'));
+    }
+    function drawFeed() {
+      let best = null;
+      posts().forEach(f => { const r = f.p.post.reports[f.p.post.reports.length - 1]; if (r && (!best || r.at > best.at)) best = { at: r.at, h: nm(f.p) + ', day ' + r.day, t: r.t }; });
+      const e = S.events[S.events.length - 1]; if (e && (!best || e.at > best.at)) best = { at: e.at, h: e.title, t: e.t };
+      feedLine.hidden = !best; if (best) feedLine.replaceChildren(el('b', {}, best.h + ': '), best.t);
+    }
+    // keyboard: 1-4 pick the mission, Space starts or pauses, Esc closes a report or page
+    document.addEventListener('keydown', e => {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, select, textarea')) return;
+      if (!report.hidden) { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeReport(); } return; }
+      if (!page.hidden) { if (e.key === 'Escape') { e.preventDefault(); tab('timer'); } return; }
+      if (/^[1-4]$/.test(e.key)) { const b = misBtns[+e.key - 1]; if (b && !b.disabled && !b.hidden) { e.preventDefault(); b.click(); } }
+      else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); startB.click(); }
+    });
 
     /* ---------- planet card / details ---------- */
     const fmtTemp = p => p.tempNight != null ? p.temp + ' °C day side / ' + p.tempNight + ' °C night side' : p.temp + ' °C';
@@ -1152,6 +1259,7 @@
             : 'Arrived! ' + (lucky ? 'The Coordinator\'s charge is spent. ' : '') + 'Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
         }
         sessionEnd(reps, foundP, ev);
+        openReport();
       } else {
         if (!quiet && hooks.ding) hooks.ding();
         if (hooks.show) hooks.show();
@@ -1166,7 +1274,7 @@
             const notes = ['✦ +' + addDust(E.fullCycle.base + (lvl('hull') - 1) * E.fullCycle.perHullLevel) + ' resources (Full Cycle)'];
             checkBounties({ cycle: true }, notes);
             award(40, 0); flushXP(notes);
-            showTrans([{ notes }]);
+            showTrans([{ notes }]); showCard(null); encBox.hidden = true; openReport();
           }
           S.fc = { n: 0, broken: false };
         }
@@ -1175,16 +1283,15 @@
     }
     function drawClock() {
       const r = remaining(), pct = Math.min(100, Math.max(0, 100 - (r / length(mode)) * 100));
-      timeText.textContent = fmt(r) + (running ? ' left' : '');
+      timeText.textContent = fmt(r);
       const hl = headline(); if (bigText.textContent !== hl) bigText.textContent = hl;
       if (running && !dotT) dotT = setInterval(() => { dotN++; drawDots(); }, 450);
       if (!running && dotT) { clearInterval(dotT); dotT = 0; dotN = 0; }
-      drawDots();
+      drawDots(); drawCycle(pct);
       barFill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', Math.round(pct));
       if (hooks.scene) { // what the flight scene should show
-        const b = building(), kind = mode !== 'focus' ? 'break' : S.dr ? 'distress' : b ? 'build' : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
-        const pl = kind === 'build' ? b.p : kind === 'discover' || kind === 'break' ? atP() : kind === 'fight' ? heldP() : null;
-        hooks.scene({ mode, kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: pl, coord: !!S.coord });
+        const kind = sceneKind();
+        hooks.scene({ mode, kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: scenePlanet(kind), coord: !!S.coord, spot: planetSpot });
       }
       if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
     }
@@ -1205,19 +1312,21 @@
         b.setAttribute('aria-checked', String(on)); b.classList.toggle('on', on);
         b.disabled = (locked && !on) || (k === 'build' && !canBuild) || (k === 'charge' && !!S.coord && !on) || (k === 'discover' && !on && (!atP() || held(atP())));
         if (k === 'discover') b.title = !atP() ? 'Find a world first' : held(atP()) ? 'Outlaws hold ' + nm(atP()) + '. Drive them out first' : 'Survey ' + nm(atP()) + ' (where you are now) for collectibles';
-        if (k === 'explore') { const o = heldP(); b.firstChild.textContent = o ? '⚔' : '🚀'; b.lastChild.textContent = o ? 'Fight' : S.coord ? 'Explore 🧭' : 'Explore'; b.title = o ? 'Outlaws hold ' + nm(o) + ': fight them off with one study session before you can travel again' : MISSIONS[0][3]; b.classList.toggle('sl-fight', !!o); }
+        if (k === 'explore') { const o = heldP(); b.firstChild.textContent = o ? '⚔' : '🚀'; b.lastChild.textContent = o ? 'Fight' : S.coord ? 'Explore (lucky)' : 'Explore'; b.title = o ? 'Outlaws hold ' + nm(o) + ': fight them off with one study session before you can travel again' : MISSIONS[0][3]; b.classList.toggle('sl-fight', !!o); }
         if (k === 'charge') b.title = S.coord ? 'Already charged: your next Explore is a lucky one' : MISSIONS[3][3];
-        if (k === 'build') b.title = canBuild ? MISSIONS[2][3] : 'Nothing left to build';
+        if (k === 'build') { b.title = canBuild ? MISSIONS[2][3] : 'Nothing left to build'; const bj = building(); b.lastChild.textContent = bj ? 'Build: ' + (bj.k === 'post' ? 'Listening Post' : bj.k === 'upgrade' ? 'Travelers\' Post' : FAC[bj.fac][1]) : 'Build'; b.hidden = !bj && cm !== 'build'; }
       });
       buildSel.hidden = cm !== 'build'; buildSel.disabled = locked;
       if (cm === 'build') { fillBuildSel(buildSel); buildSel.value = jobKey(building()); }
       const round = mode === 'focus' ? S.cycle % S.set.every + 1 : (S.cycle % S.set.every || S.set.every);
       const stars = S.fc.broken ? '' : ' ' + '★'.repeat(Math.min(S.set.every, S.fc.n)) + '☆'.repeat(Math.max(0, S.set.every - S.fc.n));
-      status.textContent = 'Today: ' + S.todayN + ' trip' + (S.todayN === 1 ? '' : 's') + ' · leg ' + round + ' of ' + S.set.every + stars;
+      status.textContent = (mode === 'focus' ? 'Study session ' + round + ' of ' + S.set.every : mode === 'long' ? 'Long break' : 'Short break') + (S.fc.broken ? '. Full Cycle broken' : '. Full Cycle on track') + '. ' + S.todayN + ' today';
+      void stars;
       status.title = S.fc.broken ? 'Full Cycle broken this time (something was skipped). It resets after the long break.' : 'Full Cycle: finish every session and break of this cycle without skipping for a bonus after the long break';
       const tp = tunedP();
       status2.textContent = '✦ ' + S.dust.toLocaleString() + ' · ' + S.found.length + ' world' + (S.found.length === 1 ? '' : 's') + (tp ? ' · 📡 ' + nm(tp) : '') + (S.coord ? ' · 🧭 charged' : '');
-      tabLog.textContent = '🪐 Logbook (' + S.found.length + ')';
+      tabLog.textContent = 'Logbook ' + S.found.length;
+      drawName(); drawLeft(); drawRight(); drawFeed();
       if (!shipPane.hidden) drawShip();
     }
 
@@ -1416,5 +1525,5 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden && running && remaining() <= 0) finish(); });
     return { running: () => running };
   }
-  window.Solarist = { mount, makePlanet, makeExtra, paint };
+  window.Solarist = { mount, makePlanet, makeExtra, paint, lookOf };
 })();
