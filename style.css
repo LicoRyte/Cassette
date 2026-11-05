@@ -482,3 +482,9 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-report-side h3 { margin: 0 0 12px; font: 700 20px var(--ui); color: var(--white); }
 .sx-svbtn { align-self: flex-start; font: 600 16px var(--ui); }
 @media (max-width: 700px) { .sx-report { place-items: start center; overflow-y: auto; } .sx-report-in, .sx-report-side { max-height: none; } }
+
+/* right-side tabs stay put while the panel scrolls */
+.sx-right .sx-rtabs { position: sticky; top: -6px; z-index: 2; margin-top: -6px; padding: 6px 0 10px; margin-bottom: 10px; background: #000; box-shadow: 0 8px 10px -6px #000; }
+.sx-right .sx-rhead { position: sticky; top: -6px; z-index: 2; margin-top: -6px; padding-top: 6px; margin-bottom: 12px; background: #000; box-shadow: 0 8px 10px -6px #000; }
+.sx-right .sx-rhead .sx-rtabs { position: static; margin: 0 0 10px; padding: 0; box-shadow: none; }
+.sx-right .sx-rhead .sx-chips { margin: 0; padding-bottom: 10px; }

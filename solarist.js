@@ -1593,7 +1593,7 @@
         else { const list = txFilter === 'all' ? feed : feed.filter(it => it.c === txFilter);
           body = [list.length ? el('div', { class: 'sx-tx' }, renderFeed(list, 'rtx' + txFilter, true, drawRight))
             : el('p', { class: 'sl-muted' }, txFilter === 'all' ? 'Nothing yet. Build a Listening Post on a world and it sends a transmission every study session. Deep-space events, crew chatter, Meridian logs and medals all land here too.' : 'Nothing here yet.')]; }
-        rightCol.replaceChildren(tabsR, chips, ...body);
+        rightCol.replaceChildren(el('div', { class: 'sx-rhead' }, tabsR, chips), ...body);
         return;
       }
       const newTx = unread ? el('button', { type: 'button', class: 'sx-newtx', onclick: () => { rightTab = 'tx'; drawRight(); } }, el('b', {}, 'New transmission received'), el('span', {}, unread === 1 ? '1 new message' : unread + ' new messages')) : null;
