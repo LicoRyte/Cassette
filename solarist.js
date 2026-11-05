@@ -1354,7 +1354,7 @@
       const v = rating(), i = rankOf(v), lo = RANKS[i][0], hi = RANKS[i + 1] ? RANKS[i + 1][0] : 0, pct = hi ? Math.round((v - lo) / (hi - lo) * 100) : 100;
       const bar = el('span', { class: 'sl-lv-bar', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': pct, 'aria-label': 'Rating progress to the next rank' }, el('i', { style: 'width:' + pct + '%' }), el('em', {}, hi ? (v - lo) + ' / ' + (hi - lo) : 'MAX'));
       if (!full) return el('span', { class: 'sl-lv-i sl-lv-rt', title: 'Rating: everything you have done, added up. Details on Ship → Captain.' }, el('b', {}, '◆ ' + v.toLocaleString()), el('span', { class: 'sl-lv-t' }, RANKS[i][1]), bar);
-      return el('div', { class: 'sl-lv-row sl-lv-rt' }, el('div', { class: 'sl-lv-head' }, el('b', {}, '◆ Rating ' + v.toLocaleString()), el('span', {}, RANKS[i][1])), bar,
+      return el('div', { class: 'sl-lv-row sl-lv-rt' }, el('div', { class: 'sl-lv-head' }, el('b', { class: 'sx-rt-n' }, v.toLocaleString()), el('span', {}, RANKS[i][1])), bar,
         el('small', { class: 'sl-muted' }, hi ? (hi - v).toLocaleString() + ' to ' + RANKS[i + 1][1] : 'The highest rank there is.'));
     }
     function drawLv() { lvStrip.replaceChildren(rtBar(), lvBar('xp', '⭐', CAPT), lvBar('kn', '📚', KNOW)); }
@@ -1573,8 +1573,9 @@
       if (rightTab === 'tx' && unread) { S.txPrev = S.txSeen || 0; S.txSeen = Date.now(); save(); }
       const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
       const tabsR = focusLock() ? el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('tx', 'Transmissions'), el('span', { class: 'sx-locknote' }, '🔒 Everything else is back at the break'))
-        : el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('coord', 'Coordinator'), rt('research', 'Research'), rt('hangar', 'Hangar'), rt('sell', 'Sell'), S.trader ? rt('trade', 'Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
-        rt('tx', 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
+        : el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('coord', 'Coordinator'), rt('research', 'Research'), rt('hangar', 'Hangar'), rt('sell', 'Sell'),
+        el('i', { class: 'sx-rbreak', 'aria-hidden': 'true' }), rt('tx', '📡 Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null),
+        S.trader ? rt('trade', '🏪 Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null);
       if (rightTab === 'build') { rightCol.replaceChildren(tabsR, ...buildView()); return; }
       if (rightTab === 'sell') { rightCol.replaceChildren(tabsR, ...sellView()); return; }
       if (rightTab === 'research') { rightCol.replaceChildren(tabsR, ...researchView()); return; }

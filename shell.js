@@ -102,11 +102,11 @@
       start() { if (!unlocked) { unlocked = true; apply(); } },
       settings(box) {
         const n = lists.study.length + lists.break.length;
-        const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on), disabled: n ? null : true }, on ? 'Music is on' : 'Music is off');
+        const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on), disabled: n ? null : true }, !n ? 'Music: none added yet' : on ? 'Music is on' : 'Music is off');
         tg.addEventListener('click', () => { on = !on; store.set('solarist-music', on ? 'on' : 'off'); apply(); music.settings(box); });
         const sl = mk('input', { type: 'range', min: 0, max: 100, value: Math.round(vol * 100), 'aria-label': 'Music volume', disabled: n ? null : true });
         sl.addEventListener('input', () => { vol = sl.value / 100; store.set('solarist-music-vol', sl.value); if (live && players[live]) { clearInterval(fades.get(players[live])); players[live].volume = vol; } });
-        box.replaceChildren(tg, mk('label', { class: 'sx-vol' }, 'Volume ', sl), mk('span', { class: 'sl-muted' }, n ? lists.study.length + ' study, ' + lists.break.length + ' break track' + (n === 1 ? '' : 's') : 'No music added yet'));
+        box.replaceChildren(tg, mk('label', { class: 'sx-vol' }, 'Volume ', sl), n ? mk('span', { class: 'sl-muted' }, lists.study.length + ' study, ' + lists.break.length + ' break track' + (n === 1 ? '' : 's')) : '');
       },
     };
   })();

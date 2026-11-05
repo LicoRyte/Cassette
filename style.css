@@ -339,7 +339,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-medal.on { opacity: 1; border-color: var(--dim); }
 .sx-medal-i { grid-row: 1 / span 2; font-size: 20px; line-height: 1.2; filter: grayscale(1); } .sx-medal.on .sx-medal-i { filter: none; }
 .sx-medal b { font: 600 17px var(--ui); color: var(--white); } .sx-medal small { font-size: 14px; color: var(--mute); }
-.sx-toast { position: fixed; left: 24px; bottom: 24px; z-index: 7; max-width: 380px; padding: 10px 14px; background: #000; border: 1px solid var(--amber); font: 600 16px/1.4 var(--ui); color: var(--white); }
+.sx-toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 7; width: max-content; max-width: min(440px, calc(100% - 32px)); animation: sx-toast-in .35s ease-out; padding: 10px 14px; background: #000; border: 1px solid var(--amber); font: 600 16px/1.4 var(--ui); color: var(--white); }
 .sx-toast div + div { font-weight: 500; color: var(--soft); }
 
 /* ---------- star map ---------- */
@@ -488,3 +488,14 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-right .sx-rhead { position: sticky; top: -6px; z-index: 2; margin-top: -6px; padding-top: 6px; margin-bottom: 12px; background: #000; box-shadow: 0 8px 10px -6px #000; }
 .sx-right .sx-rhead .sx-rtabs { position: static; margin: 0 0 10px; padding: 0; box-shadow: none; }
 .sx-right .sx-rhead .sx-chips { margin: 0; padding-bottom: 10px; }
+
+/* ---------- polish pass ---------- */
+@keyframes sx-toast-in { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .sx-toast { animation: none; } }
+.sx-rtabs .sx-rbreak { flex-basis: 100%; height: 0; }
+.sx-rtabs { row-gap: 8px; }
+.sx-page:has(.sx-mappane:not([hidden])) .sx-page-h { max-width: 1200px; }
+.sx-rt-n { font: 700 34px/1 var(--ui) !important; color: var(--violet) !important; }
+@media (max-width: 520px) { .sl-lv-i .sl-lv-t { display: none; } .sl-lv { gap: 14px; } }
+/* side columns fade out at the bottom instead of cutting text in half */
+.sx-side { -webkit-mask-image: linear-gradient(#000 calc(100% - 28px), transparent); mask-image: linear-gradient(#000 calc(100% - 28px), transparent); padding-bottom: 28px; }
