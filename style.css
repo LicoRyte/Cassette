@@ -143,8 +143,8 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-q em { font-style: normal; font-weight: 600; color: var(--amber); white-space: nowrap; }
 
 /* ---------- right: things that cost resources ---------- */
-.sx-rtabs { display: flex; gap: 18px; margin-bottom: 20px; }
-.sx-rtabs button { position: relative; padding: 2px 0 6px; background: none; border: 0; font: 600 18px var(--ui); color: var(--soft); cursor: pointer; box-shadow: inset 0 -2px 0 var(--line); }
+.sx-rtabs { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+.sx-rtabs button { position: relative; padding: 2px 0 6px; background: none; border: 0; font: 600 17px var(--ui); color: var(--soft); cursor: pointer; box-shadow: inset 0 -2px 0 var(--line); }
 .sx-rtabs button:hover { color: var(--white); }
 .sx-rtabs button[aria-selected="true"] { color: var(--white); box-shadow: inset 0 -2px 0 var(--amber); }
 .sx-dot { margin-left: 6px; padding: 0 6px; font: 700 13px/18px var(--ui); font-style: normal; color: #000; background: var(--sky); vertical-align: 2px; }
@@ -153,6 +153,17 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-newtx span { font-size: 14px; color: var(--mute); }
 .sx-newtx:hover b { color: var(--white); }
 .sx-tx .sl-msg-x { font-size: 14px; }
+.sx-queue { margin-bottom: 24px; padding: 8px 0 8px 12px; border-left: 3px solid var(--dim); }
+.sx-queue.on { border-left-color: var(--green); }
+.sx-queue small { display: block; font-size: 14px; color: var(--mute); }
+.sx-queue b { display: block; font: 600 18px/1.2 var(--ui); color: var(--white); margin-bottom: 2px; }
+.sx-wpick { width: 100%; }
+.sx-done { font: 600 15px var(--ui); color: var(--green); }
+.sx-up.built b { color: var(--soft); }
+.sx-up.locked b, .sx-up.locked small { color: var(--dim); }
+.sx-up.unbuilt b { color: var(--ink); }
+.sx-postact { margin-top: 10px; } .sx-postact .btn { font-size: 15px; padding: 4px 10px; color: var(--soft); }
+.sx-sellrow i { font-style: normal; font-weight: 600; }
 .sx-tx .sl-day { background: transparent; position: static; }
 .sx-res b { display: block; font: 700 42px/1 var(--ui); color: var(--amber); }
 .sx-res small { font-size: 15px; color: var(--mute); }

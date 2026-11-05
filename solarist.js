@@ -1008,9 +1008,11 @@
     function drawRight() {
       const unread = txUnread();
       if (rightTab === 'tx' && unread) { S.txSeen = Date.now(); save(); }
-      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' },
-        el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === 'up'), onclick: () => { rightTab = 'up'; drawRight(); } }, 'Upgrades'),
-        el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === 'tx'), onclick: () => { rightTab = 'tx'; drawRight(); } }, 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
+      const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
+      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('sell', 'Sell'),
+        rt('tx', 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
+      if (rightTab === 'build') { rightCol.replaceChildren(tabsR, ...buildView()); return; }
+      if (rightTab === 'sell') { rightCol.replaceChildren(tabsR, ...sellView()); return; }
       if (rightTab === 'tx') {
         const feed = txFeed();
         rightCol.replaceChildren(tabsR, feed.length ? el('div', { class: 'sx-tx' }, renderFeed(feed, 'rtx', true, drawRight))
@@ -1018,33 +1020,76 @@
         return;
       }
       const newTx = unread ? el('button', { type: 'button', class: 'sx-newtx', onclick: () => { rightTab = 'tx'; drawRight(); } }, el('b', {}, 'New transmission received'), el('span', {}, unread === 1 ? '1 new message' : unread + ' new messages')) : null;
-      const locked = running && mode === 'focus', bj = building(), trade = Math.round(tradeIncome() * INCOME);
+      const trade = Math.round(tradeIncome() * INCOME);
       const up = (name, small, btn) => el('div', { class: 'sx-up' }, el('b', {}, name), el('small', {}, small), btn);
       const buy = (cost, onclick, label) => el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < cost || null, onclick }, label || '✦ ' + cost.toLocaleString());
-      const queue = key => { const on = bj && jobKey(bj) === key; return el('button', { type: 'button', class: 'btn sx-buy' + (on ? ' on' : ''), disabled: locked || on || !!S.dr || null, title: 'Your next study session builds it', onclick: () => setJob(key) }, on ? 'Queued' : 'Queue'); };
       const mods = Object.entries(MODS).map(([k, [, name, eff, what]]) => { const l = lvl(k), c = modCost(k); return up(name + ' ' + l, eff(l) + ' ' + what + ' (next ' + eff(l + 1) + ')', buy(c, () => upgradeMod(k))); });
-      const a = atP(); let postSec = null;
-      if (a) {
-        const rows = [];
-        if (held(a)) rows.push(el('p', { class: 'sl-muted' }, 'Outlaws hold ' + nm(a) + '. Drive them out before building here.'));
-        else if (!a.post) rows.push(up('Listening Post', 'Hear transmissions from ' + nm(a) + '. Takes one study session.', queue('post:' + a.num + ':')));
-        else if (!a.post.tp) rows.push(up('Travelers\' Post', 'Settlers, trade and facilities. Takes one study session.', queue('upgrade:' + a.num + ':')));
-        else {
-          a.post.tp.fac.forEach(f => { const lv = f.lv || 1, max = lv >= FAC_MAX; rows.push(up(FAC[f.k][1] + ' ' + lv, max ? 'Max level' : FAC_DESC[f.k], max ? el('span', { class: 'sx-max' }, 'Max') : buy(facCost(lv + 1), () => upgradeFac(a, f)))); });
-          const left2 = Object.keys(FAC).filter(k => !hasFac(a, k));
-          if (left2.length) {
-            const pick = el('select', { 'aria-label': 'Facility to build next' }, left2.map(k => el('option', { value: k, selected: bj && bj.k === 'add' && bj.p === a && bj.fac === k || null }, FAC[k][1])));
-            const qb = () => queue('add:' + a.num + ':' + pick.value);
-            const holder = el('span', {}, qb()); pick.addEventListener('change', () => holder.replaceChildren(qb()));
-            rows.push(el('div', { class: 'sx-up sx-newfac' }, el('b', {}, 'New facility'), el('small', {}, 'Takes one study session'), el('span', { class: 'sx-pick' }, pick, holder)));
-          }
-        }
-        postSec = sec((a.post ? (a.post.tp ? 'Travelers\' Post' : 'Listening Post') : 'Build') + ' at ' + nm(a), ...rows);
-      }
       rightCol.replaceChildren(tabsR, newTx,
         el('div', { class: 'sx-res' }, el('b', {}, '✦ ' + S.dust.toLocaleString()), el('small', {}, 'resources' + (trade ? ', +' + trade + ' trade per session' : ''))),
-        sec('Ship', ...mods), postSec,
-        el('button', { type: 'button', class: 'sl-link sx-more', onclick: () => { shipTab = 'Posts'; tab('ship'); } }, 'All posts and facilities'));
+        sec('Ship modules', ...mods));
+    }
+    // two-click buttons for things that can't be undone
+    const armBtn = (label, armed, act, cls) => { const b = el('button', { type: 'button', class: 'btn ' + (cls || '') }, label);
+      b.addEventListener('click', () => { if (!b.classList.contains('arm')) { b.classList.add('arm'); b.textContent = armed; setTimeout(() => { if (b.isConnected) { b.classList.remove('arm'); b.textContent = label; } }, 4000); return; } act(); }); return b; };
+    // Build: pick a world, then everything you can build or upgrade there, in order
+    let buildNum = null;
+    function buildView() {
+      const locked = running && mode === 'focus', bj = building(), out = [];
+      const up = (name, small, btn, cls) => el('div', { class: 'sx-up' + (cls ? ' ' + cls : '') }, el('b', {}, name), small ? el('small', {}, small) : null, btn || null);
+      const queue = key => { const on = bj && jobKey(bj) === key; return el('button', { type: 'button', class: 'btn sx-buy' + (on ? ' on' : ''), disabled: locked || on || !!S.dr || null, title: 'Your next study session builds it', onclick: () => setJob(key) }, on ? 'Queued' : 'Queue'); };
+      // what's queued
+      out.push(el('div', { class: 'sx-queue' + (bj ? ' on' : '') }, el('small', {}, 'Next study session'),
+        el('b', {}, bj ? jobText(bj) : S.dr ? 'The Distress Run comes first' : 'Nothing queued'),
+        bj && !locked ? el('button', { type: 'button', class: 'sl-link', onclick: () => { S.mission = 0; S.job = null; save(); hint.textContent = ''; draw(); } }, 'Cancel') : null));
+      if (!S.found.length) { out.push(el('p', { class: 'sl-muted' }, 'Find a world first (Explore), then build a Listening Post on it.')); return out; }
+      const all = S.found.slice().reverse().map(f => f.p);
+      if (buildNum == null || !byNum(buildNum)) { const a = atP(); buildNum = (a && !held(a) ? a : posts().length ? posts()[posts().length - 1].p : all[0]).num; }
+      const label = p => nm(p) + (S.at === p.num ? ' (here)' : '') + (p.post ? (p.post.tp ? ', Travelers\' Post' : ', Listening Post') : '') + (held(p) ? ', outlaws' : '');
+      const withPost = all.filter(p => p.post), without = all.filter(p => !p.post);
+      const pick = el('select', { class: 'sx-wpick', 'aria-label': 'World to build on' },
+        withPost.length ? el('optgroup', { label: 'Your posts' }, withPost.map(p => el('option', { value: p.num, selected: p.num === buildNum || null }, label(p)))) : null,
+        without.length ? el('optgroup', { label: 'Other worlds' }, without.slice(0, 300).map(p => el('option', { value: p.num, selected: p.num === buildNum || null }, label(p)))) : null);
+      pick.addEventListener('change', () => { buildNum = +pick.value; drawRight(); });
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'World'), pick));
+      const p = byNum(buildNum).p, rows = [];
+      if (held(p)) rows.push(el('p', { class: 'sl-muted' }, 'Outlaws hold ' + nm(p) + '. Fight them off (Explore turns into Fight) before building here.'));
+      else {
+        // step 1 and 2: the post itself
+        rows.push(p.post ? up('Listening Post', 'Built. ' + p.post.reports.length + ' transmissions so far.', el('span', { class: 'sx-done' }, 'Built'), 'built')
+          : up('Listening Post', 'Hear transmissions from this world. One study session.', queue('post:' + p.num + ':')));
+        rows.push(p.post && p.post.tp ? up('Travelers\' Post', tierOf(p.post.tp.pop || 0) + ', ' + (p.post.tp.pop || 0).toLocaleString() + ' settlers. Pays trade every session.', el('span', { class: 'sx-done' }, 'Built'), 'built')
+          : p.post ? up('Travelers\' Post', 'Settlers, trade and facilities. One study session.', queue('upgrade:' + p.num + ':'))
+            : up('Travelers\' Post', 'Needs a Listening Post first.', null, 'locked'));
+        if (p.post) rows.push(el('div', { class: 'sx-row sx-postact' },
+          S.tuned === p.num ? el('button', { type: 'button', class: 'btn', onclick: () => { S.tuned = 0; save(); draw(); } }, 'Untune satellite') : el('button', { type: 'button', class: 'btn', title: 'The tuned post reports every study session', onclick: () => { S.tuned = p.num; save(); draw(); } }, 'Tune satellite here'),
+          el('button', { type: 'button', class: 'btn', onclick: () => rename(p) }, 'Rename')));
+        out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Post'), ...rows));
+        // step 3: facilities
+        if (p.post && p.post.tp) {
+          const built = p.post.tp.fac, frows = [];
+          built.forEach(f => { const lv = f.lv || 1, max = lv >= FAC_MAX, c = facCost(lv + 1);
+            frows.push(up(FAC[f.k][0] + ' ' + FAC[f.k][1] + ' ' + lv, max ? 'Max level' : 'Level ' + (lv + 1) + ': bigger numbers in its logs', max ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < c || null, onclick: () => upgradeFac(p, f) }, '✦ ' + c.toLocaleString()))); });
+          Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => frows.push(up(FAC[k][0] + ' ' + FAC[k][1], FAC_DESC[k], queue('add:' + p.num + ':' + k), 'unbuilt')));
+          out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Facilities ' + built.length + ' of ' + Object.keys(FAC).length), el('p', { class: 'sl-muted' }, 'New ones take a study session. Upgrades cost resources.'), ...frows));
+        }
+      }
+      return out;
+    }
+    // Sell: survey rights go to the Cartographers' Guild
+    let sellShow = 20;
+    function sellView() {
+      const out = [el('p', { class: 'sl-muted' }, 'The Cartographers\' Guild buys survey rights. The price follows the world\'s condition and how much it stands out. A sold world leaves your Logbook; records and collectibles stay.')];
+      const list = S.found.map(f => f.p).filter(p => p.rarity === bulkR && !sellBlock(p) && !isRecord(p)), total = list.reduce((a, p) => a + sellPrice(p), 0);
+      const rs = el('select', { 'aria-label': 'Rarity to sell' }, ['Common', 'Uncommon', 'Rare', 'Legendary'].map(r => el('option', { value: r, selected: r === bulkR || null }, r)));
+      rs.addEventListener('change', () => { bulkR = rs.value; drawRight(); });
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Sell many at once'), el('div', { class: 'sx-row' }, rs, list.length ? armBtn('Sell ' + list.length + ' for ✦ ' + total.toLocaleString(), 'Click again to sell ' + list.length, () => { const got = sellWorlds(list); hint.textContent = 'Sold ' + list.length + ' ' + bulkR + ' world' + (list.length === 1 ? '' : 's') + ' for ✦ ' + got + '.'; draw(); }, 'sx-buy') : el('span', { class: 'sl-muted' }, 'None to sell')),
+        el('p', { class: 'sl-muted' }, 'Skips posts, where you are, outlaw worlds, your next build and record holders.')));
+      const sellable = S.found.slice().reverse().map(f => f.p).filter(p => !sellBlock(p)).map(p => [p, sellPrice(p)]).sort((a, b) => b[1] - a[1]);
+      const rows = sellable.slice(0, sellShow).map(([p, v]) => el('div', { class: 'sx-up sx-sellrow' }, el('b', {}, nm(p)), el('small', {}, el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ' ' + p.type + ', ' + p.x.hab + '% habitable' + (isRecord(p) ? ', holds a record' : '')),
+        armBtn('✦ ' + v.toLocaleString(), 'Sell?', () => { const got = sellWorlds([p]); hint.textContent = 'Sold the survey rights to ' + nm(p) + ' for ✦ ' + got + '.'; draw(); }, 'sx-buy')));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'One at a time'), sellable.length ? null : el('p', { class: 'sl-muted' }, 'Nothing to sell right now.'), ...rows,
+        sellable.length > sellShow ? el('button', { type: 'button', class: 'sl-link', onclick: () => { sellShow += 20; drawRight(); } }, 'Show more (' + (sellable.length - sellShow) + ')') : null));
+      return out;
     }
     function drawFeed() {
       let best = null;
@@ -1409,7 +1454,7 @@
       const drGroup = group('🆘 Distress Run', el('p', {}, S.dr ? 'In progress: ' + DISTRESS[S.dr.sc][1] + ', Act ' + ROMAN(S.dr.n + 1) + ' of ' + ROMAN(S.dr.need) + '.' : S.drDay === today() ? 'Today\'s run is used up. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'Available at the start of your next cycle (right after a long break).' : 'Earn a ★ Full Cycle today (no skipping for a whole cycle) and a distress call comes in when the long break ends.'),
         el('p', { class: 'sl-muted' }, 'Once a day: a whole cycle of study sessions with no other missions, for about ✦ ' + E.distressRun.base + '–' + (E.distressRun.base + E.distressRun.random) + ', a random bonus, 250 XP and 120 Knowledge. ' + (S.drN || 0) + ' completed so far.'));
       const SUB = { Ship: [rank, el('div', { class: 'sl-next' }, el('span', {}, 'Next study session: '), el('b', {}, next)), mods, cyc, coord], Goals: [drGroup, bounties, records],
-        Posts: [group('🗼 Posts (' + pl.length + ')', el('p', { class: 'sl-muted' }, 'The tuned post reports every study session. Travelers\' Posts are also overheard without tuning, grow settlers every session, and a tuned one adds news from its facilities.'), postRows, plan), facPanel], Logs: [trans, evLog], Stats: statsView(group) };
+        Logs: [trans, evLog], Stats: statsView(group) };
       const subBtns = Object.keys(SUB).map(k => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === shipTab), onclick: () => { shipTab = k; drawShip(); } }, k));
       shipPane.replaceChildren(el('div', { class: 'sl-stabs sl-shiptabs', role: 'tablist' }, subBtns), el('div', { class: 'sl-subpane' }, SUB[shipTab]));
     }
@@ -1454,8 +1499,7 @@
         el('div', {}, el('b', {}, S.found.length + ' world' + (S.found.length === 1 ? '' : 's') + ' charted')),
         el('div', { class: 'sl-muted' }, (ly + S.sold.ly).toLocaleString() + ' light-years of travel · ' + Math.round(S.minutes / 60 * 10) / 10 + ' hours studying' + (S.sold.n ? ' · 💰 ' + S.sold.n + ' sold for ✦ ' + S.sold.dust.toLocaleString() : '')),
         el('div', { class: 'sl-rarcount' }, RARITY.map(([k]) => el('span', { class: 'sl-rar sl-r-' + k.toLowerCase() }, k + ' ' + (counts[k] || 0)))),
-        bulkSell(),
-        el('div', { class: 'sl-muted' }, pc ? '🗼 ' + pc + ' post' + (pc === 1 ? '' : 's') + (tp ? ' · 📡 Satellite tuned to ' + nm(tp) : ' · 📡 Satellite not tuned') : '🗼 No posts yet. Open a world and choose "Build a Listening Post here".'));
+        el('div', { class: 'sl-muted' }, pc ? pc + ' post' + (pc === 1 ? '' : 's') + (tp ? '. Satellite tuned to ' + nm(tp) : '. Satellite not tuned') + '. Manage them under Build on the main screen.' : 'No posts yet. Use Build on the right side of the main screen.'));
       logList.className = 'sl-list';
       if (!S.found.length) { logList.replaceChildren(el('p', { class: 'sl-empty' }, 'No worlds yet. Finish a trip on the Voyage tab to discover your first planet.')); return; }
       const q = find.value.trim().toLowerCase(), ty = typeSel.value, ra = rarSel.value;
@@ -1473,17 +1517,6 @@
       }), ...Array.from({ length: blanks }, unknown));
     }
     let bulkR = 'Common';
-    function bulkSell() { // sell every world of one rarity at once (skips posts, where you are, outlaw worlds, build targets and record holders)
-      const list = S.found.map(f => f.p).filter(p => p.rarity === bulkR && !sellBlock(p) && !isRecord(p)), total = list.reduce((a, p) => a + sellPrice(p), 0);
-      const rs = el('select', { 'aria-label': 'Rarity to sell' }, ['Common', 'Uncommon', 'Rare', 'Legendary'].map(r => el('option', { value: r, selected: r === bulkR || null }, r)));
-      rs.addEventListener('change', () => { bulkR = rs.value; drawLog(); });
-      const b = el('button', { type: 'button', class: 'btn sl-sell-b', disabled: !list.length || null }, list.length ? 'Sell ' + list.length + ' for ✦ ' + total.toLocaleString() : 'Nothing to sell');
-      b.addEventListener('click', () => {
-        if (!b.classList.contains('arm')) { b.classList.add('arm'); b.textContent = 'Click again to sell ' + list.length + ' ' + bulkR + ' world' + (list.length === 1 ? '' : 's'); return; }
-        const got = sellWorlds(list); hint.textContent = '💰 Sold ' + list.length + ' ' + bulkR + ' world' + (list.length === 1 ? '' : 's') + ' for ✦ ' + got + '.'; drawLog(); draw();
-      });
-      return el('div', { class: 'sl-bulk', title: 'Skips worlds with posts, where you are, outlaw worlds, your next build and record holders' }, el('span', {}, '💰 Sell all '), rs, el('span', {}, ' worlds:'), b);
-    }
     function drawItems() {
       const nav = el('div', { class: 'sl-wnav' }, el('b', {}, '🎒 Collection: ' + itemCount() + ' / ' + ITEM_TOTAL), el('span', { class: 'sl-muted' }, Math.round(itemCount() / ITEM_TOTAL * 100) + '% found'));
       const groups = ITEM_RARS.map(r => {
@@ -1496,7 +1529,7 @@
       itemsPane.replaceChildren(el('div', { class: 'sl-wpage' }, nav, el('p', { class: 'sl-muted' }, ITEM_TOTAL + ' one-of-a-kind items are scattered across the universe. 🔍 Discover (surveying the world you\'re at) turns up one or two, and beating outlaws hands over their hoard, which leans toward the rarer ones.'), ...groups));
     }
     function drawWorld(f) {
-      const p = f.p, tuned = S.tuned === p.num && !!p.post, busy = running && mode === 'focus';
+      const p = f.p;
       const list = shownList.length ? shownList : S.found.slice().reverse(), i = list.findIndex(x => x.p.num === p.num);
       const prev = i > 0 ? list[i - 1] : null, next = i >= 0 && i < list.length - 1 ? list[i + 1] : null;
       const nav = el('div', { class: 'sl-wnav' },
@@ -1505,27 +1538,10 @@
         el('span', { class: 'sl-wnav-r' },
           el('button', { type: 'button', class: 'btn', title: prev ? 'Previous: ' + nm(prev.p) : '', disabled: !prev || null, onclick: () => prev && openWorld(prev.p.num) }, '◂'),
           el('button', { type: 'button', class: 'btn', title: next ? 'Next: ' + nm(next.p) : '', disabled: !next || null, onclick: () => next && openWorld(next.p.num) }, '▸')));
-      const acts = el('div', { class: 'sl-acts' },
-        held(p) ? el('span', { class: 'sl-muted' }, '🏴 Held by ' + p.outlaw.gang + '. Drive them out (⚔ Fight on the Voyage tab) before building here.') : !p.post ? el('button', { type: 'button', class: 'btn', title: 'Your next study session builds a Listening Post here', disabled: busy || null, onclick: () => { setJob('post:' + p.num + ':'); tab('timer'); } }, S.mission > 0 && S.job && S.job.k === 'post' && S.job.num === p.num ? '🗼 Building here next' : '🗼 Build a Listening Post here')
-          : !p.post.tp ? el('button', { type: 'button', class: 'btn', title: 'Your next study session upgrades this post', disabled: busy || null, onclick: () => { setJob('upgrade:' + p.num + ':'); tab('timer'); } }, '🏘 Upgrade to Travelers\' Post') : null,
-        p.post ? (tuned ? el('button', { type: 'button', class: 'btn', title: 'Stop listening to this post', onclick: () => { S.tuned = 0; save(); drawLog(); draw(); } }, '📡 Untune')
-          : el('button', { type: 'button', class: 'btn', title: 'Only one post can be tuned at a time', onclick: () => { S.tuned = p.num; save(); drawLog(); draw(); } }, '📡 Tune satellite')) : null,
-        p.post ? el('button', { type: 'button', class: 'btn', title: 'Worlds with a post can be renamed', onclick: () => rename(p) }, 'Rename...') : null);
-      const why = sellBlock(p), price = sellPrice(p);
-      const sellB = el('button', { type: 'button', class: 'btn sl-sell-b', disabled: why || null, title: why ? 'Can\'t sell: ' + why : 'Sell the survey rights. The world leaves your Logbook for good.' }, '💰 Sell for ✦ ' + price.toLocaleString());
-      sellB.addEventListener('click', () => {
-        if (!sellB.classList.contains('arm')) { sellB.classList.add('arm'); sellB.textContent = 'Click again to sell ' + nm(p); setTimeout(() => { if (sellB.isConnected && sellB.classList.contains('arm')) { sellB.classList.remove('arm'); sellB.textContent = '💰 Sell for ✦ ' + price.toLocaleString(); } }, 4000); return; }
-        const near = next || prev; const got = sellWorlds([p]);
-        hint.textContent = '💰 Sold the survey rights to ' + nm(p) + ' for ✦ ' + got + '.';
-        if (near) openWorld(near.p.num); else closeWorld(); draw();
-      });
-      const sell = el('details', { class: 'sl-sell' }, el('summary', {}, '💰 Sell this world' + (why ? ' (not now: ' + why + ')' : ' · ✦ ' + price.toLocaleString())),
-        el('p', { class: 'sl-muted' }, 'The Cartographers\' Guild buys survey rights. The price follows the world\'s condition and how much it stands out. Selling removes it from your Logbook for good (records and collectibles stay).'),
-        el('table', { class: 'sl-rec' }, el('tbody', {}, sellParts(p).map(([l, v]) => el('tr', {}, el('td', {}, l), el('td', {}, '✦ ' + v))))), sellB);
       const cardEl = el('div', { class: 'sl-card sl-world' }, ...planetCard(p, 'log'));
       const sv = cardEl.querySelector('details.sl-more'); if (sv) sv.open = true;
       logList.className = 'sl-wpage';
-      logList.replaceChildren(nav, el('div', { class: 'sl-muted sl-found-on' }, (S.at === p.num ? '📍 You are here · ' : '') + 'Discovered ' + new Date(f.at).toLocaleString()), acts.childNodes.length ? acts : null, cardEl, sell);
+      logList.replaceChildren(nav, el('div', { class: 'sl-muted sl-found-on' }, (S.at === p.num ? '📍 You are here · ' : '') + 'Discovered ' + new Date(f.at).toLocaleString()), cardEl);
     }
     logPane.addEventListener('keydown', e => { if (openNum == null || e.target.closest('input, select')) return; if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); closeWorld(); } });
     function rename(p) {
