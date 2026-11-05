@@ -19,12 +19,11 @@ Your progress is saved in this browser (the same save as the Solarist window on 
 | `solarist.js` | The game: timer, planets, missions, posts, collectibles, levels, Distress Runs, stats |
 | `economy.json` | Every resource income and price. Edit, commit, reload. Notes inside explain each number |
 | `items.json` | The collectibles. Add new ones at the end of a list only (saves remember items by position) |
-| `sw.js` | Offline support. **Bump `VERSION` at the top whenever you change any file**, or installed copies keep the old one |
+| `sw.js` | Offline support. Files are always fetched fresh when online, so edits show up on the next reload. Bump `VERSION` only if you add or remove files |
 | `manifest.webmanifest`, `icons/` | App name and icons for installing |
 | `fonts/` | Barlow and Barlow Condensed (SIL Open Font License, see `fonts/OFL-Barlow.txt`) |
 | `sfx/` | Sounds (see `sfx/CREDITS.txt`) |
 
-`economy.json` and `items.json` are always fetched fresh when you're online, so edits to them show up without bumping `VERSION`.
 
 ## Controls
 
