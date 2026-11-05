@@ -330,6 +330,17 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sl-reports .sl-rep-core, .sl-reports .sl-rep-species, .sl-reports .sl-rep-odd { color: var(--white); } .sl-reports .sl-rep-secret { font-style: italic; }
 .sl-reports .sl-rep-fac { color: var(--amber); } .sl-reports .sl-rep-ev small { color: var(--red); }
 
+/* ---------- star map ---------- */
+.sx-mappane { max-width: 1200px; }
+.sx-maptools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sx-maptools .btn { min-width: 40px; }
+.sx-mapwrap { position: relative; border: 1px solid var(--line); }
+.sx-map { display: block; touch-action: none; cursor: grab; }
+.sx-maptip { position: absolute; z-index: 2; padding: 4px 8px; background: #000; border: 1px solid var(--dim); font: 500 15px var(--ui); color: var(--white); pointer-events: none; white-space: nowrap; }
+.sx-maplegend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 15px; color: var(--soft); }
+.sx-maplegend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.sx-maplegend i.sq { border-radius: 0; background: var(--amber); } .sx-maplegend i.ring { background: none; border: 2px solid var(--green); }
+
 /* ---------- campaign ---------- */
 .sx-camp-bar { height: 3px; background: var(--line); margin: 2px 0 8px; } .sx-camp-bar i { display: block; height: 100%; background: var(--violet); }
 .sx-camp { border-left: 3px solid var(--violet); padding-left: 14px; }

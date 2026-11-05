@@ -1115,23 +1115,26 @@
     const itemsPane = el('div', { class: 'sl-pane', hidden: true });
     const tabItems = el('button', { type: 'button', onclick: () => tab('items') }, 'Collection');
     const tabSet = el('button', { type: 'button', onclick: () => tab('settings') }, 'Settings');
+    const tabMap = el('button', { type: 'button', onclick: () => tab('map') }, 'Star map');
+    const mapPane = el('div', { class: 'sl-pane sx-mappane', hidden: true });
     const pageTitle = el('h2', { class: 'sx-page-t' });
     const page = el('div', { class: 'sx-page', hidden: true },
       el('div', { class: 'sx-page-h' }, pageTitle, el('button', { type: 'button', class: 'btn', onclick: () => tab('timer') }, 'Back to the voyage')),
-      el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, settingsPane));
+      el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, mapPane, settingsPane));
     [tabTimer, tabLog, tabShip].forEach(b => b.removeAttribute('role'));
     root.classList.add('sx');
-    root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabLog, tabShip, tabItems, tabSet)), leftCol, midCol, rightCol, feedLine, report, page, el('div', { hidden: true }, tabTimer, status2));
+    root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabLog, tabMap, tabShip, tabItems, tabSet)), leftCol, midCol, rightCol, feedLine, report, page, el('div', { hidden: true }, tabTimer, status2));
     function tab(t) {
       if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Logbook again goes back to the grid
-      const names = { log: 'Logbook', ship: 'Ship', items: 'Collection', settings: 'Settings' };
+      const names = { log: 'Logbook', ship: 'Ship', items: 'Collection', settings: 'Settings', map: 'Star map' };
       page.hidden = t === 'timer'; pageTitle.textContent = names[t] || '';
-      [[tabLog, 'log'], [tabShip, 'ship'], [tabItems, 'items'], [tabSet, 'settings']].forEach(([b, k]) => { if (k === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-      logPane.hidden = t !== 'log'; shipPane.hidden = t !== 'ship'; itemsPane.hidden = t !== 'items'; settingsPane.hidden = t !== 'settings';
+      [[tabLog, 'log'], [tabMap, 'map'], [tabShip, 'ship'], [tabItems, 'items'], [tabSet, 'settings']].forEach(([b, k]) => { if (k === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+      logPane.hidden = t !== 'log'; shipPane.hidden = t !== 'ship'; itemsPane.hidden = t !== 'items'; settingsPane.hidden = t !== 'settings'; mapPane.hidden = t !== 'map';
       root.classList.toggle('paged', t !== 'timer');
       if (t === 'ship') drawShip();
       if (t === 'items') drawItems();
       if (t === 'log') drawLog();
+      if (t === 'map') drawMap();
       if (t === 'settings' && hooks.settings) hooks.settings(appSettings);
       if (t !== 'timer') { const bd = root.querySelector('.sl-body'); if (bd && t !== 'log') bd.scrollTop = 0; }
     }
@@ -1708,6 +1711,60 @@
         out.push(group((CAMP.acts || [])[a] || 'Logs', ...logs.map((lg, i) => campLog(lg, a * per + i + 1))));
       }
       return out.reverse();
+    }
+    // ---------- star map: every world you've charted, placed by its distance from Earth, with your route ----------
+    const mapView = { zoom: 1, x: 0, y: 0 }; let mapCv = null, mapPts = [], mapHover = null;
+    const RCOL = { Common: '#a6859f', Uncommon: '#6bc96c', Rare: '#aee2ff', Legendary: '#fcef8d' };
+    function mapPos(p) { // the same spot every time: direction from the seed, distance on a log scale
+      const a = ((p.seed * 2654435761) >>> 0) / 4294967296 * Math.PI * 2, r = Math.log10(Math.max(6, p.dist)) / 4.45;
+      return [Math.cos(a) * r, Math.sin(a) * r * .78];
+    }
+    function drawMap() {
+      if (!mapCv) {
+        mapCv = el('canvas', { class: 'sx-map', role: 'img', 'aria-label': 'Star map of your charted worlds' });
+        const tip = el('div', { class: 'sx-maptip', hidden: true });
+        const zoomB = (label, f) => el('button', { type: 'button', class: 'btn', onclick: () => { if (f) mapView.zoom = Math.min(12, Math.max(.6, mapView.zoom * f)); else { mapView.zoom = 1; mapView.x = mapView.y = 0; } renderMap(); } }, label);
+        const legend = el('div', { class: 'sx-maplegend' }, ...['Common', 'Uncommon', 'Rare', 'Legendary'].map(r => el('span', {}, el('i', { style: 'background:' + RCOL[r] }), r)),
+          el('span', {}, el('i', { class: 'sq' }), 'Post'), el('span', {}, el('i', { style: 'background:#ea6262' }), 'Outlaws'), el('span', {}, el('i', { class: 'ring' }), 'You are here'));
+        mapPane.replaceChildren(el('div', { class: 'sx-maptools' }, zoomB('+', 1.5), zoomB('−', 1 / 1.5), zoomB('Reset'), el('span', { class: 'sl-muted' }, 'Drag to move, scroll to zoom, click a world to open it.')), el('div', { class: 'sx-mapwrap' }, mapCv, tip), legend, el('p', { class: 'sl-muted sx-mapnote' }));
+        let drag = null;
+        mapCv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, vx: mapView.x, vy: mapView.y, moved: false }; mapCv.setPointerCapture(e.pointerId); });
+        mapCv.addEventListener('pointermove', e => {
+          if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true; if (drag.moved) { mapView.x = drag.vx + dx; mapView.y = drag.vy + dy; renderMap(); } return; }
+          const r = mapCv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+          const hit = mapPts.find(q => Math.hypot(q.x - mx, q.y - my) < 9);
+          mapHover = hit ? hit.p : null; mapCv.style.cursor = hit ? 'pointer' : 'grab';
+          tip.hidden = !hit; if (hit) { tip.textContent = nm(hit.p) + ', ' + hit.p.type + ' (' + hit.p.rarity + '), ' + hit.p.dist.toLocaleString() + ' ly'; tip.style.left = Math.min(r.width - 220, mx + 14) + 'px'; tip.style.top = (my + 10) + 'px'; }
+        });
+        mapCv.addEventListener('pointerup', e => { const d = drag; drag = null; if (d && !d.moved && mapHover) { tab('log'); openWorld(mapHover.num); } });
+        mapCv.addEventListener('pointerleave', () => { tip.hidden = true; });
+        mapCv.addEventListener('wheel', e => { e.preventDefault(); mapView.zoom = Math.min(12, Math.max(.6, mapView.zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); renderMap(); }, { passive: false });
+        addEventListener('resize', () => { if (!mapPane.hidden) renderMap(); });
+      }
+      renderMap();
+      mapPane.querySelector('.sx-mapnote').textContent = S.found.length + ' worlds charted. Distance from Earth (the center) is on a log scale: each ring is ten times farther than the one inside it.';
+    }
+    function renderMap() {
+      const wrap = mapCv.parentNode, W = wrap.clientWidth, H = Math.max(320, Math.min(innerHeight - 260, W * .7)), dpr = Math.min(2, devicePixelRatio || 1);
+      mapCv.width = W * dpr; mapCv.height = H * dpr; mapCv.style.width = W + 'px'; mapCv.style.height = H + 'px';
+      const g = mapCv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+      const sc = Math.min(W, H / .8) * .46 * mapView.zoom, cx = W / 2 + mapView.x, cy = H / 2 + mapView.y;
+      const P = p => { const [x, y] = mapPos(p); return [cx + x * sc, cy + y * sc]; };
+      g.strokeStyle = '#1f102a'; g.lineWidth = 1; g.fillStyle = '#4a3052'; g.font = '12px "Barlow C", sans-serif';
+      [1, 2, 3, 4].forEach(k => { const r = k / 4.45 * sc; g.beginPath(); g.ellipse(cx, cy, r, r * .78, 0, 0, Math.PI * 2); g.stroke(); g.fillText(Math.pow(10, k).toLocaleString() + ' ly', cx + r + 4, cy - 2); });
+      g.fillStyle = '#ffffff'; g.fillRect(cx - 2, cy - 2, 4, 4); g.fillStyle = '#7b5480'; g.fillText('Earth', cx + 6, cy + 14);
+      const list = S.found.map(f => f.p);
+      g.strokeStyle = '#4a3052'; g.beginPath(); list.forEach((p, i) => { const [x, y] = P(p); if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.stroke();
+      mapPts = [];
+      list.forEach(p => {
+        const [x, y] = P(p); mapPts.push({ x, y, p });
+        const big = p.rarity === 'Legendary' ? 4 : p.rarity === 'Rare' ? 3 : 2.5;
+        g.fillStyle = held(p) ? '#ea6262' : RCOL[p.rarity] || '#a6859f';
+        if (p.post) { g.fillStyle = '#ffb879'; g.fillRect(x - big - 1, y - big - 1, (big + 1) * 2, (big + 1) * 2); if (p.post.tp) { g.strokeStyle = '#ffb879'; g.strokeRect(x - big - 4, y - big - 4, (big + 4) * 2, (big + 4) * 2); } }
+        else { g.beginPath(); g.arc(x, y, big, 0, Math.PI * 2); g.fill(); }
+        if (S.at === p.num) { g.strokeStyle = '#6bc96c'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, big + 7, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1; }
+        if (mapView.zoom >= 2.5 || p.post || p.rarity === 'Legendary' || S.at === p.num) { g.fillStyle = '#a6859f'; g.fillText(nm(p), x + 8, y - 6); }
+      });
     }
     function crewView(group) {
       const out = [], cost = crewCost(), free = bunks() - S.crew.length;
