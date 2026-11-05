@@ -1,2 +1,6 @@
 Music used by Solarist (listed in ../music.json).
 Only add tracks you're allowed to use, and write where each one came from and its license here.
+
+night_stars.mp3 - "Night Stars" by Hiroki971 (2021). Plays during breaks.
+  Source and license: from the file's own tags; please confirm where it was downloaded (Pixabay?) and its license.
+  Re-encoded to 160 kbps to keep the download small.
