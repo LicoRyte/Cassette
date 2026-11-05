@@ -1139,22 +1139,22 @@
     // A charged Interplanetary Coordinator doubles every chip for one trip (and still steers toward better worlds).
     const MINERAL = ['Iron', 'Carbon', 'Crystal', 'Lava', 'Shattered'], WATERY = ['Ocean', 'Hycean', 'Swamp'], PLAIN_STARS = ['red dwarf', 'orange dwarf', 'yellow dwarf'];
     const CHIP_F = [ // [key, icon, name, what it nudges, group, per chip, test (worlds only, 0..1)]
-      ['life', '🌱', 'Lifeform Pylon', 'worlds with life on them (the more chips, the richer the life)', 'w', .06, p => p.lifeLvl ? .6 + p.lifeLvl / 15 : 0],
-      ['hab', '🏡', 'Habitat Beacon', 'worlds at least 60% habitable', 'w', .06, p => (p.x || (p.x = makeExtra(p))).hab >= 60 ? 1 : 0],
-      ['rare', '💎', 'Rarity Lens', 'Rare and Legendary worlds', 'w', .04, p => p.rarity === 'Legendary' ? 1 : p.rarity === 'Rare' ? .85 : 0],
-      ['odd', '🌀', 'Anomaly Antenna', 'worlds with an anomaly', 'w', .06, p => p.odd ? 1 : 0],
-      ['rings', '💫', 'Ring Resonator', 'worlds with rings', 'w', .06, p => p.rings ? 1 : 0],
-      ['moons', '🌙', 'Moon Magnet', 'worlds with four or more moons', 'w', .06, p => p.moons >= 4 ? 1 : 0],
-      ['giant', '🎈', 'Gas Harp', 'giants and other worlds with no ground', 'w', .06, p => (TYPES[p.type] || {}).noGround ? 1 : 0],
-      ['ore', '⛏', 'Ore Sieve', 'Iron, Carbon, Crystal, Lava and Shattered worlds', 'w', .06, p => MINERAL.includes(p.type) ? 1 : 0],
-      ['water', '🌊', 'Tide Bell', 'Ocean, Hycean and Swamp worlds', 'w', .06, p => WATERY.includes(p.type) ? 1 : 0],
-      ['star', '🔆', 'Strange Light', 'giant, white dwarf, binary and pulsar suns', 'w', .06, p => !PLAIN_STARS.includes(p.star) && !p.star.startsWith('none') ? 1 : 0],
-      ['far', '🔭', 'Deep Range', 'worlds more than 2,000 light-years out', 'w', .06, p => p.dist >= 2000 ? 1 : 0],
-      ['siren', '🏴', 'Siren', 'outlaw gangs holding the world', 'e', .03],
-      ['hush', '🕊', 'Hush Beacon', 'fewer outlaws (takes chance away)', 'e', .012],
-      ['lantern', '🏮', 'Welcome Lantern', 'arrival encounters', 'e', .02],
-      ['market', '🏪', 'Market Flare', 'a Trade Station docked at the world', 'e', .015],
-      ['storm', '☄', 'Storm Rod', 'deep-space events during any session', 'e', .015],
+      ['life', '🌱', 'Lifeform Pylon', 'worlds with life on them (the more chips, the richer the life)', 'w', .035, p => p.lifeLvl ? .6 + p.lifeLvl / 15 : 0],
+      ['hab', '🏡', 'Habitat Beacon', 'worlds at least 60% habitable', 'w', .035, p => (p.x || (p.x = makeExtra(p))).hab >= 60 ? 1 : 0],
+      ['rare', '💎', 'Rarity Lens', 'Rare and Legendary worlds', 'w', .025, p => p.rarity === 'Legendary' ? 1 : p.rarity === 'Rare' ? .85 : 0],
+      ['odd', '🌀', 'Anomaly Antenna', 'worlds with an anomaly', 'w', .035, p => p.odd ? 1 : 0],
+      ['rings', '💫', 'Ring Resonator', 'worlds with rings', 'w', .035, p => p.rings ? 1 : 0],
+      ['moons', '🌙', 'Moon Magnet', 'worlds with four or more moons', 'w', .035, p => p.moons >= 4 ? 1 : 0],
+      ['giant', '🎈', 'Gas Harp', 'giants and other worlds with no ground', 'w', .035, p => (TYPES[p.type] || {}).noGround ? 1 : 0],
+      ['ore', '⛏', 'Ore Sieve', 'Iron, Carbon, Crystal, Lava and Shattered worlds', 'w', .035, p => MINERAL.includes(p.type) ? 1 : 0],
+      ['water', '🌊', 'Tide Bell', 'Ocean, Hycean and Swamp worlds', 'w', .035, p => WATERY.includes(p.type) ? 1 : 0],
+      ['star', '🔆', 'Strange Light', 'giant, white dwarf, binary and pulsar suns', 'w', .035, p => !PLAIN_STARS.includes(p.star) && !p.star.startsWith('none') ? 1 : 0],
+      ['far', '🔭', 'Deep Range', 'worlds more than 2,000 light-years out', 'w', .035, p => p.dist >= 2000 ? 1 : 0],
+      ['siren', '🏴', 'Siren', 'outlaw gangs holding the world', 'e', .02],
+      ['hush', '🕊', 'Hush Beacon', 'fewer outlaws (takes chance away)', 'e', .008],
+      ['lantern', '🏮', 'Welcome Lantern', 'arrival encounters', 'e', .015],
+      ['market', '🏪', 'Market Flare', 'a Trade Station docked at the world', 'e', .01],
+      ['storm', '☄', 'Storm Rod', 'deep-space events during any session', 'e', .01],
     ];
     const CHIP_MAX = 10;
     if (!S.chips) S.chips = { own: Math.round(E.coordChips.start), put: {} };
