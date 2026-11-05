@@ -1747,18 +1747,21 @@
         const zoomB = (label, f) => el('button', { type: 'button', class: 'btn', onclick: () => { if (f) mapView.zoom = Math.min(12, Math.max(.6, mapView.zoom * f)); else { mapView.zoom = 1; mapView.x = mapView.y = 0; } renderMap(); } }, label);
         const legend = el('div', { class: 'sx-maplegend' }, ...['Common', 'Uncommon', 'Rare', 'Legendary'].map(r => el('span', {}, el('i', { style: 'background:' + RCOL[r] }), r)),
           el('span', {}, el('i', { class: 'sq' }), 'Post'), el('span', {}, el('i', { style: 'background:#ea6262' }), 'Outlaws'), el('span', {}, el('i', { class: 'ring' }), 'You are here'));
-        mapPane.replaceChildren(el('div', { class: 'sx-maptools' }, zoomB('+', 1.5), zoomB('−', 1 / 1.5), zoomB('Reset'), el('span', { class: 'sl-muted' }, 'Drag to move, scroll to zoom, click a world to open it.')), el('div', { class: 'sx-mapwrap' }, mapCv, tip), legend, el('p', { class: 'sl-muted sx-mapnote' }));
+        mapPane.replaceChildren(el('div', { class: 'sx-maptools' }, zoomB('+', 1.5), zoomB('−', 1 / 1.5), zoomB('Reset'), el('span', { class: 'sl-muted' }, 'Drag to move, scroll to zoom, point at a world to see it.')), el('div', { class: 'sx-mapwrap' }, mapCv, tip), legend, el('p', { class: 'sl-muted sx-mapnote' }));
         let drag = null;
         mapCv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, vx: mapView.x, vy: mapView.y, moved: false }; mapCv.setPointerCapture(e.pointerId); });
         mapCv.addEventListener('pointermove', e => {
           if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true; if (drag.moved) { mapView.x = drag.vx + dx; mapView.y = drag.vy + dy; renderMap(); } return; }
           const r = mapCv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
           const hit = mapPts.find(q => Math.hypot(q.x - mx, q.y - my) < 9);
-          mapHover = hit ? hit.p : null; mapCv.style.cursor = hit ? 'pointer' : 'grab';
-          tip.hidden = !hit; if (hit) { tip.textContent = nm(hit.p) + ', ' + hit.p.type + ' (' + hit.p.rarity + '), ' + hit.p.dist.toLocaleString() + ' ly'; tip.style.left = Math.min(r.width - 220, mx + 14) + 'px'; tip.style.top = (my + 10) + 'px'; }
+          const hp = hit ? hit.p : null;
+          if (hp !== mapHover) { mapHover = hp; if (hp) { const x = hp.x || (hp.x = makeExtra(hp)), first = (hp.log.match(/^[^.!?]*[.!?]/) || [hp.log])[0];
+            tip.replaceChildren(el('img', { src: paint(hp, 64), alt: '' }), el('div', {}, el('b', {}, nm(hp)), el('span', {}, hp.type + ' world, ', el('i', { class: 'sx-r-' + hp.rarity.toLowerCase() }, hp.rarity)),
+              el('small', {}, x.hab + '% habitable, ' + hp.dist.toLocaleString() + ' light-years from Earth' + (hp.post ? (hp.post.tp ? '. Travelers\' Post' : '. Listening Post') : '') + (held(hp) ? '. Held by outlaws' : '') + (S.at === hp.num ? '. You are here' : '')), el('p', {}, first))); } }
+          tip.hidden = !hit; if (hit) { tip.style.left = Math.max(8, Math.min(r.width - 340, mx + 16)) + 'px'; tip.style.top = Math.max(8, Math.min(r.height - 150, my + 12)) + 'px'; }
         });
-        mapCv.addEventListener('pointerup', e => { const d = drag; drag = null; if (d && !d.moved && mapHover) { tab('log'); openWorld(mapHover.num); } });
-        mapCv.addEventListener('pointerleave', () => { tip.hidden = true; });
+        mapCv.addEventListener('pointerup', () => { drag = null; });
+        mapCv.addEventListener('pointerleave', () => { tip.hidden = true; mapHover = null; });
         mapCv.addEventListener('wheel', e => { e.preventDefault(); mapView.zoom = Math.min(12, Math.max(.6, mapView.zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); renderMap(); }, { passive: false });
         addEventListener('resize', () => { if (!mapPane.hidden) renderMap(); });
       }
