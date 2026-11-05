@@ -50,12 +50,27 @@
   "distressRun": { "base": 500, "random": 200, "bonusMin": 100, "bonusMax": 250 },
   "_distressRun": "Daily Distress Run payout: base + 0..random (not affected by incomeMultiplier). bonusMin-bonusMax is the extra-resources random bonus.",
 
-  "tradeStation": { "chance": 0.12, "prices": { "Common": 60, "Uncommon": 150, "Rare": 400, "Legendary": 1200 }, "sellRatio": 0.35 },
+  "tradeStation": { "chance": 0.12, "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
   "_tradeStation": "Trade Stations: chance one is docked at a new world, what its collectibles cost (each varies by up to 15%), and the share of that price it pays for your spares (before incomeMultiplier).",
 
-  "moduleCost": { "base": 50, "growth": 1.25 },
-  "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1).",
+  "moduleCost": { "base": 70, "growth": 1.27, "maxLevel": { "engine": 30, "scanner": 21, "lab": 14, "comms": 25, "hull": 30 } },
+  "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1). maxLevel is each module's top level (past it the effect would stop growing anyway).",
 
-  "facilityCost": { "base": 64, "growth": 1.6, "maxLevel": 10 },
+  "roomCost": { "base": 160, "growth": 1.7, "maxLevel": 5 },
+  "_roomCost": "Upgrading a ship room to level L costs base x growth ^ (L - 1). The first level is built with a study session instead.",
+
+  "crewCost": { "base": 200, "perCrew": 160 },
+  "_crewCost": "Hiring costs base + perCrew x crew already aboard.",
+
+  "shipStyleCost": { "color": 300, "design": 800 },
+  "_shipStyleCost": "Buying a hull color or a ship design (once; switching between owned ones is free).",
+
+  "campaign": { "base": 40, "perLog": 2 },
+  "_campaign": "Each Meridian log pays base + perLog x the log's number.",
+
+  "quests": { "expedition": 450, "expeditionSafe": 60, "expeditionBold": 15, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
+  "_quests": "Expedition: the final payout, a safe leg's pay, and a bold leg's pay when it finds no collectible. Guild contract: the resource and Knowledge-point choices. Most Wanted: base payout plus bossPerCatch for every boss caught before.",
+
+  "facilityCost": { "base": 80, "growth": 1.6, "maxLevel": 10 },
   "_facilityCost": "Facility upgrade price to reach level L: base x growth ^ (L - 2). maxLevel is the highest level."
 }

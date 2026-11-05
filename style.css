@@ -432,3 +432,25 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-arc .sl-muted { margin: 0; font-size: 14px; }
 .sl-stab.sx-lockt { color: var(--dim); }
 .sx-lockmsg { margin: 18px 0; padding-left: 12px; border-left: 3px solid var(--dim); color: var(--soft); }
+
+/* ---------- quests on the left, rating ---------- */
+.sx-q-h { font: 600 18px var(--ui); color: var(--white); margin-bottom: 4px !important; }
+.sx-legs { margin: 4px 0 8px; }
+.sx-paths { display: grid; gap: 6px; margin: 6px 0 8px; }
+.sx-paths button { display: block; width: 100%; padding: 5px 10px; text-align: left; background: none; border: 1px solid var(--dim); cursor: pointer; }
+.sx-paths button b { display: block; font: 600 16px var(--ui); color: var(--soft); }
+.sx-paths button small { font: 500 13px var(--ui); color: var(--mute); }
+.sx-paths button[aria-checked="true"] { border-color: var(--amber); } .sx-paths button[aria-checked="true"] b { color: var(--white); }
+.sx-paths button:disabled { cursor: default; opacity: .6; }
+.sx-row-l { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.btn.sx-mini { padding: 1px 8px; font-size: 14px; color: var(--mute); }
+.sx-q.done > span { color: var(--soft); text-decoration: line-through; text-decoration-color: var(--dim); }
+.sx-q.done em { color: var(--green); }
+.sx-claim p { margin: 8px 0 6px; color: var(--amber); }
+.sl-lv-rt .sl-lv-bar i { background: var(--violet); }
+.sl-lv-rt b { color: var(--white); }
+.sx-ranks { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 14px 0; }
+.sx-ranks span { font: 500 14px var(--ui); color: var(--dim); } .sx-ranks span small { margin-left: 4px; font-size: 12px; }
+.sx-ranks span.on { color: var(--violet); }
+.sx-rtab { margin-top: 12px; } .sx-rtab th { text-align: left; font: 600 16px var(--ui); color: var(--white); padding-bottom: 4px; } .sx-rtab th:last-child, .sx-rtab td:last-child { text-align: right; }
+.sx-rtab { width: 100%; table-layout: fixed; } .sx-rtab th:nth-child(2), .sx-rtab td:nth-child(2) { width: 90px; text-align: right; } .sx-rtab th:last-child, .sx-rtab td:last-child { width: 90px; }
