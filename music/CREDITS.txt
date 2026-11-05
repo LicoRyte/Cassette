@@ -1,0 +1,2 @@
+Music used by Solarist (listed in ../music.json).
+Only add tracks you're allowed to use, and write where each one came from and its license here.

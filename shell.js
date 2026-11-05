@@ -72,6 +72,46 @@
   })();
   window.addEventListener('pointerdown', () => amb.start(), { once: true }); window.addEventListener('keydown', () => amb.start(), { once: true });
 
+  /* ---------- music: study ambience during study sessions, music during breaks. The playlists live in music.json
+     (paths to files in the music folder). Empty lists = no music. Tracks are fetched once and kept, so they play offline too. ---------- */
+  const music = (() => {
+    const lists = { study: [], break: [] }, pos = { study: -1, break: -1 }, players = { study: null, break: null }, blobs = new Map();
+    let on = store.get('solarist-music') !== 'off', vol = +(store.get('solarist-music-vol') || 50) / 100, want = null, live = null, unlocked = false;
+    const fades = new Map();
+    function fade(a, to, ms, done) {
+      clearInterval(fades.get(a)); const from = a.volume, t0 = performance.now();
+      fades.set(a, setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms); a.volume = Math.max(0, Math.min(1, from + (to - from) * k)); if (k >= 1) { clearInterval(fades.get(a)); if (done) done(); } }, 40));
+    }
+    const src = f => blobs.has(f) ? Promise.resolve(blobs.get(f)) : fetch(f).then(r => { if (!r.ok) throw new Error(f); return r.blob(); }).then(b => { const u = URL.createObjectURL(b); blobs.set(f, u); return u; });
+    function nextTrack(k) { const L = lists[k]; if (!L.length) return null; pos[k] = pos[k] < 0 ? Math.floor(Math.random() * L.length) : (pos[k] + 1) % L.length; return L[pos[k]]; }
+    function load(k) { // put the next track of list k into its player (keeps going round the list)
+      const f = nextTrack(k); if (!f) return Promise.resolve(null);
+      return src(f).then(u => { let a = players[k]; if (!a) { a = players[k] = new Audio(); a.addEventListener('ended', () => { load(k).then(() => { if (live === k) { a.volume = vol; a.play().catch(() => {}); } }); }); } a.loop = lists[k].length === 1; a.src = u; a.volume = 0; return a; })
+        .catch(() => { lists[k] = lists[k].filter(x => x !== f); pos[k] = -1; return lists[k].length ? load(k) : null; }); // a missing file is skipped
+    }
+    function apply() {
+      const k = on && unlocked && want && lists[want].length ? want : null;
+      Object.keys(players).forEach(n => { const a = players[n]; if (a && n !== k && !a.paused) fade(a, 0, 1200, () => a.pause()); });
+      live = k; if (!k) return;
+      const go = a => { if (!a || live !== k) return; a.play().then(() => fade(a, vol, 1500)).catch(() => {}); };
+      if (players[k] && players[k].src) go(players[k]); else load(k).then(go);
+    }
+    return {
+      lists(j) { if (j && typeof j === 'object') Object.keys(lists).forEach(k => { if (Array.isArray(j[k])) lists[k] = j[k].filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()); }); apply(); },
+      set(k) { if (k !== want) { want = k; apply(); } },
+      start() { if (!unlocked) { unlocked = true; apply(); } },
+      settings(box) {
+        const n = lists.study.length + lists.break.length;
+        const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on), disabled: n ? null : true }, on ? 'Music is on' : 'Music is off');
+        tg.addEventListener('click', () => { on = !on; store.set('solarist-music', on ? 'on' : 'off'); apply(); music.settings(box); });
+        const sl = mk('input', { type: 'range', min: 0, max: 100, value: Math.round(vol * 100), 'aria-label': 'Music volume', disabled: n ? null : true });
+        sl.addEventListener('input', () => { vol = sl.value / 100; store.set('solarist-music-vol', sl.value); if (live && players[live]) { clearInterval(fades.get(players[live])); players[live].volume = vol; } });
+        box.replaceChildren(tg, mk('label', { class: 'sx-vol' }, 'Volume ', sl), mk('span', { class: 'sl-muted' }, n ? lists.study.length + ' study, ' + lists.break.length + ' break track' + (n === 1 ? '' : 's') : 'No music added yet'));
+      },
+    };
+  })();
+  window.addEventListener('pointerdown', () => music.start(), { once: true }); window.addEventListener('keydown', () => music.start(), { once: true });
+
   // interface sounds, same as the archive: a click for buttons, a softer tick for tabs and options
   document.addEventListener('click', e => {
     const b = e.target.closest('button, select, summary'); if (!b || b.disabled) return;
@@ -103,7 +143,8 @@
     snd.addEventListener('click', () => { soundOn = !soundOn; store.set('solarist-sound', soundOn ? 'on' : 'off'); appSettings(box); if (soundOn) play('notify'); });
     const inst = installEv ? mk('button', { type: 'button', class: 'btn', onclick: async () => { installEv.prompt(); try { await installEv.userChoice; } catch (e) { /* closed */ } installEv = null; appSettings(box); } }, 'Install as an app') : null;
     const ambBox = mk('div', { class: 'sx-row' }); amb.settings(ambBox);
-    box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), ambBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'));
+    const musBox = mk('div', { class: 'sx-row' }); music.settings(musBox);
+    box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), ambBox, musBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'));
   }
 
   /* ---------- the viewport ---------- */
@@ -322,11 +363,13 @@ void main(){
       if (newWorld) { revealAt = performance.now(); typeName(); } // just arrived: reveal the world
     }
     info = i; if (changed) { lastDraw = 0; amb.set(i.kind, i.running); }
+    music.set(i.running ? (i.mode === 'focus' ? 'study' : 'break') : null);
     kick();
   }
 
   /* ---------- start the game ---------- */
   const optJson = f => fetch(f, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null); // optional files; bad JSON falls back to the defaults
+  optJson('music.json').then(j => music.lists(j));
   Promise.all([optJson('economy.json'), optJson('items.json'), optJson('campaign.json')]).then(([econ, items, camp]) => {
     root.replaceChildren();
     window.Solarist.mount(root, {
