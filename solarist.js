@@ -559,7 +559,7 @@
     sell: { rarity: { Common: 10, Uncommon: 25, Rare: 70, Legendary: 200 }, perHabitabilityPercent: .5, earthLike: 25, earthLikeAt: 80, perLifeLevel: 8, anomaly: 25, rings: 8, perMoon: 2, moonCap: 20, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 40, perLog: 2 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
     coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 },
-    quests: { expedition: 450, expeditionSafe: 60, expeditionBold: 15, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
+    quests: { delivery: 110, expedition: 450, expeditionSafe: 60, expeditionBold: 15, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
     if (!o || typeof o !== 'object') return d;
@@ -1116,13 +1116,74 @@
       pushEv({ c: 'quest', ic: '🎯', title: 'Most Wanted caught: ' + m.name, t: fill(a2), got, at: Date.now() });
       return '🎯 ' + m.name + ' is in the brig! ✦ ' + dust + ' and ' + it.name + '.';
     }
+    // ---------- Interstellar Delivery: carry cargo to a world that fits the client's wishes ----------
+    // Each requirement: [group, label, name word, picks a value, met?, how close (0..1)]. Groups never repeat in one delivery.
+    const NUMW = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
+    const hab = p => (p.x || (p.x = makeExtra(p))).hab, rnd = (a, b, st) => a + Math.floor(Math.random() * (Math.floor((b - a) / st) + 1)) * st, clamp01 = x => Math.max(0, Math.min(1, x));
+    const STAR_W = { 'red dwarf': 'Ember', 'orange dwarf': 'Amber', 'yellow dwarf': 'Sunny', 'white dwarf': 'Pale-Star', 'blue giant': 'Blue-Sun', 'red giant': 'Old-Sun', 'binary pair': 'Twin-Sun', 'pulsar': 'Pulse' };
+    const DREQ = {
+      hab: ['hab', v => 'Habitability ' + v + '% or more', v => v >= 80 ? 'Paradise' : v >= 60 ? 'Good-Life' : v >= 40 ? 'Fair-Air' : 'Livable', () => rnd(30, 80, 10), (p, v) => hab(p) >= v, (p, v) => 1 - Math.max(0, v - hab(p)) / 60],
+      moons: ['moons', v => v + ' or more moons', v => NUMW[v] + '-Moon', () => rnd(1, 6, 1), (p, v) => p.moons >= v, (p, v) => p.moons / v],
+      life: ['life', v => LIFE[v][0] + ' (or more)', v => ['', 'Microbe', 'Mossy', 'Green', 'Swimmer', 'Herd', 'Watcher'][v], () => rnd(1, 5, 1), (p, v) => p.lifeLvl >= v, (p, v) => p.lifeLvl / v],
+      hot: ['temp', v => 'Hotter than ' + v + ' °C', () => 'Scorch', () => rnd(60, 400, 20), (p, v) => p.temp > v, (p, v) => 1 - Math.max(0, v - p.temp) / 250],
+      cold: ['temp', v => 'Colder than ' + v + ' °C', () => 'Frost', () => -rnd(40, 180, 20), (p, v) => p.temp < v, (p, v) => 1 - Math.max(0, p.temp - v) / 150],
+      lowg: ['grav', v => 'Gravity under ' + v + ' g', () => 'Feather', () => rnd(4, 8, 1) / 10, (p, v) => p.gravity < v, (p, v) => 1 - Math.max(0, p.gravity - v)],
+      highg: ['grav', v => 'Gravity over ' + v + ' g', () => 'Heavy', () => rnd(16, 26, 2) / 10, (p, v) => p.gravity > v, (p, v) => 1 - Math.max(0, v - p.gravity) / 1.5],
+      rings: ['rings', () => 'Has rings', () => 'Ringed', () => 1, p => !!p.rings, p => p.rings ? 1 : 0],
+      rare: ['rare', v => v + ' or rarer', v => v === 'Rare' ? 'Rare-Gem' : 'Fine', () => Math.random() < .6 ? 'Uncommon' : 'Rare', (p, v) => RANK[p.rarity] >= RANK[v], (p, v) => RANK[p.rarity] / RANK[v]],
+      far: ['dist', v => 'More than ' + v.toLocaleString() + ' ly from Earth', () => 'Far-Reach', () => rnd(2000, 12000, 1000), (p, v) => p.dist > v, (p, v) => p.dist / v],
+      near: ['dist', v => 'Within ' + v + ' ly of Earth', () => 'Home-Side', () => rnd(100, 500, 50), (p, v) => p.dist <= v, (p, v) => v / p.dist],
+      star: ['star', v => 'Orbits a ' + v, v => STAR_W[v] || 'Star', () => pk1(STARS.slice(0, 7))[0], (p, v) => p.star === v, (p, v) => p.star === v ? 1 : 0],
+      odd: ['odd', () => 'Has an anomaly', () => 'Strange', () => 1, p => !!p.odd, p => p.odd ? 1 : 0],
+      longday: ['day', v => 'Days longer than ' + v + ' hours', () => 'Long-Day', () => rnd(40, 80, 10), (p, v) => p.day > v, (p, v) => p.day ? p.day / v : 0],
+      shortday: ['day', v => 'Days shorter than ' + v + ' hours', () => 'Quick-Day', () => rnd(10, 16, 2), (p, v) => p.day != null && p.day < v, (p, v) => p.day ? v / p.day : 0],
+    };
+    const CARGO = ['seed stock', 'medical crates', 'a grand piano', 'a three-tier wedding cake', 'spare reactor parts', 'fresh water', 'ten thousand rubber ducks', 'library books', 'a very patient cat', 'mail from home', 'solar panels', 'festival fireworks', 'a time capsule', 'telescope mirrors', 'a crate of hot sauce', 'the Guild\'s lost paperwork'];
+    const CLIENT = ['The Halvorsen family', 'A retired pilot', 'The Guild survey office', 'A traveling circus', 'A quiet monastery', 'A brand-new colony', 'A botanist', 'A very famous poet', 'An old couple', 'A school on a moon', 'A mysterious stranger', 'The Comet Racing League'];
+    let DSAMPLE = null; // random worlds, used to judge how hard a set of wishes is
+    const dSample = () => DSAMPLE || (DSAMPLE = Array.from({ length: 400 }, (_, i) => makePlanet((Math.random() * 4294967296) >>> 0, 0, false, 0)));
+    const dMet = (p, r) => DREQ[r.k][4](p, r.v), dClose = (p, r) => dMet(p, r) ? 1 : clamp01(DREQ[r.k][5](p, r.v));
+    const dName = d => { const w = d.reqs.map(r => DREQ[r.k][2](r.v)); return w[0] + ' by ' + w.slice(1).join(' & '); };
+    function makeDelivery() {
+      for (let t = 0; t < 40; t++) {
+        const n = Math.random() < .3 ? 3 : 2, keys = Object.keys(DREQ).sort(() => Math.random() - .5), reqs = [], groups = new Set();
+        for (const k of keys) { if (reqs.length >= n) break; const g = DREQ[k][0]; if (groups.has(g)) continue; groups.add(g); reqs.push({ k, v: DREQ[k][3]() }); }
+        const hits = dSample().filter(p => reqs.every(r => dMet(p, r))).length, chance = hits / dSample().length;
+        if (chance < 1 / 120 || chance > .5) continue; // not impossible, not trivial
+        const mult = Math.min(14, Math.pow(1 / Math.max(chance, 1 / 400), .55));
+        return { reqs, chance, pay: Math.round(E.quests.delivery * mult), cargo: pk1(CARGO), client: pk1(CLIENT) };
+      }
+      return { reqs: [{ k: 'hab', v: 40 }, { k: 'moons', v: 1 }], chance: .2, pay: Math.round(E.quests.delivery * 2.4), cargo: pk1(CARGO), client: pk1(CLIENT) };
+    }
+    function dlCheck() { // three offers a day
+      if (!S.dl) S.dl = { day: '', offers: [], active: null, done: 0 };
+      if (S.dl.day !== today()) { S.dl.day = today(); S.dl.offers = Array.from({ length: 3 }, makeDelivery); }
+    }
+    const dlScore = p => { const d = S.dl.active; if (!d || !p) return 0; const c = d.reqs.reduce((a, r) => a + dClose(p, r), 0) / d.reqs.length; return d.reqs.every(r => dMet(p, r)) ? 1 : c; };
+    const dlPayAt = p => { const sc = dlScore(p); return sc >= 1 ? S.dl.active.pay : Math.max(Math.round(S.dl.active.pay * .1), Math.round(S.dl.active.pay * sc * sc * .8)); };
+    function dlAccept(i) { if (focusLock() || S.dl.active) return; const d = S.dl.offers.splice(i, 1)[0]; if (!d) return; d.from = S.at; d.at = Date.now(); S.dl.active = d;
+      pushEv({ c: 'quest', ic: '📦', title: 'Delivery accepted: ' + dName(d), t: d.client + ' wants ' + d.cargo + ' taken to a world with: ' + d.reqs.map(r => DREQ[r.k][1](r.v)).join(', ') + '.', at: Date.now() }); save(); draw(); }
+    function dlAbandon() { const d = S.dl.active; if (!d) return; pushEv({ c: 'quest', ic: '📦', title: 'Delivery abandoned: ' + dName(d), t: 'The ' + d.cargo + ' went back to the depot.', at: Date.now() }); S.dl.active = null; save(); draw(); }
+    function dlDeliver(p, auto) {
+      const d = S.dl.active; if (!d || !p || p.num === d.from) return null;
+      const sc = dlScore(p), full = sc >= 1, pay = addDust(dlPayAt(p));
+      award(full ? 60 : 25, full ? 30 : 10); S.dl.done++; S.dl.active = null;
+      if (full) S.cnt.dlPerfect = (S.cnt.dlPerfect || 0) + 1; else if (sc < .5) S.cnt.dlClose = (S.cnt.dlClose || 0) + 1;
+      let extra = ''; if (full && d.chance < .05) { const it = rareFind(p, 'gift'), nw = gainItem(it, p); if (nw) award(0, 12); extra = ' They threw in a tip: ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ').'; }
+      const t = (full ? 'Delivered ' + d.cargo + ' to ' + nm(p) + '. ' + d.client + ' is delighted.' : 'Dropped ' + d.cargo + ' off early at ' + nm(p) + ' (' + Math.round(sc * 100) + '% of what they asked for). ' + d.client + ' paid, grumbling.') + extra;
+      pushEv({ c: 'quest', ic: '📦', title: (full ? 'Delivered: ' : 'Delivered early: ') + dName(d), t, got: '+' + pay + ' ✦', at: Date.now() });
+      if (auto) qNotes.push('📦 ' + t + ' +' + pay + ' ✦'); else hint.textContent = '📦 ' + t + ' +' + pay + ' ✦';
+      save(); if (!auto) draw(); return pay;
+    }
+    function dlArrive(p) { if (S.dl && S.dl.active && p && p.num !== S.dl.active.from && dlScore(p) >= 1) dlDeliver(p, true); } // a perfect match delivers by itself
+    dlCheck();
     // ---------- Rating: one number that only goes up as you play ----------
     const RATING = [ // [group, what, points each, how many]
       ['Study', 'Study sessions', 10, () => S.total], ['Study', 'Minutes studied', 1, () => S.minutes], ['Study', 'Full Cycles', 20, () => S.cnt.fc],
       ['Exploration', 'Common worlds', 5, () => S.cnt.rar.Common || 0], ['Exploration', 'Uncommon worlds', 12, () => S.cnt.rar.Uncommon || 0], ['Exploration', 'Rare worlds', 30, () => S.cnt.rar.Rare || 0], ['Exploration', 'Legendary worlds', 80, () => S.cnt.rar.Legendary || 0],
       ['Exploration', 'Surveys', 10, () => S.surveys || 0], ['Exploration', 'Deep-space events', 5, () => S.cnt.ev], ['Exploration', 'Arrival encounters', 10, () => S.cnt.enc],
       ['Adventure', 'Outlaw gangs beaten', 25, () => S.fights || 0], ['Adventure', 'Bounties', 30, () => S.bDone || 0], ['Adventure', 'Distress Runs', 120, () => S.drN || 0], ['Adventure', 'Expedition legs', 20, () => S.cnt.expSteps || 0],
-      ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
+      ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Deliveries', 40, () => (S.dl && S.dl.done) || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
       ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
       ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own],
       ['Knowledge', 'Research done', 50, () => Object.keys(S.tech).length], ['Knowledge', 'Common collectibles', 3, () => itemsOf('Common')], ['Knowledge', 'Uncommon collectibles', 6, () => itemsOf('Uncommon')], ['Knowledge', 'Rare collectibles', 15, () => itemsOf('Rare')],
@@ -1508,6 +1569,16 @@
           el('p', { class: 'sl-muted' }, EXP_LEN + ' study sessions, any time you like. Pays ✦ ' + Math.round(E.quests.expedition * INCOME) + ' and a Rare or better find.'),
           el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: expStart }, 'Start the expedition'));
       } else expSec = sec('Expedition', el('p', { class: 'sl-muted' }, 'Back from the last one. A new expedition offer comes tomorrow. ' + (S.expDone || 0) + ' completed so far.'));
+      dlCheck();
+      const dlRow = r => el('li', {}, DREQ[r.k][1](r.v)), here = atP(), dA = S.dl.active;
+      const dlSec = dA ? sec('Interstellar Delivery', el('p', { class: 'sx-q-h' }, '📦 ' + dName(dA)), el('p', { class: 'sl-muted' }, dA.client + ' wants ' + dA.cargo + ' taken to a world with:'),
+          el('ul', { class: 'sx-reqs' }, dA.reqs.map(r => el('li', { class: here && here.num !== dA.from && dMet(here, r) ? 'ok' : '' }, DREQ[r.k][1](r.v)))),
+          el('p', { class: 'sl-muted' }, 'Pays ✦ ' + Math.round(dA.pay * INCOME) + ' on a perfect match (it delivers itself when you arrive at one).'),
+          el('div', { class: 'sx-row-l' }, here && here.num !== dA.from ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => dlDeliver(here) }, 'Deliver at ' + nm(here) + ' now (' + Math.round(dlScore(here) * 100) + '% match, ✦ ' + Math.round(dlPayAt(here) * INCOME) + ')') : el('span', { class: 'sl-muted' }, 'Travel somewhere new to deliver. '),
+            armBtn('Abandon', 'Sure?', dlAbandon, 'sx-mini')))
+        : sec('Interstellar Delivery', S.dl.offers.length ? el('p', { class: 'sl-muted' }, 'Pick one job. ' + S.dl.offers.length + ' left today.') : el('p', { class: 'sl-muted' }, 'No more jobs today. New ones come tomorrow. ' + S.dl.done + ' delivered so far.'),
+          ...S.dl.offers.map((d, i) => el('div', { class: 'sx-offer' }, el('div', { class: 'sx-q' }, el('span', {}, '📦 ' + dName(d), el('small', {}, d.cargo)), el('em', {}, '✦ ' + Math.round(d.pay * INCOME))),
+            el('ul', { class: 'sx-reqs' }, d.reqs.map(dlRow)), el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => dlAccept(i) }, 'Take this job'))));
       const m = S.mw, mwSec = m ? sec('Most Wanted', el('p', { class: 'sx-q-h' }, '🎯 ' + m.name), el('p', { class: 'sl-muted' }, 'Boss of ' + m.gang + '.'),
           legBar(m.clues, m.clues, m.need, () => '🔎'),
           mwReady() ? (hunting() ? el('p', { class: 'sl-muted' }, m.act ? 'Act II next session. ' : 'The hunt starts next session (two sessions). ', el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Not yet'))
@@ -1521,7 +1592,7 @@
             el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('dust') }, '✦ ' + Math.round(E.quests.contract * INCOME)), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('kp') }, E.quests.contractKnowledge + ' Knowledge'), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('item') }, 'A Rare find')))
             : el('p', { class: 'sl-muted' }, 'Finish all three this week (resets Monday).'));
       leftCol.replaceChildren(
-        sec('Distress Run', drBox, drInfo), expSec, mwSec, wkSec,
+        sec('Distress Run', drBox, drInfo), expSec, dlSec, mwSec, wkSec,
         sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far')),
         CAMP ? sec(CAMP.title || 'Campaign', el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round(S.camp.n / CAMP.logs.length * 100) + '%' })),
           el('p', {}, campDone() ? 'Complete. All ' + CAMP.logs.length + ' logs recovered.' : 'Log ' + S.camp.n + ' of ' + CAMP.logs.length + (S.camp.n ? '. ' + actOf(S.camp.n) : '. A trail of old log beacons left by the lost survey ship Meridian.')),
@@ -1971,7 +2042,7 @@
           const p = nudgedPlanet(lucky, Math.min(.2, (lvl('scanner') - 1) * .01), amp);
           const outlaws = Math.random() < Math.max(0, OUTLAW_CHANCE + chipP('siren', amp) - chipP('hush', amp)) && p.type !== 'Rogue';
           if (outlaws) { const pk = a => a[Math.floor(Math.random() * a.length)]; p.outlaw = { gang: 'the ' + pk(GANG_A) + ' ' + pk(GANG_B), at: Date.now() }; S.outlaw = p.num; }
-          S.found.push({ at: Date.now(), p }); S.at = p.num; mwClue(p, 1);
+          S.found.push({ at: Date.now(), p }); S.at = p.num; mwClue(p, 1); dlArrive(p);
           if (p.nudged && p.nudged.length) qNotes.push('🎛 Your Coordinator chips steered this trip: ' + p.nudged.map(k => { const f = CHIP_F.find(x => x[0] === k); return f[1] + ' ' + f[2]; }).join(', ') + '.');
           S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; if (lucky) S.cnt.lucky++; if (outlaws) S.cnt.outlaws++;
           award(20 + ({ Uncommon: 10, Rare: 25, Legendary: 60 }[p.rarity] || 0), 0);
@@ -2096,7 +2167,7 @@
         el('div', { class: 'sx-ranks' }, RANKS.map(([at, name], k) => el('span', { class: rtNow >= at ? 'on' : '' }, el('b', {}, name), el('small', {}, at.toLocaleString())))),
         ...Object.keys(parts).map(g => el('table', { class: 'sl-rec sl-stats sx-rtab' }, el('thead', {}, el('tr', {}, el('th', {}, g), el('th', {}, ''), el('th', {}, parts[g].reduce((a, x) => a + x[2], 0).toLocaleString()))),
           el('tbody', {}, parts[g].filter(x => x[1]).map(([what, n, pts]) => el('tr', {}, el('td', {}, what), el('td', {}, '×' + n.toLocaleString()), el('td', {}, pts.toLocaleString())))))));
-      const quests = group('🗺 Quests', el('table', { class: 'sl-rec sl-stats' }, el('tbody', {}, [['Expeditions finished', S.expDone || 0], ['Expedition legs', S.cnt.expSteps || 0], ['Guild contracts paid', S.cnt.wk || 0], ['Most Wanted caught', S.mwDone || 0], ['Distress Runs', S.drN || 0]].map(([a, b]) => el('tr', {}, el('td', {}, a), el('td', {}, String(b)))))));
+      const quests = group('🗺 Quests', el('table', { class: 'sl-rec sl-stats' }, el('tbody', {}, [['Expeditions finished', S.expDone || 0], ['Expedition legs', S.cnt.expSteps || 0], ['Guild contracts paid', S.cnt.wk || 0], ['Most Wanted caught', S.mwDone || 0], ['Deliveries', (S.dl && S.dl.done) || 0], ['Distress Runs', S.drN || 0]].map(([a, b]) => el('tr', {}, el('td', {}, a), el('td', {}, String(b)))))));
       const SUB = { Captain: [rtGroup, rank], Medals: medalsView(group), Crew: crewView(group), Ship: shipView(group), Goals: [quests, drGroup, bounties, records], Stats: statsView(group) };
       if (!SUB[shipTab]) shipTab = 'Captain';
       const subBtns = Object.keys(SUB).map(k => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === shipTab), onclick: () => { shipTab = k; drawShip(); } }, k));
@@ -2302,6 +2373,9 @@
     SQ('ride', '🚀', 'New Ride', 'Fly any design other than the Scout', () => S.ship.design !== 'Scout');
     SQ('deep', '🧘', 'Deep Work', 'Finish a 60-minute study session', () => (S.cnt.maxFocus || 0) >= 60);
     SQ('habit', '📈', 'Habit Forming', 'Study 7 days in a row', () => !!S.cnt.streak && S.cnt.streak.best >= 7);
+    tiers('Adventure', 'dl', '📦', [[1, 'First Delivery'], [10, 'Courier'], [50, 'Express Service'], [150, 'Postmaster of the Stars']], () => (S.dl && S.dl.done) || 0, n => 'Finish ' + n + ' deliver' + (n === 1 ? 'y' : 'ies'));
+    SQ('perfect', '📬', 'Signed, Sealed, Delivered', 'Make 10 perfect deliveries', () => (S.cnt.dlPerfect || 0) >= 10);
+    SQ('closeenough', '🤷', 'Close Enough', 'Deliver early at a world that is less than half of what they asked for', () => (S.cnt.dlClose || 0) >= 1);
     tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
     tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));

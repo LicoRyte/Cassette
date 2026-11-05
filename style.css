@@ -499,3 +499,11 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 @media (max-width: 520px) { .sl-lv-i .sl-lv-t { display: none; } .sl-lv { gap: 14px; } }
 /* side columns fade out at the bottom instead of cutting text in half */
 .sx-side { -webkit-mask-image: linear-gradient(#000 calc(100% - 28px), transparent); mask-image: linear-gradient(#000 calc(100% - 28px), transparent); padding-bottom: 28px; }
+
+/* Interstellar Delivery */
+.sx-reqs { margin: 2px 0 6px; padding: 0; list-style: none; }
+.sx-reqs li { position: relative; padding-left: 16px; font: 500 15px/1.35 var(--ui); color: var(--soft); }
+.sx-reqs li::before { content: '○'; position: absolute; left: 0; color: var(--dim); }
+.sx-reqs li.ok { color: var(--green); } .sx-reqs li.ok::before { content: '●'; color: var(--green); }
+.sx-offer { padding: 6px 0 8px; } .sx-offer + .sx-offer { border-top: 1px solid var(--line); }
+.sx-offer .sx-q { padding-bottom: 2px; }
