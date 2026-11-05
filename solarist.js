@@ -1229,7 +1229,7 @@
       return null;
     }
     function sellWorlds(list) {
-      let got = 0; if (list.length >= 10) S.cnt.bigSale = (S.cnt.bigSale || 0) + 1;
+      let got = 0; if (list.length >= 10) S.cnt.bigSale = (S.cnt.bigSale || 0) + 1; if (list.some(p => p.rarity === 'Legendary')) S.cnt.soldLeg = (S.cnt.soldLeg || 0) + 1;
       list.forEach(p => { const v = sellPrice(p); got += v; S.dust += v; S.dustTotal += v; S.sold.n++; S.sold.ly += p.dist; S.found = S.found.filter(f => f.p !== p); });
       shownList = shownList.filter(f => !list.includes(f.p));
       S.sold.dust += got; award(5 * list.length, 0); flushXP([]);
@@ -1871,6 +1871,7 @@
     function reset() { running = false; clearInterval(tickT); left = length(mode); persistRun(); draw(); }
     function skip() {
       running = false; clearInterval(tickT);
+      S.cnt.skips = (S.cnt.skips || 0) + 1;
       S.fc.broken = true; // skipping anything breaks this cycle's Full Cycle bonus
       const wasBuilding = mode === 'focus' && building(), wasCharging = mode === 'focus' && charging();
       if (mode === 'focus') toBreak(); else setMode('focus');
@@ -1885,7 +1886,7 @@
         rollDay(); if (S.cnt.lastDay !== today()) { S.cnt.lastDay = today(); S.cnt.days++; }
         rt0 = rating();
         S.total++; S.todayN++; S.cycle++; S.minutes += S.set.focus; S.fc.n++;
-        { const hr = new Date().getHours(); if (hr < 4) S.cnt.night = (S.cnt.night || 0) + 1; else if (hr < 7) S.cnt.early = (S.cnt.early || 0) + 1; }
+        { (S.cnt.dow = S.cnt.dow || {})[new Date().getDay()] = 1; const hr = new Date().getHours(); if (hr < 4) S.cnt.night = (S.cnt.night || 0) + 1; else if (hr < 7) S.cnt.early = (S.cnt.early || 0) + 1; }
         const target = building();
         // the tuned post reports in every study session (also while building somewhere else)
         const tp = tunedP(), reps = sessionReports();
@@ -1990,6 +1991,7 @@
         sessionEnd(reps, foundP, ev);
         openReport();
       } else {
+        S.cnt.breaks = (S.cnt.breaks || 0) + 1;
         if (!quiet && hooks.ding) hooks.ding();
         if (hooks.show) hooks.show();
         const wasLong = mode === 'long';
@@ -2233,6 +2235,35 @@
     SQ('dupe', '🔁', 'Not Another One', 'Own 5 copies of the same collectible', () => Object.values(S.items).some(it => it.n >= 5));
     SQ('mad', '🧪', 'Mad Science', 'Have 3 Scientists aboard at once', () => crewN('Scientist') >= 3);
     SQ('fired', '👋', 'You\'re Fired', 'Let a crew member go', () => (S.cnt.fired || 0) >= 1);
+    SQ('feather', '🪶', 'Featherweight', 'Find a world with less than 0.3 g of gravity', () => anyW(p => p.gravity < .3));
+    SQ('legday', '🏋', 'Never Skip Leg Day', 'Find a world with more than 3 g of gravity', () => anyW(p => p.gravity > 3));
+    SQ('longday', '😴', 'Five More Minutes', 'Find a world whose day lasts over 80 hours', () => anyW(p => p.day > 80));
+    SQ('spin', '🌀', 'Spin Cycle', 'Find a world whose day is under 8 hours', () => anyW(p => p.day != null && p.day < 8));
+    SQ('bday', '🎂', 'Birthday Every Week', 'Find a world whose year is shorter than 10 days', () => anyW(p => p.year > 0 && p.year < 10));
+    SQ('oldyear', '👴', 'Back in My Day', 'Find a world whose year lasts over 3,000 days', () => anyW(p => p.year > 3000));
+    SQ('near', '🏡', 'Practically Next Door', 'Find a world less than 10 light-years from Earth', () => anyW(p => p.dist < 10));
+    SQ('edge', '🛰', 'Middle of Nowhere', 'Find a world more than 20,000 light-years out', () => anyW(p => p.dist > 20000));
+    SQ('sunset', '🌅', 'Double Sunset', 'Find a world at least 60% habitable with two suns', () => anyW(p => p.star === 'binary pair' && (p.x || (p.x = makeExtra(p))).hab >= 60));
+    SQ('tick', '⏱', 'Tick Tock', 'Find life on a world that orbits a pulsar', () => anyW(p => p.star === 'pulsar' && p.lifeLvl > 0));
+    SQ('crown', '👑', 'Crown Jewel', 'Find a Legendary world with rings', () => anyW(p => p.rarity === 'Legendary' && p.rings));
+    SQ('b2b', '💎', 'Back to Back', 'Find 2 Rare or Legendary worlds in a row', () => lastN(2, p => p.rarity === 'Rare' || p.rarity === 'Legendary'));
+    SQ('mid', '😐', 'Mid', 'Find 5 Common worlds in a row', () => lastN(5, p => p.rarity === 'Common'));
+    SQ('quiet', '🔇', 'Dead Quiet', 'Find 5 lifeless worlds in a row', () => lastN(5, p => !p.lifeLvl));
+    SQ('lava', '🌋', 'The Floor Is Lava', 'Have 3 Lava worlds in your Logbook', () => S.found.filter(x => x.p.type === 'Lava').length >= 3);
+    SQ('shroom', '🍄', 'Shroom Room', 'Find a Fungal world with life on it', () => anyW(p => p.type === 'Fungal' && p.lifeLvl > 0));
+    SQ('steer3', '🎛', 'Overachiever', 'Get a world steered by 3 Coordinator fields at once', () => anyW(p => p.nudged && p.nudged.length >= 3));
+    SQ('city', '🏙', 'Big City Lights', 'Grow a Travelers\' Post to 10,000 settlers', () => posts().some(x => x.p.post.tp && (x.p.post.tp.pop || 0) >= 10000));
+    SQ('dinermax', '🧑‍🍳', 'Diner Supremacy', 'Get a Diner to the max level', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'diner' && (f.lv || 1) >= FAC_MAX)));
+    SQ('mall', '🛍', 'Everything Store', 'Build every kind of facility at one post', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= Object.keys(FAC).length));
+    SQ('cooks', '🍳', 'Too Many Cooks', 'Have 3 Cooks aboard at once', () => crewN('Cook') >= 3);
+    SQ('house', '🎭', 'Full House', 'Have one of every crew role aboard', () => Object.keys(ROLES).every(r => crewN(r) > 0));
+    SQ('fashion', '🖌', 'Fashionista', 'Own every hull color', () => Object.keys(HULL_COLORS).every(k => S.ship.colors.includes(k)));
+    SQ('overtime', '☕', 'Overtime', 'Finish 16 study sessions in one day', () => !!S.rec.dayN && S.rec.dayN.v >= 16);
+    SQ('weekend', '📆', 'Weekend Warrior', 'Study on a Saturday and on a Sunday', () => !!S.cnt.dow && S.cnt.dow[6] && S.cnt.dow[0]);
+    SQ('nap', '🛌', 'Professional Napper', 'Finish 25 breaks without skipping them', () => (S.cnt.breaks || 0) >= 25);
+    SQ('skip', '⏭', 'Speedrunner', 'Skip 10 times (we saw that)', () => (S.cnt.skips || 0) >= 10);
+    SQ('miles', '🗺', 'Frequent Flyer', 'Travel 100,000 light-years in total', () => S.found.reduce((a, x) => a + x.p.dist, 0) + (S.sold.ly || 0) >= 100000);
+    SQ('firesale', '💥', 'Fire Sale', 'Sell a Legendary world (are you sure?)', () => (S.cnt.soldLeg || 0) >= 1);
     tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
     tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
