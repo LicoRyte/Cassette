@@ -47,7 +47,7 @@
     "_note": "Selling a world: the sum of everything that applies to it. earthLike is added at earthLikeAt% habitability or more."
   },
 
-  "distressRun": { "base": 500, "random": 200, "bonusMin": 100, "bonusMax": 250 },
+  "distressRun": { "base": 600, "random": 150, "bonusMin": 100, "bonusMax": 200 },
   "_distressRun": "Daily Distress Run payout: base + 0..random (not affected by incomeMultiplier). bonusMin-bonusMax is the extra-resources random bonus.",
 
   "tradeStation": { "chance": 0.12, "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
