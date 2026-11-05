@@ -5,7 +5,7 @@
   "_incomeMultiplier": "Every resource payout below (except the Distress Run) is multiplied by this. 1 = as written, 1.5 = 50% more.",
 
   "session": {
-    "perStudyMinute": 0.8,
+    "perStudyMinute": 1.25,
     "minimum": 6,
     "eventBonus": 20,
     "rarityBonus": { "Common": 0, "Uncommon": 10, "Rare": 30, "Legendary": 80 },
