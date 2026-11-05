@@ -59,7 +59,7 @@
 
   const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
   const FS = `precision highp float;
-uniform vec2 res, ctr; uniform float R, t, tt, pct, kind, run, coord;
+uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
 uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil;
 uniform vec3 pal[33]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -96,7 +96,7 @@ void main(){
     vec3 n = vec3(uv, sqrt(1. - d2));
     // fake spin: map the disc to longitude/latitude and slide a flat noise texture sideways
     float lon = atan(n.x, n.z), lat = asin(clamp(n.y, -1., 1.));
-    vec3 q = vec3(lon * 1.25 + (fLocked > .5 ? 0. : tt * .045), lat * 1.25, 0.);
+    vec3 q = vec3(lon * 1.25 + spin * (fLocked > .5 ? .05 : .16), lat * 1.25, 0.);
     vec3 L = normalize(fLocked > .5 ? vec3(-1., .1, .25) : vec3(-.55, .35, .75)); float lit = clamp(dot(n, L), 0., 1.);
     if (sil > .5){ col = pal[20] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = coord > .5 ? pal[5] : pal[28]; }
     else {
@@ -134,13 +134,13 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
       gl.uniform3fv(U.pal, PAL.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
   }
   const g2 = ok ? null : cv.getContext('2d'); // fallback: the pixel portrait, no shader
-  let info = null, raf = 0, lastDraw = 0, simT = 0, lastNow = 0, curSeed = null;
+  let info = null, raf = 0, lastDraw = 0, simT = 0, spinT = 0, lastNow = 0, curSeed = null;
   const fallbackImg = new Map();
   function size() { cv.width = Math.max(1, Math.round(innerWidth / PX)); cv.height = Math.max(1, Math.round(innerHeight / PX)); }
   size(); addEventListener('resize', () => { size(); lastDraw = 0; kick(); });
@@ -159,9 +159,10 @@ void main(){
   }
   function render(now) {
     raf = 0; if (!info) return;
-    const moving = !reduceMotion.matches;
+    const moving = !reduceMotion.matches; // effects (radar, rings, raiders) stop when reduced motion is on; the slow spin keeps going
     const dt = lastNow ? Math.min(.1, (now - lastNow) / 1000) : 0; lastNow = now;
-    if (moving) simT += dt * (info.running ? 1 : .35); // the planet keeps turning slowly even when the timer is idle
+    if (moving) simT += dt;
+    spinT += dt * (moving ? 1 : .5); // the planet always turns, timer running or not
     const fps = info.running ? 30 : 15;
     if (now - lastDraw >= 1000 / fps - 2) {
       lastDraw = now;
@@ -174,7 +175,7 @@ void main(){
         gl.viewport(0, 0, cv.width, cv.height);
         setPlanet(info.planet); if (sil) gl.uniform1f(U.hasP, 1);
         gl.uniform2f(U.res, cv.width, cv.height); gl.uniform2f(U.ctr, cx, cy); gl.uniform1f(U.R, Math.max(4, rad));
-        gl.uniform1f(U.t, now / 1000); gl.uniform1f(U.tt, simT + 40); gl.uniform1f(U.pct, info.pct);
+        gl.uniform1f(U.t, now / 1000); gl.uniform1f(U.tt, simT + 40); gl.uniform1f(U.spin, spinT); gl.uniform1f(U.pct, info.pct);
         gl.uniform1f(U.kind, KINDS[info.kind] || 0); gl.uniform1f(U.run, info.running ? 1 : 0); gl.uniform1f(U.coord, info.coord ? 1 : 0); gl.uniform1f(U.sil, sil);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       } else if (g2) {
@@ -183,7 +184,7 @@ void main(){
           if (im.complete) { const s = Math.round(rad * 2.3); g2.drawImage(im, Math.round(cx - s / 2), Math.round(cv.height - cy - s / 2), s, s); } }
       }
     }
-    if (moving && !document.hidden) raf = requestAnimationFrame(render);
+    if (!document.hidden) raf = requestAnimationFrame(render);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(render); }
   document.addEventListener('visibilitychange', () => { lastNow = 0; if (!document.hidden) kick(); });
