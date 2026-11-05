@@ -558,6 +558,7 @@
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 10, Uncommon: 25, Rare: 70, Legendary: 200 }, perHabitabilityPercent: .5, earthLike: 25, earthLikeAt: 80, perLifeLevel: 8, anomaly: 25, rings: 8, perMoon: 2, moonCap: 20, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 40, perLog: 2 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
+    coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 },
     quests: { expedition: 450, expeditionSafe: 60, expeditionBold: 15, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
@@ -710,7 +711,7 @@
     const held = p => !!(p.outlaw && !p.outlaw.cleared);
     if (!S.events) S.events = []; if (!S.fc) S.fc = { n: 0, broken: false };
     function rollEvent(force) {
-      if (!force && Math.random() >= evChance(lvl('comms'))) return null;
+      if (!force && Math.random() >= evChance(lvl('comms')) + chipP('storm', chipAmp())) return null;
       const pk = a => a[Math.floor(Math.random() * a.length)];
       const nameBit = () => { let n = ''; for (let i = 0; i < 2; i++) n += pk(SYL); return n.charAt(0).toUpperCase() + n.slice(1); };
       const pl = posts(); const pool = EVENTS.filter(e => e[1] !== 'Distress call' || pl.length);
@@ -1121,7 +1122,7 @@
       ['Adventure', 'Outlaw gangs beaten', 25, () => S.fights || 0], ['Adventure', 'Bounties', 30, () => S.bDone || 0], ['Adventure', 'Distress Runs', 120, () => S.drN || 0], ['Adventure', 'Expedition legs', 20, () => S.cnt.expSteps || 0],
       ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
       ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
-      ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length],
+      ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own],
       ['Knowledge', 'Research done', 50, () => Object.keys(S.tech).length], ['Knowledge', 'Common collectibles', 3, () => itemsOf('Common')], ['Knowledge', 'Uncommon collectibles', 6, () => itemsOf('Uncommon')], ['Knowledge', 'Rare collectibles', 15, () => itemsOf('Rare')],
       ['Knowledge', 'Legendary collectibles', 40, () => itemsOf('Legendary')], ['Knowledge', 'Medals', 20, () => Object.keys(S.ach).length],
     ];
@@ -1131,6 +1132,75 @@
     const rankOf = v => { let i = 0; while (i + 1 < RANKS.length && v >= RANKS[i + 1][0]) i++; return i; };
     let rt0 = 0; // the rating when this session ended, before its rewards
     wkCheck();
+
+    // ---------- Coordinator Panel: put chips into fields to nudge what the next Explore trip finds ----------
+    // World fields: each chip is a per-chip chance that the Coordinator "insists" on that trait and picks a world that has it.
+    // Event fields: each chip adds straight to the chance of that thing happening on arrival.
+    // A charged Interplanetary Coordinator doubles every chip for one trip (and still steers toward better worlds).
+    const MINERAL = ['Iron', 'Carbon', 'Crystal', 'Lava', 'Shattered'], WATERY = ['Ocean', 'Hycean', 'Swamp'], PLAIN_STARS = ['red dwarf', 'orange dwarf', 'yellow dwarf'];
+    const CHIP_F = [ // [key, icon, name, what it nudges, group, per chip, test (worlds only, 0..1)]
+      ['life', '🌱', 'Lifeform Pylon', 'worlds with life on them (the more chips, the richer the life)', 'w', .06, p => p.lifeLvl ? .6 + p.lifeLvl / 15 : 0],
+      ['hab', '🏡', 'Habitat Beacon', 'worlds at least 60% habitable', 'w', .06, p => (p.x || (p.x = makeExtra(p))).hab >= 60 ? 1 : 0],
+      ['rare', '💎', 'Rarity Lens', 'Rare and Legendary worlds', 'w', .04, p => p.rarity === 'Legendary' ? 1 : p.rarity === 'Rare' ? .85 : 0],
+      ['odd', '🌀', 'Anomaly Antenna', 'worlds with an anomaly', 'w', .06, p => p.odd ? 1 : 0],
+      ['rings', '💫', 'Ring Resonator', 'worlds with rings', 'w', .06, p => p.rings ? 1 : 0],
+      ['moons', '🌙', 'Moon Magnet', 'worlds with four or more moons', 'w', .06, p => p.moons >= 4 ? 1 : 0],
+      ['giant', '🎈', 'Gas Harp', 'giants and other worlds with no ground', 'w', .06, p => (TYPES[p.type] || {}).noGround ? 1 : 0],
+      ['ore', '⛏', 'Ore Sieve', 'Iron, Carbon, Crystal, Lava and Shattered worlds', 'w', .06, p => MINERAL.includes(p.type) ? 1 : 0],
+      ['water', '🌊', 'Tide Bell', 'Ocean, Hycean and Swamp worlds', 'w', .06, p => WATERY.includes(p.type) ? 1 : 0],
+      ['star', '🔆', 'Strange Light', 'giant, white dwarf, binary and pulsar suns', 'w', .06, p => !PLAIN_STARS.includes(p.star) && !p.star.startsWith('none') ? 1 : 0],
+      ['far', '🔭', 'Deep Range', 'worlds more than 2,000 light-years out', 'w', .06, p => p.dist >= 2000 ? 1 : 0],
+      ['siren', '🏴', 'Siren', 'outlaw gangs holding the world', 'e', .03],
+      ['hush', '🕊', 'Hush Beacon', 'fewer outlaws (takes chance away)', 'e', .012],
+      ['lantern', '🏮', 'Welcome Lantern', 'arrival encounters', 'e', .02],
+      ['market', '🏪', 'Market Flare', 'a Trade Station docked at the world', 'e', .015],
+      ['storm', '☄', 'Storm Rod', 'deep-space events during any session', 'e', .015],
+    ];
+    const CHIP_MAX = 10;
+    if (!S.chips) S.chips = { own: Math.round(E.coordChips.start), put: {} };
+    const chipsPut = () => Object.values(S.chips.put).reduce((a, n) => a + n, 0);
+    const chipsFree = () => S.chips.own - chipsPut();
+    const chipAmp = () => S.coord ? 2 : 1;
+    const chipP = (k, amp) => { const f = CHIP_F.find(x => x[0] === k); return f ? Math.min(f[4] === 'w' ? .95 : .6, (S.chips.put[k] || 0) * f[5] * (amp || 1)) : 0; };
+    const chipCost = () => Math.round(E.coordChips.base * Math.pow(E.coordChips.growth, Math.max(0, S.chips.own - E.coordChips.start)));
+    function chipMove(k, d) {
+      if (running && mode === 'focus') return;
+      const n = S.chips.put[k] || 0;
+      if (d > 0 && (n >= CHIP_MAX || chipsFree() <= 0)) return;
+      if (d < 0 && n <= 0) return;
+      S.chips.put[k] = n + d; if (!S.chips.put[k]) delete S.chips.put[k]; save(); drawRight(); drawLeft();
+    }
+    function chipBuy() { const c = chipCost(); if (S.dust < c || S.chips.own >= E.coordChips.max) return; S.dust -= c; S.chips.own++; S.cnt.chipsBought = (S.cnt.chipsBought || 0) + 1; shopXP(20); save(); draw(); }
+    function nudgedPlanet(lucky, oddBoost, amp) { // roll the world, then let the chips pick among a few candidates
+      const num = S.nextNum++, seed = () => (Math.random() * 4294967296) >>> 0;
+      const want = CHIP_F.filter(f => f[4] === 'w' && S.chips.put[f[0]] && Math.random() < chipP(f[0], amp));
+      let best = makePlanet(seed(), num, lucky, oddBoost);
+      if (!want.length) return best;
+      const score = p => want.reduce((a, f) => a + f[6](p), 0);
+      let bs = score(best);
+      for (let i = 0; i < 60 && bs < want.length; i++) { const c = makePlanet(seed(), num, lucky, oddBoost), cs = score(c); if (cs > bs) { best = c; bs = cs; } }
+      best.nudged = want.filter(f => f[6](best) > 0).map(f => f[0]);
+      return best;
+    }
+    function coordView() {
+      const lock = running && mode === 'focus', out = [], amp = chipAmp(), cost = chipCost(), maxed = S.chips.own >= E.coordChips.max;
+      out.push(el('div', { class: 'sx-res sx-chipres' }, el('b', {}, chipsFree() + ' / ' + S.chips.own), el('small', {}, 'chips free. Put them into fields to nudge what your next Explore trip finds. Move them any time you\'re not studying.')));
+      out.push(el('div', { class: 'sx-queue' + (S.coord ? ' on' : '') }, el('small', {}, 'Interplanetary Coordinator'), el('b', {}, S.coord ? 'Charged: every chip counts double next trip' : 'Not charged'),
+        el('span', { class: 'sl-muted' }, S.coord ? 'It also steers toward better, livable worlds.' : 'One study session of Charge doubles every chip for one Explore trip, and steers toward better worlds.')));
+      out.push(el('div', { class: 'sx-up sx-chipbuy' }, el('b', {}, 'Buy a chip'), el('small', {}, maxed ? 'You have every chip there is.' : 'Expensive. Each one costs more than the last.'),
+        maxed ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < cost || null, onclick: chipBuy }, '✦ ' + cost.toLocaleString())));
+      [['w', 'Worlds', 'Each chip is a chance the Coordinator insists on that kind of world.'], ['e', 'On arrival', 'Each chip adds straight to the chance.']].forEach(([g, h, note]) => {
+        out.push(el('div', { class: 'sx-sec' }, el('h3', {}, h), el('p', { class: 'sl-muted' }, note), ...CHIP_F.filter(f => f[4] === g).map(([k, ic, name, what]) => {
+          const n = S.chips.put[k] || 0, pc = Math.round(chipP(k, amp) * 100);
+          return el('div', { class: 'sx-chiprow' + (n ? ' on' : '') },
+            el('div', { class: 'sx-chip-t' }, el('b', {}, ic + ' ' + name), el('small', {}, (n ? (g === 'w' ? pc + '% chance to steer toward ' : (k === 'hush' ? '-' : '+') + pc + '% ') : 'Nudges ') + what)),
+            el('div', { class: 'sx-chip-c' }, el('button', { type: 'button', class: 'btn sx-mini', 'aria-label': 'Take a chip out of ' + name, disabled: lock || !n || null, onclick: () => chipMove(k, -1) }, '−'),
+              el('span', { class: 'sx-pips', role: 'img', 'aria-label': n + ' of ' + CHIP_MAX + ' chips' }, Array.from({ length: CHIP_MAX }, (_, i) => el('i', { class: i < n ? 'on' : '' }))),
+              el('button', { type: 'button', class: 'btn sx-mini', 'aria-label': 'Put a chip into ' + name, disabled: lock || n >= CHIP_MAX || chipsFree() <= 0 || null, onclick: () => chipMove(k, 1) }, '+')));
+        })));
+      });
+      return out;
+    }
     // Selling a world: the survey rights go to the Cartographers' Guild for stardust, and the world leaves your Logbook.
     // The price follows its overall condition and how much it stands out.
     const SL = E.sell, SELL_RAR = SL.rarity;
@@ -1252,7 +1322,7 @@
         el('label', {}, 'Long break every ', sel('every', [2, 3, 4, 5, 6]), ' study sessions')));
     // what the next study session is for: travel to a new world, or build a Listening Post on one you've found
     // the mission: what this study session is for. Exactly one is pressed.
-    const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['discover', '🔍', 'Discover', 'Survey the world you\'re at for collectibles'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '🧭', 'Charge', 'Charge the Interplanetary Coordinator: your next Explore is a lucky one'], ['campaign', '📼', 'Campaign', 'Follow the Meridian\'s trail to their next log'], ['expedition', '🗺', 'Expedition', 'Take the next leg of your expedition'], ['hunt', '🎯', 'Hunt', 'Track down the Most Wanted (two sessions)']];
+    const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['discover', '🔍', 'Discover', 'Survey the world you\'re at for collectibles'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '🧭', 'Charge', 'Charge the Interplanetary Coordinator: your chips count double on the next Explore, and it steers toward better worlds'], ['campaign', '📼', 'Campaign', 'Follow the Meridian\'s trail to their next log'], ['expedition', '🗺', 'Expedition', 'Take the next leg of your expedition'], ['hunt', '🎯', 'Hunt', 'Track down the Most Wanted (two sessions)']];
     const curMission = () => S.mission > 0 ? 'build' : S.mission === -1 ? 'charge' : S.mission === -2 ? 'discover' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : S.mission === -5 ? 'hunt' : 'explore';
     function setMission(m, num) {
       if (running && mode === 'focus') return;
@@ -1454,7 +1524,9 @@
           campDone() ? null : campaigning() ? el('p', { class: 'sl-muted' }, 'Following the trail next session. ', el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Stop'))
             : el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || !!S.dr || null, onclick: () => setMission('campaign') }, S.camp.n ? 'Continue next session' : 'Start the campaign next session'),
           S.camp.n ? el('div', {}, el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { rightTab = 'tx'; txFilter = 'camp'; drawRight(); } }, 'Read the logs')) : null) : null,
-        sec('Interplanetary Coordinator', el('p', {}, S.coord ? 'Charged. Your next Explore heads somewhere promising.' : 'Empty. One study session of Charge makes your next Explore a lucky one.'), coordB));
+        sec('Interplanetary Coordinator', el('p', {}, S.coord ? 'Charged. Next Explore, every chip counts double.' : 'Empty. One study session of Charge doubles your chips for the next Explore.'),
+          el('p', { class: 'sl-muted' }, chipsPut() + ' of ' + S.chips.own + ' chips placed' + (chipsPut() ? ': ' + CHIP_F.filter(f => S.chips.put[f[0]]).map(f => f[1] + ' ' + S.chips.put[f[0]]).join('  ') : '.')),
+          el('div', { class: 'sx-row-l' }, coordB, el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'coord'; drawRight(); } }, 'Open the panel'))));
     }
     // the right side has two tabs: Upgrades (what resources buy) and Transmissions (everything your posts and the ship heard)
     let rightTab = 'up';
@@ -1499,11 +1571,12 @@
       const unread = txUnread();
       if (rightTab === 'tx' && unread) { S.txPrev = S.txSeen || 0; S.txSeen = Date.now(); save(); }
       const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
-      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('research', 'Research'), rt('hangar', 'Hangar'), rt('sell', 'Sell'), S.trader ? rt('trade', 'Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
+      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('coord', 'Coordinator'), rt('research', 'Research'), rt('hangar', 'Hangar'), rt('sell', 'Sell'), S.trader ? rt('trade', 'Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
         rt('tx', 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
       if (rightTab === 'build') { rightCol.replaceChildren(tabsR, ...buildView()); return; }
       if (rightTab === 'sell') { rightCol.replaceChildren(tabsR, ...sellView()); return; }
       if (rightTab === 'research') { rightCol.replaceChildren(tabsR, ...researchView()); return; }
+      if (rightTab === 'coord') { rightCol.replaceChildren(tabsR, ...coordView()); return; }
       if (rightTab === 'hangar') { rightCol.replaceChildren(tabsR, ...hangarView()); return; }
       if (rightTab === 'trade' && S.trader) { rightCol.replaceChildren(tabsR, ...tradeView()); return; }
       if (rightTab === 'trade') rightTab = 'up';
@@ -1724,7 +1797,7 @@
       return [
         el('div', { class: 'sl-card-h' }, el('span', {}, (HEAD[kind] || '') + pad(p.num)), el('span', { class: 'sl-rar sl-r-' + p.rarity.toLowerCase() }, p.rarity)),
         el('div', { class: 'sl-pl' }, pic,
-          el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), held(p) ? el('span', { class: 'sl-tag sl-tag-bad', title: 'Held by ' + p.outlaw.gang }, '🏴 Outlaws') : null, p.outlaw && p.outlaw.cleared ? el('span', { class: 'sl-tag', title: 'You drove out ' + p.outlaw.gang }, '⚔ Liberated') : null, p.lucky ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Found by following the Interplanetary Coordinator' }, '🧭 Coordinated') : null, tuned ? el('span', { class: 'sl-tag' }, '📡 Tuned') : p.post ? el('span', { class: 'sl-tag off' }, p.post.tp ? '🏘 Travelers\' Post' : '🗼 Post') : null),
+          el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), held(p) ? el('span', { class: 'sl-tag sl-tag-bad', title: 'Held by ' + p.outlaw.gang }, '🏴 Outlaws') : null, p.outlaw && p.outlaw.cleared ? el('span', { class: 'sl-tag', title: 'You drove out ' + p.outlaw.gang }, '⚔ Liberated') : null, p.lucky ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Found by following the Interplanetary Coordinator' }, '🧭 Coordinated') : null, p.nudged && p.nudged.length ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Steered by your Coordinator chips' }, '🎛 Steered') : null, tuned ? el('span', { class: 'sl-tag' }, '📡 Tuned') : p.post ? el('span', { class: 'sl-tag off' }, p.post.tp ? '🏘 Travelers\' Post' : '🗼 Post') : null),
             el('div', { class: 'sl-code' }, p.code + ' · ' + p.type + ' · ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable'), el('p', {}, logText(p)))),
         el('details', { class: 'sl-more' }, el('summary', {}, 'Survey data'), facts(p)),
         p.post && p.post.tp ? el('div', { class: 'sl-facs', title: 'Facilities at this Travelers\' Post' }, [el('span', { class: 'sl-fac sl-popl' }, '🏙 ' + tierOf(p.post.tp.pop || 0) + ' · ' + (p.post.tp.pop || 0).toLocaleString() + ' settlers'), ...p.post.tp.fac.map(f => el('span', { class: 'sl-fac' }, FAC[f.k][0] + ' ' + FAC[f.k][1] + ((f.lv || 1) > 1 ? ' ' + '★'.repeat(Math.min(5, f.lv - 1)) + (f.lv > 6 ? '+' : '') : '')))]) : null,
@@ -1876,20 +1949,21 @@
           toBreak();
           hint.textContent = nm(o) + ' is free! Explore is open again. Now a ' + MODES[mode].toLowerCase() + '.';
         } else {
-          const lucky = !!S.coord && !(ev && ev.got); if (lucky) S.coord = false;
-          const p = makePlanet((Math.random() * 4294967296) >>> 0, S.nextNum++, lucky, Math.min(.2, (lvl('scanner') - 1) * .01));
-          const outlaws = Math.random() < OUTLAW_CHANCE && p.type !== 'Rogue';
+          const amp = chipAmp(), lucky = !!S.coord && !(ev && ev.got); if (lucky) S.coord = false;
+          const p = nudgedPlanet(lucky, Math.min(.2, (lvl('scanner') - 1) * .01), amp);
+          const outlaws = Math.random() < Math.max(0, OUTLAW_CHANCE + chipP('siren', amp) - chipP('hush', amp)) && p.type !== 'Rogue';
           if (outlaws) { const pk = a => a[Math.floor(Math.random() * a.length)]; p.outlaw = { gang: 'the ' + pk(GANG_A) + ' ' + pk(GANG_B), at: Date.now() }; S.outlaw = p.num; }
           S.found.push({ at: Date.now(), p }); S.at = p.num; mwClue(p, 1);
+          if (p.nudged && p.nudged.length) qNotes.push('🎛 Your Coordinator chips steered this trip: ' + p.nudged.map(k => { const f = CHIP_F.find(x => x[0] === k); return f[1] + ' ' + f[2]; }).join(', ') + '.');
           S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; if (lucky) S.cnt.lucky++; if (outlaws) S.cnt.outlaws++;
           award(20 + ({ Uncommon: 10, Rare: 25, Legendary: 60 }[p.rarity] || 0), 0);
-          if (!outlaws && Math.random() < ENC_CHANCE + (hasT('nav1') ? .05 : 0) + .02 * roomLv('deck') + .03 * crewN('Scout')) {
+          if (!outlaws && Math.random() < ENC_CHANCE + chipP('lantern', amp) + (hasT('nav1') ? .05 : 0) + .02 * roomLv('deck') + .03 * crewN('Scout')) {
             const [ic, title, tpl, lo, hi] = ENCOUNTERS[Math.floor(Math.random() * ENCOUNTERS.length)];
             const dust = addDust((lo + Math.random() * (hi - lo)) * E.encounters.scale * (RANK[p.rarity] >= 2 ? E.encounters.rareWorldMultiplier : 1)), t = tpl.split('{p}').join(nm(p));
             p.enc = { ic, title, t, dust }; encGot = p.enc; award(10, 5); S.cnt.enc++;
             pushEv({ ic, title, t, got: '+' + dust + ' ✦', at: Date.now() });
           }
-          if (!outlaws && Math.random() < E.tradeStation.chance * (hasT('nav3') ? 2 : 1)) { makeTrader(p); traderNew = S.trader; }
+          if (!outlaws && Math.random() < E.tradeStation.chance * (hasT('nav3') ? 2 : 1) + chipP('market', amp)) { makeTrader(p); traderNew = S.trader; }
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           showCard(p, outlaws ? 'outlaw' : lucky ? 'lucky' : 'new'); foundP = p;
@@ -2093,6 +2167,9 @@
     tiers('Adventure', 'exp', '🗺', [[1, 'Into the Unknown'], [10, 'Seasoned Explorer'], [30, 'Mapmaker of Legend']], () => S.expDone || 0, n => 'Finish ' + n + ' expedition' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'wk', '📜', [[1, 'Guild Member'], [10, 'Guild Favorite'], [26, 'Half a Year of Contracts']], () => S.cnt.wk || 0, n => 'Get paid for ' + n + ' Guild contract' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'mw', '🎯', [[1, 'Wanted: Caught'], [5, 'Bounty Legend'], [15, 'The Last Sheriff']], () => S.mwDone || 0, n => 'Catch ' + n + ' Most Wanted boss' + (n === 1 ? '' : 'es'));
+    tiers('Worlds', 'chip', '🎛', [[10, 'Fine Tuner'], [25, 'Control Freak'], [60, 'Master of Chance']], () => S.chips.own, n => 'Own ' + n + ' Coordinator chips');
+    A('Worlds', 'chipfull', '🎚', 'Turned to Eleven', 'Fill one Coordinator field with all ' + 10 + ' chips', () => Object.values(S.chips.put).some(n => n >= 10));
+    A('Worlds', 'nudge', '🎯', 'Exactly What I Ordered', 'Find a world the Coordinator chips steered you to', () => S.found.some(f => f.p.nudged && f.p.nudged.length));
     tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
     tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));

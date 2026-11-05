@@ -454,3 +454,17 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-ranks span.on { color: var(--violet); }
 .sx-rtab { margin-top: 12px; } .sx-rtab th { text-align: left; font: 600 16px var(--ui); color: var(--white); padding-bottom: 4px; } .sx-rtab th:last-child, .sx-rtab td:last-child { text-align: right; }
 .sx-rtab { width: 100%; table-layout: fixed; } .sx-rtab th:nth-child(2), .sx-rtab td:nth-child(2) { width: 90px; text-align: right; } .sx-rtab th:last-child, .sx-rtab td:last-child { width: 90px; }
+
+/* ---------- Coordinator Panel ---------- */
+.sx-chipres b { color: var(--violet) !important; }
+.sx-chiprow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 6px 0; }
+.sx-chip-t b { display: block; font: 600 18px/1.15 var(--ui); color: var(--soft); }
+.sx-chiprow.on .sx-chip-t b { color: var(--white); }
+.sx-chip-t small { font-size: 14px; line-height: 1.25; color: var(--mute); }
+.sx-chiprow.on .sx-chip-t small { color: var(--violet); }
+.sx-chip-c { display: flex; align-items: center; gap: 6px; }
+.sx-chip-c .btn { width: 26px; padding: 1px 0; font-size: 16px; }
+.sx-pips { display: flex; gap: 2px; }
+.sx-pips i { width: 6px; height: 14px; background: var(--line); box-shadow: inset 0 0 0 1px var(--dim); }
+.sx-pips i.on { background: var(--violet); box-shadow: none; }
+.sx-chipbuy { margin-bottom: 26px; }
