@@ -21,7 +21,7 @@
   "fight": { "min": 120, "max": 175 },
   "_fight": "Extra resources for driving outlaws off a world (random between min and max).",
 
-  "fullCycle": { "base": 75, "perHullLevel": 15 },
+  "fullCycle": { "base": 80, "perHullLevel": 15 },
   "_fullCycle": "Paid when a Full Cycle (no skipping) ends: base + perHullLevel x (Hull level - 1).",
 
   "bountyMultiplier": 1.5,
