@@ -1229,7 +1229,7 @@
       const up = (name, small, btn) => el('div', { class: 'sx-up' }, el('b', {}, name), el('small', {}, small), btn);
       const buy = (cost, onclick, label) => el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < cost || null, onclick }, label || '✦ ' + cost.toLocaleString());
       const mods = Object.entries(MODS).map(([k, [, name, eff, what]]) => { const l = lvl(k), c = modCost(k); return up(name + ' ' + l, eff(l) + ' ' + what + ' (next ' + eff(l + 1) + ')', buy(c, () => upgradeMod(k))); });
-      rightCol.replaceChildren(tabsR, newTx,
+      rightCol.replaceChildren(...[tabsR, newTx].filter(Boolean),
         el('div', { class: 'sx-res' }, el('b', {}, '✦ ' + S.dust.toLocaleString()), el('small', {}, 'resources' + (trade ? ', +' + trade + ' trade per session' : ''))),
         sec('Ship modules', ...mods));
     }

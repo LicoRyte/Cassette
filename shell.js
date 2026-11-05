@@ -9,7 +9,7 @@
   const mk = (tag, attrs, ...kids) => { const e = document.createElement(tag); Object.entries(attrs || {}).forEach(([k, v]) => { if (k === 'onclick') e.addEventListener('click', v); else if (v != null) e.setAttribute(k, v); }); kids.forEach(c => e.append(c)); return e; };
 
   /* ---------- sound ---------- */
-  const SFX = { granted: ['sfx/granted.wav', .5], notify: ['sfx/messagebox.wav', .4] };
+  const SFX = { granted: ['sfx/granted.wav', .5], notify: ['sfx/messagebox.wav', .4], click: ['sfx/twm_mouse_click.wav', .5], ui: ['sfx/twm_notif.wav', .45] };
   let soundOn = store.get('solarist-sound') !== 'off', actx = null; const bufs = {};
   function ctx() { if (!actx) { const A = window.AudioContext || window.webkitAudioContext; if (A) actx = new A(); } return actx; }
   async function load(k) { if (bufs[k]) return bufs[k]; const r = await fetch(SFX[k][0]); bufs[k] = await ctx().decodeAudioData(await r.arrayBuffer()); return bufs[k]; }
@@ -71,6 +71,12 @@
     };
   })();
   window.addEventListener('pointerdown', () => amb.start(), { once: true }); window.addEventListener('keydown', () => amb.start(), { once: true });
+
+  // interface sounds, same as the archive: a click for buttons, a softer tick for tabs and options
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button, select, summary'); if (!b || b.disabled) return;
+    play(b.matches('.sx-nav button, .sx-rtabs button, .sl-stab, .sl-mis, .sl-mode, .sx-swatch, .sx-design, summary, select') ? 'ui' : 'click');
+  }, true);
 
   /* ---------- notification when a session ends while the app is in the background ---------- */
   root.addEventListener('click', e => { // ask once, the first time a session is started
@@ -138,8 +144,9 @@ vec3 surface(vec3 q, out float emit){
   return c; }
 void main(){
   vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false;
-  // stars: two layers, streaming past while you travel
-  // space stays pure black
+  // a few stars, drifting slowly (faster while you travel) on black space
+  for (int l = 0; l < 2; l++){ float fl = float(l); vec2 sp = floor(fc + vec2(tt * (1.5 + fl * 3.5) * (1. + run * (kind < .5 || kind == 4. || kind == 5. ? 5. : 0.)) + fl * 91., fl * 37.));
+    float s = h3(vec3(mod(sp, 4096.), fl * 7. + 3.)); if (s > (fl < .5 ? .9988 : .9994)) col = fl < .5 ? pal[21] : (h3(vec3(mod(sp, 4096.), 11.)) > .6 ? vec3(1.) : pal[23]); }
   vec2 uv = (fc - ctr) / R; float d2 = dot(uv, uv);
   float tl = tilt; mat2 rz = mat2(cos(tl), -sin(tl), sin(tl), cos(tl)); vec2 tu = rz * uv;
   // rings (an ellipse in a plane tilted towards you); the part behind the planet is hidden

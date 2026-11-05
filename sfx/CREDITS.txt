@@ -5,3 +5,7 @@ All rights to each sound belong to its creator. Used in Solarist, a non-commerci
 By NightMargin:
   granted.wav      session finished
   messagebox.wav   break finished
+
+Interface sounds (from the Not-So-Awesome Archive):
+  twm_mouse_click.wav   button click
+  twm_notif.wav         tabs and options
