@@ -6,15 +6,15 @@
 @font-face { font-family: 'Barlow C'; src: url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2'); font-weight: 500; font-display: swap; }
 @font-face { font-family: 'Barlow C'; src: url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2'); font-weight: 600; font-display: swap; }
 @font-face { font-family: 'Barlow C'; src: url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
-@font-face { font-family: 'Barlow'; src: url(fonts/barlow-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Barlow'; src: url(fonts/barlow-latin-500-normal.woff2) format('woff2'); font-weight: 500; font-display: swap; }
-@font-face { font-family: 'Barlow'; src: url(fonts/barlow-latin-400-italic.woff2) format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-400-italic.woff2) format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
 
 :root {
   --line: #1f102a; --dim: #4a3052; --mute: #7b5480; --soft: #a6859f; --ink: #d9bdc8; --white: #ffffff;
   --amber: #ffb879; --amber-hi: #fcef8d; --sky: #aee2ff; --blue: #8db7ff; --indigo: #6d80fa; --violet: #8465ec;
   --green: #6bc96c; --red: #ea6262; --wine: #873555; --butter: #fcef8d;
-  --ui: 'Barlow C', 'Arial Narrow', sans-serif; --text: 'Barlow', system-ui, sans-serif;
+  --ui: 'Barlow C', 'Arial Narrow', sans-serif; --text: 'Courier Prime', 'Courier New', monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -362,6 +362,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-camp-h { display: flex; justify-content: space-between; gap: 10px; font: 600 15px var(--ui); color: var(--violet); }
 .sx-camp-h small { font-size: 14px; color: var(--mute); }
 .sx-camp-who { margin: 4px 0 2px; font: 700 19px var(--ui); color: var(--white); } .sx-camp-who small { margin-left: 8px; font: 500 14px var(--ui); color: var(--mute); }
+.sx-type::after { content: '\258C'; color: var(--amber); animation: sl-blink 1s steps(2) infinite; }
 .sx-camp p { font: 15px/1.55 var(--text) !important; color: var(--ink); font-style: normal !important; }
 .sx-camp-thought p { font-style: italic !important; }
 .sx-camp-action p { color: var(--soft); }

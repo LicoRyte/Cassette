@@ -119,7 +119,7 @@
   const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
   const FS = `precision highp float;
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
-uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil;
+uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, atmOn, reveal, warp, neb; uniform vec3 atmC;
 uniform vec3 pal[33]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
@@ -144,9 +144,13 @@ vec3 surface(vec3 q, out float emit){
   return c; }
 void main(){
   vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false;
+  // a faint nebula behind some worlds: dithered so only a few of its pixels light up
+  if (neb > .5){ float nf = fbm(vec3(fc / res.y * 2.4, seed * .7 + 3.)); float nb = smoothstep(.56, .72, nf) * .55; if (nb > 0. && bayer(fc) + .47 < nb * .6) { col = nf > .66 ? pal[32] : pal[20]; } }
   // a few stars, drifting slowly (faster while you travel) on black space
   for (int l = 0; l < 2; l++){ float fl = float(l); vec2 sp = floor(fc + vec2(tt * (1.5 + fl * 3.5) * (1. + run * (kind < .5 || kind == 4. || kind == 5. ? 5. : 0.)) + fl * 91., fl * 37.));
     float s = h3(vec3(mod(sp, 4096.), fl * 7. + 3.)); if (s > (fl < .5 ? .9988 : .9994)) col = fl < .5 ? pal[21] : (h3(vec3(mod(sp, 4096.), 11.)) > .6 ? vec3(1.) : pal[23]); }
+  // the jump: for a moment every star stretches into a streak
+  if (warp > 0.) for (int k = 1; k < 24; k++){ float fk = float(k); if (fk > warp * 23.) break; vec2 sp = floor(fc + vec2(fk + tt * 40., 37.) + vec2(91., 0.)); if (h3(vec3(mod(sp, 4096.), 10.)) > .9994) { col = mix(pal[23], vec3(1.), 1. - fk / 24.); } }
   vec2 uv = (fc - ctr) / R; float d2 = dot(uv, uv);
   float tl = tilt; mat2 rz = mat2(cos(tl), -sin(tl), sin(tl), cos(tl)); vec2 tu = rz * uv;
   // rings (an ellipse in a plane tilted towards you); the part behind the planet is hidden
@@ -163,6 +167,8 @@ void main(){
       float emit; vec3 c = surface(q, emit);
       col = c * (.08 + 1.02 * lit); col = mix(col, c, emit * .9);
       col += vec3(.35, .45, .9) * pow(1. - n.z, 3.) * .45 * (lit + .15);
+      // your post's lights on the night side, more of them as the settlers grow
+      if (postLv > 0. && lit < .12){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[5] : pal[4]; }
       if (kind == 2. && run > .5){ vec3 cell = floor(q * 7.); if (h3(cell + seed) > .965 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0. && lit > .05) col = pal[4]; }
       if (kind == 1.){ // radar sweep: a green band moving down, then back up, with a fading trail
         float ph = mod(tt * .3, 2.), y = ph < 1. ? 1. - ph : ph - 1., dir = ph < 1. ? -1. : 1.;
@@ -170,8 +176,12 @@ void main(){
         float band = exp(-abs(yy - y) * 70.), trail = dy > 0. ? exp(-dy * 9.) * .5 : 0.;
         col = mix(col, vec3(.42, .79, .42), clamp(band * .95 + trail, 0., 1.)); }
     }
+    // arrival reveal: the dark silhouette dissolves into the real world through the dither
+    if (reveal < 1. && sil < .5 && bayer(fc) + .47 > reveal) { col = pal[20] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = pal[28]; }
     dith = true;
     if (ringHit > .5 && ringZ > n.z * .2 && tu.y < 0.) { col = ringC * (.35 + .65 * clamp(.5 - tu.x * .3, 0., 1.)); }
+  } else if (hasP > .5 && sil < .5 && atmOn > 0. && d2 < 1.075 && reveal >= 1.) { // a thin atmosphere rim, brightest on the lit side
+    vec2 dirL = normalize(vec2(-.55, .35)); float side = dot(normalize(uv), dirL) * .5 + .5; side *= side; if (d2 < 1.045 && side * atmOn > .28 + bayer(fc) * .5) { col = atmC; dith = true; }
   } else if (ringHit > .5) { col = ringC * (.4 + .6 * clamp(.5 - tu.x * .3, 0., 1.)) * (d2 < 1.6 && tu.y > 0. ? .45 : 1.); dith = true; }
   // distress: a red beacon ahead that pulses and grows
   if (kind == 5.){ float r = .05 + pct * .0012; float d = length(uv); float pulse = fract(tt * .6);
@@ -194,7 +204,7 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'atmOn', 'atmC', 'reveal', 'warp', 'neb'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
       gl.uniform3fv(U.pal, PAL.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
@@ -206,6 +216,8 @@ void main(){
   function size() { cv.width = sv.width = Math.max(1, Math.round(innerWidth / PX)); cv.height = sv.height = Math.max(1, Math.round(innerHeight / PX)); }
   size(); addEventListener('resize', () => { size(); lastDraw = 0; kick(); });
   addEventListener('scroll', () => { lastDraw = 0; kick(); }, { passive: true }); // on phones the planet scrolls with the page
+  const ATM = a => !a || /^(Almost none|Frozen solid|None)/i.test(a) ? [0, '#000000'] : /methane|spore/i.test(a) ? [.8, '#abdd64'] : /sulfur|ash|chlorine|carbon dioxide|CO₂|acid/i.test(a) ? [.8, '#ffb879'] : /hydrogen|helium|neon|argon/i.test(a) ? [.9, '#8465ec'] : [/thin/i.test(a) ? .6 : 1, '#8db7ff'];
+  const STAR_C = { 'red dwarf': '#ea6262', 'orange dwarf': '#ffb879', 'yellow dwarf': '#fcef8d', 'white dwarf': '#ffffff', 'blue giant': '#aee2ff', 'red giant': '#cc425e', 'binary pair': '#fcef8d', 'pulsar': '#aee2ff' };
   function setPlanet(p) {
     if (!ok) return;
     const seed = p ? p.seed : null; if (seed === curSeed) return; curSeed = seed;
@@ -216,6 +228,7 @@ void main(){
     gl.uniform3fv(U.ringC, rgb(L.ringCol || '#a6859f'));
     gl.uniform1f(U.seed, (L.noise % 997) / 37); gl.uniform1f(U.tilt, L.tilt || 0);
     gl.uniform1f(U.fClouds, L.clouds ? 1 : 0); gl.uniform1f(U.fBands, L.bands ? 1 : 0); gl.uniform1f(U.fLava, L.lava ? 1 : 0); gl.uniform1f(U.fLocked, L.locked ? 1 : 0);
+    const [ao, ac] = ATM(p.atm); gl.uniform1f(U.atmOn, ao); gl.uniform3fv(U.atmC, rgb(ac)); gl.uniform1f(U.neb, (p.seed % 3) === 0 ? 1 : 0);
     gl.uniform1f(U.fSpark, L.sparkle ? 1 : 0); gl.uniform1f(U.fRings, p.rings ? 1 : 0); gl.uniform1f(U.fLand, L.land ? 1 : 0);
   }
   function render(now) {
@@ -238,6 +251,10 @@ void main(){
         gl.uniform2f(U.res, cv.width, cv.height); gl.uniform2f(U.ctr, cx, cy); gl.uniform1f(U.R, Math.max(4, rad));
         gl.uniform1f(U.t, now / 1000); gl.uniform1f(U.tt, simT + 40); gl.uniform1f(U.spin, spinT); gl.uniform1f(U.pct, info.pct);
         gl.uniform1f(U.kind, KINDS[info.kind] || 0); gl.uniform1f(U.run, info.running ? 1 : 0); gl.uniform1f(U.coord, info.coord ? 1 : 0); gl.uniform1f(U.sil, sil);
+        const pl = info.planet, post = pl && pl.post; gl.uniform1f(U.postLv, !post ? 0 : post.tp ? 1 + Math.min(2, (post.tp.pop || 0) / 4000) : .6);
+        gl.uniform1f(U.reveal, revealAt ? Math.min(1, (now - revealAt) / 1700) : 1);
+        const wt = warpAt ? (now - warpAt) / 1300 : 1; gl.uniform1f(U.warp, wt < 1 ? (wt < .25 ? wt / .25 : 1 - (wt - .25) / .75) : 0);
+        if (!pl && !sil) gl.uniform1f(U.neb, 0);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       } else if (g2) {
         g2.fillStyle = '#000'; g2.fillRect(0, 0, cv.width, cv.height); g2.imageSmoothingEnabled = false;
@@ -245,10 +262,35 @@ void main(){
           if (im.complete) { const s = Math.round(rad * 2.3); g2.drawImage(im, Math.round(cx - s / 2), Math.round(cv.height - cy - s / 2), s, s); } }
       }
     }
-    if (now - lastShip >= 1000 / 15 - 2) { lastShip = now; drawShipSprite(now); }
+    if (now - lastShip >= 1000 / 24 - 2) { lastShip = now; drawShipSprite(now); }
     if (!document.hidden) raf = requestAnimationFrame(render);
   }
   let lastShip = 0;
+  let revealAt = 0, warpAt = 0, shootAt = performance.now() + 20000 + Math.random() * 40000, shoot = null;
+  function dot(x, y, c, sz) { gs.fillStyle = c; gs.fillRect(Math.round(x), Math.round(y), sz || 1, sz || 1); }
+  function drawExtras(now, cx, cy, rad, r) {
+    const p = info.planet, sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running, still = reduceMotion.matches, t = now / 1000;
+    // the planet's own sun, up and to the left where the light comes from
+    if (p && !sil && p.type !== 'Rogue') {
+      const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#fcef8d';
+      const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
+      if (!blink) { dot(sx - 1, sy - 1, c, 3); [[-3, 0], [3, 0], [0, -3], [0, 3], [-2, -2], [2, 2], [-2, 2], [2, -2]].forEach(([dx, dy]) => dot(sx + dx, sy + dy, '#4a3052')); }
+      if (p.star === 'binary pair') dot(sx + 6, sy + 3, '#ffb879', 2);
+    }
+    // moons on tilted orbits; the far half of each orbit goes behind the planet
+    if (p && !sil) {
+      const n = Math.min(6, p.moons || 0), base = p.rings ? 2.25 : 1.35;
+      for (let i = 0; i < n; i++) {
+        const a = rad * (base + i * .16), b = a * .3, ang = (still ? 0 : t) * (.22 / (1 + i * .45)) + i * 2.1 + (p.seed % 628) / 100;
+        const mx = cx + Math.cos(ang) * a, my = cy + Math.sin(ang) * b, behind = Math.sin(ang) < 0;
+        if (behind && Math.hypot(mx - cx, my - cy) < rad) continue;
+        const sz = i === 0 ? 3 : 2; dot(mx - 1, my - 1, behind ? '#7b5480' : '#d9bdc8', sz); if (!behind && sz === 3) dot(mx + 1, my + 1, '#7b5480');
+      }
+    }
+    // now and then a shooting star
+    if (!still && now > shootAt && !shoot) { shoot = { x: Math.random() * sv.width * .8, y: Math.random() * sv.height * .35, at: now }; shootAt = now + 45000 + Math.random() * 75000; }
+    if (shoot) { const u = (now - shoot.at) / 900; if (u > 1) shoot = null; else { const hx = shoot.x + u * 70, hy = shoot.y + u * 26; for (let j = 0; j < 9; j++) dot(hx - j * 2.7, hy - j, j < 2 ? '#ffffff' : j < 5 ? '#a6859f' : '#4a3052'); } }
+  }
   function drawShipSprite(now) { // the ship sits to the left of the planet; it bobs while the timer runs and leaves a flame while traveling
     gs.clearRect(0, 0, sv.width, sv.height);
     if (!info || !info.ship || !window.Solarist.shipSprite) return;
@@ -262,12 +304,23 @@ void main(){
     let x = Math.round(cx - Math.min(rad * (travel ? 1.25 : 1.2), half - 4) - 18), y = Math.round(cy + (travel ? 0 : rad * .6) - 4 + bob);
     x = Math.max(Math.round(r.left / PX) + 4, x);
     if (travel && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#ffb879'; gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x - f - 1, y + 4, 2, 1); }
+    drawExtras(now, cx, cy, rad, r);
     gs.imageSmoothingEnabled = false; gs.drawImage(img, x, y);
+  }
+  function typeName() { // the new world's name types itself out
+    setTimeout(() => { const b = root.querySelector('.sx-name b'); if (!b) return; const full = b.textContent; let k = 0; b.textContent = '';
+      const iv = setInterval(() => { k++; b.textContent = full.slice(0, k); if (k >= full.length) clearInterval(iv); }, 60); }, 300);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(render); }
   document.addEventListener('visibilitychange', () => { lastNow = 0; if (!document.hidden) kick(); });
   function scene(i) {
     const changed = !info || i.kind !== info.kind || i.running !== info.running || (i.planet && i.planet.seed) !== (info.planet && info.planet.seed);
+    const still = reduceMotion.matches, travel = k => k === 'explore' || k === 'campaign' || k === 'distress' || k === 'fight';
+    if (info && !still) {
+      if (i.running && !info.running && i.mode === 'focus' && travel(i.kind) && !i.paused) warpAt = performance.now(); // the jump
+      const newWorld = i.planet && (!info.planet || i.planet.seed !== info.planet.seed) && i.kind === 'break' && info.mode === 'focus';
+      if (newWorld) { revealAt = performance.now(); typeName(); } // just arrived: reveal the world
+    }
     info = i; if (changed) { lastDraw = 0; amb.set(i.kind, i.running); }
     kick();
   }

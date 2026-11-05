@@ -1113,11 +1113,22 @@
     const leftCol = el('section', { class: 'sx-side sx-left', 'aria-label': 'Quests' });
     const rightCol = el('section', { class: 'sx-side sx-right', 'aria-label': 'Resources and upgrades' });
     const feedLine = el('button', { type: 'button', class: 'sx-feed', title: 'All transmissions and the ship\'s log', onclick: () => { shipTab = 'Logs'; tab('ship'); } });
-    const reportBtn = el('button', { type: 'button', class: 'sl-link sx-replay', hidden: true, onclick: () => openReport() }, 'Last session report');
+    const reportBtn = el('button', { type: 'button', class: 'sl-link sx-replay', hidden: true, onclick: () => openReport(true) }, 'Last session report');
     const report = el('div', { class: 'sx-report', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Session report' },
       el('div', { class: 'sx-report-in' }, el('h2', {}, 'Session report'), encBox, trans, card, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeReport() }, 'Continue'))));
     report.addEventListener('click', e => { if (e.target === report) closeReport(); });
-    function openReport() { if (trans.hidden && card.hidden && encBox.hidden) return; report.hidden = false; reportBtn.hidden = false; const b = report.querySelector('.sx-report-ft .btn'); if (b) b.focus({ preventScroll: true }); }
+    let typeT = 0;
+    function typeOut() { // campaign logs and transmissions print like an old ship terminal; a click on the report finishes them
+      clearInterval(typeT);
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const ps = [...trans.querySelectorAll('.sx-camp p:not(.sl-ev-got), .sl-trans-i:not(.sl-notes):not(.sl-event) > p')].filter(p => p.textContent.length > 0);
+      const full = ps.map(p => p.textContent); ps.forEach(p => { p.textContent = ''; p.classList.add('sx-type'); });
+      let i = 0, k = 0;
+      const done = () => { clearInterval(typeT); ps.forEach((p, j) => { p.textContent = full[j]; p.classList.remove('sx-type'); }); report.removeEventListener('pointerdown', done); };
+      report.addEventListener('pointerdown', done);
+      typeT = setInterval(() => { if (i >= ps.length) return done(); k += 2; ps[i].textContent = full[i].slice(0, k); if (k >= full[i].length) { ps[i].classList.remove('sx-type'); i++; k = 0; } }, 22);
+    }
+    function openReport(replay) { if (trans.hidden && card.hidden && encBox.hidden) return; report.hidden = false; reportBtn.hidden = false; if (!replay) typeOut(); const b = report.querySelector('.sx-report-ft .btn'); if (b) b.focus({ preventScroll: true }); }
     function closeReport() { report.hidden = true; }
     const status = el('span', { class: 'sx-cap' }), status2 = el('span', { hidden: true });
     const timeBlock = el('div', { class: 'sx-clock' }, screen, cycleBar, status);
