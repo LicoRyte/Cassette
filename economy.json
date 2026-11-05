@@ -47,6 +47,9 @@
   "distressRun": { "base": 500, "random": 200, "bonusMin": 100, "bonusMax": 250 },
   "_distressRun": "Daily Distress Run payout: base + 0..random (not affected by incomeMultiplier). bonusMin-bonusMax is the extra-resources random bonus.",
 
+  "tradeStation": { "chance": 0.12, "prices": { "Common": 60, "Uncommon": 150, "Rare": 400, "Legendary": 1200 }, "sellRatio": 0.35 },
+  "_tradeStation": "Trade Stations: chance one is docked at a new world, what its collectibles cost (each varies by up to 15%), and the share of that price it pays for your spares (before incomeMultiplier).",
+
   "moduleCost": { "base": 50, "growth": 1.25 },
   "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1).",
 

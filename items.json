@@ -1,107 +1,339 @@
 {
-  "_help": "Solarist collectibles. Add new items at the END of a list. Never reorder, rename into something else, or delete existing items: saves remember items by their position in the list, so changing the order changes what people already own. Fixing a typo is fine. Save, reload the page. Keys starting with _ are notes.",
-  "Common": [
-    "Bent Spoon from a Space Diner",
-    "Faded Star Map",
-    "Cracked Helmet Visor",
-    "Rusty Docking Bolt",
-    "Compass That Points Nowhere",
-    "Jar of Moon Dust",
-    "Lost Glove (Left)",
-    "Spare Antenna",
-    "Freeze-Dried Ice Cream",
-    "Smooth River Pebble",
-    "Old Ration Bar",
-    "Torn Mission Patch",
-    "Flickering Flashlight",
-    "Postcard from a Gas Giant",
-    "Wind-Up Robot Toy",
-    "Tin of Glow Paint",
-    "Chipped Coffee Mug",
-    "Unlabeled Data Chip",
-    "Meteorite Fragment",
-    "Bag of Alien Seeds",
-    "Rubber Duck in a Space Suit",
-    "Spool of Copper Wire",
-    "Burned-Out Fuse",
-    "Souvenir Snow Globe",
-    "Lucky Space Dice",
-    "Bottle of Recycled Water",
-    "Sketch of a Sunset",
-    "Broken Pocket Watch",
-    "Fossil Shell",
-    "Pilot's Logbook Page",
-    "Fuzzy Moss Sample",
-    "Old Radio Tube",
-    "Vial of Sea Water",
-    "Dented Thermos",
-    "Tiny Solar Panel",
-    "Hand-Knitted Scarf",
-    "Crystal Pebble",
-    "Box of Mismatched Screws",
-    "Weathered Flag",
-    "Sticky Note Saying \"Back in 5\""
-  ],
-  "Uncommon": [
-    "Glowing Jellyfish in a Jar",
-    "Singing Seashell",
-    "Ice That Never Melts",
-    "Brass Telescope",
-    "Holographic Trading Card",
-    "Petrified Alien Feather",
-    "Music Box with No Song",
-    "Map of a Hidden Cave",
-    "Clockwork Beetle",
-    "Bottled Lightning",
-    "Captain's Medal",
-    "Pressed Glow-Flower",
-    "Mirror That Shows Stars",
-    "Gravity-Defying Marble",
-    "Thread from a Comet's Tail",
-    "Old Explorer's Journal",
-    "Carved Bone Flute",
-    "Self-Heating Teapot",
-    "Bubble That Won't Pop",
-    "Seed That Hums",
-    "Rainbow Quartz",
-    "Outlaw Wanted Poster",
-    "Antique Space Helmet",
-    "Tiny Terrarium",
-    "Living Stone",
-    "Echo in a Box",
-    "The Diner's Secret Recipe",
-    "Lantern of Captured Aurora"
-  ],
-  "Rare": [
-    "Fragment of a Shooting Star",
-    "Crown of an Outlaw King",
-    "Compass That Points Home",
-    "Ancient Alien Coin",
-    "Feather of a Space Whale",
-    "Clock That Runs Backwards",
-    "Map Drawn by Another Explorer",
-    "Hourglass of Black Sand",
-    "Bell That Rings in Silence",
-    "Starfish Fossil the Size of a Plate",
-    "Dreamcatcher of Nebula Thread",
-    "Glass Rose from a Glass Storm",
-    "Golden Gear from a Lost Ship",
-    "Sealed Letter from the Future",
-    "Moonstone Locket",
-    "A Robot's First Painting"
-  ],
-  "Legendary": [
-    "Heart of a Dying Star",
-    "The First Explorer's Helmet",
-    "Seed of the Last Garden",
-    "A Piece of the Big Bang",
-    "Crown of Saturn's Rings",
-    "Pocket Black Hole (Stable, Probably)",
-    "Song of the Space Whales",
-    "Key to an Unknown Door",
-    "Map of the Whole Galaxy",
-    "An Egg That Is Still Warm",
-    "Mirror of Another Universe",
-    "Dave's Lost Coffee Mug"
-  ]
+  "_help": "Solarist collectibles, one group per category, each with four rarities. Add new items at the END of a list. Never reorder or delete existing items: saves remember items by their position in the list (fixing a typo is fine). Save, reload. Keys starting with _ are notes.",
+  "Curiosities": {
+    "_about": "Odds and ends from every corner of space",
+    "Common": [
+      "Bent Spoon from a Space Diner",
+      "Faded Star Map",
+      "Cracked Helmet Visor",
+      "Rusty Docking Bolt",
+      "Compass That Points Nowhere",
+      "Jar of Moon Dust",
+      "Lost Glove (Left)",
+      "Spare Antenna",
+      "Freeze-Dried Ice Cream",
+      "Smooth River Pebble",
+      "Old Ration Bar",
+      "Torn Mission Patch",
+      "Flickering Flashlight",
+      "Postcard from a Gas Giant",
+      "Wind-Up Robot Toy",
+      "Tin of Glow Paint",
+      "Chipped Coffee Mug",
+      "Unlabeled Data Chip",
+      "Meteorite Fragment",
+      "Bag of Alien Seeds",
+      "Rubber Duck in a Space Suit",
+      "Spool of Copper Wire",
+      "Burned-Out Fuse",
+      "Souvenir Snow Globe",
+      "Lucky Space Dice",
+      "Bottle of Recycled Water",
+      "Sketch of a Sunset",
+      "Broken Pocket Watch",
+      "Fossil Shell",
+      "Pilot's Logbook Page",
+      "Fuzzy Moss Sample",
+      "Old Radio Tube",
+      "Vial of Sea Water",
+      "Dented Thermos",
+      "Tiny Solar Panel",
+      "Hand-Knitted Scarf",
+      "Crystal Pebble",
+      "Box of Mismatched Screws",
+      "Weathered Flag",
+      "Sticky Note Saying \"Back in 5\""
+    ],
+    "Uncommon": [
+      "Glowing Jellyfish in a Jar",
+      "Singing Seashell",
+      "Ice That Never Melts",
+      "Brass Telescope",
+      "Holographic Trading Card",
+      "Petrified Alien Feather",
+      "Music Box with No Song",
+      "Map of a Hidden Cave",
+      "Clockwork Beetle",
+      "Bottled Lightning",
+      "Captain's Medal",
+      "Pressed Glow-Flower",
+      "Mirror That Shows Stars",
+      "Gravity-Defying Marble",
+      "Thread from a Comet's Tail",
+      "Old Explorer's Journal",
+      "Carved Bone Flute",
+      "Self-Heating Teapot",
+      "Bubble That Won't Pop",
+      "Seed That Hums",
+      "Rainbow Quartz",
+      "Outlaw Wanted Poster",
+      "Antique Space Helmet",
+      "Tiny Terrarium",
+      "Living Stone",
+      "Echo in a Box",
+      "The Diner's Secret Recipe",
+      "Lantern of Captured Aurora"
+    ],
+    "Rare": [
+      "Fragment of a Shooting Star",
+      "Crown of an Outlaw King",
+      "Compass That Points Home",
+      "Ancient Alien Coin",
+      "Feather of a Space Whale",
+      "Clock That Runs Backwards",
+      "Map Drawn by Another Explorer",
+      "Hourglass of Black Sand",
+      "Bell That Rings in Silence",
+      "Starfish Fossil the Size of a Plate",
+      "Dreamcatcher of Nebula Thread",
+      "Glass Rose from a Glass Storm",
+      "Golden Gear from a Lost Ship",
+      "Sealed Letter from the Future",
+      "Moonstone Locket",
+      "A Robot's First Painting"
+    ],
+    "Legendary": [
+      "Heart of a Dying Star",
+      "The First Explorer's Helmet",
+      "Seed of the Last Garden",
+      "A Piece of the Big Bang",
+      "Crown of Saturn's Rings",
+      "Pocket Black Hole (Stable, Probably)",
+      "Song of the Space Whales",
+      "Key to an Unknown Door",
+      "Map of the Whole Galaxy",
+      "An Egg That Is Still Warm",
+      "Mirror of Another Universe",
+      "Dave's Lost Coffee Mug"
+    ]
+  },
+  "Materials": {
+    "_about": "Raw stuff the universe is made of",
+    "Common": [
+      "Scrap Iron Plate",
+      "Bundle of Carbon Fiber",
+      "Raw Copper Nugget",
+      "Bag of Silica Sand",
+      "Ice Core Sample",
+      "Chunk of Basalt",
+      "Coil of Nylon Rope",
+      "Tin Ingot",
+      "Sheet of Hull Foil",
+      "Jar of Sulfur Crystals"
+    ],
+    "Uncommon": [
+      "Titanium Bar",
+      "Superconducting Wire",
+      "Spool of Spider Silk",
+      "Block of Glacier Glass",
+      "Cobalt Ore",
+      "Vial of Liquid Helium",
+      "Plate of Meteoric Iron"
+    ],
+    "Rare": [
+      "Shard of Living Crystal",
+      "Ingot of Star Gold",
+      "Neutron Glass Pane",
+      "Bottle of Liquid Light"
+    ],
+    "Legendary": [
+      "Chunk of Pure Dark Matter",
+      "Diamond from a Carbon World's Core",
+      "Ring of Frozen Starlight"
+    ]
+  },
+  "Artifacts": {
+    "_about": "Things made by people long gone",
+    "Common": [
+      "Clay Tablet with Strange Marks",
+      "Carved Wooden Mask",
+      "Stone Arrowhead",
+      "Copper Bracelet",
+      "Painted Pottery Shard",
+      "Bone Comb",
+      "Woven Basket",
+      "Tiny Stone Idol",
+      "Bead Necklace",
+      "Rusted Bell"
+    ],
+    "Uncommon": [
+      "Engraved Silver Cup",
+      "Obsidian Mirror",
+      "Star-Shaped Amulet",
+      "Bronze Astrolabe",
+      "Jade Figurine",
+      "Ceremonial Dagger (Blunt)",
+      "Stone That Hums When Touched"
+    ],
+    "Rare": [
+      "Crown of Woven Light",
+      "Map Carved in Bone",
+      "Mask of the Twin Moons",
+      "Lantern That Never Goes Out"
+    ],
+    "Legendary": [
+      "Throne Fragment of a Lost Empire",
+      "The Speaking Stone",
+      "Orrery of an Unknown System"
+    ]
+  },
+  "Weapon Parts": {
+    "_about": "Pieces of things that go boom (safely disassembled)",
+    "Common": [
+      "Bent Blaster Barrel",
+      "Cracked Power Cell",
+      "Loose Trigger Spring",
+      "Scratched Scope Lens",
+      "Spent Plasma Cartridge",
+      "Torn Holster",
+      "Roll of Grip Tape",
+      "Rusty Bayonet Mount",
+      "Safety Switch",
+      "Bag of Rivets"
+    ],
+    "Uncommon": [
+      "Railgun Coil",
+      "Shield Emitter Core",
+      "Targeting Chip",
+      "Ion Capacitor",
+      "Heat Sink Fin",
+      "Recoil Dampener",
+      "Outlaw's Custom Grip"
+    ],
+    "Rare": [
+      "Plasma Lance Focus",
+      "Gravity Hammer Head",
+      "Cloaking Field Module",
+      "Pirate Captain's Cutlass"
+    ],
+    "Legendary": [
+      "Core of a Star-Killer Cannon",
+      "Unbreakable Energy Blade",
+      "The Last Peacemaker"
+    ]
+  },
+  "Tech Parts": {
+    "_about": "Machines, chips and clever leftovers",
+    "Common": [
+      "Burned Circuit Board",
+      "Loose Microchip",
+      "Tangled Fiber Optic",
+      "Old Battery Pack",
+      "Cooling Fan",
+      "Cracked Display Panel",
+      "Bag of Resistors",
+      "Servo Motor",
+      "Antenna Tip",
+      "Worn Keyboard Key"
+    ],
+    "Uncommon": [
+      "Quantum Memory Stick",
+      "Holo Projector Lens",
+      "Miniature Fusion Cell",
+      "Robot Arm Joint",
+      "Navigation Gyroscope",
+      "Translator Chip",
+      "Self-Repairing Wire"
+    ],
+    "Rare": [
+      "AI Personality Core",
+      "Warp Coil Fragment",
+      "Fold-Space Beacon",
+      "Time-Stamped Black Box"
+    ],
+    "Legendary": [
+      "Seed of a Dyson Sphere",
+      "Sentient Toolbox",
+      "Engine of the First Starship"
+    ]
+  },
+  "Specimens": {
+    "_about": "Living (or once-living) samples",
+    "Common": [
+      "Jar of Glowing Moss",
+      "Dried Alien Leaf",
+      "Spore Pod",
+      "Shell of a Rock Crab",
+      "Feather of a Sky Lizard",
+      "Tooth of a Swamp Fish",
+      "Cactus Cutting",
+      "Pressed Fern",
+      "Mushroom Cap",
+      "Water Bug in Amber"
+    ],
+    "Uncommon": [
+      "Egg of a Cloud Ray",
+      "Singing Coral Branch",
+      "Fruit That Tastes Like Thunder",
+      "Sleeping Glow Squid",
+      "Fur of a Snow Beast",
+      "Seed Bank Capsule",
+      "Crystal Beetle"
+    ],
+    "Rare": [
+      "Skull of a Dune Leviathan",
+      "Living Gemstone Plant",
+      "Heart-Flower from a Garden World",
+      "Hatchling of a Void Moth"
+    ],
+    "Legendary": [
+      "Tear of a Space Whale",
+      "The Oldest Tree Seed",
+      "Embryo of an Unknown Species"
+    ]
+  },
+  "Relics": {
+    "_about": "Holy objects of travelers and pilgrims",
+    "Common": [
+      "Prayer Beads of a Pilgrim Fleet",
+      "Faded Banner",
+      "Pilgrim's Walking Stick",
+      "Candle Stub from a Temple Ship",
+      "Votive Coin",
+      "Prayer Card"
+    ],
+    "Uncommon": [
+      "Reliquary Box",
+      "Saint's Compass",
+      "Hymn Disc",
+      "Pilgrim Map of Holy Comets",
+      "Temple Bell Clapper"
+    ],
+    "Rare": [
+      "Halo of a Sun Priest",
+      "Book of the First Voyage",
+      "Chalice of the Comet Feast"
+    ],
+    "Legendary": [
+      "The Unlit Candle",
+      "Relic of the Wanderer"
+    ]
+  },
+  "Star Charts": {
+    "_about": "Maps of places nobody should be able to map",
+    "Common": [
+      "Chart of a Local Cluster",
+      "Torn Nav Map",
+      "Asteroid Belt Survey",
+      "Comet Timetable",
+      "Moon Phase Table",
+      "Smuggler's Shortcut Sketch"
+    ],
+    "Uncommon": [
+      "Chart of a Hidden Nebula",
+      "Pulsar Timing Table",
+      "Outlaw Patrol Routes",
+      "Map of Derelict Ships",
+      "Wormhole Rumor Chart"
+    ],
+    "Rare": [
+      "Chart of the Galactic Rim",
+      "Map of a Pocket Universe",
+      "Route of the Lost Explorers"
+    ],
+    "Legendary": [
+      "Chart of the Center of Everything",
+      "The Map That Draws Itself"
+    ]
+  }
 }

@@ -356,20 +356,67 @@
       'Song of the Space Whales', 'Key to an Unknown Door', 'Map of the Whole Galaxy', 'An Egg That Is Still Warm', 'Mirror of Another Universe', 'Dave\'s Lost Coffee Mug'],
   };
   const ITEM_RARS = ['Common', 'Uncommon', 'Rare', 'Legendary'];
-  let ITEM_TOTAL = ITEM_RARS.reduce((a, r) => a + ITEMS[r].length, 0);
-  function applyItems(j) { // apps/solarist-items.json replaces the built-in lists (only lists of text count; anything else is ignored)
+  // More categories. The original 96 are "Curiosities" and keep their old ids (Rarity:index); the rest use cat:Rarity:index.
+  const CATS = [['cur', 'Curiosities', 'Odds and ends from every corner of space'], ['mat', 'Materials', 'Raw stuff the universe is made of'], ['art', 'Artifacts', 'Things made by people long gone'],
+    ['wpn', 'Weapon Parts', 'Pieces of things that go boom (safely disassembled)'], ['tec', 'Tech Parts', 'Machines, chips and clever leftovers'], ['spc', 'Specimens', 'Living (or once-living) samples'],
+    ['rel', 'Relics', 'Holy objects of travelers and pilgrims'], ['map', 'Star Charts', 'Maps of places nobody should be able to map']];
+  const CAT_ITEMS = {
+    mat: { Common: ['Scrap Iron Plate', 'Bundle of Carbon Fiber', 'Raw Copper Nugget', 'Bag of Silica Sand', 'Ice Core Sample', 'Chunk of Basalt', 'Coil of Nylon Rope', 'Tin Ingot', 'Sheet of Hull Foil', 'Jar of Sulfur Crystals'],
+      Uncommon: ['Titanium Bar', 'Superconducting Wire', 'Spool of Spider Silk', 'Block of Glacier Glass', 'Cobalt Ore', 'Vial of Liquid Helium', 'Plate of Meteoric Iron'],
+      Rare: ['Shard of Living Crystal', 'Ingot of Star Gold', 'Neutron Glass Pane', 'Bottle of Liquid Light'], Legendary: ['Chunk of Pure Dark Matter', 'Diamond from a Carbon World\'s Core', 'Ring of Frozen Starlight'] },
+    art: { Common: ['Clay Tablet with Strange Marks', 'Carved Wooden Mask', 'Stone Arrowhead', 'Copper Bracelet', 'Painted Pottery Shard', 'Bone Comb', 'Woven Basket', 'Tiny Stone Idol', 'Bead Necklace', 'Rusted Bell'],
+      Uncommon: ['Engraved Silver Cup', 'Obsidian Mirror', 'Star-Shaped Amulet', 'Bronze Astrolabe', 'Jade Figurine', 'Ceremonial Dagger (Blunt)', 'Stone That Hums When Touched'],
+      Rare: ['Crown of Woven Light', 'Map Carved in Bone', 'Mask of the Twin Moons', 'Lantern That Never Goes Out'], Legendary: ['Throne Fragment of a Lost Empire', 'The Speaking Stone', 'Orrery of an Unknown System'] },
+    wpn: { Common: ['Bent Blaster Barrel', 'Cracked Power Cell', 'Loose Trigger Spring', 'Scratched Scope Lens', 'Spent Plasma Cartridge', 'Torn Holster', 'Roll of Grip Tape', 'Rusty Bayonet Mount', 'Safety Switch', 'Bag of Rivets'],
+      Uncommon: ['Railgun Coil', 'Shield Emitter Core', 'Targeting Chip', 'Ion Capacitor', 'Heat Sink Fin', 'Recoil Dampener', 'Outlaw\'s Custom Grip'],
+      Rare: ['Plasma Lance Focus', 'Gravity Hammer Head', 'Cloaking Field Module', 'Pirate Captain\'s Cutlass'], Legendary: ['Core of a Star-Killer Cannon', 'Unbreakable Energy Blade', 'The Last Peacemaker'] },
+    tec: { Common: ['Burned Circuit Board', 'Loose Microchip', 'Tangled Fiber Optic', 'Old Battery Pack', 'Cooling Fan', 'Cracked Display Panel', 'Bag of Resistors', 'Servo Motor', 'Antenna Tip', 'Worn Keyboard Key'],
+      Uncommon: ['Quantum Memory Stick', 'Holo Projector Lens', 'Miniature Fusion Cell', 'Robot Arm Joint', 'Navigation Gyroscope', 'Translator Chip', 'Self-Repairing Wire'],
+      Rare: ['AI Personality Core', 'Warp Coil Fragment', 'Fold-Space Beacon', 'Time-Stamped Black Box'], Legendary: ['Seed of a Dyson Sphere', 'Sentient Toolbox', 'Engine of the First Starship'] },
+    spc: { Common: ['Jar of Glowing Moss', 'Dried Alien Leaf', 'Spore Pod', 'Shell of a Rock Crab', 'Feather of a Sky Lizard', 'Tooth of a Swamp Fish', 'Cactus Cutting', 'Pressed Fern', 'Mushroom Cap', 'Water Bug in Amber'],
+      Uncommon: ['Egg of a Cloud Ray', 'Singing Coral Branch', 'Fruit That Tastes Like Thunder', 'Sleeping Glow Squid', 'Fur of a Snow Beast', 'Seed Bank Capsule', 'Crystal Beetle'],
+      Rare: ['Skull of a Dune Leviathan', 'Living Gemstone Plant', 'Heart-Flower from a Garden World', 'Hatchling of a Void Moth'], Legendary: ['Tear of a Space Whale', 'The Oldest Tree Seed', 'Embryo of an Unknown Species'] },
+    rel: { Common: ['Prayer Beads of a Pilgrim Fleet', 'Faded Banner', 'Pilgrim\'s Walking Stick', 'Candle Stub from a Temple Ship', 'Votive Coin', 'Prayer Card'],
+      Uncommon: ['Reliquary Box', 'Saint\'s Compass', 'Hymn Disc', 'Pilgrim Map of Holy Comets', 'Temple Bell Clapper'],
+      Rare: ['Halo of a Sun Priest', 'Book of the First Voyage', 'Chalice of the Comet Feast'], Legendary: ['The Unlit Candle', 'Relic of the Wanderer'] },
+    map: { Common: ['Chart of a Local Cluster', 'Torn Nav Map', 'Asteroid Belt Survey', 'Comet Timetable', 'Moon Phase Table', 'Smuggler\'s Shortcut Sketch'],
+      Uncommon: ['Chart of a Hidden Nebula', 'Pulsar Timing Table', 'Outlaw Patrol Routes', 'Map of Derelict Ships', 'Wormhole Rumor Chart'],
+      Rare: ['Chart of the Galactic Rim', 'Map of a Pocket Universe', 'Route of the Lost Explorers'], Legendary: ['Chart of the Center of Everything', 'The Map That Draws Itself'] },
+  };
+  const catList = (c, r) => (c === 'cur' ? ITEMS[r] : (CAT_ITEMS[c] && CAT_ITEMS[c][r])) || [];
+  const itemId = (c, r, i) => c === 'cur' ? r + ':' + i : c + ':' + r + ':' + i;
+  const parseId = id => { const a = id.split(':'); return a.length === 2 ? { c: 'cur', r: a[0], i: +a[1] } : { c: a[0], r: a[1], i: +a[2] }; };
+  const catTotal = c => ITEM_RARS.reduce((a, r) => a + catList(c, r).length, 0);
+  let ITEM_TOTAL = 0; const countItems = () => { ITEM_TOTAL = CATS.reduce((a, [c]) => a + catTotal(c), 0); }; countItems();
+  function applyItems(j) { // items.json replaces the built-in lists (only lists of text count; anything else is ignored)
     if (!j || typeof j !== 'object') return;
-    ITEM_RARS.forEach(r => { const l = j[r]; if (Array.isArray(l)) { const ok = l.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()); if (ok.length) ITEMS[r] = ok; } });
-    ITEM_TOTAL = ITEM_RARS.reduce((a, r) => a + ITEMS[r].length, 0);
+    const take = (l, set) => { if (Array.isArray(l)) { const ok = l.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()); if (ok.length) set(ok); } };
+    ITEM_RARS.forEach(r => take(j[r], ok => { ITEMS[r] = ok; })); // the old format: the Curiosities lists at the top level
+    CATS.forEach(([c, name]) => { const g = j[name]; if (g && typeof g === 'object') ITEM_RARS.forEach(r => take(g[r], ok => { if (c === 'cur') ITEMS[r] = ok; else (CAT_ITEMS[c] = CAT_ITEMS[c] || {})[r] = ok; })); });
+    countItems();
   }
   const ITEM_W = { normal: { Common: 55, Uncommon: 28, Rare: 13, Legendary: 4 }, better: { Common: 30, Uncommon: 38, Rare: 24, Legendary: 8 } };
-  const itemName = id => { const [r, i] = id.split(':'); return (ITEMS[r] || [])[+i] || '???'; };
-  function rollItem(p, better) { // pick a rarity, then any item of that rarity
-    const w = ITEM_W[better ? 'better' : 'normal'];
-    let x = Math.random() * ITEM_RARS.reduce((a, r) => a + w[r], 0), rar = 'Common';
-    for (const r of ITEM_RARS) { if ((x -= w[r]) < 0) { rar = r; break; } }
-    const i = Math.floor(Math.random() * ITEMS[rar].length);
-    return { id: rar + ':' + i, name: ITEMS[rar][i], rar };
+  const itemName = id => { const { c, r, i } = parseId(id); return catList(c, r)[i] || '???'; };
+  const itemCat = id => CATS.find(([c]) => c === parseId(id).c) || CATS[0];
+  // where it was found decides what kind of thing it is: living worlds give specimens, outlaws give weapon parts...
+  function catWeights(p, kind) {
+    if (kind === 'loot') return { wpn: 5, tec: 3, cur: 1, mat: 1, map: 1 };
+    if (kind === 'gift') return { cur: 2, art: 2, rel: 2, map: 1, tec: 1 };
+    if (kind === 'trade') return { cur: 1, mat: 1, art: 1, wpn: 1, tec: 1, spc: 1, rel: 1, map: 1 };
+    const w = { cur: 3, mat: 3, art: 1.2, wpn: .5, tec: 1, spc: .6, rel: .6, map: 1 };
+    if (p) { if (p.lifeLvl) w.spc = 1 + p.lifeLvl * .8; if (p.odd) { w.art += 1.5; w.rel += 1; } if (p.lifeLvl >= 6) { w.art += 2; w.rel += 1.5; } if (['Iron', 'Carbon', 'Crystal', 'Shattered', 'Lava'].includes(p.type)) w.mat += 2; }
+    return w;
+  }
+  function rollItem(p, better, kind) { // pick a category, then a rarity, then any item of that rarity
+    const pickW = w => { const ks = Object.keys(w).filter(k => w[k] > 0); let x = Math.random() * ks.reduce((a, k) => a + w[k], 0); for (const k of ks) { if ((x -= w[k]) < 0) return k; } return ks[0]; };
+    const cw = catWeights(p, kind || (better ? 'loot' : 'survey')), w = ITEM_W[better ? 'better' : 'normal'];
+    for (let tries = 0; tries < 6; tries++) {
+      const c = pickW(cw), rar = pickW(w), list = catList(c, rar);
+      if (!list.length) continue;
+      const i = Math.floor(Math.random() * list.length);
+      return { id: itemId(c, rar, i), name: list[i], rar, cat: c };
+    }
+    const i = Math.floor(Math.random() * ITEMS.Common.length); return { id: 'Common:' + i, name: ITEMS.Common[i], rar: 'Common', cat: 'cur' };
   }
 
   // the ship's satellite: a tiny pixel sprite (made once)
@@ -476,7 +523,7 @@
     engineBonusPerLevel: .03, fight: { min: 40, max: 80 }, fullCycle: { base: 50, perHullLevel: 15 }, bountyMultiplier: 1.5,
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 10, Uncommon: 25, Rare: 70, Legendary: 200 }, perHabitabilityPercent: .5, earthLike: 25, earthLikeAt: 80, perLifeLevel: 8, anomaly: 25, rings: 8, perMoon: 2, moonCap: 20, perRecord: 30 },
-    distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, moduleCost: { base: 50, growth: 1.25 }, facilityCost: { base: 64, growth: 1.6, maxLevel: 10 },
+    distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 60, Uncommon: 150, Rare: 400, Legendary: 1200 }, sellRatio: .35 }, moduleCost: { base: 50, growth: 1.25 }, facilityCost: { base: 64, growth: 1.6, maxLevel: 10 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
     if (!o || typeof o !== 'object') return d;
@@ -585,7 +632,7 @@
       S.items[k] = cur ? Object.assign(cur, { n: cur.n + 1 }) : { n: 1, at: Date.now(), from: fromP ? fromP.num : 0 };
       return !cur; // true = new to the collection
     }
-    const itemCount = () => Object.keys(S.items).length;
+    const itemCount = () => Object.keys(S.items).filter(k => itemName(k) !== '???').length;
     const posts = () => S.found.filter(f => f.p.post);
     // Outlaws: some new worlds are held by a gang. While one is, Explore turns into Fight: one study session drives them out.
     const OUTLAW_CHANCE = 1 / 8;
@@ -615,7 +662,7 @@
       ['🏪', 'Wandering Market!', 'A wandering market set up its stalls in orbit around {p}. You sold off the junk from the cargo bay.', 30, 70],
       ['⚙', 'Mining Guild Finder\'s Fee!', 'The Mining Guild paid a finder\'s fee for the resources you charted on {p}.', 40, 110],
     ];
-    let encGot = null;
+    let encGot = null, traderNew = null;
     const heldP = () => { const f = S.outlaw && byNum(S.outlaw); return f && f.p.outlaw && !f.p.outlaw.cleared ? f.p : null; };
     const held = p => !!(p.outlaw && !p.outlaw.cleared);
     if (!S.events) S.events = []; if (!S.fc) S.fc = { n: 0, broken: false };
@@ -775,7 +822,7 @@
       const bonus = [];
       const opts = ['dust', 'item', 'event'].concat(S.coord ? [] : ['coord']), pick = opts[Math.floor(Math.random() * opts.length)];
       if (pick === 'dust') { const b = Math.round(E.distressRun.bonusMin + Math.random() * Math.max(0, E.distressRun.bonusMax - E.distressRun.bonusMin)); S.dust += b; S.dustTotal += b; bonus.push('a bonus of ✦ ' + b + ' from a grateful passenger'); }
-      else if (pick === 'item') { const it = rollItem(atP(), true), nw = gainItem(it, atP()); bonus.push('a keepsake: ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ')'); if (nw) award(0, 12); }
+      else if (pick === 'item') { const it = rollItem(atP(), true, 'gift'), nw = gainItem(it, atP()); bonus.push('a keepsake: ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ')'); if (nw) award(0, 12); }
       else if (pick === 'event') { S.eventNext = true; bonus.push('a tip about something strange out there (your next trip has an event)'); }
       else { S.coord = true; bonus.push('a full charge for the Interplanetary Coordinator'); }
       award(250, 120); S.drN = (S.drN || 0) + 1; S.dr = null;
@@ -814,12 +861,33 @@
       S.sold.dust += got; award(5 * list.length, 0); flushXP([]);
       save(); return got;
     }
+    // Trade Stations: sometimes one is docked at the world you reach. It sells collectibles, swaps them for ones it wants,
+    // and buys your spares. It leaves when you travel on.
+    const TRADERS = ['The Wandering Bazaar', 'Kessa Freeport', 'The Rusty Ledger', 'Station Halfway', 'The Collector\'s Barge', 'Moonlight Exchange', 'The Last Stop Market', 'Brother Ilo\'s Curio Shop', 'The Orbit Swap', 'Dockside Antiques'];
+    const TPRICE = r => Math.round(E.tradeStation.prices[r] || 100);
+    function loseItem(id) { const it = S.items[id]; if (!it) return; it.n -= 1; if (it.n <= 0) delete S.items[id]; }
+    function makeTrader(p) {
+      const stock = [], seen = new Set();
+      for (let k = 0; k < 12 && stock.length < 4; k++) { const it = rollItem(p, true, 'trade'); if (seen.has(it.id)) continue; seen.add(it.id); stock.push({ id: it.id, price: Math.round(TPRICE(it.rar) * (.85 + Math.random() * .3)) }); }
+      const owned = Object.keys(S.items).filter(k => itemName(k) !== '???').sort((a, b) => S.items[b].n - S.items[a].n), wants = [];
+      owned.slice(0, 6).sort(() => Math.random() - .5).slice(0, 2).forEach(want => {
+        const r = parseId(want).r, up = ITEM_RARS[Math.min(3, ITEM_RARS.indexOf(r) + (Math.random() < .35 ? 1 : 0))];
+        for (let k = 0; k < 30; k++) { const it = rollItem(p, true, 'trade'); if (it.rar === up && !S.items[it.id] && !seen.has(it.id)) { seen.add(it.id); wants.push({ want, give: it.id }); break; } }
+      });
+      S.trader = { num: p.num, name: TRADERS[Math.floor(Math.random() * TRADERS.length)], stock, wants, at: Date.now() };
+      S.cnt.traders = (S.cnt.traders || 0) + 1;
+    }
+    function tradeLog(t) { S.events.push({ ic: '🏪', title: S.trader.name, t, at: Date.now() }); }
+    function traderBuy(i) { const o = S.trader.stock[i]; if (!o || S.dust < o.price) return; S.dust -= o.price; const nw = gainItem({ id: o.id }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(5, 0); S.trader.stock.splice(i, 1); S.cnt.bought = (S.cnt.bought || 0) + 1; tradeLog('Bought ' + itemName(o.id) + ' for ✦ ' + o.price + '.'); shopXP(0); save(); draw(); }
+    function traderSwap(i) { const w = S.trader.wants[i]; if (!w || !S.items[w.want]) return; loseItem(w.want); const nw = gainItem({ id: w.give }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(8, 0); S.trader.wants.splice(i, 1); S.cnt.swaps = (S.cnt.swaps || 0) + 1; tradeLog('Swapped ' + itemName(w.want) + ' for ' + itemName(w.give) + '.'); shopXP(0); save(); draw(); }
+    function traderSell(id) { const it = S.items[id]; if (!it || it.n < 2) return; const v = Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME); loseItem(id); S.dust += v; S.dustTotal += v; S.cnt.spares = (S.cnt.spares || 0) + 1; save(); draw(); }
     // everything that happens at the end of a study session, shown together under the timer
     function sessionEnd(reps, p, ev) {
       const notes = [];
       let earned = Math.max(E.session.minimum, Math.round(S.set.focus * E.session.perStudyMinute)) + (p ? RAR_BONUS[p.rarity] || 0 : 0) + (ev ? E.session.eventBonus : 0);
       earned *= 1 + (lvl('engine') - 1) * E.engineBonusPerLevel;
       notes.push('✦ +' + addDust(earned) + ' resources');
+      if (traderNew) { notes.push('🏪 ' + traderNew.name + ' is docked at ' + nm(p) + '. Visit it under Trade on the right before you travel on.'); traderNew = null; }
       if (encGot) { notes.push(encGot.ic + ' +' + encGot.dust + ' resources (' + encGot.title.replace(/!$/, '') + ')'); encGot = null; }
       const trade = tradeIncome(); if (trade) notes.push('🏘 +' + addDust(trade) + ' resources in trade from your Travelers\' Posts');
       if (p) { checkRecords(p, notes); checkBounties({ planet: p }, notes); }
@@ -1009,10 +1077,12 @@
       const unread = txUnread();
       if (rightTab === 'tx' && unread) { S.txSeen = Date.now(); save(); }
       const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
-      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('sell', 'Sell'),
+      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('sell', 'Sell'), S.trader ? rt('trade', 'Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
         rt('tx', 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
       if (rightTab === 'build') { rightCol.replaceChildren(tabsR, ...buildView()); return; }
       if (rightTab === 'sell') { rightCol.replaceChildren(tabsR, ...sellView()); return; }
+      if (rightTab === 'trade' && S.trader) { rightCol.replaceChildren(tabsR, ...tradeView()); return; }
+      if (rightTab === 'trade') rightTab = 'up';
       if (rightTab === 'tx') {
         const feed = txFeed();
         rightCol.replaceChildren(tabsR, feed.length ? el('div', { class: 'sx-tx' }, renderFeed(feed, 'rtx', true, drawRight))
@@ -1089,6 +1159,22 @@
         armBtn('✦ ' + v.toLocaleString(), 'Sell?', () => { const got = sellWorlds([p]); hint.textContent = 'Sold the survey rights to ' + nm(p) + ' for ✦ ' + got + '.'; draw(); }, 'sx-buy')));
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'One at a time'), sellable.length ? null : el('p', { class: 'sl-muted' }, 'Nothing to sell right now.'), ...rows,
         sellable.length > sellShow ? el('button', { type: 'button', class: 'sl-link', onclick: () => { sellShow += 20; drawRight(); } }, 'Show more (' + (sellable.length - sellShow) + ')') : null));
+      return out;
+    }
+    function tradeView() {
+      const T = S.trader, here = byNum(T.num), out = [];
+      const desc = id => { const { c, r } = parseId(id); return el('small', {}, el('i', { class: 'sx-r-' + r.toLowerCase() }, r), ' ' + ({ cur: 'curiosity', mat: 'material', art: 'artifact', wpn: 'weapon part', tec: 'tech part', spc: 'specimen', rel: 'relic', map: 'star chart' }[c] || 'item') + (S.items[id] ? ', you have ' + S.items[id].n : ', new to you')); };
+      out.push(el('div', { class: 'sx-queue on sx-trader' }, el('small', {}, 'Trade Station'), el('b', {}, T.name), el('span', { class: 'sl-muted' }, 'Docked at ' + (here ? nm(here.p) : 'a world') + '. It leaves when you travel on.')));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'For sale'), T.stock.length ? null : el('p', { class: 'sl-muted' }, 'Sold out.'),
+        ...T.stock.map((o, i) => el('div', { class: 'sx-up' }, el('b', {}, itemName(o.id)), desc(o.id), el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < o.price || null, onclick: () => traderBuy(i) }, '✦ ' + o.price.toLocaleString())))));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Swaps'), T.wants.length ? el('p', { class: 'sl-muted' }, 'They want something you have, and give something in return.') : el('p', { class: 'sl-muted' }, 'Nothing they want right now.'),
+        ...T.wants.map((w, i) => { const has = S.items[w.want], only = has && has.n === 1;
+          const act = () => traderSwap(i);
+          return el('div', { class: 'sx-up sx-swap' }, el('b', {}, itemName(w.give)), el('small', {}, 'for your ' + itemName(w.want) + (has ? (only ? ' (your only one)' : ' (you have ' + has.n + ')') : ' (you don\'t have it)')),
+            !has ? el('span', { class: 'sx-max' }, 'Need it') : only ? armBtn('Swap', 'Sure?', act, 'sx-buy') : el('button', { type: 'button', class: 'btn sx-buy', onclick: act }, 'Swap')); })));
+      const spares = Object.keys(S.items).filter(k => S.items[k].n > 1 && itemName(k) !== '???').sort((a, b) => ITEM_RARS.indexOf(parseId(b).r) - ITEM_RARS.indexOf(parseId(a).r));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Sell spares'), spares.length ? el('p', { class: 'sl-muted' }, 'Duplicates only. You always keep at least one.') : el('p', { class: 'sl-muted' }, 'No duplicates to sell.'),
+        ...spares.slice(0, 12).map(id => el('div', { class: 'sx-up' }, el('b', {}, itemName(id) + ' ×' + S.items[id].n), desc(id), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => traderSell(id) }, '+✦ ' + Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME))))));
       return out;
     }
     function drawFeed() {
@@ -1318,6 +1404,7 @@
             p.enc = { ic, title, t, dust }; encGot = p.enc; award(10, 5); S.cnt.enc++;
             S.events.push({ ic, title, t, got: '+' + dust + ' ✦', at: Date.now() });
           }
+          if (!outlaws && Math.random() < E.tradeStation.chance) { makeTrader(p); traderNew = S.trader; }
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           showCard(p, outlaws ? 'outlaw' : lucky ? 'lucky' : 'new'); foundP = p;
@@ -1393,6 +1480,7 @@
       const tp = tunedP();
       status2.textContent = '✦ ' + S.dust.toLocaleString() + ' · ' + S.found.length + ' world' + (S.found.length === 1 ? '' : 's') + (tp ? ' · 📡 ' + nm(tp) : '') + (S.coord ? ' · 🧭 charged' : '');
       tabLog.textContent = 'Logbook ' + S.found.length;
+      if (S.trader && S.at !== S.trader.num) S.trader = null;
       drawName(); drawLeft(); drawRight(); drawFeed();
       if (!shipPane.hidden) drawShip();
     }
@@ -1464,7 +1552,7 @@
       const fmtN = n => (n || 0).toLocaleString(), allP = S.found.map(f => f.p), pl = posts().map(f => f.p), tps = pl.filter(p => p.post.tp);
       const facs = tps.reduce((a, p) => a.concat(p.post.tp.fac), []), facLv = facs.reduce((a, f) => a + (f.lv || 1), 0), maxed = facs.filter(f => (f.lv || 1) >= FAC_MAX).length;
       const settlers = tps.reduce((a, p) => a + (p.post.tp.pop || 0), 0), heard = pl.reduce((a, p) => a + p.post.reports.length, 0);
-      const itemsGot = Object.values(S.items).reduce((a, it) => a + it.n, 0), byR = r => ITEMS[r].filter((_, i) => S.items[r + ':' + i]).length;
+      const itemsGot = Object.values(S.items).reduce((a, it) => a + it.n, 0), byR = r => CATS.reduce((a, [c]) => a + catList(c, r).filter((_, i) => S.items[itemId(c, r, i)]).length, 0);
       const charted = Object.values(S.cnt.rar).reduce((a, n) => a + n, 0), ly = allP.reduce((a, p) => a + p.dist, 0) + S.sold.ly;
       const modLv = Object.keys(MODS).reduce((a, k) => a + lvl(k), 0), hrs = S.minutes / 60;
       const cx = lvInfo(S.xp), ck = lvInfo(S.kn);
@@ -1474,7 +1562,7 @@
         T('🚀 Voyage', [['Study sessions finished', fmtN(S.total)], ['Hours studied', Math.round(hrs * 10) / 10], ['Days you studied', fmtN(S.cnt.days)], ['Most sessions in a day', S.rec.dayN ? S.rec.dayN.v : 0], ['★ Full Cycles earned', fmtN(S.cnt.fc)], ['🆘 Distress Runs completed', fmtN(S.drN)], ['Light-years traveled', fmtN(ly)]]),
         T('🪐 Worlds', [['Worlds discovered', fmtN(charted)], ...RARITY.map(([k]) => ['· ' + k, fmtN(S.cnt.rar[k])]), ['🧭 Lucky trips', fmtN(S.cnt.lucky)], ['🧭 Coordinator charges', fmtN(S.cnt.charge)], ['In your Logbook now', fmtN(S.found.length)], ['💰 Worlds sold', fmtN(S.sold.n) + ' for ✦ ' + fmtN(S.sold.dust)], ['🏆 Records held', REC.filter(([k]) => S.rec[k]).length]]),
         T('⚠ Adventures', [['Deep-space events', fmtN(S.cnt.ev)], ['Arrival encounters', fmtN(S.cnt.enc)], ['🏴 Outlaw gangs met', fmtN(S.cnt.outlaws)], ['⚔ Outlaw gangs beaten', fmtN(S.fights)], ['🎯 Bounties completed', fmtN(S.bDone)], ['🔍 Surveys', fmtN(S.surveys)]]),
-        T('🎒 Collection', [['Unique collectibles', itemCount() + ' / ' + ITEM_TOTAL + ' (' + Math.round(itemCount() / ITEM_TOTAL * 100) + '%)'], ['Collectibles received (with duplicates)', fmtN(itemsGot)], ...ITEM_RARS.map(r => ['· ' + r, byR(r) + ' / ' + ITEMS[r].length])]),
+        T('🎒 Collection', [['Unique collectibles', itemCount() + ' / ' + ITEM_TOTAL + ' (' + Math.round(itemCount() / ITEM_TOTAL * 100) + '%)'], ['Collectibles received (with duplicates)', fmtN(itemsGot)], ...ITEM_RARS.map(r => ['· ' + r, byR(r) + ' / ' + CATS.reduce((a, [c]) => a + catList(c, r).length, 0)]), ...CATS.map(([c, name]) => ['· ' + name, ITEM_RARS.reduce((a, r) => a + catList(c, r).filter((_, i) => S.items[itemId(c, r, i)]).length, 0) + ' / ' + catTotal(c)])]),
         T('🏘 Posts', [['🗼 Listening Posts', fmtN(pl.length)], ['🏘 Travelers\' Posts', fmtN(tps.length)], ['Facilities built', fmtN(facs.length)], ['Facility levels (total)', fmtN(facLv)], ['Facilities at level ' + FAC_MAX, fmtN(maxed)], ['Settlers', fmtN(settlers)], ['📡 Transmissions heard', fmtN(heard)]]),
         T('✦ Economy', [['Resources now', fmtN(S.dust)], ['Resources earned (all time)', fmtN(S.dustTotal)], ['Resources spent', fmtN(S.dustTotal - S.dust)], ['Ship module levels (total)', fmtN(modLv)], ['Trade per session', fmtN(Math.round(tradeIncome() * INCOME))]]),
       ];
@@ -1518,16 +1606,20 @@
       }), ...Array.from({ length: blanks }, unknown));
     }
     let bulkR = 'Common';
+    let itemCatTab = 'cur';
     function drawItems() {
-      const nav = el('div', { class: 'sl-wnav' }, el('b', {}, '🎒 Collection: ' + itemCount() + ' / ' + ITEM_TOTAL), el('span', { class: 'sl-muted' }, Math.round(itemCount() / ITEM_TOTAL * 100) + '% found'));
-      const groups = ITEM_RARS.map(r => {
-        const list = ITEMS[r], have = list.filter((_, i) => S.items[r + ':' + i]).length;
-        return el('div', { class: 'sl-col-g' }, el('div', { class: 'sl-col-h' }, el('span', { class: 'sl-rar sl-r-' + r.toLowerCase() }, r), el('span', { class: 'sl-muted' }, have + ' / ' + list.length)),
-          have ? el('ul', { class: 'sl-col-l' }, list.map((name, i) => [name, S.items[r + ':' + i]]).filter(x => x[1]).sort((x, y) => x[0].localeCompare(y[0])).map(([name, it]) =>
+      const have = (c, r) => catList(c, r).filter((_, i) => S.items[itemId(c, r, i)]).length, catHave = c => ITEM_RARS.reduce((a, r) => a + have(c, r), 0);
+      const nav = el('div', { class: 'sl-wnav' }, el('b', {}, 'Collection: ' + itemCount() + ' / ' + ITEM_TOTAL), el('span', { class: 'sl-muted' }, Math.round(itemCount() / ITEM_TOTAL * 100) + '% found'));
+      const tabs = el('div', { class: 'sl-stabs', role: 'tablist' }, CATS.map(([c, name]) => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(c === itemCatTab), onclick: () => { itemCatTab = c; drawItems(); } }, name + ' ' + catHave(c) + '/' + catTotal(c))));
+      const [c, cname, blurb] = CATS.find(x => x[0] === itemCatTab) || CATS[0];
+      const groups = ITEM_RARS.filter(r => catList(c, r).length).map(r => {
+        const list = catList(c, r), h = have(c, r);
+        return el('div', { class: 'sl-col-g' }, el('div', { class: 'sl-col-h' }, el('span', { class: 'sl-rar sl-r-' + r.toLowerCase() }, r), el('span', { class: 'sl-muted' }, h + ' / ' + list.length)),
+          h ? el('ul', { class: 'sl-col-l' }, list.map((name, i) => [name, S.items[itemId(c, r, i)]]).filter(x => x[1]).sort((x, y) => x[0].localeCompare(y[0])).map(([name, it]) =>
             el('li', { class: 'sl-col-i sl-ci-' + r.toLowerCase(), title: 'First found ' + new Date(it.at).toLocaleDateString() + (it.from && byNum(it.from) ? ' on ' + nm(byNum(it.from).p) : '') }, name, it.n > 1 ? el('small', {}, ' ×' + it.n) : null))) : null,
-          have < list.length ? el('div', { class: 'sl-col-more' }, '??? ' + (list.length - have) + ' more ' + r.toLowerCase() + ' item' + (list.length - have === 1 ? '' : 's') + ' still out there') : el('div', { class: 'sl-col-more done' }, '★ All ' + r.toLowerCase() + ' items found!'));
+          h < list.length ? el('div', { class: 'sl-col-more' }, (list.length - h) + ' more ' + r.toLowerCase() + ' ' + (list.length - h === 1 ? 'item' : 'items') + ' still out there') : el('div', { class: 'sl-col-more done' }, 'All ' + r.toLowerCase() + ' ' + cname.toLowerCase() + ' found!'));
       });
-      itemsPane.replaceChildren(el('div', { class: 'sl-wpage' }, nav, el('p', { class: 'sl-muted' }, ITEM_TOTAL + ' one-of-a-kind items are scattered across the universe. 🔍 Discover (surveying the world you\'re at) turns up one or two, and beating outlaws hands over their hoard, which leans toward the rarer ones.'), ...groups));
+      itemsPane.replaceChildren(el('div', { class: 'sl-wpage' }, nav, el('p', { class: 'sl-muted' }, 'Discover (surveying the world you\'re at) turns up one or two. What you find depends on the world: living worlds give specimens, strange ones give artifacts and relics. Outlaws drop weapon and tech parts. Trade Stations sell and swap them.'), tabs, el('p', { class: 'sl-muted' }, blurb + '.'), ...groups));
     }
     function drawWorld(f) {
       const p = f.p;
