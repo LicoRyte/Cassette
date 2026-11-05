@@ -558,7 +558,7 @@
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 6, Uncommon: 15, Rare: 45, Legendary: 140 }, perHabitabilityPercent: .25, earthLike: 15, earthLikeAt: 80, perLifeLevel: 4, anomaly: 15, rings: 5, perMoon: 1, moonCap: 10, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 30, perLog: .7 }, survey: { pay: 20 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
-    coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 },
+    coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, lighthouse: { base: 2500, perLevel: 300 },
     quests: { delivery: 55, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
@@ -1185,7 +1185,7 @@
       ['Adventure', 'Outlaw gangs beaten', 25, () => S.fights || 0], ['Adventure', 'Bounties', 30, () => S.bDone || 0], ['Adventure', 'Distress Runs', 120, () => S.drN || 0], ['Adventure', 'Expedition legs', 20, () => S.cnt.expSteps || 0],
       ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Deliveries', 40, () => (S.dl && S.dl.done) || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
       ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
-      ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own],
+      ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own], ['Building', 'Lighthouse levels', 25, () => S.lh || 0],
       ['Knowledge', 'Research done', 50, () => Object.keys(S.tech).length], ['Knowledge', 'Common collectibles', 3, () => itemsOf('Common')], ['Knowledge', 'Uncommon collectibles', 6, () => itemsOf('Uncommon')], ['Knowledge', 'Rare collectibles', 15, () => itemsOf('Rare')],
       ['Knowledge', 'Legendary collectibles', 40, () => itemsOf('Legendary')], ['Knowledge', 'Medals', 20, () => Object.keys(S.ach).length],
     ];
@@ -1263,6 +1263,19 @@
         })));
       });
       return out;
+    }
+
+    // ---------- The Lighthouse: an endless place for spare resources. It keeps a light on for lost ships. Almost no benefit. ----------
+    const LH_T = ['Unlit', 'Candle', 'Lantern', 'Signal Fire', 'Beacon', 'Lighthouse', 'Great Lighthouse', 'Pillar of Light', 'Second Sun', 'The Light That Never Goes Out'];
+    const lhLv = () => S.lh || 0, lhTitle = l => LH_T[Math.min(LH_T.length - 1, Math.ceil(l / 10))] + (l > 0 ? ' (Lv ' + l + ')' : '');
+    const lhCost = l => Math.round(E.lighthouse.base + E.lighthouse.perLevel * l); // l = current level
+    const LH_LINES = ['A lost freighter followed your light home.', 'A family of settlers saw the light and found the Travelers\' Post.', 'A rookie pilot sent a thank-you note. It was mostly exclamation marks.', 'Somewhere out there, a ship that was lost isn\'t anymore.', 'The light reached a little further into the dark.', 'A tired crew saw it and decided to keep going.', 'The Keeper of another lighthouse flashed back, twice.', 'Nobody saw it tonight. It stayed on anyway.'];
+    function lhBuy(max) {
+      let n = 0; while (S.dust >= lhCost(lhLv()) && (max || n < 1)) { S.dust -= lhCost(lhLv()); S.lh = lhLv() + 1; n++; if (n >= 500) break; }
+      if (!n) return;
+      S.cnt.lhGuided = (S.cnt.lhGuided || 0) + n * (1 + Math.floor(Math.random() * 3));
+      pushEv({ c: 'ship', ic: '🗼', title: 'The Lighthouse is now ' + lhTitle(lhLv()), t: pk1(LH_LINES) + (n > 1 ? ' (+' + n + ' levels)' : ''), at: Date.now() });
+      shopXP(5 * n); save(); draw();
     }
     // Selling a world: the survey rights go to the Cartographers' Guild for stardust, and the world leaves your Logbook.
     // The price follows its overall condition and how much it stands out.
@@ -1678,7 +1691,10 @@
       const mods = Object.entries(MODS).map(([k, [, name, eff, what]]) => { const l = lvl(k), c = modCost(k), mx = l >= modMax(k); return up(name + ' ' + l + ' / ' + modMax(k), eff(l) + ' ' + what + (mx ? ' (max level)' : ' (next ' + eff(l + 1) + ')'), mx ? el('span', { class: 'sx-done' }, 'Max') : buy(c, () => upgradeMod(k))); });
       rightCol.replaceChildren(...[tabsR, newTx].filter(Boolean),
         el('div', { class: 'sx-res' }, el('b', {}, '✦ ' + S.dust.toLocaleString()), el('small', {}, 'resources' + (trade ? ', +' + trade + ' trade per session' : ''))),
-        sec('Ship modules', ...mods));
+        sec('Ship modules', ...mods),
+        sec('The Lighthouse', el('p', { class: 'sl-muted' }, 'No limit. It does almost nothing for you, but it keeps a light on for lost ships. Spare resources go here.'),
+          up(lhTitle(lhLv()), (S.cnt.lhGuided || 0).toLocaleString() + ' lost ships guided home so far.', buy(lhCost(lhLv()), () => lhBuy(false))),
+          S.dust >= lhCost(lhLv()) * 2 ? el('button', { type: 'button', class: 'sl-link', onclick: () => lhBuy(true) }, 'Pour everything in (' + (() => { let n = 0, d = S.dust, l = lhLv(); while (d >= lhCost(l)) { d -= lhCost(l); l++; n++; } return n; })() + ' levels)') : null));
     }
     // two-click buttons for things that can't be undone
     const armBtn = (label, armed, act, cls) => { const b = el('button', { type: 'button', class: 'btn ' + (cls || '') }, label);
@@ -2376,6 +2392,7 @@
     tiers('Adventure', 'dl', '📦', [[1, 'First Delivery'], [10, 'Courier'], [50, 'Express Service'], [150, 'Postmaster of the Stars']], () => (S.dl && S.dl.done) || 0, n => 'Finish ' + n + ' deliver' + (n === 1 ? 'y' : 'ies'));
     SQ('perfect', '📬', 'Signed, Sealed, Delivered', 'Make 10 perfect deliveries', () => (S.cnt.dlPerfect || 0) >= 10);
     SQ('closeenough', '🤷', 'Close Enough', 'Deliver early at a world that is less than half of what they asked for', () => (S.cnt.dlClose || 0) >= 1);
+    tiers('Ship', 'lh', '🗼', [[1, 'Light the Candle'], [10, 'Lantern Keeper'], [25, 'Beacon Keeper'], [50, 'Lighthouse Keeper'], [100, 'Second Sun'], [250, 'The Light That Never Goes Out']], () => S.lh || 0, n => 'Raise the Lighthouse to level ' + n);
     tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
     tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
