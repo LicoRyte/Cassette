@@ -53,7 +53,7 @@
   "tradeStation": { "chance": 0.12, "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
   "_tradeStation": "Trade Stations: chance one is docked at a new world, what its collectibles cost (each varies by up to 15%), and the share of that price it pays for your spares (before incomeMultiplier).",
 
-  "moduleCost": { "base": 70, "growth": 1.22, "maxLevel": { "engine": 30, "scanner": 21, "lab": 14, "comms": 25, "hull": 25 } },
+  "moduleCost": { "base": 70, "growth": 1.2, "maxLevel": { "engine": 25, "scanner": 21, "lab": 14, "comms": 25, "hull": 25 } },
   "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1). maxLevel is each module's top level (past it the effect would stop growing anyway).",
 
   "roomCost": { "base": 160, "growth": 1.6, "maxLevel": 5 },
@@ -71,12 +71,12 @@
   "_survey": "Resources for a Discover (survey) session, on top of the normal session pay. Its real reward is collectibles and Knowledge.",
   "_campaign": "Each Meridian log pays base + perLog x the log's number.",
 
-  "coordChips": { "start": 5, "base": 1200, "growth": 1.2, "max": 30 },
+  "coordChips": { "start": 5, "base": 1200, "growth": 1.025, "max": 45 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
 
   "quests": { "delivery": 55, "expedition": 350, "expeditionSafe": 50, "expeditionBold": 20, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
   "_quests": "delivery: the base pay of an Interstellar Delivery (a job that fits 1 world in N pays about N^0.9 times this, up to 45x). Expedition: the final payout, a safe leg's pay, and a bold leg's pay when it finds no collectible. Guild contract: the resource and Knowledge-point choices. Most Wanted: base payout plus bossPerCatch for every boss caught before.",
 
-  "facilityCost": { "base": 80, "growth": 1.6, "maxLevel": 10 },
+  "facilityCost": { "base": 47.5, "growth": 1.6, "maxLevel": 10 },
   "_facilityCost": "Facility upgrade price to reach level L: base x growth ^ (L - 2). maxLevel is the highest level."
 }
