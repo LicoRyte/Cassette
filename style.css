@@ -147,6 +147,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-rtabs button { position: relative; padding: 2px 0 6px; background: none; border: 0; font: 600 17px var(--ui); color: var(--soft); cursor: pointer; box-shadow: inset 0 -2px 0 var(--line); }
 .sx-rtabs button:hover { color: var(--white); }
 .sx-rtabs button[aria-selected="true"] { color: var(--white); box-shadow: inset 0 -2px 0 var(--amber); }
+.sx-kp b { color: var(--sky) !important; }
 .sx-dot-amber { background: var(--amber) !important; }
 .sx-trader { border-left-color: var(--amber) !important; } .sx-trader .sl-muted { display: block; margin-top: 2px; font-size: 14px; }
 .sx-dot { margin-left: 6px; padding: 0 6px; font: 700 13px/18px var(--ui); font-style: normal; color: #000; background: var(--sky); vertical-align: 2px; }

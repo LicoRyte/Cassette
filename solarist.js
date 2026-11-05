@@ -399,12 +399,15 @@
   const itemName = id => { const { c, r, i } = parseId(id); return catList(c, r)[i] || '???'; };
   const itemCat = id => CATS.find(([c]) => c === parseId(id).c) || CATS[0];
   // where it was found decides what kind of thing it is: living worlds give specimens, outlaws give weapon parts...
+  let TECH = {}; // researched techs (set when the game starts)
   function catWeights(p, kind) {
     if (kind === 'loot') return { wpn: 5, tec: 3, cur: 1, mat: 1, map: 1 };
     if (kind === 'gift') return { cur: 2, art: 2, rel: 2, map: 1, tec: 1 };
     if (kind === 'trade') return { cur: 1, mat: 1, art: 1, wpn: 1, tec: 1, spc: 1, rel: 1, map: 1 };
     const w = { cur: 3, mat: 3, art: 1.2, wpn: .5, tec: 1, spc: .6, rel: .6, map: 1 };
     if (p) { if (p.lifeLvl) w.spc = 1 + p.lifeLvl * .8; if (p.odd) { w.art += 1.5; w.rel += 1; } if (p.lifeLvl >= 6) { w.art += 2; w.rel += 1.5; } if (['Iron', 'Carbon', 'Crystal', 'Shattered', 'Lava'].includes(p.type)) w.mat += 2; }
+    if (TECH.scan2 && p && p.lifeLvl) w.spc *= 2;
+    if (TECH.scan3) { w.art += 2; w.rel += 1.5; }
     return w;
   }
   function rollItem(p, better, kind) { // pick a category, then a rarity, then any item of that rarity
@@ -685,7 +688,28 @@
     if (S.dust == null) S.dust = 0; if (S.dustTotal == null) S.dustTotal = S.dust;
     if (!S.mods) S.mods = {}; if (!S.bounties) S.bounties = []; if (!S.rec) S.rec = {}; if (!S.bDone) S.bDone = 0;
     const lvl = k => S.mods[k] || 1;
-    const evChance = l => Math.min(.2, 1 / 15 + (l - 1) * .005);
+    // Research: spend Knowledge points (you earn one for every point of Knowledge) on techs with real effects
+    if (!S.tech) S.tech = {}; TECH = S.tech;
+    if (S.kp == null) S.kp = S.kn || 0;
+    const hasT = id => !!S.tech[id];
+    const RESEARCH = [
+      ['Survey', [['scan1', 'Deep Scanners', 40, 'Surveys bring back a second collectible more often (55% instead of 30%).'], ['scan2', 'Xenobiology', 150, 'Living worlds give twice as many specimens, and every survey teaches +10 Knowledge.'], ['scan3', 'Archaeology', 320, 'Artifacts and relics turn up far more often, and one survey in three digs up rarer things.']]],
+      ['Navigation', [['nav1', 'Star Charting', 40, 'Arrival encounters happen more often (+5 percentage points).'], ['nav2', 'Coordinator Tuning', 180, 'Charging the Interplanetary Coordinator also pays 40 resources.'], ['nav3', 'Signal Triangulation', 320, 'Trade Stations show up twice as often.']]],
+      ['Economy', [['eco1', 'Guild Contacts', 50, 'The Cartographers\' Guild pays 15% more for worlds you sell.'], ['eco2', 'Trade Routes', 200, 'Travelers\' Posts pay 50% more trade, and the trade cap goes up by 40.'], ['eco3', 'Master Builders', 400, 'Facility upgrades cost 15% less.']]],
+      ['Ship', [['shp1', 'Efficient Engines', 50, 'Every study session pays 10% more resources.'], ['shp2', 'Reinforced Hull', 220, 'Driving out outlaws pays 50% more.'], ['shp3', 'Long-Range Comms', 350, 'Deep-space events happen 50% more often.']]],
+    ];
+    const RES_ALL = RESEARCH.flatMap(([, list]) => list);
+    function doResearch(id) {
+      const node = RES_ALL.find(n => n[0] === id); if (!node || hasT(id)) return;
+      const i = RESEARCH.find(([, l]) => l.some(n => n[0] === id))[1].findIndex(n => n[0] === id), prev = RESEARCH.find(([, l]) => l.some(n => n[0] === id))[1][i - 1];
+      if (prev && !hasT(prev[0])) return;
+      if (S.kp < node[2]) return;
+      S.kp -= node[2]; S.tech[id] = Date.now(); award(25, 0); shopXP(0);
+      S.events.push({ ic: '🔬', title: 'Research complete: ' + node[1], t: node[3], at: Date.now() });
+      hint.textContent = 'Research complete: ' + node[1] + '. ' + node[3];
+      save(); draw();
+    }
+    const evChance = l => Math.min(.3, (1 / 15 + (l - 1) * .005) * (hasT('shp3') ? 1.5 : 1));
     const MODS = {
       engine: ['🚀', 'Engine', l => '+' + Math.round((l - 1) * E.engineBonusPerLevel * 100) + '%', 'resources from every session'],
       scanner: ['📡', 'Scanner', l => '+' + Math.min(20, l - 1) + '%', 'chance of an anomaly on new worlds'],
@@ -694,7 +718,7 @@
       hull: ['🛡', 'Hull', l => '+' + Math.round((E.fullCycle.base + (l - 1) * E.fullCycle.perHullLevel) * E.incomeMultiplier) + ' ✦', 'for every Full Cycle'],
     };
     const modCost = k => Math.round(E.moduleCost.base * Math.pow(E.moduleCost.growth, lvl(k) - 1));
-    const facCost = lv => Math.round(E.facilityCost.base * Math.pow(E.facilityCost.growth, lv - 2)); // lv = the level you're upgrading to
+    const facCost = lv => Math.round(E.facilityCost.base * Math.pow(E.facilityCost.growth, lv - 2) * (hasT('eco3') ? .85 : 1)); // lv = the level you're upgrading to
     const FAC_MAX = Math.max(1, Math.round(E.facilityCost.maxLevel));
     const INCOME = E.incomeMultiplier; // every stardust payout is multiplied by this (apps/solarist-economy.json)
     function addDust(n) { n = Math.max(0, Math.round(n * INCOME)); S.dust += n; S.dustTotal += n; return n; }
@@ -712,7 +736,7 @@
       const out = notes || [], ups = [];
       [['xp', xp, CAPT, '⭐ Captain'], ['kn', kn, KNOW, '📚 Knowledge']].forEach(([k, n, list, label]) => {
         if (!n) return;
-        const b = lvInfo(S[k]).L; S[k] = (S[k] || 0) + n; const a = lvInfo(S[k]).L;
+        const b = lvInfo(S[k]).L; S[k] = (S[k] || 0) + n; const a = lvInfo(S[k]).L; if (k === 'kn') S.kp = (S.kp || 0) + n;
         if (a > b) ups.push('🎉 ' + label + ' Level ' + a + '!' + (titleOf(list, a) !== titleOf(list, b) ? ' New title: ' + titleOf(list, a) + '.' : ''));
       });
       out.push((xp ? '⭐ +' + xp + ' XP' : '') + (xp && kn ? ' · ' : '') + (kn ? '📚 +' + kn + ' Knowledge' : ''), ...ups);
@@ -724,7 +748,7 @@
     const TIERS = [[0, 'Outpost'], [100, 'Village'], [1000, 'Town'], [10000, 'City'], [100000, 'Metropolis'], [1000000, 'Megacity']];
     const tierOf = n => TIERS.filter(t => n >= t[0]).pop()[1];
     // Travelers' Posts pay a little trade every study session: 1 per facility level, at most 60
-    const tradeIncome = () => Math.min(E.trade.cap, Math.round(E.trade.perFacilityLevel * posts().reduce((n, { p }) => n + (p.post.tp ? p.post.tp.fac.reduce((a, f) => a + (f.lv || 1), 0) : 0), 0)));
+    const tradeIncome = () => Math.min(E.trade.cap + (hasT('eco2') ? 40 : 0), Math.round(E.trade.perFacilityLevel * (hasT('eco2') ? 1.5 : 1) * posts().reduce((n, { p }) => n + (p.post.tp ? p.post.tp.fac.reduce((a, f) => a + (f.lv || 1), 0) : 0), 0)));
     function growPosts(notes) {
       posts().forEach(({ p }) => {
         const t = p.post.tp; if (!t) return;
@@ -843,7 +867,9 @@
       if (p.rings) out.push(['Rings', SL.rings]);
       if (p.moons) out.push([p.moons + ' moon' + (p.moons === 1 ? '' : 's'), Math.min(SL.moonCap, p.moons * SL.perMoon)]);
       REC.forEach(([k, , label]) => { if (S.rec[k] && S.rec[k].num === p.num) out.push(['Record: ' + label, SL.perRecord]); });
-      return out.filter(x => x[1] > 0).map(([l, v]) => [l, Math.round(v * INCOME)]);
+      const parts = out.filter(x => x[1] > 0).map(([l, v]) => [l, Math.round(v * INCOME)]);
+      if (hasT('eco1')) parts.push(['Guild Contacts (+15%)', Math.round(parts.reduce((a, x) => a + x[1], 0) * .15)]);
+      return parts;
     }
     const sellPrice = p => sellParts(p).reduce((a, x) => a + x[1], 0);
     const isRecord = p => REC.some(([k]) => S.rec[k] && S.rec[k].num === p.num);
@@ -885,7 +911,7 @@
     function sessionEnd(reps, p, ev) {
       const notes = [];
       let earned = Math.max(E.session.minimum, Math.round(S.set.focus * E.session.perStudyMinute)) + (p ? RAR_BONUS[p.rarity] || 0 : 0) + (ev ? E.session.eventBonus : 0);
-      earned *= 1 + (lvl('engine') - 1) * E.engineBonusPerLevel;
+      earned *= (1 + (lvl('engine') - 1) * E.engineBonusPerLevel) * (hasT('shp1') ? 1.1 : 1);
       notes.push('✦ +' + addDust(earned) + ' resources');
       if (traderNew) { notes.push('🏪 ' + traderNew.name + ' is docked at ' + nm(p) + '. Visit it under Trade on the right before you travel on.'); traderNew = null; }
       if (encGot) { notes.push(encGot.ic + ' +' + encGot.dust + ' resources (' + encGot.title.replace(/!$/, '') + ')'); encGot = null; }
@@ -1077,10 +1103,11 @@
       const unread = txUnread();
       if (rightTab === 'tx' && unread) { S.txSeen = Date.now(); save(); }
       const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
-      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('sell', 'Sell'), S.trader ? rt('trade', 'Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
+      const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('research', 'Research'), rt('sell', 'Sell'), S.trader ? rt('trade', 'Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
         rt('tx', 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
       if (rightTab === 'build') { rightCol.replaceChildren(tabsR, ...buildView()); return; }
       if (rightTab === 'sell') { rightCol.replaceChildren(tabsR, ...sellView()); return; }
+      if (rightTab === 'research') { rightCol.replaceChildren(tabsR, ...researchView()); return; }
       if (rightTab === 'trade' && S.trader) { rightCol.replaceChildren(tabsR, ...tradeView()); return; }
       if (rightTab === 'trade') rightTab = 'up';
       if (rightTab === 'tx') {
@@ -1159,6 +1186,17 @@
         armBtn('✦ ' + v.toLocaleString(), 'Sell?', () => { const got = sellWorlds([p]); hint.textContent = 'Sold the survey rights to ' + nm(p) + ' for ✦ ' + got + '.'; draw(); }, 'sx-buy')));
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'One at a time'), sellable.length ? null : el('p', { class: 'sl-muted' }, 'Nothing to sell right now.'), ...rows,
         sellable.length > sellShow ? el('button', { type: 'button', class: 'sl-link', onclick: () => { sellShow += 20; drawRight(); } }, 'Show more (' + (sellable.length - sellShow) + ')') : null));
+      return out;
+    }
+    function researchView() {
+      const out = [el('div', { class: 'sx-res sx-kp' }, el('b', {}, S.kp.toLocaleString()), el('small', {}, 'Knowledge points. You earn one for every point of Knowledge.'))];
+      RESEARCH.forEach(([branch, list]) => {
+        out.push(el('div', { class: 'sx-sec' }, el('h3', {}, branch), ...list.map(([id, name, cost, what], i) => {
+          const done = hasT(id), prev = list[i - 1], lockedBy = prev && !hasT(prev[0]) ? prev[1] : null;
+          return el('div', { class: 'sx-up' + (done ? ' built' : lockedBy ? ' locked' : '') }, el('b', {}, name), el('small', {}, lockedBy ? 'Needs ' + lockedBy + '. ' + what : what),
+            done ? el('span', { class: 'sx-done' }, 'Done') : lockedBy ? el('span', { class: 'sx-max' }, cost + ' pts') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.kp < cost || null, onclick: () => doResearch(id) }, cost + ' pts'));
+        })));
+      });
       return out;
     }
     function tradeView() {
@@ -1342,7 +1380,7 @@
           toBreak();
           hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
         } else if (charging()) {
-          S.coord = true; S.mission = 0; award(15, 0); S.cnt.charge++;
+          S.coord = true; S.mission = 0; award(15, 0); S.cnt.charge++; if (hasT('nav2')) addDust(40 / INCOME);
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           toBreak();
@@ -1368,10 +1406,10 @@
           toBreak();
           hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
         } else if (discovering()) {
-          const a = atP(), got = [rollItem(a, false)]; if (Math.random() < .3) got.push(rollItem(a, false));
+          const a = atP(), better = hasT('scan3') && Math.random() < 1 / 3, got = [rollItem(a, better, 'survey')]; if (Math.random() < (hasT('scan1') ? .55 : .3)) got.push(rollItem(a, better, 'survey'));
           const fresh = got.map(it => gainItem(it, a));
           S.mission = 0; S.surveys = (S.surveys || 0) + 1;
-          award(20 + 10 * fresh.filter(Boolean).length, 12 + 12 * fresh.filter(Boolean).length);
+          award(20 + 10 * fresh.filter(Boolean).length, 12 + 12 * fresh.filter(Boolean).length + (hasT('scan2') ? 10 : 0));
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           reps.unshift({ ev: { battle: true, ic: '🔍', title: 'Survey of ' + nm(a), t: 'The survey team combed the ' + a.biomes[Math.floor(Math.random() * a.biomes.length)].toLowerCase() + ' and came back with: ' + got.map((it, i) => it.name + ' (' + it.rar + (fresh[i] ? ', new!' : '') + ')').join(' and ') + '.', got: '🎒 Collection ' + itemCount() + ' / ' + ITEM_TOTAL } });
@@ -1381,7 +1419,7 @@
         } else if (heldP()) {
           const o = heldP(), pk = a => a[Math.floor(Math.random() * a.length)];
           o.outlaw.cleared = Date.now(); S.outlaw = 0; S.fights = (S.fights || 0) + 1;
-          const lootIt = rollItem(o, true), isNew = gainItem(lootIt, o), extra = addDust(E.fight.min + Math.random() * Math.max(0, E.fight.max - E.fight.min)), loot = 'their hoard: ' + lootIt.name + ' (' + lootIt.rar + (isNew ? ', new to your collection!' : '') + ')';
+          const lootIt = rollItem(o, true), isNew = gainItem(lootIt, o), extra = addDust((E.fight.min + Math.random() * Math.max(0, E.fight.max - E.fight.min)) * (hasT('shp2') ? 1.5 : 1)), loot = 'their hoard: ' + lootIt.name + ' (' + lootIt.rar + (isNew ? ', new to your collection!' : '') + ')';
           S.at = o.num; award(35, isNew ? 12 : 0);
           const story = pk(FIGHT).replace('{G}', o.outlaw.gang.replace(/^the/, 'The')).replace('{g}', o.outlaw.gang).replace('{b}', o.biomes[0].toLowerCase());
           S.events.push({ ic: '⚔', title: 'Outlaws driven out of ' + nm(o), t: story + ' Found ' + loot + '.', got: '+' + extra + ' ✦', at: Date.now() });
@@ -1398,13 +1436,13 @@
           S.found.push({ at: Date.now(), p }); S.at = p.num;
           S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; if (lucky) S.cnt.lucky++; if (outlaws) S.cnt.outlaws++;
           award(20 + ({ Uncommon: 10, Rare: 25, Legendary: 60 }[p.rarity] || 0), 0);
-          if (!outlaws && Math.random() < ENC_CHANCE) {
+          if (!outlaws && Math.random() < ENC_CHANCE + (hasT('nav1') ? .05 : 0)) {
             const [ic, title, tpl, lo, hi] = ENCOUNTERS[Math.floor(Math.random() * ENCOUNTERS.length)];
             const dust = addDust((lo + Math.random() * (hi - lo)) * E.encounters.scale * (RANK[p.rarity] >= 2 ? E.encounters.rareWorldMultiplier : 1)), t = tpl.split('{p}').join(nm(p));
             p.enc = { ic, title, t, dust }; encGot = p.enc; award(10, 5); S.cnt.enc++;
             S.events.push({ ic, title, t, got: '+' + dust + ' ✦', at: Date.now() });
           }
-          if (!outlaws && Math.random() < E.tradeStation.chance) { makeTrader(p); traderNew = S.trader; }
+          if (!outlaws && Math.random() < E.tradeStation.chance * (hasT('nav3') ? 2 : 1)) { makeTrader(p); traderNew = S.trader; }
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           showCard(p, outlaws ? 'outlaw' : lucky ? 'lucky' : 'new'); foundP = p;
