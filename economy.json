@@ -68,7 +68,7 @@
   "campaign": { "base": 40, "perLog": 2 },
   "_campaign": "Each Meridian log pays base + perLog x the log's number.",
 
-  "coordChips": { "start": 5, "base": 800, "growth": 1.25, "max": 30 },
+  "coordChips": { "start": 5, "base": 1200, "growth": 1.2, "max": 30 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
 
   "quests": { "expedition": 450, "expeditionSafe": 60, "expeditionBold": 15, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
