@@ -12,7 +12,7 @@
     "_note": "Each finished study session pays perStudyMinute x session length (at least minimum), plus eventBonus if a deep-space event happened, plus rarityBonus for the world found on an Explore trip."
   },
 
-  "researchCost": 1.5,
+  "researchCost": 2.25,
   "_researchCost": "Every research's Knowledge-point price is its base cost x this (rounded to 5). 1 = the original prices.",
 
   "engineBonusPerLevel": 0.05,
