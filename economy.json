@@ -18,10 +18,10 @@
   "engineBonusPerLevel": 0.05,
   "_engineBonusPerLevel": "Engine module: session pay x (1 + this x (level - 1)).",
 
-  "fight": { "min": 40, "max": 80 },
+  "fight": { "min": 100, "max": 150 },
   "_fight": "Extra resources for driving outlaws off a world (random between min and max).",
 
-  "fullCycle": { "base": 50, "perHullLevel": 15 },
+  "fullCycle": { "base": 75, "perHullLevel": 15 },
   "_fullCycle": "Paid when a Full Cycle (no skipping) ends: base + perHullLevel x (Hull level - 1).",
 
   "bountyMultiplier": 1.5,
