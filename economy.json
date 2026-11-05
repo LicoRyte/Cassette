@@ -53,7 +53,7 @@
   "tradeStation": { "chance": 0.12, "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
   "_tradeStation": "Trade Stations: chance one is docked at a new world, what its collectibles cost (each varies by up to 15%), and the share of that price it pays for your spares (before incomeMultiplier).",
 
-  "moduleCost": { "base": 70, "growth": 1.27, "maxLevel": { "engine": 30, "scanner": 21, "lab": 14, "comms": 25, "hull": 30 } },
+  "moduleCost": { "base": 70, "growth": 1.27, "maxLevel": { "engine": 35, "scanner": 21, "lab": 14, "comms": 25, "hull": 25 } },
   "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1). maxLevel is each module's top level (past it the effect would stop growing anyway).",
 
   "roomCost": { "base": 160, "growth": 1.7, "maxLevel": 5 },
