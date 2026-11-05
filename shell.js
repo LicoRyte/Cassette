@@ -152,7 +152,7 @@
   const PAL = ['#000000', '#5ba675', '#6bc96c', '#abdd64', '#fcef8d', '#ffb879', '#ea6262', '#cc425e', '#a32858', '#751756', '#390947', '#611851', '#873555', '#a6555f', '#c97373', '#f2ae99', '#ffc3f2',
     '#ee8fcb', '#d46eb3', '#873e84', '#1f102a', '#4a3052', '#7b5480', '#a6859f', '#d9bdc8', '#ffffff', '#aee2ff', '#8db7ff', '#6d80fa', '#8465ec', '#834dc4', '#7d2da0', '#4e187c'];
   const rgb = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
-  const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6, shipbuild: 7 };
+  const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6, shipbuild: 7, view: 8 };
   const cv = mk('canvas', { class: 'sx-view', 'aria-hidden': 'true' });
   document.body.prepend(cv);
   const gl = cv.getContext('webgl', { antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power' });
@@ -364,6 +364,7 @@ void main(){
       if (i.running && !info.running && i.mode === 'focus' && travel(i.kind) && !i.paused) warpAt = performance.now(); // the jump
       const newWorld = i.planet && (!info.planet || i.planet.seed !== info.planet.seed) && i.kind === 'break' && info.mode === 'focus';
       if (newWorld) { revealAt = performance.now(); typeName(); } // just arrived: reveal the world
+      if (i.kind === 'view' && i.planet && (!info.planet || i.planet.seed !== info.planet.seed)) { revealAt = performance.now(); typeName(); } // Planetarium: each world fades in
     }
     info = i; if (changed) { lastDraw = 0; amb.set(i.kind, i.running); }
     music.set(i.running ? (i.mode === 'focus' ? 'study' : 'break') : null);

@@ -507,3 +507,17 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-reqs li.ok { color: var(--green); } .sx-reqs li.ok::before { content: '●'; color: var(--green); }
 .sx-offer { padding: 6px 0 8px; } .sx-offer + .sx-offer { border-top: 1px solid var(--line); }
 .sx-offer .sx-q { padding-bottom: 2px; }
+
+/* ---------- Planetarium ---------- */
+.sx-left, .sx-right, .sx-top .sl-lv { transition: opacity .4s; }
+.sx-pv .sx-left, .sx-pv .sx-right, .sx-pv .sx-top .sl-lv { opacity: 0; pointer-events: none; }
+.sx-pv .sx-clock, .sx-pv .sl-missions, .sx-pv .sl-btns, .sx-pv .sl-hint, .sx-pv .sx-replay, .sx-pv .sx-feed { display: none !important; }
+.sx-pvbar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px; width: min(640px, 100%); margin: 10px auto 0; }
+.sx-pvbar[hidden] { display: none; }
+.sx-pv-info { text-align: center; }
+.sx-pv-info b { display: block; font: 600 18px var(--ui); color: var(--white); }
+.sx-pv-info small { display: block; margin: 4px 0 8px; font: 15px/1.45 var(--text); color: var(--soft); }
+.sx-pv-info .sx-row-l { justify-content: center; }
+.sx-pv-time { font: 500 14px var(--ui); color: var(--mute); }
+.sx-pv-arrow { width: 44px; height: 44px; padding: 0; font-size: 22px; }
+.sx-loghead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

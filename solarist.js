@@ -1473,6 +1473,8 @@
     const cycleBar = el('div', { class: 'sx-cycle', 'aria-hidden': 'true' });
     const nameBox = el('button', { type: 'button', class: 'sx-name', title: 'Open in the Logbook' });
     const planetSpot = el('div', { class: 'sx-planet', 'aria-hidden': 'true' });
+    const pvBar = el('div', { class: 'sx-pvbar', hidden: true, role: 'region', 'aria-label': 'Planetarium' });
+    let pv = null; // Planetarium: { list: [found entries], i }
     const leftCol = el('section', { class: 'sx-side sx-left', 'aria-label': 'Quests' });
     const rightCol = el('section', { class: 'sx-side sx-right', 'aria-label': 'Resources and upgrades' });
     const feedLine = el('button', { type: 'button', class: 'sx-feed', title: 'All transmissions and the ship\'s log', onclick: () => { rightTab = 'tx'; txFilter = 'all'; tab('timer'); drawRight(); } });
@@ -1496,7 +1498,7 @@
     function closeReport() { report.hidden = true; }
     const status = el('span', { class: 'sx-cap' }), status2 = el('span', { hidden: true });
     const timeBlock = el('div', { class: 'sx-clock' }, screen, cycleBar, status);
-    const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, timeBlock, mission, el('div', { class: 'sl-btns' }, startB, resetB, skipB), hint, reportBtn);
+    const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, pvBar, timeBlock, mission, el('div', { class: 'sl-btns' }, startB, resetB, skipB), hint, reportBtn);
     settings.open = true;
     const appSettings = el('div', { class: 'sx-appset' });
     const settingsPane = el('div', { class: 'sl-pane', hidden: true },
@@ -1541,6 +1543,7 @@
     }
     const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : campaigning() || expediting() ? 'campaign' : hunting() ? 'fight' : building() ? (building().k === 'room' ? 'shipbuild' : 'build') : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
     function drawName() {
+      if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
       const kind = sceneKind(), p = scenePlanet(kind);
       nameBox.disabled = !p;
       nameBox.replaceChildren(...(p ? [el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable' + (held(p) ? ', held by outlaws' : ''))]
@@ -1812,10 +1815,31 @@
       if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, select, textarea')) return;
       if (!report.hidden) { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeReport(); } return; }
       if (!page.hidden) { if (e.key === 'Escape') { e.preventDefault(); tab('timer'); } return; }
+      if (pv) { if (e.key === 'Escape') { e.preventDefault(); pvClose(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); pvStep(-1); } else if (e.key === 'ArrowRight') { e.preventDefault(); pvStep(1); } return; }
       if (/^[1-5]$/.test(e.key)) { const b = misBtns[+e.key - 1]; if (b && !b.disabled && !b.hidden) { e.preventDefault(); b.click(); } }
       else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); startB.click(); }
     });
 
+
+    // ---------- Planetarium: flip through your charted worlds in 3D on the main screen (allowed during study, it's just looking) ----------
+    const pvP = () => pv && pv.list[pv.i] ? pv.list[pv.i].p : null;
+    function pvOpen(list, num) {
+      list = list && list.length ? list.slice() : S.found.slice().reverse(); if (!list.length) return;
+      pv = { list, i: Math.max(0, list.findIndex(f => f.p.num === num)) }; tab('timer'); root.classList.add('sx-pv'); drawPv(); draw();
+    }
+    function pvClose(quiet) { if (!pv) return; pv = null; root.classList.remove('sx-pv'); pvBar.hidden = true; if (!quiet) draw(); }
+    function pvStep(d) { if (!pv) return; pv.i = (pv.i + d + pv.list.length) % pv.list.length; drawPv(); drawName(); drawClock(); }
+    function drawPv() {
+      const p = pvP(); if (!p) { pvClose(); return; } const x = p.x || (p.x = makeExtra(p));
+      const bits = [p.star.startsWith('none') ? 'no star' : p.star, p.moons + ' moon' + (p.moons === 1 ? '' : 's'), p.rings ? 'rings' : null, p.life, fmtTemp(p), p.gravity + ' g', p.dist.toLocaleString() + ' ly from Earth'].filter(Boolean);
+      pvBar.hidden = false;
+      pvBar.replaceChildren(
+        el('button', { type: 'button', class: 'btn sx-pv-arrow', 'aria-label': 'Previous world', onclick: () => pvStep(-1) }, '◂'),
+        el('div', { class: 'sx-pv-info' }, el('b', {}, '🔭 ' + pad(p.num) + ' · ' + (pv.i + 1) + ' of ' + pv.list.length), el('small', {}, bits.join(' · ')),
+          el('div', { class: 'sx-row-l' }, el('button', { type: 'button', class: 'sl-link', onclick: () => { const n = p.num; pvClose(true); tab('log'); openWorld(n); } }, 'Open in the Logbook'),
+            el('button', { type: 'button', class: 'sl-link', onclick: () => pvClose() }, 'Back to the voyage (Esc)'), el('span', { class: 'sx-pv-time' }))),
+        el('button', { type: 'button', class: 'btn sx-pv-arrow', 'aria-label': 'Next world', onclick: () => pvStep(1) }, '▸'));
+    }
     /* ---------- planet card / details ---------- */
     const fmtTemp = p => p.tempNight != null ? p.temp + ' °C day side / ' + p.tempNight + ' °C night side' : p.temp + ' °C';
     const pad = n => '#' + String(n).padStart(4, '0');
@@ -1968,6 +1992,7 @@
     function toBreak() { setMode(S.cycle > 0 && S.cycle % S.set.every === 0 ? 'long' : 'short'); }
     function loop() { clearInterval(tickT); tickT = setInterval(() => { if (remaining() <= 0) finish(); else drawClock(); }, 250); }
     function finish(quiet) {
+      pvClose(true);
       clearInterval(tickT); running = false; left = 0;
       if (mode === 'focus') {
         rollDay(); if (S.cnt.lastDay !== today()) { S.cnt.lastDay = today(); S.cnt.days++; }
@@ -2110,7 +2135,8 @@
       barFill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', Math.round(pct));
       if (hooks.scene) { // what the flight scene should show
         const kind = sceneKind();
-        hooks.scene({ mode, kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: scenePlanet(kind), coord: !!S.coord, spot: planetSpot, ship: S.ship });
+        hooks.scene({ mode, kind: pv ? 'view' : kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship });
+        if (pv) { const tm = pvBar.querySelector('.sx-pv-time'); if (tm) tm.textContent = running ? '⏱ ' + fmt(r) + (mode === 'focus' ? ' left to study' : ' of break left') : ''; }
       }
       if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : campaigning() ? 'Following the trail' : expediting() ? 'Expedition' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
     }
@@ -2511,7 +2537,7 @@
       const counts = {}; S.found.forEach(f => { counts[f.p.rarity] = (counts[f.p.rarity] || 0) + 1; });
       const tp = tunedP(), pc = posts().length;
       logHead.replaceChildren(
-        el('div', {}, el('b', {}, S.found.length + ' world' + (S.found.length === 1 ? '' : 's') + ' charted')),
+        el('div', { class: 'sx-loghead' }, el('b', {}, S.found.length + ' world' + (S.found.length === 1 ? '' : 's') + ' charted'), S.found.length ? el('button', { type: 'button', class: 'btn', title: 'Flip through the worlds shown below in 3D', onclick: () => pvOpen(shownList) }, '🔭 Planetarium') : null),
         el('div', { class: 'sl-muted' }, (ly + S.sold.ly).toLocaleString() + ' light-years of travel · ' + Math.round(S.minutes / 60 * 10) / 10 + ' hours studying' + (S.sold.n ? ' · 💰 ' + S.sold.n + ' sold for ✦ ' + S.sold.dust.toLocaleString() : '')),
         el('div', { class: 'sl-rarcount' }, RARITY.map(([k]) => el('span', { class: 'sl-rar sl-r-' + k.toLowerCase() }, k + ' ' + (counts[k] || 0)))),
         el('div', { class: 'sl-muted' }, pc ? pc + ' post' + (pc === 1 ? '' : 's') + (tp ? '. Satellite tuned to ' + nm(tp) : '. Satellite not tuned') + '. Manage them under Build on the main screen.' : 'No posts yet. Use Build on the right side of the main screen.'));
@@ -2554,6 +2580,7 @@
       const prev = i > 0 ? list[i - 1] : null, next = i >= 0 && i < list.length - 1 ? list[i + 1] : null;
       const nav = el('div', { class: 'sl-wnav' },
         el('button', { type: 'button', class: 'btn', onclick: closeWorld }, '◂ Logbook'),
+        el('button', { type: 'button', class: 'btn', onclick: () => pvOpen(shownList, p.num) }, '🔭 View in 3D'),
         el('span', { class: 'sl-muted' }, i >= 0 ? (i + 1) + ' of ' + list.length : ''),
         el('span', { class: 'sl-wnav-r' },
           el('button', { type: 'button', class: 'btn', title: prev ? 'Previous: ' + nm(prev.p) : '', disabled: !prev || null, onclick: () => prev && openWorld(prev.p.num) }, '◂'),
