@@ -56,10 +56,10 @@
   "moduleCost": { "base": 70, "growth": 1.22, "maxLevel": { "engine": 30, "scanner": 21, "lab": 14, "comms": 25, "hull": 25 } },
   "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1). maxLevel is each module's top level (past it the effect would stop growing anyway).",
 
-  "roomCost": { "base": 160, "growth": 1.7, "maxLevel": 5 },
+  "roomCost": { "base": 160, "growth": 1.6, "maxLevel": 5 },
   "_roomCost": "Upgrading a ship room to level L costs base x growth ^ (L - 1). The first level is built with a study session instead.",
 
-  "crewCost": { "base": 200, "perCrew": 125 },
+  "crewCost": { "base": 200, "perCrew": 75 },
   "_crewCost": "Hiring costs base + perCrew x crew already aboard.",
 
   "shipStyleCost": { "color": 300, "design": 800 },
