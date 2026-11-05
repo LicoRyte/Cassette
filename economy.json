@@ -74,8 +74,8 @@
   "coordChips": { "start": 5, "base": 1200, "growth": 1.025, "max": 45 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
 
-  "lighthouse": { "base": 2500, "perLevel": 300 },
-  "_lighthouse": "The Lighthouse (Upgrades tab): an endless resource sink. Level L+1 costs base + perLevel x L. No cap, almost no benefit (a little Rating, medals and bragging rights).",
+  "facilitySlots": { "base": 5, "atTown": 1 },
+  "_facilitySlots": "How many facilities fit at one Travelers' Post, plus extra slots once it grows into a Town (1,000 settlers).",
 
   "quests": { "delivery": 55, "expedition": 350, "expeditionSafe": 50, "expeditionBold": 20, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
   "_quests": "delivery: the base pay of an Interstellar Delivery (a job that fits 1 world in N pays about N^0.9 times this, up to 45x). Expedition: the final payout, a safe leg's pay, and a bold leg's pay when it finds no collectible. Guild contract: the resource and Knowledge-point choices. Most Wanted: base payout plus bossPerCatch for every boss caught before.",

@@ -298,12 +298,30 @@
     market: ['🛒', 'Market', ['Market day: traders swapped {res} for {food}.', '{who} sold souvenir snow globes of {n}.', 'Prices went up after a trader from {from} bought everything.', '{num} stalls opened this morning.']],
     bathhouse: ['♨', 'Hot Spring Bath', ['The Hot Spring Bath was packed after the long jump from {from}.', '{who} stayed in the bath for {num} minutes and came out very calm.', 'Someone left a rubber duck in the bath. It stays.', 'Steam from the bath froze into tiny crystals outside.']],
     arcade: ['🕹', 'Arcade', ['{who} beat the high score on the Arcade cabinet.', 'Arcade tournament: travelers from {from} took first place.', 'The claw machine finally gave out a prize.', '{num} coins jammed the old pinball table.']],
+    museum: ['🏛', 'Museum', ['The Museum opened a new wing about {from}.', '{who} stared at the same painting for three hours.', 'A school trip from {from} touched everything. Twice.', 'The Museum bought a rock from {b}. It is a very nice rock.', '{num} visitors came to see the exhibit on {star}s.']],
+    school: ['🏫', 'School', ['The School taught {num} kids about {star}s today.', '{who} gave a guest lecture. Nobody fell asleep (almost).', 'Field trip to the {b}. Everyone came back muddy.', 'The science fair winner built a tiny rocket out of {res}.', 'Homework: name every moon you can. {who} named {num}.']],
+    theater: ['🎭', 'Theater', ['Tonight\'s play: "The Lost Ship of {from}". Standing ovation.', '{who} forgot every line and improvised. It was better.', 'The Theater sold {num} tickets for the comedy night.', 'A touring troupe from {from} performed in the {w}.', 'The stage lights blew a fuse in the second act. Nobody minded.']],
+    gym: ['🏋', 'Gym', ['{who} lifted {num} kilos in low gravity and is very proud.', 'Spin class in the {w}. Everyone survived.', 'The Gym started a running club around the {b}.', '{num} people signed up for the new year. {num} quit by Tuesday.', 'A pilot from {from} challenged everyone to push-ups.']],
+    bakery: ['🥐', 'Bakery', ['The Bakery sold out of {food} buns by noon.', '{who} tried to bake bread with {res}. Do not try this.', 'Fresh bread smell reached all the way to the Depot.', 'A ship from {from} ordered {num} cakes for a wedding.', 'The baker made a cake shaped like {n}. Very accurate.']],
+    lab: ['🧪', 'Research Lab', ['The Research Lab studied samples of {res} all day.', '{who} published a paper. Three people read it. All good reviews.', 'An experiment turned the lab {w}. Briefly.', 'The Lab found {num} new microbes in the {b}.', 'Scientists from {from} came to compare notes.']],
+    shrine: ['⛩', 'Shrine', ['Pilgrims from {from} lit {num} candles at the Shrine.', '{who} sat by the Shrine and watched the {star} rise.', 'The Shrine bell rang at dawn. Everyone woke up. Some were grateful.', 'Travelers left small gifts of {food} at the Shrine.', 'A quiet festival at the Shrine. No speeches, just lanterns.']],
+    park: ['🎡', 'Fun Park', ['The Fun Park\'s big wheel gave {num} rides today.', '{who} won a stuffed space whale at the ring toss.', 'The low-gravity roller coaster opened. Screams were heard on {from}.', 'Cotton candy flavor of the week: {food}. Controversial.', 'A rain of {w} closed the park early. Kids were upset.']],
+    zoo: ['🦒', 'Xeno Zoo', ['The Xeno Zoo welcomed a new creature from {from}.', '{who} got licked by something with six legs.', 'Feeding time: {num} kilos of {plant}.', 'Something escaped from the Zoo. It came back for dinner.', 'The keeper swears the {b} creatures can count to {num}.']],
+    forge: ['⚒', 'Forge', ['The Forge hammered out {num} new hull plates.', '{who} made a sword out of {res}. Nobody asked why.', 'Sparks from the Forge lit up the {w}.', 'A freighter from {from} ordered custom engine parts.', 'The smith melted down an old satellite and made spoons.']],
+    studio: ['🎨', 'Art Studio', ['The Art Studio painted the {b} at sunset.', '{who} made a sculpture of {n}. It looks like a potato.', 'An art show about {from} sold {num} pieces.', 'Someone painted the whole Depot. Purple.', 'A painter from {from} is staying for the light of the {star}.']],
+    farm: ['🌾', 'Farm', ['The Farm harvested {num} crates of {plant}.', '{who} named every cow. There are {num} cows.', 'Irrigation channels now reach the {b}.', 'The {w} was good for the crops this week.', 'Fresh {plant} went out to the Diner and to {from}.']],
     inn: ['🛏', 'Inn', ['The Inn had {num} guests tonight.', '{who} checked in for one night and stayed a week.', 'A traveling crew from {from} took every room.', 'The Inn\'s guestbook is filling up with doodles of {n}.']],
   };
   const FAC_DESC = { diner: 'Hot food for tired travelers.', depot: 'Stores cargo and ships it across the sector.', hangar: 'Docking and repairs for passing ships.', greenhouse: 'Grows fresh food under glass.',
     observatory: 'Watches the sky for comets and far-off stars.', clinic: 'Patches travelers up after long jumps.', lounge: 'Music, games and stories late into the night.', radio: 'Picks up signals and runs a call-in show.',
     workshop: 'Builds and fixes anything with spare parts.', library: 'Books, old maps and a cozy reading corner.', market: 'Traders swap goods from many worlds.', bathhouse: 'Hot springs for sore explorers.',
-    arcade: 'Old cabinets and fierce high-score battles.', inn: 'Beds for travelers who stay the night.' };
+    arcade: 'Old cabinets and fierce high-score battles.', inn: 'Beds for travelers who stay the night.', museum: 'Treasures and oddities from across the stars.', school: 'Lessons for the post\'s kids (and curious adults).',
+    theater: 'Plays, comedy nights and touring troupes.', gym: 'Keeps bones strong in strange gravity.', bakery: 'Fresh bread and very questionable cakes.', lab: 'Real science on local samples.', shrine: 'A quiet place for pilgrims and tired pilots.',
+    park: 'Rides, games and cotton candy.', zoo: 'Friendly (mostly) creatures from many worlds.', forge: 'Hull plates, engine parts and the odd spoon.', studio: 'Paint, clay and a lot of purple.', farm: 'Grows food for the whole post.' };
+  // every facility has a theme; a post whose facilities share one gets that theme's name
+  const FAC_THEME = { diner: 'food', bakery: 'food', farm: 'food', greenhouse: 'food', market: 'food', observatory: 'sci', lab: 'sci', school: 'sci', radio: 'sci', library: 'sci',
+    arcade: 'fun', park: 'fun', lounge: 'fun', theater: 'fun', clinic: 'rest', bathhouse: 'rest', gym: 'rest', inn: 'rest', shrine: 'rest', depot: 'work', hangar: 'work', workshop: 'work', forge: 'work', museum: 'art', studio: 'art', zoo: 'art' };
+  const THEMES = { food: ['🍜', 'Food Stop'], sci: ['🔬', 'Research Post'], fun: ['🕹', 'Fun Post'], rest: ['♨', 'Rest Stop'], work: ['🔧', 'Work Post'], art: ['🎨', 'Culture Post'] };
   const FOOD = ['noodles', 'dumplings', 'space soup', 'fried rice', 'pancakes', 'curry', 'moon pie', 'tea', 'hot cocoa', 'grilled fish', 'mystery stew', 'sticky rice'];
   const PLANT = ['glow-beans', 'blue melons', 'star lettuce', 'spiral carrots', 'purple chilies', 'moss tea leaves', 'crystal berries'];
   const TITLE = ['Captain', 'Pilot', 'Trader', 'Engineer', 'Doctor', 'Old', 'Navigator', 'Cook', 'Miner'];
@@ -558,7 +576,7 @@
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 6, Uncommon: 15, Rare: 45, Legendary: 140 }, perHabitabilityPercent: .25, earthLike: 15, earthLikeAt: 80, perLifeLevel: 4, anomaly: 15, rings: 5, perMoon: 1, moonCap: 10, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 30, perLog: .7 }, survey: { pay: 20 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
-    coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, lighthouse: { base: 2500, perLevel: 300 },
+    coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, facilitySlots: { base: 5, atTown: 1 },
     quests: { delivery: 55, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
@@ -616,13 +634,19 @@
     // the Build mission is a "job": a new Listening Post, an upgrade to a Travelers' Post, or a facility at one
     if (S.mission > 0 && !S.job) S.job = { k: 'post', num: S.mission };
     const hasFac = (p, k) => !!(p.post && p.post.tp && p.post.tp.fac.some(x => x.k === k));
+    // a Travelers' Post only has room for a few facilities: 5, and one more once it grows into a Town
+    const facSlots = p => Math.round(E.facilitySlots.base + ((p.post.tp.pop || 0) >= 1000 ? E.facilitySlots.atTown : 0));
+    const slotFree = p => !!(p.post && p.post.tp) && p.post.tp.fac.length < facSlots(p);
+    const facName = f => f.name || FAC[f.k][1];
+    function postTheme(p) { const c = {}; p.post.tp.fac.forEach(f => { const t = FAC_THEME[f.k]; if (t) c[t] = (c[t] || 0) + 1; }); const top = Object.entries(c).sort((a, b) => b[1] - a[1]); return top.length && top[0][1] >= 2 && (!top[1] || top[0][1] > top[1][1]) ? THEMES[top[0][0]] : null; }
+    const postName = p => p.post.tp.name || (postTheme(p) ? postTheme(p)[1] + ' on ' + nm(p) : 'Travelers\' Post on ' + nm(p));
     function building() {
       if (!(S.mission > 0) || !S.job) return null;
       if (S.job.k === 'room') return ROOMS[S.job.fac] && !roomLv(S.job.fac) ? { k: 'room', fac: S.job.fac, p: null, num: 0 } : null;
       const j = S.job, f = byNum(j.num); if (!f) return null; const p = f.p;
       if (j.k === 'post' && !p.post) return { k: 'post', p };
       if (j.k === 'upgrade' && p.post && !p.post.tp) return { k: 'upgrade', p };
-      if (j.k === 'add' && p.post && p.post.tp && FAC[j.fac] && !hasFac(p, j.fac)) return { k: 'add', p, fac: j.fac };
+      if (j.k === 'add' && p.post && p.post.tp && FAC[j.fac] && !hasFac(p, j.fac) && slotFree(p)) return { k: 'add', p, fac: j.fac };
       return null;
     }
     const jobText = j => j.k === 'room' ? 'Building the ' + ROOMS[j.fac][1] + ' on your ship' : j.k === 'post' ? 'Building a Listening Post on ' + nm(j.p) : j.k === 'upgrade' ? 'Upgrading ' + nm(j.p) + ' to a Travelers\' Post' : 'Building a ' + FAC[j.fac][1] + ' at ' + nm(j.p);
@@ -633,7 +657,7 @@
         if (held(p)) return;
         if (!p.post) out['New Listening Posts'].push({ k: 'post', num: p.num, label: '🗼 Listening Post on ' + nm(p) + ' (' + pad(p.num) + ')' });
         else if (!p.post.tp) out.Upgrades.push({ k: 'upgrade', num: p.num, label: '🏘 Upgrade ' + nm(p) + ' to a Travelers\' Post' });
-        else Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => out.Facilities.push({ k: 'add', num: p.num, fac: k, label: FAC[k][0] + ' ' + FAC[k][1] + ' at ' + nm(p) }));
+        else if (slotFree(p)) Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => out.Facilities.push({ k: 'add', num: p.num, fac: k, label: FAC[k][0] + ' ' + FAC[k][1] + ' at ' + nm(p) }));
       });
       return out;
     }
@@ -1185,7 +1209,7 @@
       ['Adventure', 'Outlaw gangs beaten', 25, () => S.fights || 0], ['Adventure', 'Bounties', 30, () => S.bDone || 0], ['Adventure', 'Distress Runs', 120, () => S.drN || 0], ['Adventure', 'Expedition legs', 20, () => S.cnt.expSteps || 0],
       ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Deliveries', 40, () => (S.dl && S.dl.done) || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
       ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
-      ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own], ['Building', 'Lighthouse levels', 25, () => S.lh || 0],
+      ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own],
       ['Knowledge', 'Research done', 50, () => Object.keys(S.tech).length], ['Knowledge', 'Common collectibles', 3, () => itemsOf('Common')], ['Knowledge', 'Uncommon collectibles', 6, () => itemsOf('Uncommon')], ['Knowledge', 'Rare collectibles', 15, () => itemsOf('Rare')],
       ['Knowledge', 'Legendary collectibles', 40, () => itemsOf('Legendary')], ['Knowledge', 'Medals', 20, () => Object.keys(S.ach).length],
     ];
@@ -1265,18 +1289,6 @@
       return out;
     }
 
-    // ---------- The Lighthouse: an endless place for spare resources. It keeps a light on for lost ships. Almost no benefit. ----------
-    const LH_T = ['Unlit', 'Candle', 'Lantern', 'Signal Fire', 'Beacon', 'Lighthouse', 'Great Lighthouse', 'Pillar of Light', 'Second Sun', 'The Light That Never Goes Out'];
-    const lhLv = () => S.lh || 0, lhTitle = l => LH_T[Math.min(LH_T.length - 1, Math.ceil(l / 10))] + (l > 0 ? ' (Lv ' + l + ')' : '');
-    const lhCost = l => Math.round(E.lighthouse.base + E.lighthouse.perLevel * l); // l = current level
-    const LH_LINES = ['A lost freighter followed your light home.', 'A family of settlers saw the light and found the Travelers\' Post.', 'A rookie pilot sent a thank-you note. It was mostly exclamation marks.', 'Somewhere out there, a ship that was lost isn\'t anymore.', 'The light reached a little further into the dark.', 'A tired crew saw it and decided to keep going.', 'The Keeper of another lighthouse flashed back, twice.', 'Nobody saw it tonight. It stayed on anyway.'];
-    function lhBuy(max) {
-      let n = 0; while (S.dust >= lhCost(lhLv()) && (max || n < 1)) { S.dust -= lhCost(lhLv()); S.lh = lhLv() + 1; n++; if (n >= 500) break; }
-      if (!n) return;
-      S.cnt.lhGuided = (S.cnt.lhGuided || 0) + n * (1 + Math.floor(Math.random() * 3));
-      pushEv({ c: 'ship', ic: '🗼', title: 'The Lighthouse is now ' + lhTitle(lhLv()), t: pk1(LH_LINES) + (n > 1 ? ' (+' + n + ' levels)' : ''), at: Date.now() });
-      shopXP(5 * n); save(); draw();
-    }
     // Selling a world: the survey rights go to the Cartographers' Guild for stardust, and the world leaves your Logbook.
     // The price follows its overall condition and how much it stands out.
     const SL = E.sell, SELL_RAR = SL.rarity;
@@ -1694,10 +1706,7 @@
       const mods = Object.entries(MODS).map(([k, [, name, eff, what]]) => { const l = lvl(k), c = modCost(k), mx = l >= modMax(k); return up(name + ' ' + l + ' / ' + modMax(k), eff(l) + ' ' + what + (mx ? ' (max level)' : ' (next ' + eff(l + 1) + ')'), mx ? el('span', { class: 'sx-done' }, 'Max') : buy(c, () => upgradeMod(k))); });
       rightCol.replaceChildren(...[tabsR, newTx].filter(Boolean),
         el('div', { class: 'sx-res' }, el('b', {}, '✦ ' + S.dust.toLocaleString()), el('small', {}, 'resources' + (trade ? ', +' + trade + ' trade per session' : ''))),
-        sec('Ship modules', ...mods),
-        sec('The Lighthouse', el('p', { class: 'sl-muted' }, 'No limit. It does almost nothing for you, but it keeps a light on for lost ships. Spare resources go here.'),
-          up(lhTitle(lhLv()), (S.cnt.lhGuided || 0).toLocaleString() + ' lost ships guided home so far.', buy(lhCost(lhLv()), () => lhBuy(false))),
-          S.dust >= lhCost(lhLv()) * 2 ? el('button', { type: 'button', class: 'sl-link', onclick: () => lhBuy(true) }, 'Pour everything in (' + (() => { let n = 0, d = S.dust, l = lhLv(); while (d >= lhCost(l)) { d -= lhCost(l); l++; n++; } return n; })() + ' levels)') : null));
+        sec('Ship modules', ...mods));
     }
     // two-click buttons for things that can't be undone
     const armBtn = (label, armed, act, cls) => { const b = el('button', { type: 'button', class: 'btn ' + (cls || '') }, label);
@@ -1740,15 +1749,24 @@
             : up('Travelers\' Post', 'Needs a Listening Post first.', null, 'locked'));
         if (p.post) rows.push(el('div', { class: 'sx-row sx-postact' },
           S.tuned === p.num ? el('button', { type: 'button', class: 'btn', onclick: () => { S.tuned = 0; save(); draw(); } }, 'Untune satellite') : el('button', { type: 'button', class: 'btn', title: 'The tuned post reports every study session', onclick: () => { S.tuned = p.num; save(); draw(); } }, 'Tune satellite here'),
-          el('button', { type: 'button', class: 'btn', onclick: () => rename(p) }, 'Rename')));
+          el('button', { type: 'button', class: 'btn', onclick: () => rename(p) }, 'Rename world')));
         out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Post'), ...rows));
         // step 3: facilities
         if (p.post && p.post.tp) {
-          const built = p.post.tp.fac, frows = [];
+          const tp = p.post.tp, built = tp.fac, frows = [], slots = facSlots(p), free = built.length < slots, th = postTheme(p);
+          // who this post is: your name for it and a few words about it
+          const nameIn = el('input', { type: 'text', class: 'sl-find', maxlength: 40, value: tp.name || '', placeholder: postName(p), 'aria-label': 'Post name', disabled: locked || null });
+          nameIn.addEventListener('change', () => { const v = nameIn.value.trim().slice(0, 40); if (v) tp.name = v; else delete tp.name; save(); draw(); });
+          const descIn = el('textarea', { class: 'sl-find sx-desc', maxlength: 220, rows: 2, placeholder: 'What is this post like? (optional)', 'aria-label': 'Post description', disabled: locked || null }, tp.desc || '');
+          descIn.addEventListener('change', () => { const v = descIn.value.trim().slice(0, 220); if (v) tp.desc = v; else delete tp.desc; save(); });
+          out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Identity'), el('p', { class: 'sl-muted' }, th ? th[0] + ' Its facilities make it a ' + th[1] + '.' : 'Build two or more facilities of one kind (food, science, fun, rest, work, culture) and the post gets a theme.'), nameIn, descIn));
           built.forEach(f => { const lv = f.lv || 1, max = lv >= FAC_MAX, c = facCost(lv + 1);
-            frows.push(up(FAC[f.k][0] + ' ' + FAC[f.k][1] + ' ' + lv, max ? 'Max level' : 'Level ' + (lv + 1) + ': bigger numbers in its logs', max ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < c || null, onclick: () => upgradeFac(p, f) }, '✦ ' + c.toLocaleString()))); });
-          Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => frows.push(up(FAC[k][0] + ' ' + FAC[k][1], FAC_DESC[k], queue('add:' + p.num + ':' + k), 'unbuilt')));
-          out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Facilities ' + built.length + ' of ' + Object.keys(FAC).length), el('p', { class: 'sl-muted' }, 'New ones take a study session. Upgrades cost resources.'), ...frows));
+            const ren = el('button', { type: 'button', class: 'sl-link sx-ren', disabled: locked || null, title: 'Give it your own name', onclick: () => { const v = window.prompt('Name this ' + FAC[f.k][1] + ' (leave empty for the default):', f.name || ''); if (v == null) return; const t = v.trim().slice(0, 32); if (t) f.name = t; else delete f.name; save(); draw(); } }, '✎');
+            frows.push(el('div', { class: 'sx-up' }, el('b', {}, FAC[f.k][0] + ' ' + facName(f) + ' ' + lv, ren), el('small', {}, (f.name ? FAC[f.k][1] + '. ' : '') + (max ? 'Max level' : 'Level ' + (lv + 1) + ': bigger numbers in its logs'), ' ', armBtn('Tear down', 'Sure? No refund', () => { tp.fac = tp.fac.filter(x => x !== f); pushEv({ c: 'ship', ic: FAC[f.k][0], title: 'Torn down: ' + facName(f), t: 'The ' + facName(f) + ' at ' + postName(p) + ' was cleared to make room.', at: Date.now() }); save(); draw(); }, 'sx-mini')),
+              max ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < c || null, onclick: () => upgradeFac(p, f) }, '✦ ' + c.toLocaleString()))); });
+          if (free) Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => frows.push(up(FAC[k][0] + ' ' + FAC[k][1], FAC_DESC[k] + ' (' + THEMES[FAC_THEME[k]][1].replace(/ .*/, '').toLowerCase() + ')', queue('add:' + p.num + ':' + k), 'unbuilt')));
+          out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Facilities', el('small', { class: 'sx-h-n' }, ' ' + built.length + ' / ' + slots + ' slots')),
+            el('p', { class: 'sl-muted' }, free ? 'Room for ' + (slots - built.length) + ' more. New ones take a study session, upgrades cost resources. Choose what this post is about.' : 'No room left. ' + (slots < E.facilitySlots.base + E.facilitySlots.atTown ? 'It gets one more slot when it grows into a Town (1,000 settlers). ' : '') + 'Tear one down to build something else.'), ...frows));
         }
       }
       return out;
@@ -1917,7 +1935,8 @@
           el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), held(p) ? el('span', { class: 'sl-tag sl-tag-bad', title: 'Held by ' + p.outlaw.gang }, '🏴 Outlaws') : null, p.outlaw && p.outlaw.cleared ? el('span', { class: 'sl-tag', title: 'You drove out ' + p.outlaw.gang }, '⚔ Liberated') : null, p.lucky ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Found by following the Interplanetary Coordinator' }, '🧭 Coordinated') : null, p.nudged && p.nudged.length ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Steered by your Coordinator chips' }, '🎛 Steered') : null, tuned ? el('span', { class: 'sl-tag' }, '📡 Tuned') : p.post ? el('span', { class: 'sl-tag off' }, p.post.tp ? '🏘 Travelers\' Post' : '🗼 Post') : null),
             el('div', { class: 'sl-code' }, p.code + ' · ' + p.type + ' · ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable'), el('p', {}, logText(p)))),
         el('details', { class: 'sl-more' }, el('summary', {}, 'Survey data'), facts(p)),
-        p.post && p.post.tp ? el('div', { class: 'sl-facs', title: 'Facilities at this Travelers\' Post' }, [el('span', { class: 'sl-fac sl-popl' }, '🏙 ' + tierOf(p.post.tp.pop || 0) + ' · ' + (p.post.tp.pop || 0).toLocaleString() + ' settlers'), ...p.post.tp.fac.map(f => el('span', { class: 'sl-fac' }, FAC[f.k][0] + ' ' + FAC[f.k][1] + ((f.lv || 1) > 1 ? ' ' + '★'.repeat(Math.min(5, f.lv - 1)) + (f.lv > 6 ? '+' : '') : '')))]) : null,
+        p.post && p.post.tp ? el('div', { class: 'sx-postid' }, el('b', {}, (postTheme(p) ? postTheme(p)[0] : '🏘') + ' ' + postName(p)), p.post.tp.desc ? el('p', {}, p.post.tp.desc) : null) : null,
+        p.post && p.post.tp ? el('div', { class: 'sl-facs', title: 'Facilities at this Travelers\' Post' }, [el('span', { class: 'sl-fac sl-popl' }, '🏙 ' + tierOf(p.post.tp.pop || 0) + ' · ' + (p.post.tp.pop || 0).toLocaleString() + ' settlers'), ...p.post.tp.fac.map(f => el('span', { class: 'sl-fac' }, FAC[f.k][0] + ' ' + facName(f) + ((f.lv || 1) > 1 ? ' ' + '★'.repeat(Math.min(5, f.lv - 1)) + (f.lv > 6 ? '+' : '') : '')))]) : null,
         p.post ? postLog(p) : null,
       ].filter(Boolean);
     }
@@ -1941,9 +1960,10 @@
       const fac = p.post.tp.fac; if (!fac.length) return null;
       const r = rng((p.seed * 31 + p.post.reports.length * 7919 + Date.now() % 100000) >>> 0);
       const fo = fac[Math.floor(r() * fac.length)], k = fo.k, lv = fo.lv || 1;
-      const FAME = ['The ' + FAC[k][1] + ' is famous across the sector now.', 'Travelers line up outside the ' + FAC[k][1] + ' every evening.', 'The ' + FAC[k][1] + ' hired ' + (lv * 3) + ' new staff this week.', 'A travel guide gave the ' + FAC[k][1] + ' ' + Math.min(5, lv) + ' stars.'];
+      const FN = facName(fo), FAME = ['The ' + FN + ' is famous across the sector now.', 'Travelers line up outside the ' + FN + ' every evening.', 'The ' + FN + ' hired ' + (lv * 3) + ' new staff this week.', 'A travel guide gave the ' + FN + ' ' + Math.min(5, lv) + ' stars.'];
       let text = lv >= 3 && r() < .3 ? FAME[Math.floor(r() * FAME.length)] : facLog(p, k, r, S.found.map(f => nm(f.p)).filter(x => x !== nm(p)));
       if (lv > 1) text = text.replace(/\b(\d+)\b/, (m0, d) => String(+d * lv)); // a bigger facility does more of everything
+      if (fo.name) text = text.split('The ' + FAC[k][1]).join(fo.name).split('the ' + FAC[k][1]).join(fo.name).split(FAC[k][1]).join(fo.name);
       const rep = { k: 'fac', f: k, t: FAC[k][0] + ' ' + text, at: Date.now(), day: Math.max(1, Math.round((Date.now() - p.post.built) / 86400000) + 1) };
       p.post.reports.push(rep); return rep;
     }
@@ -2368,7 +2388,9 @@
     SQ('steer3', '🎛', 'Overachiever', 'Get a world steered by 3 Coordinator fields at once', () => anyW(p => p.nudged && p.nudged.length >= 3));
     SQ('city', '🏙', 'Big City Lights', 'Grow a Travelers\' Post to 10,000 settlers', () => posts().some(x => x.p.post.tp && (x.p.post.tp.pop || 0) >= 10000));
     SQ('dinermax', '🧑‍🍳', 'Diner Supremacy', 'Get a Diner to the max level', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'diner' && (f.lv || 1) >= FAC_MAX)));
-    SQ('mall', '🛍', 'Everything Store', 'Build every kind of facility at one post', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= Object.keys(FAC).length));
+    SQ('mall', '🛍', 'No Vacancy', 'Fill every facility slot at a post', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= facSlots(x.p)));
+    SQ('theme', '🎪', 'Theme Park', 'Give a post a theme by building its facilities around one idea', () => posts().some(x => x.p.post.tp && !!postTheme(x.p)));
+    SQ('named', '🪧', 'Grand Opening', 'Give a Travelers\' Post its own name', () => posts().some(x => x.p.post.tp && !!x.p.post.tp.name));
     SQ('cooks', '🍳', 'Too Many Cooks', 'Have 3 Cooks aboard at once', () => crewN('Cook') >= 3);
     SQ('house', '🎭', 'Full House', 'Have one of every crew role aboard', () => Object.keys(ROLES).every(r => crewN(r) > 0));
     SQ('fashion', '🖌', 'Fashionista', 'Own every hull color', () => Object.keys(HULL_COLORS).every(k => S.ship.colors.includes(k)));
@@ -2418,7 +2440,6 @@
     tiers('Adventure', 'dl', '📦', [[1, 'First Delivery'], [10, 'Courier'], [50, 'Express Service'], [150, 'Postmaster of the Stars']], () => (S.dl && S.dl.done) || 0, n => 'Finish ' + n + ' deliver' + (n === 1 ? 'y' : 'ies'));
     SQ('perfect', '📬', 'Signed, Sealed, Delivered', 'Make 10 perfect deliveries', () => (S.cnt.dlPerfect || 0) >= 10);
     SQ('closeenough', '🤷', 'Close Enough', 'Deliver early at a world that is less than half of what they asked for', () => (S.cnt.dlClose || 0) >= 1);
-    tiers('Ship', 'lh', '🗼', [[1, 'Light the Candle'], [10, 'Lantern Keeper'], [25, 'Beacon Keeper'], [50, 'Lighthouse Keeper'], [100, 'Second Sun'], [250, 'The Light That Never Goes Out']], () => S.lh || 0, n => 'Raise the Lighthouse to level ' + n);
     tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
     tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));

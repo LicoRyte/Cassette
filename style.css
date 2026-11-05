@@ -521,3 +521,10 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-pv-time { font: 500 14px var(--ui); color: var(--mute); }
 .sx-pv-arrow { width: 44px; height: 44px; padding: 0; font-size: 22px; }
 .sx-loghead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* Travelers' Post identity */
+.sx-right .sx-sec > .sl-find { display: block; width: 100%; margin-top: 8px; box-sizing: border-box; }
+.sx-desc { resize: vertical; min-height: 54px; font: 15px/1.45 var(--text); }
+.sx-ren { margin-left: 6px; font-size: 15px; text-decoration: none; }
+.sx-up small .btn.sx-mini { margin-left: 4px; vertical-align: 1px; }
+.sx-postid { margin: 14px 0 6px; } .sx-postid b { font: 700 19px var(--ui); color: var(--white); } .sx-postid p { margin: 2px 0 0; font: 15px/1.5 var(--text); color: var(--soft); }
