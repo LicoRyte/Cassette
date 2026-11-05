@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solarist</title>
+<meta name="description" content="A Pomodoro study timer where every study session is a trip to a new, randomly generated planet.">
+<meta name="theme-color" content="#1f102a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preload" href="fonts/pixelify-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1 class="mark"><img src="icons/icon-32.png" alt="" width="16" height="16"> Solarist</h1>
+    <div class="top-r">
+      <button type="button" class="btn small" id="installBtn" hidden>Install app</button>
+      <button type="button" class="btn small" id="soundBtn" aria-pressed="true">Sound on</button>
+    </div>
+  </header>
+  <main id="slRoot" class="frame">
+    <p class="boot">Loading Solarist...</p>
+  </main>
+</div>
+<noscript><p class="boot">Solarist needs JavaScript to run.</p></noscript>
+<script src="solarist.js"></script>
+<script src="shell.js"></script>
+</body>
+</html>

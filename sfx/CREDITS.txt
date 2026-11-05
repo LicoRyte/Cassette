@@ -1,0 +1,7 @@
+Sound credits
+=============
+All rights to each sound belong to its creator. Used in Solarist, a non-commercial personal project.
+
+By NightMargin:
+  granted.wav      session finished
+  messagebox.wav   break finished

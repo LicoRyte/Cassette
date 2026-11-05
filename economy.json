@@ -1,0 +1,55 @@
+{
+  "_help": "Solarist economy. Every resource income and price in the game. Edit the numbers, save, reload the page. Delete a line (or the whole file) to fall back to the built-in default. Keys starting with _ are notes and are ignored.",
+
+  "incomeMultiplier": 1.3,
+  "_incomeMultiplier": "Every resource payout below (except the Distress Run) is multiplied by this. 1 = as written, 1.5 = 50% more.",
+
+  "session": {
+    "perStudyMinute": 0.8,
+    "minimum": 6,
+    "eventBonus": 20,
+    "rarityBonus": { "Common": 0, "Uncommon": 10, "Rare": 30, "Legendary": 80 },
+    "_note": "Each finished study session pays perStudyMinute x session length (at least minimum), plus eventBonus if a deep-space event happened, plus rarityBonus for the world found on an Explore trip."
+  },
+
+  "engineBonusPerLevel": 0.03,
+  "_engineBonusPerLevel": "Engine module: session pay x (1 + this x (level - 1)).",
+
+  "fight": { "min": 40, "max": 80 },
+  "_fight": "Extra resources for driving outlaws off a world (random between min and max).",
+
+  "fullCycle": { "base": 50, "perHullLevel": 15 },
+  "_fullCycle": "Paid when a Full Cycle (no skipping) ends: base + perHullLevel x (Hull level - 1).",
+
+  "bountyMultiplier": 1.5,
+  "_bountyMultiplier": "Scales every bounty reward when the bounty is created.",
+
+  "encounters": { "chance": 0.1, "scale": 1, "rareWorldMultiplier": 1.5 },
+  "_encounters": "Arrival encounters on new worlds: chance per Explore trip (0.1 = 1 in 10), scale multiplies every encounter's own min-max range, rareWorldMultiplier applies on Rare and Legendary worlds.",
+
+  "trade": { "perFacilityLevel": 1, "cap": 60 },
+  "_trade": "Travelers' Posts pay perFacilityLevel per facility level (all posts together) every study session, up to cap.",
+
+  "sell": {
+    "rarity": { "Common": 10, "Uncommon": 25, "Rare": 70, "Legendary": 200 },
+    "perHabitabilityPercent": 0.5,
+    "earthLike": 25,
+    "earthLikeAt": 80,
+    "perLifeLevel": 8,
+    "anomaly": 25,
+    "rings": 8,
+    "perMoon": 2,
+    "moonCap": 20,
+    "perRecord": 30,
+    "_note": "Selling a world: the sum of everything that applies to it. earthLike is added at earthLikeAt% habitability or more."
+  },
+
+  "distressRun": { "base": 500, "random": 200, "bonusMin": 100, "bonusMax": 250 },
+  "_distressRun": "Daily Distress Run payout: base + 0..random (not affected by incomeMultiplier). bonusMin-bonusMax is the extra-resources random bonus.",
+
+  "moduleCost": { "base": 50, "growth": 1.25 },
+  "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1).",
+
+  "facilityCost": { "base": 64, "growth": 1.6, "maxLevel": 10 },
+  "_facilityCost": "Facility upgrade price to reach level L: base x growth ^ (L - 2). maxLevel is the highest level."
+}
