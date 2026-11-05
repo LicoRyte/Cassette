@@ -55,7 +55,7 @@
       else if (kind === 'distress') { blip(660, 640, .22, .12, 'triangle'); setTimeout(() => nodes && on && blip(520, 500, .3, .12, 'triangle'), 280); next = now + 3200; }
       else if (kind === 'fight') { blip(90, 38, .4, .5); next = now + 1500 + Math.random() * 700; }
       else if (kind === 'charge') { blip(300, 640, 1.6, .08, 'triangle'); next = now + 2600; }
-      else if (kind === 'build') { clank(); next = now + 1800 + Math.random() * 2200; }
+      else if (kind === 'build' || kind === 'shipbuild') { clank(); next = now + 1800 + Math.random() * 2200; }
       else next = now + 1000;
     }
     return {
@@ -152,7 +152,7 @@
   const PAL = ['#000000', '#5ba675', '#6bc96c', '#abdd64', '#fcef8d', '#ffb879', '#ea6262', '#cc425e', '#a32858', '#751756', '#390947', '#611851', '#873555', '#a6555f', '#c97373', '#f2ae99', '#ffc3f2',
     '#ee8fcb', '#d46eb3', '#873e84', '#1f102a', '#4a3052', '#7b5480', '#a6859f', '#d9bdc8', '#ffffff', '#aee2ff', '#8db7ff', '#6d80fa', '#8465ec', '#834dc4', '#7d2da0', '#4e187c'];
   const rgb = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
-  const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6 };
+  const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6, shipbuild: 7 };
   const cv = mk('canvas', { class: 'sx-view', 'aria-hidden': 'true' });
   document.body.prepend(cv);
   const gl = cv.getContext('webgl', { antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power' });
@@ -210,7 +210,7 @@ void main(){
       col += vec3(.35, .45, .9) * pow(1. - n.z, 3.) * .45 * (lit + .15);
       // your post's lights on the night side, more of them as the settlers grow
       if (postLv > 0. && lit < .12){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[5] : pal[4]; }
-      if (kind == 2. && run > .5){ vec3 cell = floor(q * 7.); if (h3(cell + seed) > .965 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0. && lit > .05) col = pal[4]; }
+      if (kind == 2. && run > .5){ vec3 cell = floor(q * 26.); if (h3(cell + seed) > .982 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0.) col = h3(cell + 3.) > .5 ? pal[4] : pal[3]; } // little work lights on the build site
       if (kind == 1.){ // radar sweep: a green band moving down, then back up, with a fading trail
         float ph = mod(tt * .3, 2.), y = ph < 1. ? 1. - ph : ph - 1., dir = ph < 1. ? -1. : 1.;
         float yy = (uv.y + 1.) * .5, dy = (yy - y) * -dir;
@@ -347,6 +347,9 @@ void main(){
     if (travel && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#ffb879'; gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x - f - 1, y + 4, 2, 1); }
     drawExtras(now, cx, cy, rad, r);
     gs.imageSmoothingEnabled = false; gs.drawImage(img, x, y);
+    if (info.kind === 'shipbuild' && info.running) { // building a room: welding sparks on the hull
+      const fr = Math.floor(t * 8); for (let i = 0; i < 3; i++) { const h = Math.sin((fr + i * 7) * 12.9898) * 43758.5453, k = h - Math.floor(h); if (k < .45) continue; const sx = x + 3 + Math.floor(k * 13), sy = y + 1 + Math.floor((k * 7.3 % 1) * 7); gs.fillStyle = k > .8 ? '#ffffff' : '#fcef8d'; gs.fillRect(sx, sy, 1, 1); if (k > .7) { gs.fillStyle = '#ffb879'; gs.fillRect(sx + 1, sy - 1, 1, 1); } }
+    }
   }
   function typeName() { // the new world's name types itself out
     setTimeout(() => { const b = root.querySelector('.sx-name b'); if (!b) return; const full = b.textContent; let k = 0; b.textContent = '';
