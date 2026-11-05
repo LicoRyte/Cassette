@@ -576,7 +576,7 @@
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 6, Uncommon: 15, Rare: 45, Legendary: 140 }, perHabitabilityPercent: .25, earthLike: 15, earthLikeAt: 80, perLifeLevel: 4, anomaly: 15, rings: 5, perMoon: 1, moonCap: 10, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 30, perLog: .7 }, survey: { pay: 20 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
-    coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, facilitySlots: { base: 5, atTown: 1 },
+    coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, facilitySlots: { base: 5, atTown: 1, max: 10, buyBase: 1500, buyGrowth: 1.8 },
     quests: { delivery: 55, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
@@ -635,7 +635,10 @@
     if (S.mission > 0 && !S.job) S.job = { k: 'post', num: S.mission };
     const hasFac = (p, k) => !!(p.post && p.post.tp && p.post.tp.fac.some(x => x.k === k));
     // a Travelers' Post only has room for a few facilities: 5, and one more once it grows into a Town
-    const facSlots = p => Math.round(E.facilitySlots.base + ((p.post.tp.pop || 0) >= 1000 ? E.facilitySlots.atTown : 0));
+    const FS = E.facilitySlots, slotBuyMax = () => Math.max(0, Math.round(FS.max - FS.base - FS.atTown));
+    const facSlots = p => Math.min(Math.round(FS.max), Math.round(FS.base + ((p.post.tp.pop || 0) >= 1000 ? FS.atTown : 0) + (p.post.tp.extra || 0)));
+    const slotCost = p => Math.round(FS.buyBase * Math.pow(FS.buyGrowth, p.post.tp.extra || 0));
+    function buySlot(p) { const tp = p.post.tp, c = slotCost(p); if ((tp.extra || 0) >= slotBuyMax() || S.dust < c) return; S.dust -= c; tp.extra = (tp.extra || 0) + 1; S.cnt.slots = (S.cnt.slots || 0) + 1; shopXP(15); save(); draw(); }
     const slotFree = p => !!(p.post && p.post.tp) && p.post.tp.fac.length < facSlots(p);
     const facName = f => f.name || FAC[f.k][1];
     function postTheme(p) { const c = {}; p.post.tp.fac.forEach(f => { const t = FAC_THEME[f.k]; if (t) c[t] = (c[t] || 0) + 1; }); const top = Object.entries(c).sort((a, b) => b[1] - a[1]); return top.length && top[0][1] >= 2 && (!top[1] || top[0][1] > top[1][1]) ? THEMES[top[0][0]] : null; }
@@ -1208,7 +1211,7 @@
       ['Exploration', 'Surveys', 10, () => S.surveys || 0], ['Exploration', 'Deep-space events', 5, () => S.cnt.ev], ['Exploration', 'Arrival encounters', 10, () => S.cnt.enc],
       ['Adventure', 'Outlaw gangs beaten', 25, () => S.fights || 0], ['Adventure', 'Bounties', 30, () => S.bDone || 0], ['Adventure', 'Distress Runs', 120, () => S.drN || 0], ['Adventure', 'Expedition legs', 20, () => S.cnt.expSteps || 0],
       ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Deliveries', 40, () => (S.dl && S.dl.done) || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
-      ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
+      ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Facility slots bought', 20, () => S.cnt.slots || 0], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
       ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own],
       ['Knowledge', 'Research done', 50, () => Object.keys(S.tech).length], ['Knowledge', 'Common collectibles', 3, () => itemsOf('Common')], ['Knowledge', 'Uncommon collectibles', 6, () => itemsOf('Uncommon')], ['Knowledge', 'Rare collectibles', 15, () => itemsOf('Rare')],
       ['Knowledge', 'Legendary collectibles', 40, () => itemsOf('Legendary')], ['Knowledge', 'Medals', 20, () => Object.keys(S.ach).length],
@@ -1766,7 +1769,9 @@
               max ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < c || null, onclick: () => upgradeFac(p, f) }, '✦ ' + c.toLocaleString()))); });
           if (free) Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => frows.push(up(FAC[k][0] + ' ' + FAC[k][1], FAC_DESC[k] + ' (' + THEMES[FAC_THEME[k]][1].replace(/ .*/, '').toLowerCase() + ')', queue('add:' + p.num + ':' + k), 'unbuilt')));
           out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Facilities', el('small', { class: 'sx-h-n' }, ' ' + built.length + ' / ' + slots + ' slots')),
-            el('p', { class: 'sl-muted' }, free ? 'Room for ' + (slots - built.length) + ' more. New ones take a study session, upgrades cost resources. Choose what this post is about.' : 'No room left. ' + (slots < E.facilitySlots.base + E.facilitySlots.atTown ? 'It gets one more slot when it grows into a Town (1,000 settlers). ' : '') + 'Tear one down to build something else.'), ...frows));
+            el('p', { class: 'sl-muted' }, free ? 'Room for ' + (slots - built.length) + ' more. New ones take a study session, upgrades cost resources. Choose what this post is about.' : 'No room left. ' + ((tp.pop || 0) < 1000 ? 'It gets a free slot when it grows into a Town (1,000 settlers). ' : '') + 'Buy more land, or tear one down to build something else.'),
+            (tp.extra || 0) < slotBuyMax() ? el('div', { class: 'sx-up sx-slotbuy' }, el('b', {}, '🧱 Buy more land'), el('small', {}, 'One more facility slot (' + (tp.extra || 0) + ' of ' + slotBuyMax() + ' bought, up to ' + FS.max + ' slots in all).'), el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < slotCost(p) || null, onclick: () => buySlot(p) }, '✦ ' + slotCost(p).toLocaleString())) : el('p', { class: 'sl-muted' }, 'All the land there is: ' + FS.max + ' slots once it is a Town.'),
+            ...frows));
         }
       }
       return out;
@@ -2390,6 +2395,7 @@
     SQ('dinermax', '🧑‍🍳', 'Diner Supremacy', 'Get a Diner to the max level', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'diner' && (f.lv || 1) >= FAC_MAX)));
     SQ('mall', '🛍', 'No Vacancy', 'Fill every facility slot at a post', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= facSlots(x.p)));
     SQ('theme', '🎪', 'Theme Park', 'Give a post a theme by building its facilities around one idea', () => posts().some(x => x.p.post.tp && !!postTheme(x.p)));
+    SQ('city10', '🌆', 'Skyline', 'Have a Travelers\' Post with 10 facilities', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= 10));
     SQ('named', '🪧', 'Grand Opening', 'Give a Travelers\' Post its own name', () => posts().some(x => x.p.post.tp && !!x.p.post.tp.name));
     SQ('cooks', '🍳', 'Too Many Cooks', 'Have 3 Cooks aboard at once', () => crewN('Cook') >= 3);
     SQ('house', '🎭', 'Full House', 'Have one of every crew role aboard', () => Object.keys(ROLES).every(r => crewN(r) > 0));
