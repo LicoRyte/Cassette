@@ -407,3 +407,28 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 }
 @media (max-width: 900px) and (min-width: 600px) { .sl-col-l { columns: 2; } }
 @media (prefers-reduced-motion: reduce) { .sl-orbit { animation: none; transform: translate(44px, 14px); z-index: 2; } .sl-orbit::after { animation: none; } }
+
+/* ---------- research unlocks, transmission filters, Ship Logs ---------- */
+.sx-h-n { font: 500 14px var(--ui); color: var(--mute); letter-spacing: 0; }
+.sx-unl { display: block; margin-top: 3px; font: 500 14px var(--ui); color: var(--violet); }
+.sx-up.locked .sx-unl { color: var(--dim); }
+.sx-unl .sl-link { margin-left: 8px; font-size: 14px; }
+.sx-up > .sx-done { grid-column: 2; grid-row: 1 / span 2; }
+.sx-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: -6px 0 18px; }
+.sx-chips button { padding: 2px 9px; background: none; border: 1px solid var(--dim); font: 600 15px var(--ui); color: var(--soft); cursor: pointer; }
+.sx-chips button small { margin-left: 5px; font-size: 13px; color: var(--mute); }
+.sx-chips button:hover { color: var(--white); border-color: var(--soft); }
+.sx-chips button[aria-selected="true"] { color: #000; background: var(--sky); border-color: var(--sky); }
+.sx-chips button[aria-selected="true"] small { color: #000; }
+.sx-chips button.new:not([aria-selected="true"]) { border-color: var(--sky); }
+.sx-arc { margin-bottom: 22px; padding-left: 14px; border-left: 3px solid var(--sky); }
+.sx-arc.locked { border-left-color: var(--dim); }
+.sx-arc-h { display: flex; justify-content: space-between; gap: 10px; font: 600 15px var(--ui); color: var(--sky); margin-bottom: 6px; }
+.sx-arc.locked .sx-arc-h { color: var(--mute); }
+.sx-arc-h small { font-size: 14px; color: var(--mute); }
+.sx-arc-i + .sx-arc-i { margin-top: 14px; }
+.sx-arc-i b { display: block; font: 700 18px var(--ui); color: var(--white); }
+.sx-arc-i p { margin: 3px 0 0; font: 15px/1.55 var(--text); color: var(--ink); }
+.sx-arc .sl-muted { margin: 0; font-size: 14px; }
+.sl-stab.sx-lockt { color: var(--dim); }
+.sx-lockmsg { margin: 18px 0; padding-left: 12px; border-left: 3px solid var(--dim); color: var(--soft); }

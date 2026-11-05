@@ -359,8 +359,14 @@
   // More categories. The original 96 are "Curiosities" and keep their old ids (Rarity:index); the rest use cat:Rarity:index.
   const CATS = [['cur', 'Curiosities', 'Odds and ends from every corner of space'], ['mat', 'Materials', 'Raw stuff the universe is made of'], ['art', 'Artifacts', 'Things made by people long gone'],
     ['wpn', 'Weapon Parts', 'Pieces of things that go boom (safely disassembled)'], ['tec', 'Tech Parts', 'Machines, chips and clever leftovers'], ['spc', 'Specimens', 'Living (or once-living) samples'],
-    ['rel', 'Relics', 'Holy objects of travelers and pilgrims'], ['map', 'Star Charts', 'Maps of places nobody should be able to map']];
+    ['rel', 'Relics', 'Holy objects of travelers and pilgrims'], ['map', 'Star Charts', 'Maps of places nobody should be able to map'],
+    // these four only turn up after the matching Xenology research
+    ["sig", "Signals", "Recordings of sounds nobody should be able to hear", "xen1"], ["fos", "Fossils", "Living things that kept their shape for a very long time", "xen2"], ["coin", "Coins", "Money from places that stopped needing it", "xen3"], ["ano", "Anomalies", "Things that break the rules, kept in sealed boxes", "xen4"]];
   const CAT_ITEMS = {
+    sig: {"Common": ["Static from a Dead Moon", "Radio Jingle for a Closed Diner", "Weather Report from Nowhere", "Morse Code Grocery List", "Hum of a Gas Giant", "Ice Cracking on a Frozen Sea", "Someone Practicing the Trumpet", "Ten Minutes of Solar Wind"], "Uncommon": ["Whale Song from a Gas Giant", "Lullaby in an Unknown Language", "Countdown That Never Finishes", "Pulsar Played Backwards", "Applause from an Empty Stadium", "Ship Horn from 300 Years Ago"], "Rare": ["A Voice That Says Your Name", "Choir of a Thousand Antennas", "Last Broadcast of a Lost Colony", "The Seven-Note Song"], "Legendary": ["Echo of the First Star", "The Keeper's Call"]},
+    fos: {"Common": ["Spiral Shell in Sandstone", "Fern Print on Slate", "Tiny Trilobite-ish Thing", "Petrified Tentacle Tip", "Three-Toed Footprint", "Stone Seed Pod", "Ancient Coral Branch", "Fossil Fish with Too Many Fins"], "Uncommon": ["Skull of a Long-Necked Swimmer", "Amber with a Glowing Bug", "Fossil Egg Cluster", "Wing Bone the Size of a Door", "Stone Jellyfish", "Slice of a Petrified Tree"], "Rare": ["Skeleton of a Sky Grazer", "Fossilized Brain (It Was Big)", "Fossil That Is Still Warm", "Imprint of a Hand Like Ours"], "Legendary": ["The First Living Cell, in Stone", "Fossil of Something Not Yet Born"]},
+    coin: {"Common": ["Square Copper Coin", "Coin with a Hole in the Middle", "Plastic Arcade Token", "Wooden Trade Chit", "Bent Station Credit", "Coin Stamped with a Fish", "Ration Ticket", "Bus Fare to a Ruined City"], "Uncommon": ["Silver Coin of the Ring Kingdoms", "Glass Coin That Hums", "Outlaw Bounty Token", "Guild Founder's Medal", "Coin Minted on a Comet", "Triangular Moon Dollar"], "Rare": ["Coin Worth a Whole Planet", "Gold Coin from a Drowned Empire", "The Ferryman's Coin", "Two-Headed Coin of Fate"], "Legendary": ["The First Coin Ever Struck", "Coin That Pays for Itself"]},
+    ano: {"Common": ["Rock That Falls Up", "Pebble That Is Always Cold", "Puddle with No Bottom", "Stick with Only One End", "Cube with Seven Sides", "Shadow Without an Owner", "Ticking Stone", "Sand That Spells Words"], "Uncommon": ["Jar of Slowed Time", "Mirror That Lags Behind", "Door Frame to the Same Room", "Compass That Points at You", "Feather Heavier Than Lead", "Box Bigger on the Inside"], "Rare": ["Hole in the Air (Small)", "Clock Running Backwards Forever", "Photograph of Tomorrow", "Loop of Yesterday"], "Legendary": ["A Second That Lasts an Hour", "Tear in Space (Framed)"]},
     mat: { Common: ['Scrap Iron Plate', 'Bundle of Carbon Fiber', 'Raw Copper Nugget', 'Bag of Silica Sand', 'Ice Core Sample', 'Chunk of Basalt', 'Coil of Nylon Rope', 'Tin Ingot', 'Sheet of Hull Foil', 'Jar of Sulfur Crystals'],
       Uncommon: ['Titanium Bar', 'Superconducting Wire', 'Spool of Spider Silk', 'Block of Glacier Glass', 'Cobalt Ore', 'Vial of Liquid Helium', 'Plate of Meteoric Iron'],
       Rare: ['Shard of Living Crystal', 'Ingot of Star Gold', 'Neutron Glass Pane', 'Bottle of Liquid Light'], Legendary: ['Chunk of Pure Dark Matter', 'Diamond from a Carbon World\'s Core', 'Ring of Frozen Starlight'] },
@@ -387,7 +393,9 @@
   const itemId = (c, r, i) => c === 'cur' ? r + ':' + i : c + ':' + r + ':' + i;
   const parseId = id => { const a = id.split(':'); return a.length === 2 ? { c: 'cur', r: a[0], i: +a[1] } : { c: a[0], r: a[1], i: +a[2] }; };
   const catTotal = c => ITEM_RARS.reduce((a, r) => a + catList(c, r).length, 0);
-  let ITEM_TOTAL = 0; const countItems = () => { ITEM_TOTAL = CATS.reduce((a, [c]) => a + catTotal(c), 0); }; countItems();
+  let TECH = {}; // researched techs (set when the game starts)
+  const catOpen = c => { const x = CATS.find(k => k[0] === c); return !x || !x[3] || !!TECH[x[3]]; }; // some categories need research first
+  let ITEM_TOTAL = 0, ITEM_ALL = 0; const countItems = () => { ITEM_TOTAL = CATS.reduce((a, [c]) => a + (catOpen(c) ? catTotal(c) : 0), 0); ITEM_ALL = CATS.reduce((a, [c]) => a + catTotal(c), 0); }; countItems();
   function applyItems(j) { // items.json replaces the built-in lists (only lists of text count; anything else is ignored)
     if (!j || typeof j !== 'object') return;
     const take = (l, set) => { if (Array.isArray(l)) { const ok = l.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()); if (ok.length) set(ok); } };
@@ -399,7 +407,6 @@
   const itemName = id => { const { c, r, i } = parseId(id); return catList(c, r)[i] || '???'; };
   const itemCat = id => CATS.find(([c]) => c === parseId(id).c) || CATS[0];
   // where it was found decides what kind of thing it is: living worlds give specimens, outlaws give weapon parts...
-  let TECH = {}; // researched techs (set when the game starts)
   // Ship designs (18 x 9 pixels, facing right). h hull, s hull shade, d dark trim, c cockpit, r accent stripe
   const SHIP_DESIGNS = {
     Scout: ['.....ddd..........', '....dssdd.........', '..r.dhhhhdd.......', '.rrdhhhhhhhccd....', 'rrrdhhhhhhhcccchh.', '.rrdsssssssssssd..', '..r.dssssdd.......', '....dssdd.........', '.....ddd..........'],
@@ -421,13 +428,17 @@
     shipCache.set(key, cv); return cv;
   }
   function catWeights(p, kind) {
-    if (kind === 'loot') return { wpn: 5, tec: 3, cur: 1, mat: 1, map: 1 };
-    if (kind === 'gift') return { cur: 2, art: 2, rel: 2, map: 1, tec: 1 };
-    if (kind === 'trade') return { cur: 1, mat: 1, art: 1, wpn: 1, tec: 1, spc: 1, rel: 1, map: 1 };
-    const w = { cur: 3, mat: 3, art: 1.2, wpn: .5, tec: 1, spc: .6, rel: .6, map: 1 };
-    if (p) { if (p.lifeLvl) w.spc = 1 + p.lifeLvl * .8; if (p.odd) { w.art += 1.5; w.rel += 1; } if (p.lifeLvl >= 6) { w.art += 2; w.rel += 1.5; } if (['Iron', 'Carbon', 'Crystal', 'Shattered', 'Lava'].includes(p.type)) w.mat += 2; }
-    if (TECH.scan2 && p && p.lifeLvl) w.spc *= 2;
-    if (TECH.scan3) { w.art += 2; w.rel += 1.5; }
+    let w;
+    if (kind === 'loot') w = { wpn: 5, tec: 3, cur: 1, mat: 1, map: 1, coin: 2, ano: .5, sig: .3 };
+    else if (kind === 'gift') w = { cur: 2, art: 2, rel: 2, map: 1, tec: 1, coin: 2, sig: 1, fos: .5 };
+    else if (kind === 'trade') w = { cur: 1, mat: 1, art: 1, wpn: 1, tec: 1, spc: 1, rel: 1, map: 1, sig: 1, fos: 1, coin: 1, ano: 1 };
+    else {
+      w = { cur: 3, mat: 3, art: 1.2, wpn: .5, tec: 1, spc: .6, rel: .6, map: 1, sig: .8, fos: .4, coin: .3, ano: .4 };
+      if (p) { if (p.lifeLvl) { w.spc = 1 + p.lifeLvl * .8; w.fos = 1.2 + p.lifeLvl * .2; } if (p.odd) { w.art += 1.5; w.rel += 1; w.ano = 2; } if (p.lifeLvl >= 6) { w.art += 2; w.rel += 1.5; } if (['Iron', 'Carbon', 'Crystal', 'Shattered', 'Lava'].includes(p.type)) w.mat += 2; }
+      if (TECH.scan2 && p && p.lifeLvl) w.spc *= 2;
+      if (TECH.scan3) { w.art += 2; w.rel += 1.5; }
+    }
+    Object.keys(w).forEach(k => { if (!catOpen(k)) w[k] = 0; });
     return w;
   }
   function rollItem(p, better, kind) { // pick a category, then a rarity, then any item of that rarity
@@ -542,7 +553,7 @@
   /* ===================================================================== the app ===================================================================== */
   // economy defaults; apps/solarist-economy.json (loaded by the page) overrides any of these
   const ECON = {
-    incomeMultiplier: 1.3, session: { perStudyMinute: .8, minimum: 6, eventBonus: 20, rarityBonus: { Common: 0, Uncommon: 10, Rare: 30, Legendary: 80 } },
+    incomeMultiplier: 1.3, researchCost: 1.5, session: { perStudyMinute: .8, minimum: 6, eventBonus: 20, rarityBonus: { Common: 0, Uncommon: 10, Rare: 30, Legendary: 80 } },
     engineBonusPerLevel: .03, fight: { min: 40, max: 80 }, fullCycle: { base: 50, perHullLevel: 15 }, bountyMultiplier: 1.5,
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 10, Uncommon: 25, Rare: 70, Legendary: 200 }, perHabitabilityPercent: .5, earthLike: 25, earthLikeAt: 80, perLifeLevel: 8, anomaly: 25, rings: 8, perMoon: 2, moonCap: 20, perRecord: 30 },
@@ -646,6 +657,8 @@
     }
     const atP = () => { const f = S.at && byNum(S.at); return f ? f.p : null; };
     if (!S.camp) S.camp = { n: 0 };
+    if (!Array.isArray(S.camp.at)) S.camp.at = [];
+    { const base = (S.found[0] && S.found[0].at) || 1; for (let i = 0; i < S.camp.n; i++) if (!S.camp.at[i]) S.camp.at[i] = base + i; }
     const campDone = () => !CAMP || S.camp.n >= CAMP.logs.length;
     const campaigning = () => S.mission === -3 && !campDone() && !S.dr;
     const discovering = () => S.mission === -2 && !!atP() && !(atP().outlaw && !atP().outlaw.cleared);
@@ -706,7 +719,7 @@
       let got = null;
       if (reward === 'charge') { if (!S.coord) { S.coord = true; got = '🧭 The Interplanetary Coordinator is charged!'; } else t += ' (The Coordinator was already full.)'; }
       const ev = { ic, title, t, got, at: Date.now() };
-      S.events.push(ev); if (S.events.length > 200) S.events.shift(); S.cnt.ev++;
+      pushEv(ev); S.cnt.ev++;
       return ev;
     }
     /* ---------- Progression: Stardust (earned every study session), ship modules and facility levels to spend it on,
@@ -715,24 +728,63 @@
     if (!S.mods) S.mods = {}; if (!S.bounties) S.bounties = []; if (!S.rec) S.rec = {}; if (!S.bDone) S.bDone = 0;
     const lvl = k => S.mods[k] || 1;
     // Research: spend Knowledge points (you earn one for every point of Knowledge) on techs with real effects
-    if (!S.tech) S.tech = {}; TECH = S.tech;
+    if (!S.tech) S.tech = {}; TECH = S.tech; countItems();
+    if (!S.slog) S.slog = {}; // Ship Logs unlocked by research, by id
+    const pushEv = e => { S.events.push(e); if (S.events.length > 800) S.events.splice(0, S.events.length - 800); };
     if (S.kp == null) S.kp = S.kn || 0;
     const hasT = id => !!S.tech[id];
+    // Research: [id, name, base cost, what it does, what it unlocks]. Costs are base x researchCost from economy.json.
     const RESEARCH = [
-      ['Survey', [['scan1', 'Deep Scanners', 40, 'Surveys bring back a second collectible more often (55% instead of 30%).'], ['scan2', 'Xenobiology', 150, 'Living worlds give twice as many specimens, and every survey teaches +10 Knowledge.'], ['scan3', 'Archaeology', 320, 'Artifacts and relics turn up far more often, and one survey in three digs up rarer things.']]],
-      ['Navigation', [['nav1', 'Star Charting', 40, 'Arrival encounters happen more often (+5 percentage points).'], ['nav2', 'Coordinator Tuning', 180, 'Charging the Interplanetary Coordinator also pays 40 resources.'], ['nav3', 'Signal Triangulation', 320, 'Trade Stations show up twice as often.']]],
-      ['Economy', [['eco1', 'Guild Contacts', 50, 'The Cartographers\' Guild pays 15% more for worlds you sell.'], ['eco2', 'Trade Routes', 200, 'Travelers\' Posts pay 50% more trade, and the trade cap goes up by 40.'], ['eco3', 'Master Builders', 400, 'Facility upgrades cost 15% less.']]],
-      ['Ship', [['shp1', 'Efficient Engines', 50, 'Every study session pays 10% more resources.'], ['shp2', 'Reinforced Hull', 220, 'Driving out outlaws pays 50% more.'], ['shp3', 'Long-Range Comms', 350, 'Deep-space events happen 50% more often.']]],
+      ['Survey', [['scan1', 'Deep Scanners', 40, 'Surveys bring back a second collectible more often (55% instead of 30%).'], ['scan2', 'Xenobiology', 150, 'Living worlds give twice as many specimens, and every survey teaches +10 Knowledge.'], ['scan3', 'Archaeology', 320, 'Artifacts and relics turn up far more often, and one survey in three digs up rarer things.'],
+        ['scan4', 'Core Sampling', 560, 'Surveys teach +15 more Knowledge, and one in five brings back an extra collectible.', { logs: ['s1'] }]]],
+      ['Navigation', [['nav1', 'Star Charting', 40, 'Arrival encounters happen more often (+5 percentage points).'], ['nav2', 'Coordinator Tuning', 180, 'Charging the Interplanetary Coordinator also pays 40 resources.'], ['nav3', 'Signal Triangulation', 320, 'Trade Stations show up twice as often.'],
+        ['nav4', 'Stellar Cartography', 600, 'Reveals the Star medals: find a world around every kind of star.', { logs: ['n1'] }]]],
+      ['Economy', [['eco1', 'Guild Contacts', 50, 'The Cartographers\' Guild pays 15% more for worlds you sell.'], ['eco2', 'Trade Routes', 200, 'Travelers\' Posts pay 50% more trade, and the trade cap goes up by 40.'], ['eco3', 'Master Builders', 400, 'Facility upgrades cost 15% less.'],
+        ['eco4', 'Collector\'s License', 580, 'Trade Stations pay 25% more for your spares.', { logs: ['e1'] }]]],
+      ['Ship', [['shp1', 'Efficient Engines', 50, 'Every study session pays 10% more resources.'], ['shp2', 'Reinforced Hull', 220, 'Driving out outlaws pays 50% more.'], ['shp3', 'Long-Range Comms', 350, 'Deep-space events happen 50% more often.'],
+        ['shp4', 'Black Box Decoder', 640, 'Every Meridian log pays 25% more resources.', { logs: ['k1'] }]]],
+      ['Xenology', [['xen1', 'Signal Recording', 80, 'Your antennas start catching old broadcasts on every survey.', { cat: 'sig', logs: ['x1'] }], ['xen2', 'Paleontology', 240, 'Surveys can dig up the remains of ancient life, especially on living worlds.', { cat: 'fos', logs: ['x2'] }],
+        ['xen3', 'Numismatics', 400, 'Traders, outlaws and grateful strangers start carrying old money.', { cat: 'coin', logs: ['x3'] }], ['xen4', 'Anomaly Containment', 700, 'Strange worlds give up their strangest things.', { cat: 'ano', logs: ['x4'] }]]],
+      ['Archives', [['arc1', 'Guild Records', 60, 'Open the Cartographers\' Guild archive.', { logs: ['g1', 'g2'] }], ['arc2', 'Outlaw Dossiers', 180, 'What the Guild knows about the gangs.', { logs: ['o1', 'o2'] }], ['arc3', 'Coordinator Schematics', 320, 'What is actually inside the lucky box.', { logs: ['c1', 'c2'] }],
+        ['arc4', 'Founders\' Tapes', 520, 'Recordings from the people who built the first Listening Post.', { logs: ['f1', 'f2'] }], ['arc5', 'The Blank Page', 800, 'The last file in the archive.', { logs: ['b1'] }]]],
     ];
+    const SHIP_LOGS = { // [title, text]. {ship} becomes your ship's name
+      g1: ['Charter of the Cartographers\' Guild', 'Article One: whoever finds a world may name it. Article Two: whoever names it must write down what they saw, honestly, even if it was boring. Article Three: especially if it was boring. Boring worlds are where people end up living.'],
+      g2: ['Guild Memo, Survey Department', 'Reminder to all surveyors: "looks fine" is not a planetary description. Neither is "rock". We received four hundred reports this quarter that just say "rock". One of them was about a gas giant. Please try harder.'],
+      o1: ['Dossier: Where Outlaws Come From', 'Most gangs out here started as stranded crews. A ship breaks down, nobody comes, and after a few years you stop waiting for the rules to arrive. That doesn\'t make them right. It does explain why they\'re so angry about it.'],
+      o2: ['Dossier: The Code', 'Even outlaws have rules. No raiding a Travelers\' Post on market day. No touching medical supplies. Always leave a ship enough fuel to get home. Gangs that break the code don\'t last long. The other gangs see to that.'],
+      c1: ['How the Coordinator Works', 'Nobody fully knows. The Coordinator listens to the faint pull of every world nearby and points at the one that pulls back hardest. The manual calls this "gravitational intuition". The engineers call it "the lucky box".'],
+      c2: ['Coordinator, Maker\'s Note', 'Scratched inside the casing, where only a repair crew would ever look: "If it ever points somewhere strange, follow it. It isn\'t broken. It found someone who needs you." No signature. Just seven little notches in a row.'],
+      f1: ['Founders\' Tape 1: The First Post', 'We built the first Listening Post out of a cargo pod and a radio from a junkyard. It caught exactly one message in its first year. It was a wrong number. We were so happy we cried.'],
+      f2: ['Founders\' Tape 2: Why We Listen', 'People ask why we put ears on every world. It\'s simple. Space is big and quiet, and the worst thing that can happen out here is to call for help and have nobody hear it. So we hear it. All of it. Even the wrong numbers.'],
+      b1: ['The Blank Page', 'The last file in the archive is empty except for one line: "This page is for whoever comes next. Write down what you saw. Honestly. Even if it was boring." Below it, someone has started a list of ships. The {ship} is already on it.'],
+      s1: ['Field Notes: What\'s Underneath', 'Every world has a heartbeat if you drill deep enough. Iron worlds thud, slow and heavy. Ocean worlds slosh. Crystal worlds ring like a bell somebody struck a million years ago and nobody ever stopped.'],
+      n1: ['The Edge of the Map', 'Every chart ends somewhere. Past the last line, old sea maps used to draw monsters. Ours just say "Quiet Zone". A few ships went in to see what was there. The ones that came back never mention monsters. They talk about a light.'],
+      e1: ['License Terms, Fine Print', 'The holder may buy, sell and trade curiosities of any origin, provided they do not sell anything that is still alive, still ticking, or still politely asking to be taken home.'],
+      k1: ['Black Box: Meridian, Partial', 'Decoded fragment, badly damaged: "...day 412... five crew... coffee supply..." The rest of the recording is a song. Seven notes, played over and over, slower each time, like someone humming themselves to sleep.'],
+      x1: ['Listening Notes', 'Space isn\'t silent. It\'s just far apart. Every radio show, every engine, every lullaby anyone ever broadcast is still out there, getting quieter forever. With the right gear you can catch some of them on the way past.'],
+      x2: ['On Fossils', 'A fossil is a living thing that kept a promise: it stayed. Long after the rest of its world forgot it, it held its shape, waiting for somebody to come along and say "oh, there you are".'],
+      x3: ['A Short History of Money', 'Every civilization invents money eventually. Most invent it twice: once to trade, and once more after the first kind falls apart. The coins that survive say a lot about what people thought was worth keeping.'],
+      x4: ['Containment Protocol', 'Anomalies must be kept in a sealed box, clearly labeled, and never, under any circumstances, observed on a Monday. Nobody remembers why. The rule stays. Nobody has volunteered to find out.'],
+    };
+    const RC = typeof E.researchCost === 'number' ? E.researchCost : 1.5;
+    const rcost = n => Math.max(5, Math.round(n[2] * RC / 5) * 5);
     const RES_ALL = RESEARCH.flatMap(([, list]) => list);
+    const catName = c => (CATS.find(x => x[0] === c) || [, c])[1];
+    const slogText = t => t.replace('{ship}', S.ship && S.ship.name ? S.ship.name : 'your ship');
     function doResearch(id) {
-      const node = RES_ALL.find(n => n[0] === id); if (!node || hasT(id)) return;
-      const i = RESEARCH.find(([, l]) => l.some(n => n[0] === id))[1].findIndex(n => n[0] === id), prev = RESEARCH.find(([, l]) => l.some(n => n[0] === id))[1][i - 1];
+      const br = RESEARCH.find(([, l]) => l.some(n => n[0] === id)); if (!br || hasT(id)) return;
+      const list = br[1], i = list.findIndex(n => n[0] === id), node = list[i], prev = list[i - 1], cost = rcost(node);
       if (prev && !hasT(prev[0])) return;
-      if (S.kp < node[2]) return;
-      S.kp -= node[2]; S.tech[id] = Date.now(); award(25, 0); shopXP(0);
-      S.events.push({ ic: '🔬', title: 'Research complete: ' + node[1], t: node[3], at: Date.now() });
-      hint.textContent = 'Research complete: ' + node[1] + '. ' + node[3];
+      if (S.kp < cost) return;
+      S.kp -= cost; S.tech[id] = Date.now(); award(25, 0); shopXP(0);
+      const un = node[4] || {}, bits = [];
+      if (un.cat) { countItems(); bits.push('new collectibles (' + catName(un.cat) + ')'); }
+      if (un.logs) { un.logs.forEach(k => { S.slog[k] = Date.now(); }); bits.push(un.logs.length + ' Ship Log' + (un.logs.length > 1 ? 's' : '')); }
+      const md = ACH.filter(a => a.req === id).length; if (md) bits.push(md + ' new medal' + (md > 1 ? 's' : ''));
+      const t = node[3] + (bits.length ? ' Unlocked: ' + bits.join(', ') + '.' : '');
+      pushEv({ c: 'res', ic: '🔬', title: 'Research complete: ' + node[1], t, at: Date.now() });
+      hint.textContent = 'Research complete: ' + node[1] + '. ' + t;
       save(); draw();
     }
     const evChance = l => Math.min(.3, (1 / 15 + (l - 1) * .005) * (hasT('shp3') ? 1.5 : 1));
@@ -779,8 +831,8 @@
       return S.crewPool.list;
     }
     function recruit(i) { const c = crewPool()[i], cost = crewCost(); if (!c || S.crew.length >= bunks() || S.dust < cost) return; S.dust -= cost; S.crew.push(Object.assign({ joined: Date.now() }, c)); S.crewPool.list.splice(i, 1);
-      S.events.push({ ic: ROLES[c.role][0], title: c.name + ' joined the crew', t: c.name + ' (' + c.role.toLowerCase() + ') ' + c.trait + '.', at: Date.now() }); shopXP(20); save(); draw(); }
-    function dismiss(i) { const c = S.crew[i]; if (!c) return; S.crew.splice(i, 1); S.events.push({ ic: '👋', title: c.name + ' left the crew', t: 'They\'ll find another ship. Probably a worse one.', at: Date.now() }); save(); draw(); }
+      pushEv({ ic: ROLES[c.role][0], title: c.name + ' joined the crew', t: c.name + ' (' + c.role.toLowerCase() + ') ' + c.trait + '.', at: Date.now() }); shopXP(20); save(); draw(); }
+    function dismiss(i) { const c = S.crew[i]; if (!c) return; S.crew.splice(i, 1); pushEv({ ic: '👋', title: c.name + ' left the crew', t: 'They\'ll find another ship. Probably a worse one.', at: Date.now() }); save(); draw(); }
     const crewN = role => S.crew.filter(c => c.role === role).length;
     function shipActivity(reps) { // what the crew got up to this session, with their small bonuses
       if (!S.crew.length) return;
@@ -788,7 +840,7 @@
       let res = crewN('Engineer') * 8 + crewN('Pilot') * 5, xp = crewN('Cook') * 6 + crewN('Pilot') * 4 + crewN('Storyteller') * 3, kn = crewN('Scientist') * 6 + crewN('Storyteller') * 4;
       if (res) addDust(res); award(xp, kn);
       const who = S.crew.slice().sort(() => Math.random() - .5).slice(0, S.crew.length > 2 ? 2 : 1);
-      who.forEach(c => { const t = pk(ROLES[c.role][2]).replace('{n}', c.name.split(' ')[0]); reps.push({ ev: { battle: true, ic: ROLES[c.role][0], title: 'Ship activity', t } }); S.events.push({ ic: ROLES[c.role][0], title: 'Ship activity: ' + c.name, t, at: Date.now() }); });
+      who.forEach(c => { const t = pk(ROLES[c.role][2]).replace('{n}', c.name.split(' ')[0]); reps.push({ ev: { battle: true, ic: ROLES[c.role][0], title: 'Ship activity', t } }); pushEv({ ic: ROLES[c.role][0], title: 'Ship activity: ' + c.name, t, at: Date.now() }); });
     }
     function buyStyle(kind, v) { const cost = kind === 'color' ? E.shipStyleCost.color : E.shipStyleCost.design, list = kind === 'color' ? S.ship.colors : S.ship.designs;
       if (!list.includes(v)) { if (S.dust < cost) return; S.dust -= cost; list.push(v); shopXP(10); }
@@ -906,11 +958,11 @@
       const sc = Math.floor(Math.random() * DISTRESS.length);
       S.dr = { sc, n: 0, need: S.set.every, at: Date.now() }; S.drDay = today();
       const [ic, title, intro] = DISTRESS[sc];
-      S.events.push({ ic: '🆘', title: 'Distress Run accepted: ' + title, t: intro, at: Date.now() });
+      pushEv({ ic: '🆘', title: 'Distress Run accepted: ' + title, t: intro, at: Date.now() });
       hint.textContent = '🆘 ' + intro + ' ' + S.dr.need + ' study sessions to get there and back. No other missions until it\'s done.';
       save(); draw();
     }
-    function drAbandon() { const sc = DISTRESS[S.dr.sc]; S.events.push({ ic: '🆘', title: 'Distress Run abandoned: ' + sc[1], t: 'The ship turned back. Someone else will have to answer this one.', at: Date.now() }); S.dr = null; hint.textContent = 'Distress Run abandoned. You can try again tomorrow.'; save(); draw(); }
+    function drAbandon() { const sc = DISTRESS[S.dr.sc]; pushEv({ ic: '🆘', title: 'Distress Run abandoned: ' + sc[1], t: 'The ship turned back. Someone else will have to answer this one.', at: Date.now() }); S.dr = null; hint.textContent = 'Distress Run abandoned. You can try again tomorrow.'; save(); draw(); }
     function drLeg(reps) { // one study session of the run; the last one pays out
       const d = S.dr, [ic, title, , beats, thanks] = DISTRESS[d.sc]; d.n++;
       const bi = d.n >= d.need ? 3 : d.n === 1 ? 0 : d.n % 2 === 0 ? 1 : 2;
@@ -928,7 +980,7 @@
       award(250, 120); S.drN = (S.drN || 0) + 1; S.dr = null;
       const got = '+' + dust + ' ✦ · ' + bonus[0].replace(/^./, c => c.toUpperCase());
       reps.unshift({ ev: { battle: true, ic: '🆘', title: 'Distress Run complete: ' + title, t: beats[3] + ' ' + thanks, got } });
-      S.events.push({ ic: '🆘', title: 'Distress Run complete: ' + title, t: beats[3] + ' ' + thanks, got, at: Date.now() });
+      pushEv({ ic: '🆘', title: 'Distress Run complete: ' + title, t: beats[3] + ' ' + thanks, got, at: Date.now() });
       return '🆘 Distress Run complete! ✦ ' + dust + ' plus ' + bonus[0] + '.';
     }
     // Selling a world: the survey rights go to the Cartographers' Guild for stardust, and the world leaves your Logbook.
@@ -980,10 +1032,11 @@
       S.trader = { num: p.num, name: TRADERS[Math.floor(Math.random() * TRADERS.length)], stock, wants, at: Date.now() };
       S.cnt.traders = (S.cnt.traders || 0) + 1;
     }
-    function tradeLog(t) { S.events.push({ ic: '🏪', title: S.trader.name, t, at: Date.now() }); }
+    function tradeLog(t) { pushEv({ ic: '🏪', title: S.trader.name, t, at: Date.now() }); }
     function traderBuy(i) { const o = S.trader.stock[i]; if (!o || S.dust < o.price) return; S.dust -= o.price; const nw = gainItem({ id: o.id }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(5, 0); S.trader.stock.splice(i, 1); S.cnt.bought = (S.cnt.bought || 0) + 1; tradeLog('Bought ' + itemName(o.id) + ' for ✦ ' + o.price + '.'); shopXP(0); save(); draw(); }
     function traderSwap(i) { const w = S.trader.wants[i]; if (!w || !S.items[w.want]) return; loseItem(w.want); const nw = gainItem({ id: w.give }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(8, 0); S.trader.wants.splice(i, 1); S.cnt.swaps = (S.cnt.swaps || 0) + 1; tradeLog('Swapped ' + itemName(w.want) + ' for ' + itemName(w.give) + '.'); shopXP(0); save(); draw(); }
-    function traderSell(id) { const it = S.items[id]; if (!it || it.n < 2) return; const v = Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME * (1 + .05 * roomLv('hold'))); loseItem(id); S.dust += v; S.dustTotal += v; S.cnt.spares = (S.cnt.spares || 0) + 1; save(); draw(); }
+    const spareP = id => Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME * (1 + .05 * roomLv('hold')) * (hasT('eco4') ? 1.25 : 1));
+    function traderSell(id) { const it = S.items[id]; if (!it || it.n < 2) return; const v = spareP(id); loseItem(id); S.dust += v; S.dustTotal += v; S.cnt.spares = (S.cnt.spares || 0) + 1; save(); draw(); }
     // everything that happens at the end of a study session, shown together under the timer
     function sessionEnd(reps, p, ev) {
       const notes = [];
@@ -1112,7 +1165,7 @@
     const planetSpot = el('div', { class: 'sx-planet', 'aria-hidden': 'true' });
     const leftCol = el('section', { class: 'sx-side sx-left', 'aria-label': 'Quests' });
     const rightCol = el('section', { class: 'sx-side sx-right', 'aria-label': 'Resources and upgrades' });
-    const feedLine = el('button', { type: 'button', class: 'sx-feed', title: 'All transmissions and the ship\'s log', onclick: () => { shipTab = 'Logs'; tab('ship'); } });
+    const feedLine = el('button', { type: 'button', class: 'sx-feed', title: 'All transmissions and the ship\'s log', onclick: () => { rightTab = 'tx'; txFilter = 'all'; tab('timer'); drawRight(); } });
     const reportBtn = el('button', { type: 'button', class: 'sl-link sx-replay', hidden: true, onclick: () => openReport(true) }, 'Last session report');
     const report = el('div', { class: 'sx-report', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Session report' },
       el('div', { class: 'sx-report-in' }, el('h2', {}, 'Session report'), encBox, trans, card, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeReport() }, 'Continue'))));
@@ -1206,21 +1259,51 @@
           el('p', {}, campDone() ? 'Complete. All ' + CAMP.logs.length + ' logs recovered.' : 'Log ' + S.camp.n + ' of ' + CAMP.logs.length + (S.camp.n ? '. ' + actOf(S.camp.n) : '. A trail of old log beacons left by the lost survey ship Meridian.')),
           campDone() ? null : campaigning() ? el('p', { class: 'sl-muted' }, 'Following the trail next session. ', el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Stop'))
             : el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || !!S.dr || null, onclick: () => setMission('campaign') }, S.camp.n ? 'Continue next session' : 'Start the campaign next session'),
-          S.camp.n ? el('div', {}, el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { shipTab = 'Meridian'; tab('ship'); } }, 'Read the logs')) : null) : null,
+          S.camp.n ? el('div', {}, el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { rightTab = 'tx'; txFilter = 'camp'; drawRight(); } }, 'Read the logs')) : null) : null,
         sec('Interplanetary Coordinator', el('p', {}, S.coord ? 'Charged. Your next Explore heads somewhere promising.' : 'Empty. One study session of Charge makes your next Explore a lucky one.'), coordB));
     }
     // the right side has two tabs: Upgrades (what resources buy) and Transmissions (everything your posts and the ship heard)
     let rightTab = 'up';
+    // every kind of log in one place: post transmissions, the ship's log, Meridian logs, Ship Logs from research, medals
+    const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['ship', 'Ship'], ['ev', 'Events'], ['res', 'Research'], ['ach', 'Medals']];
+    let txFilter = 'all';
+    const evCat = e => e.c || (/^Research/.test(e.title || '') ? 'res' : /^Achievement/.test(e.title || '') ? 'ach' : /^Ship activity|joined the crew|left the crew|^New room/.test(e.title || '') ? 'ship' : 'ev');
+    const whoOf = lg => (CAMP && CAMP.crew && CAMP.crew[lg.who]) || lg.who;
     function txFeed() {
       const feed = [];
-      posts().forEach(f => f.p.post.reports.forEach(r => feed.push(repItem(f.p, r))));
-      S.events.forEach(e => feed.push({ at: e.at, k: 'ev', icon: e.ic, title: e.title, t: e.t, extra: e.got }));
+      posts().forEach(f => f.p.post.reports.forEach(r => feed.push(Object.assign(repItem(f.p, r), { c: 'post' }))));
+      S.events.forEach(e => feed.push({ at: e.at, k: 'ev', icon: e.ic, title: e.title, t: e.t, extra: e.got, c: evCat(e) }));
+      if (CAMP) for (let i = 0; i < S.camp.n && CAMP.logs[i]; i++) feed.push({ at: S.camp.at[i] || 0, k: 'ev', icon: '📼', title: 'Meridian log ' + (i + 1) + ' · ' + whoOf(CAMP.logs[i]), t: CAMP.logs[i].t, c: 'camp' });
+      Object.keys(S.slog).forEach(k => { const L = SHIP_LOGS[k]; if (L) feed.push({ at: S.slog[k], k: 'ev', icon: '🗄', title: L[0], t: slogText(L[1]), c: 'arc' }); });
       return feed.sort((a, b) => b.at - a.at);
+    }
+    function shipLogsView() { // Ship Logs read like a book: grouped by the research that unlocked them, locked ones listed at the end
+      const out = [], locked = [];
+      RESEARCH.forEach(([branch, list]) => list.forEach(([id, name, , , un]) => { if (!un || !un.logs) return;
+        const got = un.logs.filter(k => S.slog[k] && SHIP_LOGS[k]);
+        if (!got.length) { locked.push([name, branch, un.logs.length]); return; }
+        out.push(el('div', { class: 'sx-arc' }, el('div', { class: 'sx-arc-h' }, el('span', {}, name), el('small', {}, branch)),
+          got.map(k => el('div', { class: 'sx-arc-i' }, el('b', {}, SHIP_LOGS[k][0]), el('p', {}, slogText(SHIP_LOGS[k][1]))))));
+      }));
+      if (!out.length) out.push(el('p', { class: 'sl-muted' }, 'No Ship Logs yet. Research unlocks them: try Guild Records in the Archives branch.'));
+      if (locked.length) out.push(el('div', { class: 'sx-arc locked' }, el('div', { class: 'sx-arc-h' }, el('span', {}, '🔒 ' + locked.reduce((a, l) => a + l[2], 0) + ' more in the Research tab')),
+        el('p', { class: 'sl-muted' }, locked.map(([n, b]) => n + ' (' + b + ')').join(' · '))));
+      return out;
+    }
+    function meridianView() { // the campaign, oldest first, by act
+      if (!CAMP) return [el('p', { class: 'sl-muted' }, 'The campaign file (campaign.json) could not be loaded.')];
+      if (!S.camp.n) return [el('p', { class: 'sl-muted' }, 'No Meridian logs yet. Start the campaign from the left side.')];
+      const out = [], per = Math.ceil(CAMP.logs.length / (CAMP.acts || [1]).length);
+      for (let a = 0; a * per < S.camp.n; a++) {
+        const logs = CAMP.logs.slice(a * per, Math.min(S.camp.n, (a + 1) * per));
+        out.push(el('div', { class: 'sx-sec' }, el('h3', {}, (CAMP.acts || [])[a] || 'Logs'), ...logs.map((lg, i) => campLog(lg, a * per + i + 1))));
+      }
+      return out;
     }
     const txUnread = () => txFeed().filter(it => it.at > (S.txSeen || 0)).length;
     function drawRight() {
       const unread = txUnread();
-      if (rightTab === 'tx' && unread) { S.txSeen = Date.now(); save(); }
+      if (rightTab === 'tx' && unread) { S.txPrev = S.txSeen || 0; S.txSeen = Date.now(); save(); }
       const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
       const tabsR = el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('research', 'Research'), rt('sell', 'Sell'), S.trader ? rt('trade', 'Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
         rt('tx', 'Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null));
@@ -1230,9 +1313,17 @@
       if (rightTab === 'trade' && S.trader) { rightCol.replaceChildren(tabsR, ...tradeView()); return; }
       if (rightTab === 'trade') rightTab = 'up';
       if (rightTab === 'tx') {
-        const feed = txFeed();
-        rightCol.replaceChildren(tabsR, feed.length ? el('div', { class: 'sx-tx' }, renderFeed(feed, 'rtx', true, drawRight))
-          : el('p', { class: 'sl-muted' }, 'Nothing yet. Build a Listening Post on a world and it sends a transmission every study session. Deep-space events show up here too.'));
+        const feed = txFeed(), seen = S.txPrev || 0, cnt = {}, fresh = {};
+        feed.forEach(it => { cnt[it.c] = (cnt[it.c] || 0) + 1; if (it.at > seen) fresh[it.c] = 1; });
+        const chips = el('div', { class: 'sx-chips', role: 'tablist' }, TXF.filter(([k]) => k === 'all' || cnt[k] || k === 'camp' || k === 'arc').map(([k, label]) =>
+          el('button', { type: 'button', role: 'tab', 'aria-selected': String(txFilter === k), class: fresh[k] || (k === 'all' && Object.keys(fresh).length) ? 'new' : null, onclick: () => { txFilter = k; drawRight(); rightCol.scrollTop = 0; } }, label, el('small', {}, String(k === 'all' ? feed.length : cnt[k] || 0)))));
+        let body;
+        if (txFilter === 'camp') body = meridianView();
+        else if (txFilter === 'arc') body = shipLogsView();
+        else { const list = txFilter === 'all' ? feed : feed.filter(it => it.c === txFilter);
+          body = [list.length ? el('div', { class: 'sx-tx' }, renderFeed(list, 'rtx' + txFilter, true, drawRight))
+            : el('p', { class: 'sl-muted' }, txFilter === 'all' ? 'Nothing yet. Build a Listening Post on a world and it sends a transmission every study session. Deep-space events, crew chatter, Meridian logs and medals all land here too.' : 'Nothing here yet.')]; }
+        rightCol.replaceChildren(tabsR, chips, ...body);
         return;
       }
       const newTx = unread ? el('button', { type: 'button', class: 'sx-newtx', onclick: () => { rightTab = 'tx'; drawRight(); } }, el('b', {}, 'New transmission received'), el('span', {}, unread === 1 ? '1 new message' : unread + ' new messages')) : null;
@@ -1317,9 +1408,17 @@
     function researchView() {
       const out = [el('div', { class: 'sx-res sx-kp' }, el('b', {}, S.kp.toLocaleString()), el('small', {}, 'Knowledge points. You earn one for every point of Knowledge.'))];
       RESEARCH.forEach(([branch, list]) => {
-        out.push(el('div', { class: 'sx-sec' }, el('h3', {}, branch), ...list.map(([id, name, cost, what], i) => {
+        const nDone = list.filter(n => hasT(n[0])).length;
+        out.push(el('div', { class: 'sx-sec' }, el('h3', {}, branch, el('small', { class: 'sx-h-n' }, ' ' + nDone + ' / ' + list.length)), ...list.map((node, i) => {
+          const [id, name, , what, un] = node, cost = rcost(node);
           const done = hasT(id), prev = list[i - 1], lockedBy = prev && !hasT(prev[0]) ? prev[1] : null;
-          return el('div', { class: 'sx-up' + (done ? ' built' : lockedBy ? ' locked' : '') }, el('b', {}, name), el('small', {}, lockedBy ? 'Needs ' + lockedBy + '. ' + what : what),
+          const u = un || {}, md = ACH.filter(a => a.req === id).length, tags = [];
+          if (u.cat) tags.push('🎒 ' + catName(u.cat));
+          if (u.logs) tags.push('🗄 ' + u.logs.length + ' Ship Log' + (u.logs.length > 1 ? 's' : ''));
+          if (md) tags.push('🏅 ' + md + ' medal' + (md > 1 ? 's' : ''));
+          const unl = tags.length ? el('span', { class: 'sx-unl' }, (done ? 'Unlocked: ' : 'Unlocks: ') + tags.join(' · '),
+            done && u.logs ? el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'tx'; txFilter = 'arc'; drawRight(); } }, 'Read') : null) : null;
+          return el('div', { class: 'sx-up' + (done ? ' built' : lockedBy ? ' locked' : '') }, el('b', {}, name), el('small', {}, lockedBy ? 'Needs ' + lockedBy + '. ' + what : what, unl),
             done ? el('span', { class: 'sx-done' }, 'Done') : lockedBy ? el('span', { class: 'sx-max' }, cost + ' pts') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.kp < cost || null, onclick: () => doResearch(id) }, cost + ' pts'));
         })));
       });
@@ -1327,7 +1426,7 @@
     }
     function tradeView() {
       const T = S.trader, here = byNum(T.num), out = [];
-      const desc = id => { const { c, r } = parseId(id); return el('small', {}, el('i', { class: 'sx-r-' + r.toLowerCase() }, r), ' ' + ({ cur: 'curiosity', mat: 'material', art: 'artifact', wpn: 'weapon part', tec: 'tech part', spc: 'specimen', rel: 'relic', map: 'star chart' }[c] || 'item') + (S.items[id] ? ', you have ' + S.items[id].n : ', new to you')); };
+      const desc = id => { const { c, r } = parseId(id); return el('small', {}, el('i', { class: 'sx-r-' + r.toLowerCase() }, r), ' ' + ({ cur: 'curiosity', mat: 'material', art: 'artifact', wpn: 'weapon part', tec: 'tech part', spc: 'specimen', rel: 'relic', map: 'star chart', sig: 'signal', fos: 'fossil', coin: 'coin', ano: 'anomaly' }[c] || 'item') + (S.items[id] ? ', you have ' + S.items[id].n : ', new to you')); };
       out.push(el('div', { class: 'sx-queue on sx-trader' }, el('small', {}, 'Trade Station'), el('b', {}, T.name), el('span', { class: 'sl-muted' }, 'Docked at ' + (here ? nm(here.p) : 'a world') + '. It leaves when you travel on.')));
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'For sale'), T.stock.length ? null : el('p', { class: 'sl-muted' }, 'Sold out.'),
         ...T.stock.map((o, i) => el('div', { class: 'sx-up' }, el('b', {}, itemName(o.id)), desc(o.id), el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < o.price || null, onclick: () => traderBuy(i) }, '✦ ' + o.price.toLocaleString())))));
@@ -1338,7 +1437,7 @@
             !has ? el('span', { class: 'sx-max' }, 'Need it') : only ? armBtn('Swap', 'Sure?', act, 'sx-buy') : el('button', { type: 'button', class: 'btn sx-buy', onclick: act }, 'Swap')); })));
       const spares = Object.keys(S.items).filter(k => S.items[k].n > 1 && itemName(k) !== '???').sort((a, b) => ITEM_RARS.indexOf(parseId(b).r) - ITEM_RARS.indexOf(parseId(a).r));
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Sell spares'), spares.length ? el('p', { class: 'sl-muted' }, 'Duplicates only. You always keep at least one.') : el('p', { class: 'sl-muted' }, 'No duplicates to sell.'),
-        ...spares.slice(0, 12).map(id => el('div', { class: 'sx-up' }, el('b', {}, itemName(id) + ' ×' + S.items[id].n), desc(id), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => traderSell(id) }, '+✦ ' + Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME))))));
+        ...spares.slice(0, 12).map(id => el('div', { class: 'sx-up' }, el('b', {}, itemName(id) + ' ×' + S.items[id].n), desc(id), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => traderSell(id) }, '+✦ ' + spareP(id))))));
       return out;
     }
     function drawFeed() {
@@ -1516,7 +1615,7 @@
           hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
         } else if (campaigning()) {
           const n = S.camp.n, log = CAMP.logs[n]; S.camp.n++;
-          const got = addDust(E.campaign.base + E.campaign.perLog * n); award(15, 20);
+          const got = addDust((E.campaign.base + E.campaign.perLog * n) * (hasT('shp4') ? 1.25 : 1)); S.camp.at[n] = Date.now(); award(15, 20);
           reps.unshift({ camp: log, n: n + 1, got });
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
@@ -1544,7 +1643,7 @@
             tp2.post.tp.fac.push({ k: target.fac, at: Date.now() });
             msg = FAC[target.fac][0] + ' ' + FAC[target.fac][1] + ' opened at ' + nm(tp2) + '. When the post is tuned, you\'ll hear what goes on there.';
           }
-          award(target.k === 'post' ? 30 : target.k === 'upgrade' ? 40 : 25, 0); if (target.k === 'room') S.events.push({ ic: ROOMS[target.fac][0], title: 'New room: ' + ROOMS[target.fac][1], t: msg, at: Date.now() });
+          award(target.k === 'post' ? 30 : target.k === 'upgrade' ? 40 : 25, 0); if (target.k === 'room') pushEv({ ic: ROOMS[target.fac][0], title: 'New room: ' + ROOMS[target.fac][1], t: msg, at: Date.now() });
           S.mission = 0; S.job = null;
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
@@ -1552,10 +1651,10 @@
           toBreak();
           hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
         } else if (discovering()) {
-          const a = atP(), better = hasT('scan3') && Math.random() < 1 / 3, got = [rollItem(a, better, 'survey')]; if (Math.random() < (hasT('scan1') ? .55 : .3)) got.push(rollItem(a, better, 'survey'));
+          const a = atP(), better = hasT('scan3') && Math.random() < 1 / 3, got = [rollItem(a, better, 'survey')]; if (Math.random() < (hasT('scan1') ? .55 : .3)) got.push(rollItem(a, better, 'survey')); if (hasT('scan4') && Math.random() < .2) got.push(rollItem(a, better, 'survey'));
           const fresh = got.map(it => gainItem(it, a));
           S.mission = 0; S.surveys = (S.surveys || 0) + 1;
-          award(20 + 10 * fresh.filter(Boolean).length, 12 + 12 * fresh.filter(Boolean).length + (hasT('scan2') ? 10 : 0));
+          award(20 + 10 * fresh.filter(Boolean).length, 12 + 12 * fresh.filter(Boolean).length + (hasT('scan2') ? 10 : 0) + (hasT('scan4') ? 15 : 0));
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           reps.unshift({ ev: { battle: true, ic: '🔍', title: 'Survey of ' + nm(a), t: 'The survey team combed the ' + a.biomes[Math.floor(Math.random() * a.biomes.length)].toLowerCase() + ' and came back with: ' + got.map((it, i) => it.name + ' (' + it.rar + (fresh[i] ? ', new!' : '') + ')').join(' and ') + '.', got: '🎒 Collection ' + itemCount() + ' / ' + ITEM_TOTAL } });
@@ -1568,7 +1667,7 @@
           const lootIt = rollItem(o, true), isNew = gainItem(lootIt, o), extra = addDust((E.fight.min + Math.random() * Math.max(0, E.fight.max - E.fight.min)) * (hasT('shp2') ? 1.5 : 1)), loot = 'their hoard: ' + lootIt.name + ' (' + lootIt.rar + (isNew ? ', new to your collection!' : '') + ')';
           S.at = o.num; award(35, isNew ? 12 : 0);
           const story = pk(FIGHT).replace('{G}', o.outlaw.gang.replace(/^the/, 'The')).replace('{g}', o.outlaw.gang).replace('{b}', o.biomes[0].toLowerCase());
-          S.events.push({ ic: '⚔', title: 'Outlaws driven out of ' + nm(o), t: story + ' Found ' + loot + '.', got: '+' + extra + ' ✦', at: Date.now() });
+          pushEv({ ic: '⚔', title: 'Outlaws driven out of ' + nm(o), t: story + ' Found ' + loot + '.', got: '+' + extra + ' ✦', at: Date.now() });
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           showCard(o, 'freed'); reps.unshift({ ev: { battle: true, ic: '⚔', title: 'Victory on ' + nm(o), t: story + ' Found ' + loot + '.', got: '+' + extra + ' ✦ bounty from the outlaws' } });
@@ -1586,7 +1685,7 @@
             const [ic, title, tpl, lo, hi] = ENCOUNTERS[Math.floor(Math.random() * ENCOUNTERS.length)];
             const dust = addDust((lo + Math.random() * (hi - lo)) * E.encounters.scale * (RANK[p.rarity] >= 2 ? E.encounters.rareWorldMultiplier : 1)), t = tpl.split('{p}').join(nm(p));
             p.enc = { ic, title, t, dust }; encGot = p.enc; award(10, 5); S.cnt.enc++;
-            S.events.push({ ic, title, t, got: '+' + dust + ' ✦', at: Date.now() });
+            pushEv({ ic, title, t, got: '+' + dust + ' ✦', at: Date.now() });
           }
           if (!outlaws && Math.random() < E.tradeStation.chance * (hasT('nav3') ? 2 : 1)) { makeTrader(p); traderNew = S.trader; }
           if (!quiet && hooks.tada) hooks.tada();
@@ -1704,15 +1803,6 @@
         });
         return group('🏘 Facilities', el('div', { class: 'sl-plan' }, 'Travelers\' Post: ', sel2), el('div', { class: 'sl-mods' }, rows));
       })() : group('🏘 Facilities', el('p', { class: 'sl-muted' }, 'Upgrade a Listening Post to a Travelers\' Post (🗼 Build mission) to start adding facilities.'));
-      const feed = [];
-      posts().forEach(f => f.p.post.reports.forEach(r => feed.push({ p: f.p, r })));
-      feed.sort((a, c) => c.r.at - a.r.at);
-      const trans = group('📡 Transmissions' + (feed.length ? ' (' + feed.length + ')' : ''),
-        feed.length ? renderFeed(feed.map(({ p, r }) => repItem(p, r)), 'trans', true, drawShip)
-          : el('p', { class: 'sl-muted' }, 'Nothing yet. A tuned post sends one transmission every study session.'));
-      const evs = S.events.slice().reverse();
-      const evLog = group('📜 Ship\'s log' + (evs.length ? ' (' + evs.length + ')' : ''), evs.length ? renderFeed(evs.map(e => ({ at: e.at, k: 'ev', icon: e.ic, title: e.title, t: e.t, extra: e.got })), 'events', false, drawShip)
-        : el('p', { class: 'sl-muted' }, 'No deep-space events yet. About one study session in 15 runs into something.'));
       const mods = group('✦ Resources: ' + S.dust.toLocaleString(), el('p', { class: 'sl-muted' }, 'Earned by every study session, plus extra for rarer worlds, events, arrival encounters, fights, Full Cycles, bounties and trade from your Travelers\' Posts (' + Math.round(tradeIncome() * INCOME) + ' per session now, up to ' + Math.round(E.trade.cap * INCOME) + '). ' + S.dustTotal.toLocaleString() + ' earned in total. Spend them on ship modules here and on facility upgrades under Posts.'),
         el('div', { class: 'sl-mods' }, Object.entries(MODS).map(([k, [ic, name, eff, what]]) => { const l = lvl(k), c = modCost(k);
           return el('div', { class: 'sl-mod' }, el('span', { class: 'sl-mod-i' }, ic), el('span', { class: 'sl-row-t' }, el('b', {}, name + ' · Lv ' + l), el('small', {}, eff(l) + ' ' + what + ' (next: ' + eff(l + 1) + ')')),
@@ -1727,23 +1817,12 @@
         lvMsg && Date.now() - lvMsgAt < 10000 ? el('p', { class: 'sl-lv-msg' }, lvMsg) : null, lvBar('xp', '⭐', CAPT, true), lvBar('kn', '📚', KNOW, true));
       const drGroup = group('🆘 Distress Run', el('p', {}, S.dr ? 'In progress: ' + DISTRESS[S.dr.sc][1] + ', Act ' + ROMAN(S.dr.n + 1) + ' of ' + ROMAN(S.dr.need) + '.' : S.drDay === today() ? 'Today\'s run is used up. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'Available at the start of your next cycle (right after a long break).' : 'Earn a ★ Full Cycle today (no skipping for a whole cycle) and a distress call comes in when the long break ends.'),
         el('p', { class: 'sl-muted' }, 'Once a day: a whole cycle of study sessions with no other missions, for about ✦ ' + E.distressRun.base + '–' + (E.distressRun.base + E.distressRun.random) + ', a random bonus, 250 XP and 120 Knowledge. ' + (S.drN || 0) + ' completed so far.'));
-      const SUB = { Captain: [rank], Medals: medalsView(group), Crew: crewView(group), Meridian: campArchive(group), Hangar: hangarView(group), Goals: [drGroup, bounties, records],
-        Logs: [trans, evLog], Stats: statsView(group) };
+      const SUB = { Captain: [rank], Medals: medalsView(group), Crew: crewView(group), Hangar: hangarView(group), Goals: [drGroup, bounties, records], Stats: statsView(group) };
       if (!SUB[shipTab]) shipTab = 'Captain';
       const subBtns = Object.keys(SUB).map(k => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === shipTab), onclick: () => { shipTab = k; drawShip(); } }, k));
       shipPane.replaceChildren(el('div', { class: 'sl-stabs sl-shiptabs', role: 'tablist' }, subBtns), el('div', { class: 'sl-subpane' }, SUB[shipTab]));
     }
 
-    function campArchive(group) {
-      if (!CAMP) return [el('p', { class: 'sl-muted' }, 'The campaign file (campaign.json) could not be loaded.')];
-      if (!S.camp.n) return [el('p', { class: 'sl-muted' }, 'No logs recovered yet. Start the campaign from the left side of the main screen.')];
-      const out = [], per = Math.ceil(CAMP.logs.length / (CAMP.acts || [1]).length);
-      for (let a = 0; a * per < S.camp.n; a++) {
-        const logs = CAMP.logs.slice(a * per, Math.min(S.camp.n, (a + 1) * per));
-        out.push(group((CAMP.acts || [])[a] || 'Logs', ...logs.map((lg, i) => campLog(lg, a * per + i + 1))));
-      }
-      return out.reverse();
-    }
     // ---------- star map: every world you've charted, placed by its distance from Earth, with your route ----------
     const mapView = { zoom: 1, x: 0, y: 0 }; let mapCv = null, mapPts = [], mapHover = null;
     const RCOL = { Common: '#a6859f', Uncommon: '#6bc96c', Rare: '#aee2ff', Legendary: '#fcef8d' };
@@ -1804,7 +1883,7 @@
     // ---------- achievements ----------
     if (!S.ach) S.ach = {};
     const ACH = [];
-    const A = (grp, id, ic, name, desc, test) => ACH.push({ grp, id, ic, name, desc, test });
+    const A = (grp, id, ic, name, desc, test, req) => ACH.push({ grp, id, ic, name, desc, test, req }); // req: a research that reveals the medal
     const tiers = (grp, key, ic, list, val, fmt) => list.forEach(([n, name]) => A(grp, key + n, ic, name, fmt(n), () => val() >= n));
     const facAll = () => posts().reduce((a, f) => a.concat(f.p.post.tp ? f.p.post.tp.fac : []), []);
     const charted = () => Object.values(S.cnt.rar).reduce((a, n) => a + n, 0);
@@ -1834,8 +1913,14 @@
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'srv', '🔍', [[1, 'Surveyor'], [25, 'Field Researcher'], [100, 'Planetary Scientist']], () => S.surveys || 0, n => 'Survey ' + n + ' world' + (n === 1 ? '' : 's'));
     tiers('Collection', 'itm', '🎒', [[10, 'Pack Rat'], [50, 'Curator'], [100, 'Museum Wing'], [200, 'Grand Museum']], () => itemCount(), n => 'Own ' + n + ' different collectibles');
-    A('Collection', 'itmall', '🏛', 'The Complete Collection', 'Own every collectible in the universe', () => itemCount() >= ITEM_TOTAL);
-    CATS.forEach(([c, name]) => A('Collection', 'cat-' + c, '📚', 'All the ' + name, 'Own every item in ' + name, () => catTotal(c) > 0 && ITEM_RARS.every(r => catList(c, r).every((_, i) => S.items[itemId(c, r, i)]))));
+    A('Collection', 'itmall', '🏛', 'The Complete Collection', 'Own every collectible in the universe', () => itemCount() >= ITEM_ALL);
+    CATS.forEach(([c, name, , need]) => A('Collection', 'cat-' + c, '📚', 'All the ' + name, 'Own every item in ' + name, () => catTotal(c) > 0 && ITEM_RARS.every(r => catList(c, r).every((_, i) => S.items[itemId(c, r, i)])), need));
+    const hasCat = c => Object.keys(S.items).some(k => parseId(k).c === c && itemName(k) !== '???');
+    [['sig', '📻', 'Tuned In', 'Find your first Signal'], ['fos', '🦴', 'Bone Collector', 'Find your first Fossil'], ['coin', '🪙', 'Spare Change', 'Find your first Coin'], ['ano', '🌀', 'Please Don\'t Open', 'Find your first Anomaly']].forEach(([c, ic, name, desc]) => A('Collection', 'first-' + c, ic, name, desc, () => hasCat(c), CATS.find(x => x[0] === c)[3]));
+    const STAR_MEDAL = { 'red dwarf': 'Crimson Shadows', 'orange dwarf': 'Endless Afternoon', 'yellow dwarf': 'Almost Home', 'white dwarf': 'Cold Light', 'blue giant': 'Blue Sky', 'red giant': 'Swollen Sun', 'binary pair': 'Double Shadows', 'pulsar': 'Cosmic Clock' };
+    STARS.forEach(([st]) => A('Stars', 'star-' + st.replace(' ', '-'), '☀', STAR_MEDAL[st] || st, 'Discover a world around a ' + st, () => S.found.some(f => f.p.star === st), 'nav4'));
+    A('Stars', 'star-all', '🌌', 'Every Kind of Light', 'Discover a world around every kind of star', () => STARS.every(([st]) => S.found.some(f => f.p.star === st)), 'nav4');
+    A('Knowledge', 'story', '📖', 'The Whole Story', 'Read every Ship Log and all ' + (CAMP ? CAMP.logs.length : 100) + ' Meridian logs', () => campDone() && Object.keys(SHIP_LOGS).every(k => S.slog[k]), 'arc5');
     A('Collection', 'legit', '🌟', 'Legendary Curator', 'Own 10 Legendary collectibles', () => Object.keys(S.items).filter(k => parseId(k).r === 'Legendary' && itemName(k) !== '???').length >= 10);
     tiers('Collection', 'trade', '🏪', [[1, 'Window Shopper'], [10, 'Haggler']], () => (S.cnt.bought || 0) + (S.cnt.swaps || 0), n => 'Buy or swap ' + n + ' item' + (n === 1 ? '' : 's') + ' at Trade Stations');
     tiers('Ship', 'room', '🛠', [[1, 'Home Improvement'], [7, 'Fully Fitted']], () => Object.keys(S.rooms).length, n => 'Build ' + n + ' room' + (n === 1 ? '' : 's') + ' on your ship');
@@ -1846,7 +1931,7 @@
     A('Ship', 'design', '🚀', 'New Ride', 'Fly a new ship design', () => S.ship.designs.length > 1);
     A('Ship', 'designs', '🛸', 'Collector\'s Hangar', 'Own every ship design', () => Object.keys(SHIP_DESIGNS).every(k => S.ship.designs.includes(k)));
     tiers('Ship', 'mods', '⚙', [[10, 'Tinkerer'], [30, 'Overclocked'], [60, 'Ship of Theseus']], () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0), n => 'Buy ' + n + ' ship module upgrades');
-    tiers('Knowledge', 'tech', '🔬', [[1, 'Eureka'], [6, 'Lab Coat'], [12, 'Everything Researched']], () => Object.keys(S.tech).length, n => 'Finish ' + n + ' research' + (n === 1 ? '' : 'es'));
+    tiers('Knowledge', 'tech', '🔬', [[1, 'Eureka'], [6, 'Lab Coat'], [12, 'Department Head'], [RES_ALL.length, 'Everything Researched']], () => Object.keys(S.tech).length, n => 'Finish ' + n + ' research' + (n === 1 ? '' : 'es'));
     tiers('Knowledge', 'cap', '⭐', [[10, 'Ensign'], [25, 'Seasoned'], [50, 'Veteran'], [100, 'Star Legend']], () => lvInfo(S.xp).L, n => 'Reach Captain Level ' + n);
     tiers('Knowledge', 'kn', '📚', [[10, 'Bookworm'], [25, 'Well Read'], [50, 'Sage of the Stars'], [100, 'Keeper of the Cosmos']], () => lvInfo(S.kn).L, n => 'Reach Knowledge Level ' + n);
     tiers('Knowledge', 'camp', '📼', [[1, 'The First Log'], [20, 'The Signal'], [40, 'The Long Way'], [60, 'The Quiet Zone'], [80, 'Echoes'], [100, 'The Light Is On']], () => S.camp.n, n => n === 1 ? 'Recover the first Meridian log' : 'Recover ' + n + ' Meridian logs');
@@ -1856,16 +1941,17 @@
     function showToast(lines) { toast.replaceChildren(...lines.map(t => el('div', {}, t))); toast.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { toast.hidden = true; }, 6000); }
     let achFirst = true;
     function checkAch() {
-      const fresh = ACH.filter(a => !S.ach[a.id] && (() => { try { return !!a.test(); } catch (e) { return false; } })());
+      const fresh = ACH.filter(a => !S.ach[a.id] && (!a.req || hasT(a.req)) && (() => { try { return !!a.test(); } catch (e) { return false; } })());
       if (!fresh.length) { achFirst = false; return; }
       fresh.forEach(a => { S.ach[a.id] = Date.now(); });
       if (achFirst && fresh.length > 2) { showToast(['🏅 ' + fresh.length + ' achievements unlocked', 'See them on the Ship page, under Medals.']); }
-      else { fresh.forEach(a => S.events.push({ ic: '🏅', title: 'Achievement: ' + a.name, t: a.desc + '.', at: Date.now() })); award(10 * fresh.length, 0); flushXP([]); showToast(fresh.slice(0, 3).map(a => '🏅 ' + a.name + ': ' + a.desc)); }
+      else { fresh.forEach(a => pushEv({ ic: '🏅', title: 'Achievement: ' + a.name, t: a.desc + '.', at: Date.now() })); award(10 * fresh.length, 0); flushXP([]); showToast(fresh.slice(0, 3).map(a => '🏅 ' + a.name + ': ' + a.desc)); }
       achFirst = false; save();
     }
     function medalsView(group) {
-      const got = ACH.filter(a => S.ach[a.id]).length, out = [el('p', { class: 'sl-muted' }, got + ' of ' + ACH.length + ' unlocked.')];
-      [...new Set(ACH.map(a => a.grp))].forEach(g => { const list = ACH.filter(a => a.grp === g);
+      const VIS = ACH.filter(a => !a.req || hasT(a.req) || S.ach[a.id]), hid = ACH.length - VIS.length, got = VIS.filter(a => S.ach[a.id]).length;
+      const out = [el('p', { class: 'sl-muted' }, got + ' of ' + VIS.length + ' unlocked.' + (hid ? ' ' + hid + ' more are hidden until you research the right things.' : ''))];
+      [...new Set(VIS.map(a => a.grp))].forEach(g => { const list = VIS.filter(a => a.grp === g);
         out.push(group(g + ' (' + list.filter(a => S.ach[a.id]).length + ' / ' + list.length + ')', el('div', { class: 'sx-medals' }, list.map(a => el('div', { class: 'sx-medal' + (S.ach[a.id] ? ' on' : '') }, el('span', { class: 'sx-medal-i' }, a.ic), el('b', {}, a.name), el('small', {}, a.desc + (S.ach[a.id] ? '. ' + new Date(S.ach[a.id]).toLocaleDateString() : '')))))));
       });
       return out;
@@ -1910,7 +1996,7 @@
         T('🚀 Voyage', [['Study sessions finished', fmtN(S.total)], ['Hours studied', Math.round(hrs * 10) / 10], ['Days you studied', fmtN(S.cnt.days)], ['Most sessions in a day', S.rec.dayN ? S.rec.dayN.v : 0], ['★ Full Cycles earned', fmtN(S.cnt.fc)], ['🆘 Distress Runs completed', fmtN(S.drN)], ['Light-years traveled', fmtN(ly)]]),
         T('🪐 Worlds', [['Worlds discovered', fmtN(charted)], ...RARITY.map(([k]) => ['· ' + k, fmtN(S.cnt.rar[k])]), ['🧭 Lucky trips', fmtN(S.cnt.lucky)], ['🧭 Coordinator charges', fmtN(S.cnt.charge)], ['In your Logbook now', fmtN(S.found.length)], ['💰 Worlds sold', fmtN(S.sold.n) + ' for ✦ ' + fmtN(S.sold.dust)], ['🏆 Records held', REC.filter(([k]) => S.rec[k]).length]]),
         T('⚠ Adventures', [['Deep-space events', fmtN(S.cnt.ev)], ['Arrival encounters', fmtN(S.cnt.enc)], ['🏴 Outlaw gangs met', fmtN(S.cnt.outlaws)], ['⚔ Outlaw gangs beaten', fmtN(S.fights)], ['🎯 Bounties completed', fmtN(S.bDone)], ['🔍 Surveys', fmtN(S.surveys)]]),
-        T('🎒 Collection', [['Unique collectibles', itemCount() + ' / ' + ITEM_TOTAL + ' (' + Math.round(itemCount() / ITEM_TOTAL * 100) + '%)'], ['Collectibles received (with duplicates)', fmtN(itemsGot)], ...ITEM_RARS.map(r => ['· ' + r, byR(r) + ' / ' + CATS.reduce((a, [c]) => a + catList(c, r).length, 0)]), ...CATS.map(([c, name]) => ['· ' + name, ITEM_RARS.reduce((a, r) => a + catList(c, r).filter((_, i) => S.items[itemId(c, r, i)]).length, 0) + ' / ' + catTotal(c)])]),
+        T('🎒 Collection', [['Unique collectibles', itemCount() + ' / ' + ITEM_TOTAL + ' (' + Math.round(itemCount() / ITEM_TOTAL * 100) + '%)'], ['Collectibles received (with duplicates)', fmtN(itemsGot)], ...ITEM_RARS.map(r => ['· ' + r, byR(r) + ' / ' + CATS.reduce((a, [c]) => a + (catOpen(c) ? catList(c, r).length : 0), 0)]), ...CATS.filter(([c]) => catOpen(c)).map(([c, name]) => ['· ' + name, ITEM_RARS.reduce((a, r) => a + catList(c, r).filter((_, i) => S.items[itemId(c, r, i)]).length, 0) + ' / ' + catTotal(c)])]),
         T('🏘 Posts', [['🗼 Listening Posts', fmtN(pl.length)], ['🏘 Travelers\' Posts', fmtN(tps.length)], ['Facilities built', fmtN(facs.length)], ['Facility levels (total)', fmtN(facLv)], ['Facilities at level ' + FAC_MAX, fmtN(maxed)], ['Settlers', fmtN(settlers)], ['📡 Transmissions heard', fmtN(heard)]]),
         T('✦ Economy', [['Resources now', fmtN(S.dust)], ['Resources earned (all time)', fmtN(S.dustTotal)], ['Resources spent', fmtN(S.dustTotal - S.dust)], ['Ship module levels (total)', fmtN(modLv)], ['Trade per session', fmtN(Math.round(tradeIncome() * INCOME))]]),
       ];
@@ -1958,9 +2044,10 @@
     function drawItems() {
       const have = (c, r) => catList(c, r).filter((_, i) => S.items[itemId(c, r, i)]).length, catHave = c => ITEM_RARS.reduce((a, r) => a + have(c, r), 0);
       const nav = el('div', { class: 'sl-wnav' }, el('b', {}, 'Collection: ' + itemCount() + ' / ' + ITEM_TOTAL), el('span', { class: 'sl-muted' }, Math.round(itemCount() / ITEM_TOTAL * 100) + '% found'));
-      const tabs = el('div', { class: 'sl-stabs', role: 'tablist' }, CATS.map(([c, name]) => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(c === itemCatTab), onclick: () => { itemCatTab = c; drawItems(); } }, name + ' ' + catHave(c) + '/' + catTotal(c))));
-      const [c, cname, blurb] = CATS.find(x => x[0] === itemCatTab) || CATS[0];
-      const groups = ITEM_RARS.filter(r => catList(c, r).length).map(r => {
+      const tabs = el('div', { class: 'sl-stabs', role: 'tablist' }, CATS.map(([c, name]) => el('button', { type: 'button', role: 'tab', class: 'sl-stab' + (catOpen(c) ? '' : ' sx-lockt'), 'aria-selected': String(c === itemCatTab), onclick: () => { itemCatTab = c; drawItems(); } }, catOpen(c) ? name + ' ' + catHave(c) + '/' + catTotal(c) : '🔒 ' + name)));
+      const [c, cname, blurb, need] = CATS.find(x => x[0] === itemCatTab) || CATS[0];
+      const needN = need && !catOpen(c) ? RES_ALL.find(n => n[0] === need) : null;
+      const groups = needN ? [el('p', { class: 'sx-lockmsg' }, '🔒 ' + catTotal(c) + ' ' + cname.toLowerCase() + ' to find. Research ' + needN[1] + ' (Xenology, ' + rcost(needN) + ' pts) and they start turning up.')] : ITEM_RARS.filter(r => catList(c, r).length).map(r => {
         const list = catList(c, r), h = have(c, r);
         return el('div', { class: 'sl-col-g' }, el('div', { class: 'sl-col-h' }, el('span', { class: 'sl-rar sl-r-' + r.toLowerCase() }, r), el('span', { class: 'sl-muted' }, h + ' / ' + list.length)),
           h ? el('ul', { class: 'sl-col-l' }, list.map((name, i) => [name, S.items[itemId(c, r, i)]]).filter(x => x[1]).sort((x, y) => x[0].localeCompare(y[0])).map(([name, it]) =>

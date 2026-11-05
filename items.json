@@ -335,5 +335,129 @@
       "Chart of the Center of Everything",
       "The Map That Draws Itself"
     ]
+  },
+  "Signals": {
+    "_about": "Recordings of sounds nobody should be able to hear. Only found after the Signal Recording research.",
+    "Common": [
+      "Static from a Dead Moon",
+      "Radio Jingle for a Closed Diner",
+      "Weather Report from Nowhere",
+      "Morse Code Grocery List",
+      "Hum of a Gas Giant",
+      "Ice Cracking on a Frozen Sea",
+      "Someone Practicing the Trumpet",
+      "Ten Minutes of Solar Wind"
+    ],
+    "Uncommon": [
+      "Whale Song from a Gas Giant",
+      "Lullaby in an Unknown Language",
+      "Countdown That Never Finishes",
+      "Pulsar Played Backwards",
+      "Applause from an Empty Stadium",
+      "Ship Horn from 300 Years Ago"
+    ],
+    "Rare": [
+      "A Voice That Says Your Name",
+      "Choir of a Thousand Antennas",
+      "Last Broadcast of a Lost Colony",
+      "The Seven-Note Song"
+    ],
+    "Legendary": [
+      "Echo of the First Star",
+      "The Keeper's Call"
+    ]
+  },
+  "Fossils": {
+    "_about": "Living things that kept their shape for a very long time. Only found after the Paleontology research.",
+    "Common": [
+      "Spiral Shell in Sandstone",
+      "Fern Print on Slate",
+      "Tiny Trilobite-ish Thing",
+      "Petrified Tentacle Tip",
+      "Three-Toed Footprint",
+      "Stone Seed Pod",
+      "Ancient Coral Branch",
+      "Fossil Fish with Too Many Fins"
+    ],
+    "Uncommon": [
+      "Skull of a Long-Necked Swimmer",
+      "Amber with a Glowing Bug",
+      "Fossil Egg Cluster",
+      "Wing Bone the Size of a Door",
+      "Stone Jellyfish",
+      "Slice of a Petrified Tree"
+    ],
+    "Rare": [
+      "Skeleton of a Sky Grazer",
+      "Fossilized Brain (It Was Big)",
+      "Fossil That Is Still Warm",
+      "Imprint of a Hand Like Ours"
+    ],
+    "Legendary": [
+      "The First Living Cell, in Stone",
+      "Fossil of Something Not Yet Born"
+    ]
+  },
+  "Coins": {
+    "_about": "Money from places that stopped needing it. Only found after the Numismatics research.",
+    "Common": [
+      "Square Copper Coin",
+      "Coin with a Hole in the Middle",
+      "Plastic Arcade Token",
+      "Wooden Trade Chit",
+      "Bent Station Credit",
+      "Coin Stamped with a Fish",
+      "Ration Ticket",
+      "Bus Fare to a Ruined City"
+    ],
+    "Uncommon": [
+      "Silver Coin of the Ring Kingdoms",
+      "Glass Coin That Hums",
+      "Outlaw Bounty Token",
+      "Guild Founder's Medal",
+      "Coin Minted on a Comet",
+      "Triangular Moon Dollar"
+    ],
+    "Rare": [
+      "Coin Worth a Whole Planet",
+      "Gold Coin from a Drowned Empire",
+      "The Ferryman's Coin",
+      "Two-Headed Coin of Fate"
+    ],
+    "Legendary": [
+      "The First Coin Ever Struck",
+      "Coin That Pays for Itself"
+    ]
+  },
+  "Anomalies": {
+    "_about": "Things that break the rules, kept in sealed boxes. Only found after the Anomaly Containment research.",
+    "Common": [
+      "Rock That Falls Up",
+      "Pebble That Is Always Cold",
+      "Puddle with No Bottom",
+      "Stick with Only One End",
+      "Cube with Seven Sides",
+      "Shadow Without an Owner",
+      "Ticking Stone",
+      "Sand That Spells Words"
+    ],
+    "Uncommon": [
+      "Jar of Slowed Time",
+      "Mirror That Lags Behind",
+      "Door Frame to the Same Room",
+      "Compass That Points at You",
+      "Feather Heavier Than Lead",
+      "Box Bigger on the Inside"
+    ],
+    "Rare": [
+      "Hole in the Air (Small)",
+      "Clock Running Backwards Forever",
+      "Photograph of Tomorrow",
+      "Loop of Yesterday"
+    ],
+    "Legendary": [
+      "A Second That Lasts an Hour",
+      "Tear in Space (Framed)"
+    ]
   }
 }
