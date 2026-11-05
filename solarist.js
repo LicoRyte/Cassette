@@ -1400,8 +1400,9 @@
     const rightCol = el('section', { class: 'sx-side sx-right', 'aria-label': 'Resources and upgrades' });
     const feedLine = el('button', { type: 'button', class: 'sx-feed', title: 'All transmissions and the ship\'s log', onclick: () => { rightTab = 'tx'; txFilter = 'all'; tab('timer'); drawRight(); } });
     const reportBtn = el('button', { type: 'button', class: 'sl-link sx-replay', hidden: true, onclick: () => openReport(true) }, 'Last session report');
+    const reportSide = el('aside', { class: 'sx-report-side', hidden: true, 'aria-label': 'Survey data' });
     const report = el('div', { class: 'sx-report', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Session report' },
-      el('div', { class: 'sx-report-in' }, el('h2', {}, 'Session report'), encBox, trans, card, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeReport() }, 'Continue'))));
+      el('div', { class: 'sx-report-row' }, el('div', { class: 'sx-report-in' }, el('h2', {}, 'Session report'), encBox, trans, card, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeReport() }, 'Continue'))), reportSide));
     report.addEventListener('click', e => { if (e.target === report) closeReport(); });
     let typeT = 0;
     function typeOut() { // campaign logs and transmissions print like an old ship terminal; a click on the report finishes them
@@ -1811,6 +1812,15 @@
       if (!p) { card.hidden = true; card.replaceChildren(); return; }
       card.hidden = false; card.className = 'sl-card' + (kind === 'new' || kind === 'built' || kind === 'lucky' || kind === 'upgraded' || kind === 'opened' || kind === 'freed' ? ' new' : kind === 'outlaw' ? ' new sl-held' : '');
       card.replaceChildren(...planetCard(p, kind));
+      // in the report, Survey data opens as a panel to the right instead of growing the report downward
+      reportSide.hidden = true; reportSide.replaceChildren();
+      const sv = card.querySelector('details.sl-more:not(.sl-postlog)');
+      if (sv) {
+        const btn = el('button', { type: 'button', class: 'sl-link sx-svbtn', 'aria-expanded': 'false' }, 'Survey data ▸');
+        btn.addEventListener('click', () => { const open = reportSide.hidden; reportSide.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? 'Survey data ◂' : 'Survey data ▸';
+          if (open && !reportSide.firstChild) reportSide.replaceChildren(el('h3', {}, 'Survey data · ' + nm(p)), facts(p)); });
+        sv.replaceWith(btn);
+      }
     }
     function facReport(p) { // a log from one of a Travelers' Post's facilities
       const fac = p.post.tp.fac; if (!fac.length) return null;
