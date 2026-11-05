@@ -468,3 +468,10 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-pips i { width: 6px; height: 14px; background: var(--line); box-shadow: inset 0 0 0 1px var(--dim); }
 .sx-pips i.on { background: var(--violet); box-shadow: none; }
 .sx-chipbuy { margin-bottom: 26px; }
+
+/* ---------- focus lock: during a study session only data stays ---------- */
+.sx-locknote { align-self: center; font: 500 14px var(--ui); color: var(--mute); }
+.sx-lock .sx-left button, .sx-lock .sx-left .sx-claim { display: none; }
+.sx-lock .sx-left .sx-paths button[aria-checked="true"] { display: block; pointer-events: none; opacity: 1; }
+.sx-lock .sx-hangar input { pointer-events: none; opacity: .6; }
+.sx-nav button:disabled { color: var(--dim); cursor: default; }
