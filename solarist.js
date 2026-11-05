@@ -587,7 +587,8 @@
     });
     if (S.probe) { if (!S.tuned) S.tuned = S.probe.num; delete S.probe; }
     S.found.forEach(({ p }) => { if (!p.x) p.x = makeExtra(p); }); // worlds found before the extended survey existed
-    const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+    let wiping = false;
+    const save = () => { if (wiping) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
     save();
     const rollDay = () => { if (S.day !== today()) { S.day = today(); S.todayN = 0; } };
     rollDay();
@@ -1085,6 +1086,26 @@
       } else { drBox.hidden = true; drBox.replaceChildren(); }
     }
     // ---------- the HUD: everything floats on black space. The page shell draws the planet into .sx-planet ----------
+    // backup, restore and a fresh start
+    function saveTools() {
+      const box = el('div', {});
+      const dl = el('button', { type: 'button', class: 'btn', onclick: () => {
+        save(); const blob = new Blob([localStorage.getItem(KEY) || '{}'], { type: 'application/json' }), a = el('a', { href: URL.createObjectURL(blob), download: 'solarist-save-' + today() + '.json' });
+        document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); } }, 'Download a backup');
+      const file = el('input', { type: 'file', accept: '.json,application/json', hidden: true });
+      file.addEventListener('change', () => { const f = file.files[0]; if (!f) return; f.text().then(t => { const d = JSON.parse(t); if (!d || typeof d !== 'object' || !Array.isArray(d.found)) throw new Error('not a save');
+        wiping = true; localStorage.setItem(KEY, t); location.reload(); }).catch(() => { msg.textContent = 'That file isn\'t a Solarist save.'; }); });
+      const up = el('button', { type: 'button', class: 'btn', onclick: () => file.click() }, 'Restore a backup');
+      const wipe = el('button', { type: 'button', class: 'btn sx-danger' }, 'Start over from scratch');
+      let stage = 0;
+      wipe.addEventListener('click', () => {
+        if (stage === 0) { stage = 1; wipe.classList.add('arm'); wipe.textContent = 'Erase everything? Click again'; setTimeout(() => { if (stage === 1) { stage = 0; wipe.classList.remove('arm'); wipe.textContent = 'Start over from scratch'; } }, 5000); return; }
+        wiping = true; clearInterval(tickT); try { localStorage.removeItem(KEY); localStorage.removeItem(OLD_KEY); } catch (e) {} location.reload();
+      });
+      const msg = el('p', { class: 'sl-muted' }, 'Starting over erases every world, item, post, crew member and level. Download a backup first if you might want it back.');
+      box.append(el('div', { class: 'sx-row' }, dl, up, wipe, file), msg);
+      return box;
+    }
     const sec = (title, ...kids) => el('div', { class: 'sx-sec' }, title ? el('h3', {}, title) : null, ...kids);
     const cycleBar = el('div', { class: 'sx-cycle', 'aria-hidden': 'true' });
     const nameBox = el('button', { type: 'button', class: 'sx-name', title: 'Open in the Logbook' });
@@ -1104,7 +1125,7 @@
     settings.open = true;
     const appSettings = el('div', { class: 'sx-appset' });
     const settingsPane = el('div', { class: 'sl-pane', hidden: true },
-      sec('Timer', settings), sec('Switch the timer by hand', el('p', { class: 'sl-muted' }, 'Normally Solarist moves between study and breaks for you.'), el('div', { class: 'sl-modes' }, modeBtns)), sec('App', appSettings));
+      sec('Timer', settings), sec('Your save', saveTools()), sec('Switch the timer by hand', el('p', { class: 'sl-muted' }, 'Normally Solarist moves between study and breaks for you.'), el('div', { class: 'sl-modes' }, modeBtns)), sec('App', appSettings));
     const find = el('input', { type: 'search', class: 'sl-find', placeholder: 'Search worlds...', 'aria-label': 'Search your logbook' });
     const typeSel = el('select', { 'aria-label': 'Planet class' }, el('option', { value: '' }, 'All classes'), el('option', { value: '@post' }, 'With a Listening Post'), ...Object.keys(TYPES).map(t => el('option', { value: t }, t)));
     const rarSel = el('select', { 'aria-label': 'Rarity' }, el('option', { value: '' }, 'Any rarity'), ...RARITY.map(([k]) => el('option', { value: k }, k)));

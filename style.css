@@ -182,6 +182,8 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-newfac select { flex: 1; min-width: 0; }
 .sx-more { margin-top: 16px; }
 .sx-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.sx-danger { color: var(--red) !important; border-color: var(--wine) !important; }
+.sx-danger.arm { color: #000 !important; background: var(--red) !important; border-color: var(--red) !important; }
 .sx-vol { display: flex; align-items: center; gap: 8px; color: var(--soft); } .sx-vol input { accent-color: var(--amber); width: 160px; }
 
 /* ---------- full-screen pages (Logbook, Ship, Collection, Settings) ---------- */
