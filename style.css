@@ -330,6 +330,18 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sl-reports .sl-rep-core, .sl-reports .sl-rep-species, .sl-reports .sl-rep-odd { color: var(--white); } .sl-reports .sl-rep-secret { font-style: italic; }
 .sl-reports .sl-rep-fac { color: var(--amber); } .sl-reports .sl-rep-ev small { color: var(--red); }
 
+/* ---------- campaign ---------- */
+.sx-camp-bar { height: 3px; background: var(--line); margin: 2px 0 8px; } .sx-camp-bar i { display: block; height: 100%; background: var(--violet); }
+.sx-camp { border-left: 3px solid var(--violet); padding-left: 14px; }
+.sx-camp-h { display: flex; justify-content: space-between; gap: 10px; font: 600 15px var(--ui); color: var(--violet); }
+.sx-camp-h small { font-size: 14px; color: var(--mute); }
+.sx-camp-who { margin: 4px 0 2px; font: 700 19px var(--ui); color: var(--white); } .sx-camp-who small { margin-left: 8px; font: 500 14px var(--ui); color: var(--mute); }
+.sx-camp p { font: 15px/1.55 var(--text) !important; color: var(--ink); font-style: normal !important; }
+.sx-camp-thought p { font-style: italic !important; }
+.sx-camp-action p { color: var(--soft); }
+.sl-group .sx-camp + .sx-camp { margin-top: 18px; }
+.sx-readlogs { margin-top: 4px; }
+
 /* ---------- hangar ---------- */
 .sx-hangar { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
 .sx-shipbig { width: 216px; height: 108px; image-rendering: pixelated; }

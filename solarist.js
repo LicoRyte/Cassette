@@ -546,7 +546,7 @@
     engineBonusPerLevel: .03, fight: { min: 40, max: 80 }, fullCycle: { base: 50, perHullLevel: 15 }, bountyMultiplier: 1.5,
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 10, Uncommon: 25, Rare: 70, Legendary: 200 }, perHabitabilityPercent: .5, earthLike: 25, earthLikeAt: 80, perLifeLevel: 8, anomaly: 25, rings: 8, perMoon: 2, moonCap: 20, perRecord: 30 },
-    distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 60, Uncommon: 150, Rare: 400, Legendary: 1200 }, sellRatio: .35 }, roomCost: { base: 120, growth: 1.7, maxLevel: 5 }, crewCost: { base: 150, perCrew: 120 }, shipStyleCost: { color: 200, design: 600 }, moduleCost: { base: 50, growth: 1.25 }, facilityCost: { base: 64, growth: 1.6, maxLevel: 10 },
+    distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 60, Uncommon: 150, Rare: 400, Legendary: 1200 }, sellRatio: .35 }, roomCost: { base: 120, growth: 1.7, maxLevel: 5 }, campaign: { base: 40, perLog: 2 }, crewCost: { base: 150, perCrew: 120 }, shipStyleCost: { color: 200, design: 600 }, moduleCost: { base: 50, growth: 1.25 }, facilityCost: { base: 64, growth: 1.6, maxLevel: 10 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
     if (!o || typeof o !== 'object') return d;
@@ -554,7 +554,8 @@
     Object.keys(d).forEach(k => { const v = o[k]; if (v == null) return; if (typeof d[k] === 'number') { if (typeof v === 'number' && isFinite(v) && v >= 0) out[k] = v; } else if (typeof d[k] === 'object') out[k] = mergeEcon(d[k], v); });
     return out;
   }
-  function mount(root, hooks, econ, items) {
+  function mount(root, hooks, econ, items, camp) {
+    const CAMP = camp && Array.isArray(camp.logs) && camp.logs.length ? camp : null;
     applyItems(items);
     const E = mergeEcon(ECON, econ);
     hooks = hooks || {};
@@ -643,6 +644,9 @@
       S.found.forEach(({ p }) => { S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; if (p.lucky) S.cnt.lucky++; if (p.outlaw) S.cnt.outlaws++; if (p.enc) S.cnt.enc++; });
     }
     const atP = () => { const f = S.at && byNum(S.at); return f ? f.p : null; };
+    if (!S.camp) S.camp = { n: 0 };
+    const campDone = () => !CAMP || S.camp.n >= CAMP.logs.length;
+    const campaigning = () => S.mission === -3 && !campDone() && !S.dr;
     const discovering = () => S.mission === -2 && !!atP() && !(atP().outlaw && !atP().outlaw.cleared);
     // the old material × object collection becomes the same number of new items, of the same rarity
     const OLD_FORM_R = { Shard: 'Common', Nugget: 'Common', Coin: 'Common', Marble: 'Common', Dice: 'Common', Ring: 'Uncommon', Gear: 'Uncommon', Key: 'Uncommon', Bell: 'Uncommon', Arrowhead: 'Uncommon', Lens: 'Rare', Locket: 'Rare', Compass: 'Rare', Figurine: 'Rare', Idol: 'Legendary', 'Music Box': 'Legendary' };
@@ -1014,6 +1018,7 @@
     const screen = el('div', { class: 'sl-screen sunken', 'aria-live': 'off' }, el('div', { class: 'sl-big' }, bigText, dots), timeText);
     let dotN = 0, dotT = 0;
     function headline() {
+      if (campaigning() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to follow the trail') : 'Following the Meridian\'s trail';
       if (S.dr && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Distress Run: Act ' + ROMAN(S.dr.n + 1)) : 'Answering the distress call';
       const b = building(), c = charging(), d = !b && !c && discovering() && atP(), o = !b && !c && !d && heldP();
       if (d) return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to survey') : 'Surveying ' + nm(d) + ' for collectibles';
@@ -1039,17 +1044,18 @@
         el('label', {}, 'Long break every ', sel('every', [2, 3, 4, 5, 6]), ' study sessions')));
     // what the next study session is for: travel to a new world, or build a Listening Post on one you've found
     // the mission: what this study session is for. Exactly one is pressed.
-    const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['discover', '🔍', 'Discover', 'Survey the world you\'re at for collectibles'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '🧭', 'Charge', 'Charge the Interplanetary Coordinator: your next Explore is a lucky one']];
-    const curMission = () => S.mission > 0 ? 'build' : S.mission === -1 ? 'charge' : S.mission === -2 ? 'discover' : 'explore';
+    const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['discover', '🔍', 'Discover', 'Survey the world you\'re at for collectibles'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '🧭', 'Charge', 'Charge the Interplanetary Coordinator: your next Explore is a lucky one'], ['campaign', '📼', 'Campaign', 'Follow the Meridian\'s trail to their next log']];
+    const curMission = () => S.mission > 0 ? 'build' : S.mission === -1 ? 'charge' : S.mission === -2 ? 'discover' : S.mission === -3 ? 'campaign' : 'explore';
     function setMission(m, num) {
       if (running && mode === 'focus') return;
       if (m === 'explore') S.mission = 0;
       else if (m === 'charge') { if (S.coord) return; S.mission = -1; }
       else if (m === 'discover') { const a = atP(); if (!a || held(a)) return; S.mission = -2; }
+      else if (m === 'campaign') { if (campDone()) return; S.mission = -3; }
       else { if (building()) { S.mission = 1; } else { const o = buildOptions(), first = (o.Facilities[0] || o.Upgrades[0] || o['New Listening Posts'][0]); if (!first) return; S.mission = 1; S.job = { k: first.k, num: first.num, fac: first.fac }; } }
       save(); hint.textContent = ''; draw();
     }
-    const MIS_ORDER = ['explore', 'discover', 'charge', 'build'];
+    const MIS_ORDER = ['explore', 'discover', 'charge', 'build', 'campaign'];
     const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip], i) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, 'data-key': i + 1, role: 'radio', title: tip + ' (key ' + (i + 1) + ')', onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
     const buildSel = el('select', { class: 'sl-build-sel', 'aria-label': 'World to build on' });
     buildSel.addEventListener('change', () => setJob(buildSel.value));
@@ -1132,9 +1138,9 @@
     // the world shown in the middle of the screen
     function scenePlanet(kind) {
       const b = building();
-      return kind === 'build' ? (b.p || atP()) : kind === 'fight' ? heldP() : kind === 'distress' ? null : kind === 'explore' && running ? null : atP();
+      return kind === 'build' ? (b.p || atP()) : kind === 'fight' ? heldP() : kind === 'distress' || (kind === 'campaign' && running) ? null : kind === 'explore' && running ? null : atP();
     }
-    const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : building() ? 'build' : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
+    const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : campaigning() ? 'campaign' : building() ? 'build' : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
     function drawName() {
       const kind = sceneKind(), p = scenePlanet(kind);
       nameBox.disabled = !p;
@@ -1161,6 +1167,11 @@
       leftCol.replaceChildren(
         sec('Distress Run', drBox, drInfo),
         sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far')),
+        CAMP ? sec(CAMP.title || 'Campaign', el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round(S.camp.n / CAMP.logs.length * 100) + '%' })),
+          el('p', {}, campDone() ? 'Complete. All ' + CAMP.logs.length + ' logs recovered.' : 'Log ' + S.camp.n + ' of ' + CAMP.logs.length + (S.camp.n ? '. ' + actOf(S.camp.n) : '. A trail of old log beacons left by the lost survey ship Meridian.')),
+          campDone() ? null : campaigning() ? el('p', { class: 'sl-muted' }, 'Following the trail next session. ', el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Stop'))
+            : el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || !!S.dr || null, onclick: () => setMission('campaign') }, S.camp.n ? 'Continue next session' : 'Start the campaign next session'),
+          S.camp.n ? el('div', {}, el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { shipTab = 'Meridian'; tab('ship'); } }, 'Read the logs')) : null) : null,
         sec('Interplanetary Coordinator', el('p', {}, S.coord ? 'Charged. Your next Explore heads somewhere promising.' : 'Empty. One study session of Charge makes your next Explore a lucky one.'), coordB));
     }
     // the right side has two tabs: Upgrades (what resources buy) and Transmissions (everything your posts and the ship heard)
@@ -1306,7 +1317,7 @@
       if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, select, textarea')) return;
       if (!report.hidden) { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeReport(); } return; }
       if (!page.hidden) { if (e.key === 'Escape') { e.preventDefault(); tab('timer'); } return; }
-      if (/^[1-4]$/.test(e.key)) { const b = misBtns[+e.key - 1]; if (b && !b.disabled && !b.hidden) { e.preventDefault(); b.click(); } }
+      if (/^[1-5]$/.test(e.key)) { const b = misBtns[+e.key - 1]; if (b && !b.disabled && !b.hidden) { e.preventDefault(); b.click(); } }
       else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); startB.click(); }
     });
 
@@ -1415,10 +1426,19 @@
       if (others.length) { const o = others[Math.floor(Math.random() * others.length)]; const fr = o.post.tp.fac.length && Math.random() < .6 ? facReport(o) : null; out.push({ p: o, rep: fr || transmit(o), passive: true }); }
       return out;
     }
+    const KIND_LABEL = { talk: 'Conversation', action: 'Ship recorder', thought: 'Private diary' };
+    function actOf(n) { const per = Math.ceil(CAMP.logs.length / (CAMP.acts || [1]).length); return (CAMP.acts || [])[Math.floor((n - 1) / per)] || ''; }
+    function campLog(lg, n, got) { // one recovered Meridian log
+      const who = (CAMP.crew && CAMP.crew[lg.who]) || lg.who;
+      return el('div', { class: 'sl-trans-i sx-camp sx-camp-' + (lg.kind || 'talk') },
+        el('div', { class: 'sx-camp-h' }, el('span', {}, (CAMP.title || 'Campaign') + ', log ' + n + ' of ' + CAMP.logs.length), el('small', {}, actOf(n))),
+        el('div', { class: 'sx-camp-who' }, who, el('small', {}, KIND_LABEL[lg.kind] || '')),
+        el('p', {}, lg.t), got ? el('p', { class: 'sl-ev-got' }, '+' + got + ' ✦ for recovering the log') : null);
+    }
     function showTrans(list) {
       if (!list || !list.length) { trans.hidden = true; trans.replaceChildren(); return; }
       trans.hidden = false;
-      trans.replaceChildren(...list.map(({ p, rep, passive, ev, notes }) => notes ? el('div', { class: 'sl-trans-i sl-notes' }, notes.map(t => el('p', {}, t))) : ev ? el('div', { class: 'sl-trans-i sl-event' },
+      trans.replaceChildren(...list.map(({ p, rep, passive, ev, notes, camp: lg, n: ln, got: lgot }) => lg ? campLog(lg, ln, lgot) : notes ? el('div', { class: 'sl-trans-i sl-notes' }, notes.map(t => el('p', {}, t))) : ev ? el('div', { class: 'sl-trans-i sl-event' },
           el('div', { class: 'sl-trans-h' }, el('span', { class: 'sl-ev-i' }, ev.ic), (ev.battle ? ' ' : ' Deep-space event: ') + ev.title), el('p', {}, ev.t), ev.got ? el('p', { class: 'sl-ev-got' }, ev.got) : null)
         : el('div', { class: 'sl-trans-i' },
         el('div', { class: 'sl-trans-h' }, el('img', { src: satSprite(), alt: '' }), (passive ? ' Overheard from ' : ' Transmission from ') + nm(p) + ' · Day ' + rep.day), el('p', {}, rep.t))));
@@ -1459,6 +1479,14 @@
           if (hooks.show) hooks.show();
           toBreak();
           hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
+        } else if (campaigning()) {
+          const n = S.camp.n, log = CAMP.logs[n]; S.camp.n++;
+          const got = addDust(E.campaign.base + E.campaign.perLog * n); award(15, 20);
+          reps.unshift({ camp: log, n: n + 1, got });
+          if (!quiet && hooks.tada) hooks.tada();
+          if (hooks.show) hooks.show();
+          showCard(null); toBreak();
+          hint.textContent = (campDone() ? 'That was the last log. The campaign is complete.' : 'Log ' + (n + 1) + ' of ' + CAMP.logs.length + ' recovered.') + ' Now a ' + MODES[mode].toLowerCase() + '.';
         } else if (charging()) {
           S.coord = true; S.mission = 0; award(15, 0); S.cnt.charge++; if (hasT('nav2')) addDust(40 / INCOME);
           if (!quiet && hooks.tada) hooks.tada();
@@ -1568,17 +1596,18 @@
         const kind = sceneKind();
         hooks.scene({ mode, kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: scenePlanet(kind), coord: !!S.coord, spot: planetSpot, ship: S.ship });
       }
-      if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
+      if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : campaigning() ? 'Following the trail' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
     }
     function draw() {
       drawClock(); drawLv();
       root.dataset.mode = mode;
       modeBtns.forEach(b => { const on = b.dataset.m === mode; b.classList.toggle('on', on); b.disabled = running && !on; });
-      startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (S.dr ? (S.dr.n ? 'Continue the Run' : 'Start the Run') : building() ? (building().k === 'upgrade' ? 'Upgrade' : 'Build') : charging() ? 'Charge' : discovering() ? 'Survey' : heldP() ? 'Fight' : 'Launch') : 'Start break');
-      if (!hint.textContent) hint.textContent = mode === 'focus' ? (S.dr ? '🆘 ' + DISTRESS[S.dr.sc][2] + ' Finish this study session to keep going.' : building() ? 'Finish this session: ' + jobText(building()).replace(/^./, c => c.toLowerCase()) + '.' : charging() ? 'Finish this session to charge the Interplanetary Coordinator. No new world this time, but the next one will be a good one.' : discovering() ? '🔍 Finish this session to survey ' + nm(atP()) + ' (where you are now). You\'ll bring back collectibles made from its materials.' : heldP() ? '🏴 ' + heldP().outlaw.gang.replace(/^the/, 'The') + ' hold ' + nm(heldP()) + '. Finish this study session to drive them out. (Build and Charge still work.)' : S.coord ? '🧭 The Coordinator is charged: this trip has much better odds.' : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
+      startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (S.dr ? (S.dr.n ? 'Continue the Run' : 'Start the Run') : campaigning() ? 'Follow the trail' : building() ? (building().k === 'upgrade' ? 'Upgrade' : 'Build') : charging() ? 'Charge' : discovering() ? 'Survey' : heldP() ? 'Fight' : 'Launch') : 'Start break');
+      if (!hint.textContent) hint.textContent = mode === 'focus' ? (S.dr ? '🆘 ' + DISTRESS[S.dr.sc][2] + ' Finish this study session to keep going.' : campaigning() ? 'Finish this session to reach the Meridian\'s next log beacon (log ' + (S.camp.n + 1) + ' of ' + CAMP.logs.length + ').' : building() ? 'Finish this session: ' + jobText(building()).replace(/^./, c => c.toLowerCase()) + '.' : charging() ? 'Finish this session to charge the Interplanetary Coordinator. No new world this time, but the next one will be a good one.' : discovering() ? '🔍 Finish this session to survey ' + nm(atP()) + ' (where you are now). You\'ll bring back collectibles made from its materials.' : heldP() ? '🏴 ' + heldP().outlaw.gang.replace(/^the/, 'The') + ' hold ' + nm(heldP()) + '. Finish this study session to drive them out. (Build and Charge still work.)' : S.coord ? '🧭 The Coordinator is charged: this trip has much better odds.' : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
       if (S.mission > 0 && !building()) { S.mission = 0; S.job = null; }
       if (S.mission === -1 && S.coord) S.mission = 0;
       if (S.mission === -2 && !discovering()) S.mission = 0;
+      if (S.mission === -3 && campDone()) S.mission = 0;
       const cm = curMission(), locked = running && mode === 'focus', canBuild = anyBuild();
       mission.classList.toggle('off', mode !== 'focus');
       mission.hidden = !!S.dr; drawDr();
@@ -1588,6 +1617,7 @@
         b.disabled = (locked && !on) || (k === 'build' && !canBuild) || (k === 'charge' && !!S.coord && !on) || (k === 'discover' && !on && (!atP() || held(atP())));
         if (k === 'discover') b.title = !atP() ? 'Find a world first' : held(atP()) ? 'Outlaws hold ' + nm(atP()) + '. Drive them out first' : 'Survey ' + nm(atP()) + ' (where you are now) for collectibles';
         if (k === 'explore') { const o = heldP(); b.firstChild.textContent = o ? '⚔' : '🚀'; b.lastChild.textContent = o ? 'Fight' : S.coord ? 'Explore (lucky)' : 'Explore'; b.title = o ? 'Outlaws hold ' + nm(o) + ': fight them off with one study session before you can travel again' : MISSIONS[0][3]; b.classList.toggle('sl-fight', !!o); }
+        if (k === 'campaign') { b.hidden = !campaigning(); }
         if (k === 'charge') b.title = S.coord ? 'Already charged: your next Explore is a lucky one' : MISSIONS[3][3];
         if (k === 'build') { b.title = canBuild ? MISSIONS[2][3] : 'Nothing left to build'; const bj = building(); b.lastChild.textContent = bj ? 'Build: ' + (bj.k === 'room' ? ROOMS[bj.fac][1] : bj.k === 'post' ? 'Listening Post' : bj.k === 'upgrade' ? 'Travelers\' Post' : FAC[bj.fac][1]) : 'Build'; b.hidden = !bj && cm !== 'build'; }
       });
@@ -1662,13 +1692,23 @@
         lvMsg && Date.now() - lvMsgAt < 10000 ? el('p', { class: 'sl-lv-msg' }, lvMsg) : null, lvBar('xp', '⭐', CAPT, true), lvBar('kn', '📚', KNOW, true));
       const drGroup = group('🆘 Distress Run', el('p', {}, S.dr ? 'In progress: ' + DISTRESS[S.dr.sc][1] + ', Act ' + ROMAN(S.dr.n + 1) + ' of ' + ROMAN(S.dr.need) + '.' : S.drDay === today() ? 'Today\'s run is used up. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'Available at the start of your next cycle (right after a long break).' : 'Earn a ★ Full Cycle today (no skipping for a whole cycle) and a distress call comes in when the long break ends.'),
         el('p', { class: 'sl-muted' }, 'Once a day: a whole cycle of study sessions with no other missions, for about ✦ ' + E.distressRun.base + '–' + (E.distressRun.base + E.distressRun.random) + ', a random bonus, 250 XP and 120 Knowledge. ' + (S.drN || 0) + ' completed so far.'));
-      const SUB = { Captain: [rank], Crew: crewView(group), Hangar: hangarView(group), Goals: [drGroup, bounties, records],
+      const SUB = { Captain: [rank], Crew: crewView(group), Meridian: campArchive(group), Hangar: hangarView(group), Goals: [drGroup, bounties, records],
         Logs: [trans, evLog], Stats: statsView(group) };
       if (!SUB[shipTab]) shipTab = 'Captain';
       const subBtns = Object.keys(SUB).map(k => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === shipTab), onclick: () => { shipTab = k; drawShip(); } }, k));
       shipPane.replaceChildren(el('div', { class: 'sl-stabs sl-shiptabs', role: 'tablist' }, subBtns), el('div', { class: 'sl-subpane' }, SUB[shipTab]));
     }
 
+    function campArchive(group) {
+      if (!CAMP) return [el('p', { class: 'sl-muted' }, 'The campaign file (campaign.json) could not be loaded.')];
+      if (!S.camp.n) return [el('p', { class: 'sl-muted' }, 'No logs recovered yet. Start the campaign from the left side of the main screen.')];
+      const out = [], per = Math.ceil(CAMP.logs.length / (CAMP.acts || [1]).length);
+      for (let a = 0; a * per < S.camp.n; a++) {
+        const logs = CAMP.logs.slice(a * per, Math.min(S.camp.n, (a + 1) * per));
+        out.push(group((CAMP.acts || [])[a] || 'Logs', ...logs.map((lg, i) => campLog(lg, a * per + i + 1))));
+      }
+      return out.reverse();
+    }
     function crewView(group) {
       const out = [], cost = crewCost(), free = bunks() - S.crew.length;
       out.push(group('Your crew (' + S.crew.length + ' / ' + bunks() + ' bunks)', bunks() ? null : el('p', {}, 'Build the Crew Quarters first (Build tab, "Your ship"). Each level holds two crew.'),

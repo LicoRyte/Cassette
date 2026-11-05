@@ -1,8 +1,8 @@
 /* Solarist offline support. Every file is fetched fresh when online (so updates show up on the next reload)
    and saved, so the app also works offline. VERSION only needs bumping when this list of files changes. */
-const VERSION = 'solarist-5';
+const VERSION = 'solarist-6';
 const FILES = [
-  './', 'index.html', 'style.css', 'shell.js', 'solarist.js', 'manifest.webmanifest', 'economy.json', 'items.json',
+  './', 'index.html', 'style.css', 'shell.js', 'solarist.js', 'manifest.webmanifest', 'economy.json', 'items.json', 'campaign.json',
   'fonts/barlow-condensed-latin-400-normal.woff2', 'fonts/barlow-condensed-latin-500-normal.woff2', 'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2',
   'fonts/barlow-latin-400-normal.woff2', 'fonts/barlow-latin-500-normal.woff2', 'fonts/barlow-latin-400-italic.woff2',
   'sfx/granted.wav', 'sfx/messagebox.wav',

@@ -52,7 +52,7 @@
   const PAL = ['#000000', '#5ba675', '#6bc96c', '#abdd64', '#fcef8d', '#ffb879', '#ea6262', '#cc425e', '#a32858', '#751756', '#390947', '#611851', '#873555', '#a6555f', '#c97373', '#f2ae99', '#ffc3f2',
     '#ee8fcb', '#d46eb3', '#873e84', '#1f102a', '#4a3052', '#7b5480', '#a6859f', '#d9bdc8', '#ffffff', '#aee2ff', '#8db7ff', '#6d80fa', '#8465ec', '#834dc4', '#7d2da0', '#4e187c'];
   const rgb = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
-  const KINDS = { explore: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6 };
+  const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6 };
   const cv = mk('canvas', { class: 'sx-view', 'aria-hidden': 'true' });
   document.body.prepend(cv);
   const gl = cv.getContext('webgl', { antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power' });
@@ -170,7 +170,7 @@ void main(){
       const r = info.spot && info.spot.getBoundingClientRect(), rings = info.planet && info.planet.rings;
       const cx = r && r.width ? (r.left + r.width / 2) / PX : cv.width / 2, cy = r && r.height ? cv.height - (r.top + r.height / 2) / PX : cv.height / 2;
       let rad = r && r.width ? Math.min(r.width, r.height) / PX * (rings ? .25 : .44) : cv.height * .2;
-      const sil = info.kind === 'explore' && info.running ? 1 : 0;
+      const sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running ? 1 : 0;
       if (sil) rad *= .25 + .75 * info.pct / 100;
       if (ok) {
         gl.viewport(0, 0, cv.width, cv.height);
@@ -197,7 +197,7 @@ void main(){
     const cx = (r.left + r.width / 2) / PX, cy = (r.top + r.height / 2) / PX, rad = Math.min(r.width, r.height) / PX * .44;
     const moving = info.running && !reduceMotion.matches, t = now / 1000;
     const bob = moving ? Math.round(Math.sin(t * 2.2)) : 0;
-    const travel = info.running && (info.kind === 'explore' || info.kind === 'distress' || info.kind === 'fight');
+    const travel = info.running && (info.kind === 'explore' || info.kind === 'campaign' || info.kind === 'distress' || info.kind === 'fight');
     const half = r.width / PX / 2;
     let x = Math.round(cx - Math.min(rad * (travel ? 1.25 : 1.2), half - 4) - 18), y = Math.round(cy + (travel ? 0 : rad * .6) - 4 + bob);
     x = Math.max(Math.round(r.left / PX) + 4, x);
@@ -214,7 +214,7 @@ void main(){
 
   /* ---------- start the game ---------- */
   const optJson = f => fetch(f, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null); // optional files; bad JSON falls back to the defaults
-  Promise.all([optJson('economy.json'), optJson('items.json')]).then(([econ, items]) => {
+  Promise.all([optJson('economy.json'), optJson('items.json'), optJson('campaign.json')]).then(([econ, items, camp]) => {
     root.replaceChildren();
     window.Solarist.mount(root, {
       tada: () => play('granted'),
@@ -223,6 +223,6 @@ void main(){
       title: t => { document.title = t; },
       scene,
       settings: appSettings,
-    }, econ, items);
+    }, econ, items, camp);
   }).catch(() => { root.innerHTML = '<p class="boot">Solarist couldn\'t start. Reload the page to try again.</p>'; });
 })();
