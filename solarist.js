@@ -1886,6 +1886,7 @@
         rollDay(); if (S.cnt.lastDay !== today()) { S.cnt.lastDay = today(); S.cnt.days++; }
         rt0 = rating();
         S.total++; S.todayN++; S.cycle++; S.minutes += S.set.focus; S.fc.n++;
+        { S.cnt.maxFocus = Math.max(S.cnt.maxFocus || 0, S.set.focus); const st = S.cnt.streak = S.cnt.streak || { last: '', n: 0, best: 0 }, td = today(); if (st.last !== td) { const y = new Date(); y.setDate(y.getDate() - 1); st.n = st.last === dayKey(y) ? st.n + 1 : 1; st.last = td; st.best = Math.max(st.best, st.n); } }
         { (S.cnt.dow = S.cnt.dow || {})[new Date().getDay()] = 1; const hr = new Date().getHours(); if (hr < 4) S.cnt.night = (S.cnt.night || 0) + 1; else if (hr < 7) S.cnt.early = (S.cnt.early || 0) + 1; }
         const target = building();
         // the tuned post reports in every study session (also while building somewhere else)
@@ -2264,6 +2265,43 @@
     SQ('skip', '⏭', 'Speedrunner', 'Skip 10 times (we saw that)', () => (S.cnt.skips || 0) >= 10);
     SQ('miles', '🗺', 'Frequent Flyer', 'Travel 100,000 light-years in total', () => S.found.reduce((a, x) => a + x.p.dist, 0) + (S.sold.ly || 0) >= 100000);
     SQ('firesale', '💥', 'Fire Sale', 'Sell a Legendary world (are you sure?)', () => (S.cnt.soldLeg || 0) >= 1);
+    const typeN = t => S.found.filter(x => x.p.type === t).length, catN = c => Object.keys(S.items).filter(k => parseId(k).c === c && itemName(k) !== '???').length;
+    SQ('ocean', '🌊', 'Water World', 'Have 3 Ocean worlds in your Logbook', () => typeN('Ocean') >= 3);
+    SQ('snow', '☃', 'Snowball Fight', 'Find life on an Ice world', () => anyW(p => p.type === 'Ice' && p.lifeLvl > 0));
+    SQ('toxic', '☠', 'Breathe at Your Own Risk', 'Find life on a Toxic world', () => anyW(p => p.type === 'Toxic' && p.lifeLvl > 0));
+    SQ('microbe', '🦠', 'Tiny Neighbors', 'Find a world with microbial traces', () => anyW(p => p.lifeLvl === 1));
+    SQ('moss', '🧽', 'Fuzzy', 'Find a world covered in moss-like mats', () => anyW(p => p.lifeLvl === 2));
+    SQ('grass', '🌿', 'Touch Grass', 'Find a world with plant-like life', () => anyW(p => p.lifeLvl === 3));
+    SQ('crystal', '💠', 'Shiny!', 'Find a Crystal world', () => typeN('Crystal') > 0);
+    SQ('iron', '🤘', 'Heavy Metal', 'Find an Iron world', () => typeN('Iron') > 0);
+    SQ('carbon', '🖤', 'Diamonds Are Forever', 'Find a Carbon world', () => typeN('Carbon') > 0);
+    SQ('shatter', '🧩', 'Some Assembly Required', 'Find a Shattered world', () => typeN('Shattered') > 0);
+    SQ('glass', '🏖', 'Sandblasted', 'Find a Glass storm world', () => typeN('Glass storm') > 0);
+    SQ('locked', '🌗', 'Half and Half', 'Find a Tidally locked world', () => typeN('Tidally locked') > 0);
+    SQ('icegiant', '🥶', 'Cool Blue', 'Find an Ice giant', () => typeN('Ice giant') > 0);
+    SQ('dwarf', '🐣', 'Small but Mighty', 'Find life on a Dwarf world', () => anyW(p => p.type === 'Dwarf' && p.lifeLvl > 0));
+    SQ('ruins', '🗿', 'Who Built That?', 'Find a world with ruins of an ancient structure', () => anyW(p => p.odd && p.odd.includes('ruins')));
+    SQ('round', '⭕', 'Suspiciously Round', 'Find a world with a perfectly round lake', () => anyW(p => p.odd === 'a perfectly round lake'));
+    SQ('rainbow', '🌈', 'Taste the Rainbow', 'Have a world of every rarity in your Logbook', () => RARITY.every(([r]) => S.found.some(x => x.p.rarity === r)));
+    SQ('snob', '🧐', 'Rarity Snob', 'Have 10 Rare or Legendary worlds in your Logbook', () => S.found.filter(x => x.p.rarity === 'Rare' || x.p.rarity === 'Legendary').length >= 10);
+    SQ('hundred', '💯', 'Centennial', 'Discover world #0100', () => anyW(p => p.num === 100));
+    SQ('records', '🏆', 'Record Breaker', 'Hold 5 records at once', () => Object.keys(S.rec).length >= 5);
+    SQ('lucky2', '🍀', 'Lucky Streak', 'Make 2 lucky Coordinator trips in a row', () => lastN(2, p => !!p.lucky));
+    SQ('allin', '🎰', 'All In', 'Have the Coordinator charged with every chip placed', () => S.coord && S.chips.own > 0 && chipsFree() === 0);
+    SQ('chatter', '📡', 'Chatterbox', 'Hear 100 transmissions from your posts', () => posts().reduce((a, x) => a + x.p.post.reports.length, 0) >= 100);
+    SQ('mug', '☕', 'Found It!', 'Find Dave\'s Lost Coffee Mug (he\'s been looking everywhere)', () => Object.keys(S.items).some(k => itemName(k) === 'Dave\'s Lost Coffee Mug'));
+    SQ('hoarder', '🧺', 'Hoarder', 'Receive 300 collectibles, duplicates included', () => Object.values(S.items).reduce((a, it) => a + it.n, 0) >= 300);
+    SQ('variety', '🗃', 'A Bit of Everything', 'Own a collectible from every category you can find', () => CATS.filter(([c]) => catOpen(c)).every(([c]) => catN(c) > 0));
+    SQ('dino', '🦴', 'Dino Nerd', 'Own 5 different Fossils', () => catN('fos') >= 5);
+    SQ('mixtape', '🎧', 'Mixtape', 'Own 5 different Signals', () => catN('sig') >= 5);
+    SQ('purse', '🪙', 'Coin Purse', 'Own 5 different Coins', () => catN('coin') >= 5);
+    SQ('weird', '📦', 'Box of Weird', 'Own 5 different Anomalies', () => catN('ano') >= 5);
+    SQ('nerd', '🤓', 'Book Smart', 'Reach Knowledge Level 15 while it is 5 above your Captain Level', () => lvInfo(S.kn).L >= 15 && lvInfo(S.kn).L - lvInfo(S.xp).L >= 5);
+    SQ('jock', '💪', 'Street Smart', 'Reach Captain Level 30 with a Knowledge Level half as high (or less)', () => lvInfo(S.xp).L >= 30 && lvInfo(S.kn).L * 2 <= lvInfo(S.xp).L);
+    SQ('rack', '🎖', 'Medal Rack', 'Unlock 50 medals', () => Object.keys(S.ach).length >= 50);
+    SQ('ride', '🚀', 'New Ride', 'Fly any design other than the Scout', () => S.ship.design !== 'Scout');
+    SQ('deep', '🧘', 'Deep Work', 'Finish a 60-minute study session', () => (S.cnt.maxFocus || 0) >= 60);
+    SQ('habit', '📈', 'Habit Forming', 'Study 7 days in a row', () => !!S.cnt.streak && S.cnt.streak.best >= 7);
     tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
     tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
