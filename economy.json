@@ -77,8 +77,8 @@
   "facilitySlots": { "base": 5, "atTown": 1, "max": 10, "buyBase": 1500, "buyGrowth": 1.8 },
   "_facilitySlots": "How many facilities fit at one Travelers' Post, plus extra slots once it grows into a Town (1,000 settlers). You can buy more land up to max slots: the first costs buyBase, each next one buyGrowth x more.",
 
-  "quests": { "delivery": 55, "expedition": 350, "expeditionSafe": 50, "expeditionBold": 20, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
-  "_quests": "delivery: the base pay of an Interstellar Delivery (a job that fits 1 world in N pays about N^0.9 times this, up to 45x). Expedition: the final payout, a safe leg's pay, and a bold leg's pay when it finds no collectible. Guild contract: the resource and Knowledge-point choices. Most Wanted: base payout plus bossPerCatch for every boss caught before.",
+  "quests": { "delivery": 55, "deliveryViaJump": 0.7, "expedition": 350, "expeditionSafe": 50, "expeditionBold": 20, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
+  "_quests": "deliveryViaJump: pay multiplier when you drop a delivery off at a world you jumped to with a Hyperdrive Node. delivery: the base pay of an Interstellar Delivery (a job that fits 1 world in N pays about N^0.9 times this, up to 45x). Expedition: the final payout, a safe leg's pay, and a bold leg's pay when it finds no collectible. Guild contract: the resource and Knowledge-point choices. Most Wanted: base payout plus bossPerCatch for every boss caught before.",
 
   "facilityCost": { "base": 47.5, "growth": 1.6, "maxLevel": 10 },
   "_facilityCost": "Facility upgrade price to reach level L: base x growth ^ (L - 2). maxLevel is the highest level."

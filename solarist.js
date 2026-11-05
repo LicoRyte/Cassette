@@ -577,7 +577,7 @@
     sell: { rarity: { Common: 6, Uncommon: 15, Rare: 45, Legendary: 140 }, perHabitabilityPercent: .25, earthLike: 15, earthLikeAt: 80, perLifeLevel: 4, anomaly: 15, rings: 5, perMoon: 1, moonCap: 10, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 30, perLog: .7 }, survey: { pay: 20 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
     coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, facilitySlots: { base: 5, atTown: 1, max: 10, buyBase: 1500, buyGrowth: 1.8 },
-    quests: { delivery: 55, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
+    quests: { delivery: 55, deliveryViaJump: .7, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
   function mergeEcon(d, o) { // copy numbers from the JSON over the defaults, ignoring notes and anything that isn't the right type
     if (!o || typeof o !== 'object') return d;
@@ -1189,7 +1189,8 @@
       if (S.dl.day !== today()) { S.dl.day = today(); S.dl.offers = Array.from({ length: 3 }, makeDelivery); }
     }
     const dlScore = p => { const d = S.dl.active; if (!d || !p) return 0; const c = d.reqs.reduce((a, r) => a + dClose(p, r), 0) / d.reqs.length; return d.reqs.every(r => dMet(p, r)) ? 1 : c; };
-    const dlPayAt = p => { const sc = dlScore(p); return sc >= 1 ? S.dl.active.pay : Math.max(Math.round(S.dl.active.pay * .1), Math.round(S.dl.active.pay * sc * sc * .8)); };
+    const viaJump = p => !!p && S.jumped === p.num && S.at === p.num; // dropped off at a world you teleported to: pays less, so a node network can't farm deliveries
+    const dlPayAt = p => { const sc = dlScore(p), base = sc >= 1 ? S.dl.active.pay : Math.max(Math.round(S.dl.active.pay * .1), Math.round(S.dl.active.pay * sc * sc * .8)); return Math.round(base * (viaJump(p) ? E.quests.deliveryViaJump : 1)); };
     function dlAccept(i) { if (focusLock() || S.dl.active) return; const d = S.dl.offers.splice(i, 1)[0]; if (!d) return; d.from = S.at; d.at = Date.now(); S.dl.active = d;
       pushEv({ c: 'quest', ic: '📦', title: 'Delivery accepted: ' + dName(d), t: d.client + ' wants ' + d.cargo + ' taken to a world with: ' + d.reqs.map(r => DREQ[r.k][1](r.v)).join(', ') + '.', at: Date.now() }); save(); draw(); }
     function dlAbandon() { const d = S.dl.active; if (!d) return; pushEv({ c: 'quest', ic: '📦', title: 'Delivery abandoned: ' + dName(d), t: 'The ' + d.cargo + ' went back to the depot.', at: Date.now() }); S.dl.active = null; save(); draw(); }
@@ -1317,7 +1318,7 @@
     const canJump = p => !!(p && p.node) && S.at !== p.num && !held(p) && !(running && mode === 'focus') && !S.dr;
     function jumpTo(p) {
       if (!canJump(p)) return;
-      const from = atP(); S.at = p.num; S.cnt.jumps = (S.cnt.jumps || 0) + 1;
+      const from = atP(); S.at = p.num; S.jumped = p.num; S.cnt.jumps = (S.cnt.jumps || 0) + 1;
       pushEv({ c: 'ship', ic: '⚡', title: 'Jumped to ' + nm(p), t: 'The Hyperdrive Node pulled the ship ' + (from ? 'from ' + nm(from) + ' ' : '') + 'straight to ' + nm(p) + '. Everyone\'s hair is standing up.', at: Date.now() });
       hint.textContent = '⚡ Jumped to ' + nm(p) + '. Discover can survey it, and deliveries can be dropped off here.'; save(); draw();
     }
@@ -1618,7 +1619,7 @@
       const dlSec = dA ? sec('Interstellar Delivery', el('p', { class: 'sx-q-h' }, '📦 ' + dName(dA)), el('p', { class: 'sl-muted' }, dA.client + ' wants ' + dA.cargo + ' taken to a world with:'),
           el('ul', { class: 'sx-reqs' }, dA.reqs.map(r => el('li', { class: here && here.num !== dA.from && dMet(here, r) ? 'ok' : '' }, DREQ[r.k][1](r.v)))),
           el('p', { class: 'sl-muted' }, 'Pays ✦ ' + Math.round(dA.pay * INCOME) + ' on a perfect match (it delivers itself when you arrive at one).'),
-          el('div', { class: 'sx-row-l' }, here && here.num !== dA.from ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => dlDeliver(here) }, 'Deliver at ' + nm(here) + ' now (' + Math.round(dlScore(here) * 100) + '% match, ✦ ' + Math.round(dlPayAt(here) * INCOME) + ')') : el('span', { class: 'sl-muted' }, 'Travel somewhere new to deliver. '),
+          el('div', { class: 'sx-row-l' }, here && here.num !== dA.from ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => dlDeliver(here) }, 'Deliver at ' + nm(here) + ' now (' + Math.round(dlScore(here) * 100) + '% match, ✦ ' + Math.round(dlPayAt(here) * INCOME) + (viaJump(here) ? ', −' + Math.round((1 - E.quests.deliveryViaJump) * 100) + '% jumped here' : '') + ')') : el('span', { class: 'sl-muted' }, 'Travel somewhere new to deliver. '),
             armBtn('Abandon', 'Sure?', dlAbandon, 'sx-mini')))
         : sec('Interstellar Delivery', S.dl.offers.length ? el('p', { class: 'sl-muted' }, 'Pick one job. ' + S.dl.offers.length + ' left today.') : el('p', { class: 'sl-muted' }, 'No more jobs today. New ones come tomorrow. ' + S.dl.done + ' delivered so far.'),
           ...S.dl.offers.map((d, i) => el('div', { class: 'sx-offer' }, el('div', { class: 'sx-q' }, el('span', {}, '📦 ' + dName(d), el('small', {}, d.cargo)), el('em', {}, '✦ ' + Math.round(d.pay * INCOME))),
