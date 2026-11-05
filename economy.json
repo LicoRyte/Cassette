@@ -18,7 +18,7 @@
   "engineBonusPerLevel": 0.05,
   "_engineBonusPerLevel": "Engine module: session pay x (1 + this x (level - 1)).",
 
-  "fight": { "min": 100, "max": 150 },
+  "fight": { "min": 120, "max": 175 },
   "_fight": "Extra resources for driving outlaws off a world (random between min and max).",
 
   "fullCycle": { "base": 75, "perHullLevel": 15 },
