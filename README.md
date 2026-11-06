@@ -18,6 +18,7 @@ Your progress is saved in this browser.
 | `shell.js` | Sounds, notifications, install, offline support, and the planet viewport: a WebGL shader that draws each world as a dithered, palette-snapped 3D sphere (radar sweep while surveying, construction lights while building, and so on) |
 | `solarist.js` | The game: timer, planets, missions, posts, collectibles, levels, Distress Runs, stats |
 | `economy.json` | Every resource income and price. Edit, commit, reload. Notes inside explain each number |
+| `art/decor/` | Your own decoration art. Drop PNGs in and list them in `decor.json` to replace built-in decorations or add new ones. See `art/decor/README.md` |
 | `items.json` | The collectibles, 8 categories with 4 rarities each. Add new ones at the end of a list only (saves remember items by position) |
 | `campaign.json` | The campaign: 100 logs of the lost survey ship Meridian. Edit the text freely; keep the order |
 | `sw.js` | Offline support. Files are always fetched fresh when online, so edits show up on the next reload. Bump `VERSION` only if you add or remove files |

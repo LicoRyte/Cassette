@@ -1,0 +1,5 @@
+{
+  "_help": "See README.md in this folder. replace: built-in decorations to redraw ('category/id': {}). custom: new decorations.",
+  "replace": {},
+  "custom": []
+}

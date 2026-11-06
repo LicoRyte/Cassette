@@ -1677,6 +1677,16 @@
         ['police', 'Patrol strobes', 5, 1, 'strobe', '#cf573c', '#4f8fba'], ['sweep', 'Lightning sweep', 5, 1, 'sweep', '#ebede9'], ['comet', 'Comet trail', 5, 1, 'comet', '#e8c170'], ['neon', 'Neon pink chase', 5, 1, 'chase', '#df84a5', '#a23e8c'], ['beacon', 'Station beacons', 5, 1, 'pulse', '#e8c170']]],
     };
     const DEC_ALL = Object.assign({}, DECOR, SHIP_DECOR);
+    // your own art: art/decor/decor.json lists PNGs that replace a built-in decoration ("replace") or add new ones ("custom")
+    const DEC_IMG = {}; // 'cat:id' -> { img, frames, fps }
+    fetch('art/decor/decor.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+      if (!j) return;
+      const load = (key, file, o) => { const img = new Image(); img.onload = () => { DEC_IMG[key] = { img, frames: Math.max(1, o.frames | 0 || 1), fps: +o.fps || 4 }; }; img.onerror = () => console.warn('Solarist: could not load decoration art', file); img.src = 'art/decor/' + file; };
+      Object.entries(j.replace || {}).forEach(([k, o]) => { const [cat, id] = k.split('/'); if (!DEC_ALL[cat] || !DEC_ALL[cat][1].some(x => x[0] === id)) return console.warn('Solarist: no decoration called', k); load(cat + ':' + id, (o && o.file) || k + '.png', o || {}); });
+      (j.custom || []).forEach(o => { if (!o || !DEC_ALL[o.cat] || !o.id || DEC_ALL[o.cat][1].some(x => x[0] === o.id)) return console.warn('Solarist: skipped custom decoration', o && o.id);
+        DEC_ALL[o.cat][1].push([o.id, o.name || o.id, Math.max(1, Math.min(5, o.tier | 0 || 1)), o.station ? 1 : 0, 'img', o.cat === 'light' || o.cat === 'lights' ? (o.glow || '#e8c170') : undefined]); load(o.cat + ':' + o.id, o.file || o.cat + '/' + o.id + '.png', o); });
+      if (typeof drawShip === 'function' && !shipPane.hidden) drawShip();
+    }).catch(() => { });
     const decTier = t => [0, E.decorCost.t1, E.decorCost.t2, E.decorCost.t3, E.decorCost.t4, E.decorCost.station][t] || 0;
     const decItem = (cat, id) => DEC_ALL[cat][1].find(x => x[0] === id) || DEC_ALL[cat][1][0];
     const decKey = (cat, id) => cat + ':' + id;
@@ -1714,6 +1724,10 @@
     const px = (x, y, c, w, h) => { Z.g.fillStyle = c; Z.g.fillRect(Math.round(x), Math.round(y), w || 1, h || 1); };
     const blink = (f, k) => Z.still ? 0 : Math.floor(Z.t * f + (k || 0)) & 1;
     const alpha = (a, fn) => { Z.g.globalAlpha = a; fn(); Z.g.globalAlpha = 1; };
+    const decArt = (cat, id) => DEC_IMG[cat + ':' + id];
+    function artFrame(a) { const fw = Math.floor(a.img.width / a.frames); return [fw, a.img.height, (Z.still ? 0 : Math.floor(Z.t * a.fps) % a.frames) * fw]; }
+    function artAt(a, x, y) { const [w, h, sx] = artFrame(a); Z.g.drawImage(a.img, sx, 0, w, h, Math.round(x), Math.round(y), w, h); return [w, h]; }
+    function artTile(a, x, y, W, H) { const [w, h, sx] = artFrame(a); for (let yy = 0; yy < H; yy += h) for (let xx = 0; xx < W; xx += w) { const cw = Math.min(w, W - xx), ch = Math.min(h, H - yy); Z.g.drawImage(a.img, sx, 0, cw, ch, x + xx, y + yy, cw, ch); } }
     const PAT = {
       seams: (x, y) => x % 11 === 10, rivets: (x, y) => x % 8 === 3 && y % 6 === 2, planks: (x, y) => y % 4 === 3 || (x + (y >> 2) * 7) % 15 === 0, brick: (x, y) => y % 4 === 3 || (x + ((y >> 2) & 1) * 3) % 6 === 0,
       stripe: x => x % 4 < 2, dots: (x, y) => x % 5 === 2 && y % 5 === 2, stars: (x, y) => (x * 7 + y * 13) % 41 === 0, checker: (x, y) => ((x / 3 | 0) + (y / 3 | 0)) & 1, diamond: (x, y) => (x + y) % 6 === 0 || (x - y + 60) % 6 === 0,
@@ -1862,13 +1876,13 @@
       for (let y = y0; y < y1; y++) { const w = Math.max(0, Math.round(20 - Math.abs(y - mid) * 20 / ((y1 - y0) / 2))); px(x1, y, hull, w, 1); if (w) px(x1 + w - 1, y, 'rgba(0,0,0,.2)'); } // nose
       px(x0 - 8, y0 + 8, '#577277', 8, y1 - y0 - 16); px(x0 - 10, y0 + 10, '#394a50', 2, y1 - y0 - 20); // engine block
       if (!still) { px(x0 - 13 - blink(5), y0 + 14, '#73bed3', 3 + blink(5), y1 - y0 - 28); px(x0 - 15 - blink(5) * 2, y0 + 16, '#a4dddb', 2, y1 - y0 - 32); }
-      const hl = decItem('lights', shipDec('lights')), hm = hl[4]; // hull running lights along the top and bottom edges
+      const hl = decItem('lights', shipDec('lights')), hlA = decArt('lights', hl[0]), hm = hlA && hl[4] === 'img' ? 'steady' : hl[4]; // hull running lights along the top and bottom edges
       if (hm !== 'none') { const cs = hl.slice(5), N = Math.floor((x1 - x0 - 4) / 6);
         for (let n = 0; n < N; n++) { const x = x0 + 3 + n * 6; let c = cs[0], on = true;
           if (hm === 'alt') c = cs[n % 2]; if (hm === 'twinkle') on = still || ((n * 7 + Math.floor(t * 2)) % 5) > 0; if (hm === 'pulse') on = still || Math.floor(t * 1.5) % 2 === 0;
           if (hm === 'chase') c = cs[(n + Math.floor(t * 4)) % cs.length]; if (hm === 'strobe') { c = cs[Math.floor(t * 4) % 2]; on = still || (n % 2) === Math.floor(t * 4) % 2; }
           if (hm === 'sweep') on = still || Math.abs(n - (t * 14) % (N + 6)) < 1.5; if (hm === 'comet') { const d = ((t * 8) % (N + 4)) - n; on = still || (d >= 0 && d < 4); if (d > 0) c = d < 1 ? '#ebede9' : cs[0]; }
-          if (on) { px(x, y0 + 1, c); px(x, y1 - 2, c); } } }
+          if (on) { if (hlA) { const [w, h] = artFrame(hlA); artAt(hlA, x - Math.floor(w / 2), y0 + 1 - Math.floor(h / 2)); artAt(hlA, x - Math.floor(w / 2), y1 - 2 - Math.floor(h / 2)); } else { px(x, y0 + 1, c); px(x, y1 - 2, c); } } } }
       DECKS.forEach(row => row.forEach(k => {
         const [rx, ry] = roomXY(k), lv = roomAt(k);
         const d = cat => { const p = P(k), id = p && p[1] === cat ? p[2] : decOf(k, cat); return decItem(cat, id); };
@@ -1879,10 +1893,10 @@
           if (inHover === k) alpha(.18, () => px(rx, ry, '#e8c170', RW, RH));
           px(rx + RW - 1, ry, 'rgba(0,0,0,.35)', 1, RH); return;
         }
-        const wl = d('wall'), pw = PAT[wl[4]]; px(rx, ry, wl[5], RW, RH - 4); for (let y = 0; y < RH - 4; y++) for (let x = 0; x < RW; x++) if (pw && pw(x, y)) px(rx + x, ry + y, wl[6]);
-        const wn = d('window'); if (wn[4] !== 'none') WIN(wn[4], rx, ry, wn[5], wn[6]);
-        const ar = d('art'); if (ar[4] !== 'none') ART(ar[4], rx + 27, ry + 5, ar[5], ar[6]);
-        const fl = d('floor'), pf = PAT[fl[4]]; px(rx, ry + RH - 4, fl[5], RW, 4); for (let x = 0; x < RW; x++) for (let y = 0; y < 4; y++) if (pf && pf(x, y)) px(rx + x, ry + RH - 4 + y, fl[6]);
+        const wl = d('wall'), pw = PAT[wl[4]], wa = decArt('wall', wl[0]); if (wa) artTile(wa, rx, ry, RW, RH - 4); else { px(rx, ry, wl[5] || '#394a50', RW, RH - 4); for (let y = 0; y < RH - 4; y++) for (let x = 0; x < RW; x++) if (pw && pw(x, y)) px(rx + x, ry + y, wl[6]); }
+        const wn = d('window'), wnA = decArt('window', wn[0]); if (wnA) { const [w, h] = artFrame(wnA); artAt(wnA, rx + 13 - w / 2, ry + 10 - h / 2); } else if (wn[4] !== 'none') WIN(wn[4], rx, ry, wn[5], wn[6]);
+        const ar = d('art'), arA = decArt('art', ar[0]); if (arA) { const [w, h] = artFrame(arA); artAt(arA, rx + 32 - w / 2, ry + 10 - h / 2); } else if (ar[4] !== 'none') ART(ar[4], rx + 27, ry + 5, ar[5], ar[6]);
+        const fl = d('floor'), pf = PAT[fl[4]], flA = decArt('floor', fl[0]); if (flA) artTile(flA, rx, ry + RH - 4, RW, 4); else { px(rx, ry + RH - 4, fl[5] || '#577277', RW, 4); for (let x = 0; x < RW; x++) for (let y = 0; y < 4; y++) if (pf && pf(x, y)) px(rx + x, ry + RH - 4 + y, fl[6]); }
         px(rx, ry + RH - 5, 'rgba(0,0,0,.25)', RW, 1);
         const FY = ry + RH - 4, mx = rx + 15; // floor line, and where the room's own furniture stands
         const F = {
@@ -1896,10 +1910,10 @@
           medbay: () => { px(mx, FY - 5, '#ebede9', 16, 2); px(mx, FY - 6, '#c7cfcc', 4, 1); px(mx + 1, FY - 3, '#819796', 1, 3); px(mx + 14, FY - 3, '#819796', 1, 3); px(mx + 7, FY - 15, '#cf573c', 4, 1); px(mx + 8, FY - 16, '#cf573c', 2, 3); },
         };
         F[k] && F[k]();
-        const fu = d('furn'); if (fu[4] !== 'none') FURN(fu[4], rx + 2, FY, fu[5], fu[6]);
-        const pl = d('plant'); if (pl[4] !== 'none') PLANT(pl[4], rx + RW - 8, FY, ry, rx, pl[5], pl[6]);
-        const ce = decItem('ceil', shipDec('ceil')); if (ce[4] !== 'none') CEIL(ce[4], rx, ry, ce[5]);
-        const li = d('light'); LIGHT(li[4], rx + RW / 2 + 4, ry, li[5], li[6]);
+        const fu = d('furn'), fuA = decArt('furn', fu[0]); if (fuA) { const [, h] = artFrame(fuA); artAt(fuA, rx + 2, FY - h); } else if (fu[4] !== 'none') FURN(fu[4], rx + 2, FY, fu[5], fu[6]);
+        const pl = d('plant'), plA = decArt('plant', pl[0]); if (plA) { const [w, h] = artFrame(plA); artAt(plA, rx + RW - 2 - w, FY - h); } else if (pl[4] !== 'none') PLANT(pl[4], rx + RW - 8, FY, ry, rx, pl[5], pl[6]);
+        const ce = decItem('ceil', shipDec('ceil')), ceA = decArt('ceil', ce[0]); if (ceA) { const [w] = artFrame(ceA); artAt(ceA, w >= RW ? rx : rx + 5, ry); } else if (ce[4] !== 'none') CEIL(ce[4], rx, ry, ce[5]);
+        const li = d('light'), liA = decArt('light', li[0]), lx = rx + RW / 2 + 4; if (liA) { const [w] = artFrame(liA); alpha(.12, () => { for (let y = 0; y < RH - 6; y++) { const gw = 3 + y * .9; px(lx - gw, ry + 3 + y, li[5] || '#e8c170', gw * 2, 1); } }); artAt(liA, lx - Math.floor(w / 2), ry); } else LIGHT(li[4], lx, ry, li[5], li[6]);
         // crew: they stay in their room this session, shuffling about a little
         crewIn(k).forEach((c, m, all) => {
           const ph = m * 2.1 + c.name.length, base = rx + 8 + (m + 1) * (RW - 16) / (all.length + 1), bx = Math.round(base + (still ? 0 : Math.sin(t * .5 + ph) * 3)), step = !still && Math.abs(Math.cos(t * .5 + ph)) > .3 ? blink(4, m) : 0;
