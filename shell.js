@@ -160,7 +160,7 @@
   const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
   const FS = `precision highp float;
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
-uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, atmOn, reveal, warp, neb, fIce, fStorm, fAur, fSpot; uniform vec3 atmC;
+uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, atmOn, reveal, warp, neb, fIce, fStorm, fSpot; uniform vec3 atmC;
 uniform vec3 pal[47]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
@@ -207,14 +207,12 @@ void main(){
     else {
       float emit; vec3 c = surface(q, emit);
       col = c * (.08 + 1.02 * lit); col = mix(col, c, emit * .9);
-      // world-type effects: glowing lava, glittering ice, a gas giant's storm, lightning, auroras
+      // world-type effects: glowing lava, glittering ice, a gas giant's storm, lightning
       if (fLava > .5 && emit > .5) col *= .8 + .35 * sin(tt * 1.6 + q.x * 2.3 + q.y * 3.1);
       if (fSpot > .5){ float sx = mod(seed * 1.7, 7.85) - 3.93, dx = mod(q.x - sx + 3.93, 7.85) - 3.93, dy = (q.y - (fract(seed * .37) - .5) * .9) * 2.3, e = length(vec2(dx, dy));
         if (e < .42){ float sw = fract(e * 5. - tt * .25 + atan(dy, dx) * .16); vec3 sc = sw < .5 ? pc[0] : pc[3]; col = mix(col, sc * (.12 + 1.0 * lit), .85); } }
       if (fIce > .5){ vec3 cell = floor(q * 34.); float g = h3(cell + seed + 5.); if (g > .978 && lit > .2 && fract(tt * .45 + g * 13.) < .16) col = vec3(1.); }
       if (fStorm > .5 && lit < .45){ vec3 cell = floor(q * 6.); float fl = floor(tt * 1.1); float hh = h3(cell + fl + seed); if (hh > .93 && fract(tt * 1.1) < .22 && h3(floor(q * 30.) + fl) > .45) col = mix(col, vec3(.88, .93, 1.), .85); }
-      if (fAur > .5 && lit < .28){ float ah = abs(lat) - 1.0 - .06 * sin(lon * 4. + tt * .35); float ray = fract(lon * 7. + sin(lon * 13. + tt * .3) * .3); // curtains of light near the poles, on the night side
-        if (ah > 0. && ah < .16 && ray < .55){ float k = (1. - ah / .16) * (1. - ray / .55) * (1. - lit / .28); if (bayer(fc) < k * .8) col = mix(col, ah > .1 ? pal[36] : pal[11], .8); } }
       col += vec3(.35, .45, .9) * pow(1. - n.z, 3.) * .45 * (lit + .15);
       // your post's lights on the night side, more of them as the settlers grow
       if (postLv > 9.){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[24] : pal[12]; }
@@ -253,7 +251,7 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fAur', 'fSpot', 'atmOn', 'atmC', 'reveal', 'warp', 'neb'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'atmOn', 'atmC', 'reveal', 'warp', 'neb'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
       gl.uniform3fv(U.pal, PAL.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
@@ -280,7 +278,7 @@ void main(){
     const [ao, ac] = ATM(p.atm); gl.uniform1f(U.atmOn, ao); gl.uniform3fv(U.atmC, rgb(ac)); gl.uniform1f(U.neb, (p.seed % 3) === 0 ? 1 : 0);
     gl.uniform1f(U.fSpark, L.sparkle ? 1 : 0); gl.uniform1f(U.fRings, p.rings ? 1 : 0); gl.uniform1f(U.fLand, L.land ? 1 : 0);
     gl.uniform1f(U.fIce, /^(Ice|Crystal|Ice giant)$/.test(p.type) ? 1 : 0); gl.uniform1f(U.fStorm, /^(Toxic|Glass storm)$/.test(p.type) ? 1 : 0);
-    gl.uniform1f(U.fSpot, L.bands && (p.seed % 2) === 0 ? 1 : 0); gl.uniform1f(U.fAur, ao > 0 && !L.bands && (p.seed % 3) === 1 ? 1 : 0);
+    gl.uniform1f(U.fSpot, L.bands && (p.seed % 2) === 0 ? 1 : 0);
   }
   function render(now) {
     raf = 0; if (!info) return;
