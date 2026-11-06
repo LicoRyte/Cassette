@@ -175,7 +175,7 @@
     const planet = {
       v: 1, seed, num, lucky: !!lucky || undefined, type, rarity, name, code, star, temp, tempNight, gravity, day, year, moons, rings, dist, atm, life, lifeLvl, weather,
       biomes: b.slice(0, 2), res, odd, log: lines.join(' '),
-      look: { pv: 2, pal, land, clouds: !!T.clouds || (type === 'Ocean' && r() < .4), bands: !!T.noGround, locked: !!T.locked, lava: type === 'Lava' || type === 'Shattered', sparkle: !!T.sparkle || type === 'Crystal', crystal: type === 'Crystal', tilt: between(r, -0.35, 0.35), ringCol: pick(r, ['#c7cfcc', '#819796', '#df84a5', '#e8c170', '#73bed3', '#ad7757']), noise: Math.floor(r() * 1e9) },
+      look: { pv: 3, pal, land, clouds: !!T.clouds || (type === 'Ocean' && r() < .4), bands: !!T.noGround, locked: !!T.locked, lava: type === 'Lava' || type === 'Shattered', sparkle: !!T.sparkle || type === 'Crystal', crystal: type === 'Crystal', tilt: between(r, -0.35, 0.35), ringCol: pick(r, ['#c7cfcc', '#819796', '#df84a5', '#e8c170', '#73bed3', '#ad7757']), noise: Math.floor(r() * 1e9) },
     };
     planet.x = makeExtra(planet);
     return planet;
@@ -521,7 +521,7 @@
   /* ---------- pixel-art planet painter (deterministic, so the same planet always looks the same) ---------- */
   const cache = new Map();
   function lookOf(p) { // worlds saved before the palette change: redo their colours from the seed (same shapes, new colours)
-    const L = p.look; if (L.pv === 2) return L;
+    const L = p.look; if (L.pv === 3) return L; // older worlds: same shapes, colours redone for the current palette
     if (L._nl) return L._nl;
     const T = TYPES[p.type]; let nl = null;
     try { const q = makePlanet(p.seed, p.num, p.lucky, 0); if (q.type === p.type) nl = Object.assign({}, L, { pal: q.look.pal, land: q.look.land, ringCol: q.look.ringCol }); } catch (e) { /* fall through */ }
