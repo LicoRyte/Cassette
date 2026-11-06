@@ -77,6 +77,9 @@
   "ratingRanks": [0, 400, 1500, 4000, 9000, 18000, 32000, 55000, 90000, 140000, 220000],
   "_ratingRanks": "Rating needed for each rank, in order: Stowaway, Deckhand, Drifter, Wayfarer, Surveyor, Pathfinder, Voyager, Star Captain, Trailblazer, Living Legend, Myth of the Void. The old values were 0, 300, 1000, 2500, 5000, 9000, 15000, 25000, 40000, 65000, 100000.",
 
+  "station": { "chance": 0.0375, "discount": 0.2, "sellBonus": 0.25, "charge": 600, "satellite": 1500, "contract": 300, "intel": 400, "chipDiscount": 0.25, "steel": 1000 },
+  "_station": "Interplanetary Station: chance per Explore trip (it replaces other arrival encounters), the upgrade discount and sell bonus while you stay at its world, and its shop prices.",
+
   "coordChips": { "start": 5, "base": 1200, "growth": 1.025, "max": 45 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
 

@@ -459,7 +459,7 @@
     Saucer: ['......dddddd......', '....ddhhhhhhdd....', '...dhhhccccchhd...', '.ddhhhhhhhhhhhhdd.', 'rhhhhhhhhhhhhhhhhr', '.ddssssssssssssdd.', '...ddssssssssdd...', '.....r..r..r......', '..................'],
     Manta: ['d.................', 'dsd...............', 'dhhsd.............', '.dhhhhhhhhhdd.....', 'rrhhhhhhhhhhcccdd.', '.dsssssssssdd.....', 'dsssd.............', 'dsd...............', 'd.................'],
   };
-  const HULL_COLORS = { Lilac: '#c7cfcc', White: '#ebede9', Sky: '#a4dddb', Peach: '#e8c170', Rose: '#df84a5', Lime: '#a8ca58', Indigo: '#4f8fba', Crimson: '#cf573c' };
+  const HULL_COLORS = { Lilac: '#c7cfcc', White: '#ebede9', Sky: '#a4dddb', Peach: '#e8c170', Rose: '#df84a5', Lime: '#a8ca58', Indigo: '#4f8fba', Crimson: '#cf573c', Steel: '#819796' }; // Steel is only sold at Interplanetary Stations
   const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return snap([(n >> 16 & 255) * f, (n >> 8 & 255) * f, (n & 255) * f]); };
   const shipCache = new Map();
   function shipSprite(design, color, scale) { // returns a canvas with the ship drawn, palette-snapped
@@ -603,6 +603,7 @@
     sell: { rarity: { Common: 6, Uncommon: 15, Rare: 45, Legendary: 140 }, perHabitabilityPercent: .25, earthLike: 15, earthLikeAt: 80, perLifeLevel: 4, anomaly: 15, rings: 5, perMoon: 1, moonCap: 10, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 30, perLog: .7 }, survey: { pay: 20 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
     levels: { base: 40, perLevel: 4, perLevelSquared: .2 }, ratingRanks: [0, 400, 1500, 4000, 9000, 18000, 32000, 55000, 90000, 140000, 220000],
+    station: { chance: .0375, discount: .2, sellBonus: .25, charge: 600, satellite: 1500, contract: 300, intel: 400, chipDiscount: .25, steel: 1000 },
     coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, facilitySlots: { base: 5, atTown: 1, max: 10, buyBase: 1500, buyGrowth: 1.8 },
     quests: { delivery: 55, deliveryViaJump: .7, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
@@ -674,8 +675,8 @@
       if (!(S.mission > 0) || !S.job) return null;
       if (S.job.k === 'room') return ROOMS[S.job.fac] && !roomLv(S.job.fac) ? { k: 'room', fac: S.job.fac, p: null, num: 0 } : null;
       const j = S.job, f = byNum(j.num); if (!f) return null; const p = f.p;
-      if (j.k === 'post' && !p.post) return { k: 'post', p };
-      if (j.k === 'node' && !p.node && !held(p)) return { k: 'node', p };
+      if (j.k === 'post' && !p.post && !stationAt(p)) return { k: 'post', p };
+      if (j.k === 'node' && !p.node && !held(p) && !stationAt(p)) return { k: 'node', p };
       if (j.k === 'upgrade' && p.post && !p.post.tp) return { k: 'upgrade', p };
       if (j.k === 'add' && p.post && p.post.tp && FAC[j.fac] && !hasFac(p, j.fac) && slotFree(p)) return { k: 'add', p, fac: j.fac };
       return null;
@@ -686,8 +687,8 @@
       const out = { Facilities: [], Upgrades: [], 'New Listening Posts': [], 'Hyperdrive Nodes': [] };
       S.found.slice().reverse().forEach(({ p }) => {
         if (held(p)) return;
-        if (!p.node) out['Hyperdrive Nodes'].push({ k: 'node', num: p.num, label: 'Hyperdrive Node on ' + nm(p) + ' (' + pad(p.num) + ')' });
-        if (!p.post) out['New Listening Posts'].push({ k: 'post', num: p.num, label: '🗼 Listening Post on ' + nm(p) + ' (' + pad(p.num) + ')' });
+        if (!p.node && !stationAt(p)) out['Hyperdrive Nodes'].push({ k: 'node', num: p.num, label: 'Hyperdrive Node on ' + nm(p) + ' (' + pad(p.num) + ')' });
+        if (!p.post) { if (!stationAt(p)) out['New Listening Posts'].push({ k: 'post', num: p.num, label: '🗼 Listening Post on ' + nm(p) + ' (' + pad(p.num) + ')' }); }
         else if (!p.post.tp) out.Upgrades.push({ k: 'upgrade', num: p.num, label: '🏘 Upgrade ' + nm(p) + ' to a Travelers\' Post' });
         else if (slotFree(p)) Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => out.Facilities.push({ k: 'add', num: p.num, fac: k, label: FAC[k][0] + ' ' + FAC[k][1] + ' at ' + nm(p) }));
       });
@@ -866,7 +867,7 @@
     };
     if (!S.rooms) S.rooms = {}; if (!S.crew) S.crew = []; if (!S.ship) S.ship = { name: 'The Lantern', color: 'Lilac', design: 'Scout', colors: ['Lilac'], designs: ['Scout'] };
     const roomLv = k => S.rooms[k] || 0, ROOM_MAX = Math.max(1, Math.round(E.roomCost.maxLevel));
-    const roomCost = lv => Math.round(E.roomCost.base * Math.pow(E.roomCost.growth, lv - 1)); // lv = level you upgrade to
+    const roomCost = lv => Math.round(E.roomCost.base * Math.pow(E.roomCost.growth, lv - 1) * stDisc()); // lv = level you upgrade to
     const bunks = () => roomLv('quarters') * 2;
     function upgradeRoom(k) { const lv = roomLv(k), c = roomCost(lv + 1); if (!lv || lv >= ROOM_MAX || S.dust < c) return; S.dust -= c; S.rooms[k] = lv + 1; shopXP(12); save(); draw(); }
     const ROLES = {
@@ -904,8 +905,8 @@
     function buyStyle(kind, v) { const cost = kind === 'color' ? E.shipStyleCost.color : E.shipStyleCost.design, list = kind === 'color' ? S.ship.colors : S.ship.designs;
       if (!list.includes(v)) { if (S.dust < cost) return; S.dust -= cost; list.push(v); shopXP(10); }
       S.ship[kind] = v; save(); draw(); }
-    const modCost = k => Math.round(E.moduleCost.base * Math.pow(E.moduleCost.growth, lvl(k) - 1) * (1 - .05 * roomLv('workshop')));
-    const facCost = lv => Math.round(E.facilityCost.base * Math.pow(E.facilityCost.growth, lv - 2) * (hasT('eco3') ? .85 : 1)); // lv = the level you're upgrading to
+    const modCost = k => Math.round(E.moduleCost.base * Math.pow(E.moduleCost.growth, lvl(k) - 1) * (1 - .05 * roomLv('workshop')) * stDisc());
+    const facCost = lv => Math.round(E.facilityCost.base * Math.pow(E.facilityCost.growth, lv - 2) * (hasT('eco3') ? .85 : 1) * stDisc()); // lv = the level you're upgrading to
     const FAC_MAX = Math.max(1, Math.round(E.facilityCost.maxLevel));
     const INCOME = E.incomeMultiplier; // every stardust payout is multiplied by this (apps/solarist-economy.json)
     function addDust(n) { n = Math.max(0, Math.round(n * INCOME)); S.dust += n; S.dustTotal += n; return n; }
@@ -1011,11 +1012,11 @@
       ['🛰', 'The Falling Station', 'An old relay station lost its thrusters and is slowly falling toward its star.', ['Plotted an intercept course before the station got too hot.', 'Matched orbit with the station. The hull was already glowing.', 'Clamped on and fired the ship\'s engines to slow its fall.', 'Pushed the station back into a safe orbit. The keepers can breathe again.'], 'The relay network paid a salvage-and-rescue bounty.'],
     ];
     const ROMAN = n => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n - 1] || String(n);
-    const drAvail = () => !S.dr && S.drDay !== today() && S.fcDay === today() && mode === 'focus' && S.cycle % S.set.every === 0 && !running && !(left > 0 && left < length(mode));
+    const drAvail = () => !S.dr && (S.drSat || (S.drDay !== today() && S.fcDay === today() && S.cycle % S.set.every === 0)) && mode === 'focus' && !running && !(left > 0 && left < length(mode));
     function drAccept() {
       if (!drAvail()) return;
       const sc = Math.floor(Math.random() * DISTRESS.length);
-      S.dr = { sc, n: 0, need: S.set.every, at: Date.now() }; S.drDay = today();
+      S.dr = { sc, n: 0, need: S.set.every, at: Date.now() }; S.drDay = today(); S.drSat = false;
       const [ic, title, intro] = DISTRESS[sc];
       pushEv({ ic: '🆘', title: 'Distress Run accepted: ' + title, t: intro, at: Date.now() });
       hint.textContent = '🆘 ' + intro + ' ' + S.dr.need + ' study sessions to get there and back. No other missions until it\'s done.';
@@ -1234,6 +1235,53 @@
     }
     function dlArrive(p) { if (S.dl && S.dl.active && p && p.num !== S.dl.active.from && dlScore(p) >= 1) dlDeliver(p, true); } // a perfect match delivers by itself
     dlCheck();
+    // ---------- Interplanetary Station: a rare giant station in orbit. It stays until you travel on. ----------
+    const STATION_NAMES = ['Halcyon Ring', 'Port Lantern', 'Crossroads Station', 'The Big Wheel', 'Haven Nine', 'Orrery Station', 'Waypoint Grand', 'Brightwater Hub', 'Saint Elmo Station', 'The Long Table'];
+    const STATION_PA = ['The PA system is playing the seven-note song again.', 'A sign by the docks says "Lost and found: one rubber duck. Also 9,999 more."', 'The food court smells like noodles and engine grease.', 'Somebody is selling souvenir mugs that say "I survived the Big Wheel".', 'Kids are racing tiny drones along the ring.', 'An announcer reminds everyone that the observation deck closes at "whenever".'];
+    const stationAt = p => !!(S.station && p && S.station.num === p.num);
+    const stHere = () => stationAt(atP());
+    const stDisc = () => stHere() ? 1 - E.station.discount : 1, stSell = () => stHere() ? 1 + E.station.sellBonus : 1;
+    function stationArrive(p, reps) {
+      S.station = { num: p.num, name: pk1(STATION_NAMES), at: Date.now(), bought: {}, chips: false, stock: [] };
+      for (let k = 0; k < 3; k++) { const it = rareFind(p, 'trade'); S.station.stock.push({ id: it.id, price: Math.round(TPRICE(it.rar) * .9) }); }
+      S.cnt.stations = (S.cnt.stations || 0) + 1;
+      const t = 'An Interplanetary Station, ' + S.station.name + ', is parked in orbit around ' + nm(p) + '. While you stay, upgrades are cheaper and everything sells for more. ' + pk1(STATION_PA);
+      reps.unshift({ ev: { battle: true, ic: '🛰', title: 'Interplanetary Station: ' + S.station.name, t } });
+      pushEv({ c: 'ev', ic: '🛰', title: 'Interplanetary Station: ' + S.station.name, t, at: Date.now() });
+    }
+    function stationCheck() { // it stays until you leave its world
+      if (S.station && S.at !== S.station.num) { pushEv({ c: 'ev', ic: '🛰', title: S.station.name + ' is behind you', t: 'You left the station\'s world. It will move on before you could ever come back.', at: Date.now() }); S.station = null; if (rightTab === 'station') rightTab = 'up'; }
+    }
+    function stBuy(key, cost, fn) { if (!stHere() || S.dust < cost || (running && mode === 'focus')) return; S.dust -= cost; S.station.bought[key] = (S.station.bought[key] || 0) + 1; S.cnt.stBuys = (S.cnt.stBuys || 0) + 1; fn(); shopXP(10); save(); draw(); }
+    function stLoanChips() { if (!stHere() || S.station.chips) return; S.station.chips = true; S.chips.temp = 5; S.cnt.loaned = (S.cnt.loaned || 0) + 1;
+      hint.textContent = '🎛 5 loaner Coordinator chips! Place them on the Coordinator tab. They go back after your next finished Explore trip.'; save(); draw(); }
+    function chipsReturn() { // loaner chips go back after a finished trip: take placed chips off the fullest fields until it fits again
+      if (!S.chips.temp) return; S.chips.temp = 0;
+      while (chipsPut() > S.chips.own) { const k = Object.keys(S.chips.put).sort((a, b) => S.chips.put[b] - S.chips.put[a])[0]; if (!k) break; S.chips.put[k]--; if (!S.chips.put[k]) delete S.chips.put[k]; }
+      qNotes.push('🎛 The station\'s loaner chips went back.');
+    }
+    function stationView() {
+      const st = S.station, here = byNum(st.num), out = [], lock = running && mode === 'focus', b = k => st.bought[k] || 0;
+      const row = (name, what, key, cost, fn, ok, limit) => el('div', { class: 'sx-up' }, el('b', {}, name), el('small', {}, what), (limit && b(key) >= limit) ? el('span', { class: 'sx-done' }, 'Bought') : el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || S.dust < cost || !ok || null, onclick: () => stBuy(key, cost, fn) }, '✦ ' + cost.toLocaleString()));
+      out.push(el('div', { class: 'sx-queue on sx-trader' }, el('small', {}, 'Interplanetary Station'), el('b', {}, '🛰 ' + st.name), el('span', { class: 'sl-muted' }, 'In orbit around ' + (here ? nm(here.p) : 'this world') + '. It stays until you travel on.')));
+      out.push(el('p', { class: 'sl-muted' }, 'While you are here: ship and facility upgrades cost ' + Math.round(E.station.discount * 100) + '% less, and worlds and spares sell for ' + Math.round(E.station.sellBonus * 100) + '% more. You can\'t build a post or a Hyperdrive Node at a world with a station.'));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Loaner chips'), el('div', { class: 'sx-up' }, el('b', {}, '🎛 5 free Coordinator chips'), el('small', {}, st.chips ? (S.chips.temp ? 'On loan now. They go back after your next finished Explore trip.' : 'Already used here.') : 'Borrow 5 extra chips for one trip. Place them on the Coordinator tab.'),
+        st.chips ? el('span', { class: 'sx-done' }, S.chips.temp ? 'On loan' : 'Used') : el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || null, onclick: stLoanChips }, 'Borrow'))));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Services'),
+        row('🧭 Coordinator Charge', S.coord ? 'Already charged.' : 'Charge the Coordinator now, no study session needed.', 'charge', E.station.charge, () => { S.coord = true; hint.textContent = '🧭 Charged. Your next Explore counts every chip double.'; }, !S.coord, 1),
+        row('🛰 Distress satellite', S.dr ? 'A run is already going.' : S.drSat ? 'Ready: a distress call is waiting on the left.' : 'Patch into the distress network: another Distress Run is available right away (it still takes its study sessions).', 'sat', E.station.satellite, () => { S.drSat = true; hint.textContent = '🛰 A distress call is waiting. Start it from the left.'; }, !S.dr && !S.drSat, 1),
+        row('📦 Station courier job', !S.dl ? '' : 'One more Interstellar Delivery offer today, and it pays 30% better.', 'job', E.station.contract, () => { const d = makeDelivery(); d.pay = Math.round(d.pay * 1.3); d.client = 'The ' + st.name; S.dl.offers.push(d); hint.textContent = '📦 New delivery offer on the left: ' + dName(d) + '.'; }, true, 2),
+        row('🔎 Most Wanted intel', !S.mw ? 'No Most Wanted to look for yet.' : S.mw.clues >= S.mw.need ? 'You already know where they are.' : 'A station informant sells you one clue about ' + S.mw.name + '.', 'intel', E.station.intel, () => mwClue(atP(), 1), !!S.mw && S.mw.clues < S.mw.need, 2),
+        row('🎛 Coordinator chip', S.chips.own >= E.coordChips.max ? 'You have every chip there is.' : 'A permanent chip, ' + Math.round(E.station.chipDiscount * 100) + '% off the usual price.', 'chip', Math.round(chipCost() * (1 - E.station.chipDiscount)), () => { S.chips.own++; S.cnt.chipsBought = (S.cnt.chipsBought || 0) + 1; }, S.chips.own < E.coordChips.max, 3),
+        row('🎨 Station Steel hull', S.ship.colors.includes('Steel') ? 'You own it. Pick it in the Hangar.' : 'A hull color only stations sell.', 'steel', E.station.steel, () => { S.ship.colors.push('Steel'); S.ship.color = 'Steel'; }, !S.ship.colors.includes('Steel'), 1)));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Rare goods'), st.stock.length ? null : el('p', { class: 'sl-muted' }, 'Sold out.'),
+        ...st.stock.map((o, i) => el('div', { class: 'sx-up' }, el('b', {}, itemName(o.id)), el('small', {}, el('i', { class: 'sx-r-' + parseId(o.id).r.toLowerCase() }, parseId(o.id).r)),
+          el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || S.dust < o.price || null, onclick: () => stBuy('item', o.price, () => { const nw = !S.items[o.id] || itemName(o.id) === '???'; S.items[o.id] = S.items[o.id] || { n: 0, at: Date.now() }; S.items[o.id].n++; if (nw) award(0, 12); st.stock.splice(i, 1); }) }, '✦ ' + o.price.toLocaleString())))));
+      const spares = Object.keys(S.items).filter(k => S.items[k].n > 1 && itemName(k) !== '???').sort((a, b) => ITEM_RARS.indexOf(parseId(b).r) - ITEM_RARS.indexOf(parseId(a).r));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Sell spares'), spares.length ? el('p', { class: 'sl-muted' }, 'Duplicates only, for ' + Math.round(E.station.sellBonus * 100) + '% more than a Trade Station.') : el('p', { class: 'sl-muted' }, 'No duplicates to sell.'),
+        ...spares.slice(0, 12).map(id => el('div', { class: 'sx-up' }, el('b', {}, itemName(id) + ' ×' + S.items[id].n), el('small', {}, parseId(id).r), el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || null, onclick: () => { const v = spareP(id); S.items[id].n--; S.dust += v; S.dustTotal += v; S.sold = S.sold || {}; save(); draw(); } }, '+✦ ' + spareP(id))))));
+      return out;
+    }
     // ---------- Rating: one number that only goes up as you play ----------
     const RATING = [ // [group, what, points each, how many]
       ['Study', 'Study sessions', 10, () => S.total], ['Study', 'Minutes studied', 1, () => S.minutes], ['Study', 'Full Cycles', 20, () => S.cnt.fc],
@@ -1241,7 +1289,7 @@
       ['Exploration', 'Surveys', 10, () => S.surveys || 0], ['Exploration', 'Deep-space events', 5, () => S.cnt.ev], ['Exploration', 'Arrival encounters', 10, () => S.cnt.enc],
       ['Adventure', 'Outlaw gangs beaten', 25, () => S.fights || 0], ['Adventure', 'Bounties', 30, () => S.bDone || 0], ['Adventure', 'Distress Runs', 120, () => S.drN || 0], ['Adventure', 'Expedition legs', 20, () => S.cnt.expSteps || 0],
       ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Deliveries', 40, () => (S.dl && S.dl.done) || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
-      ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Hyperdrive Nodes', 30, () => nodes().length], ['Building', 'Facility slots bought', 20, () => S.cnt.slots || 0], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
+      ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Hyperdrive Nodes', 30, () => nodes().length], ['Exploration', 'Interplanetary Stations found', 100, () => S.cnt.stations || 0], ['Building', 'Facility slots bought', 20, () => S.cnt.slots || 0], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
       ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own],
       ['Knowledge', 'Research done', 50, () => Object.keys(S.tech).length], ['Knowledge', 'Common collectibles', 3, () => itemsOf('Common')], ['Knowledge', 'Uncommon collectibles', 6, () => itemsOf('Uncommon')], ['Knowledge', 'Rare collectibles', 15, () => itemsOf('Rare')],
       ['Knowledge', 'Legendary collectibles', 40, () => itemsOf('Legendary')], ['Knowledge', 'Medals', 20, () => Object.keys(S.ach).length],
@@ -1279,7 +1327,7 @@
     const CHIP_MAX = 10;
     if (!S.chips) S.chips = { own: Math.round(E.coordChips.start), put: {} };
     const chipsPut = () => Object.values(S.chips.put).reduce((a, n) => a + n, 0);
-    const chipsFree = () => S.chips.own - chipsPut();
+    const chipsFree = () => S.chips.own + (S.chips.temp || 0) - chipsPut();
     const chipAmp = () => S.coord ? 2 : 1;
     const chipP = (k, amp) => { const f = CHIP_F.find(x => x[0] === k); return f ? Math.min(f[4] === 'w' ? .95 : .6, (S.chips.put[k] || 0) * f[5] * (amp || 1)) : 0; };
     const chipCost = () => Math.round(E.coordChips.base * Math.pow(E.coordChips.growth, Math.max(0, S.chips.own - E.coordChips.start)));
@@ -1338,7 +1386,7 @@
       if (hasT('eco1')) parts.push(['Guild Contacts (+15%)', Math.round(parts.reduce((a, x) => a + x[1], 0) * .15)]);
       return parts;
     }
-    const sellPrice = p => sellParts(p).reduce((a, x) => a + x[1], 0);
+    const sellPrice = p => Math.round(sellParts(p).reduce((a, x) => a + x[1], 0) * stSell());
     const isRecord = p => REC.some(([k]) => S.rec[k] && S.rec[k].num === p.num);
     // Hyperdrive Nodes: once one is installed on a world, the ship can jump straight back to it (not during a study session)
     const nodes = () => S.found.filter(f => f.p.node);
@@ -1385,7 +1433,7 @@
     function tradeLog(t) { pushEv({ ic: '🏪', title: S.trader.name, t, at: Date.now() }); }
     function traderBuy(i) { const o = S.trader.stock[i]; if (!o || S.dust < o.price) return; S.dust -= o.price; const nw = gainItem({ id: o.id }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(5, 0); S.trader.stock.splice(i, 1); S.cnt.bought = (S.cnt.bought || 0) + 1; tradeLog('Bought ' + itemName(o.id) + ' for ✦ ' + o.price + '.'); shopXP(0); save(); draw(); }
     function traderSwap(i) { const w = S.trader.wants[i]; if (!w || !S.items[w.want]) return; loseItem(w.want); const nw = gainItem({ id: w.give }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(8, 0); S.trader.wants.splice(i, 1); S.cnt.swaps = (S.cnt.swaps || 0) + 1; tradeLog('Swapped ' + itemName(w.want) + ' for ' + itemName(w.give) + '.'); shopXP(0); save(); draw(); }
-    const spareP = id => Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME * (1 + .05 * roomLv('hold')) * (hasT('eco4') ? 1.25 : 1));
+    const spareP = id => Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME * (1 + .05 * roomLv('hold')) * (hasT('eco4') ? 1.25 : 1) * stSell());
     function traderSell(id) { const it = S.items[id]; if (!it || it.n < 2) return; const v = spareP(id); loseItem(id); S.dust += v; S.dustTotal += v; S.cnt.spares = (S.cnt.spares || 0) + 1; save(); draw(); }
     // everything that happens at the end of a study session, shown together under the timer
     function sessionEnd(reps, p, ev) {
@@ -1822,12 +1870,15 @@
       const tabsR = focusLock() ? el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('tx', 'Transmissions'), el('span', { class: 'sx-locknote' }, '🔒 Everything else is back at the break'))
         : el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('coord', 'Coordinator'), rt('research', 'Research'), rt('hangar', 'Hangar'), rt('sell', 'Sell'),
         el('i', { class: 'sx-rbreak', 'aria-hidden': 'true' }), rt('tx', '📡 Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null),
-        S.trader ? rt('trade', '🏪 Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null);
+        S.trader ? rt('trade', '🏪 Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
+        S.station ? rt('station', '🛰 Station', rightTab !== 'station' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null);
       if (rightTab === 'build') { rightCol.replaceChildren(tabsR, ...buildView()); return; }
       if (rightTab === 'sell') { rightCol.replaceChildren(tabsR, ...sellView()); return; }
       if (rightTab === 'research') { rightCol.replaceChildren(tabsR, ...researchView()); return; }
       if (rightTab === 'coord') { rightCol.replaceChildren(tabsR, ...coordView()); return; }
       if (rightTab === 'hangar') { rightCol.replaceChildren(tabsR, ...hangarView()); return; }
+      if (rightTab === 'station' && S.station) { rightCol.replaceChildren(tabsR, ...stationView()); return; }
+      if (rightTab === 'station') rightTab = 'up';
       if (rightTab === 'trade' && S.trader) { rightCol.replaceChildren(tabsR, ...tradeView()); return; }
       if (rightTab === 'trade') rightTab = 'up';
       if (rightTab === 'tx') {
@@ -1888,7 +1939,7 @@
       else {
         // step 1 and 2: the post itself
         rows.push(p.post ? up('Listening Post', 'Built. ' + p.post.reports.length + ' transmissions so far.', el('span', { class: 'sx-done' }, 'Built'), 'built')
-          : up('Listening Post', 'Hear transmissions from this world. One study session.', queue('post:' + p.num + ':')));
+          : stationAt(p) ? up('Listening Post', 'Not while an Interplanetary Station is parked here.', null, 'locked') : up('Listening Post', 'Hear transmissions from this world. One study session.', queue('post:' + p.num + ':')));
         rows.push(p.post && p.post.tp ? up('Travelers\' Post', tierOf(p.post.tp.pop || 0) + ', ' + (p.post.tp.pop || 0).toLocaleString() + ' settlers. Pays trade every session.', el('span', { class: 'sx-done' }, 'Built'), 'built')
           : p.post ? up('Travelers\' Post', 'Settlers, trade and facilities. One study session.', queue('upgrade:' + p.num + ':'))
             : up('Travelers\' Post', 'Needs a Listening Post first.', null, 'locked'));
@@ -1896,7 +1947,7 @@
           S.tuned === p.num ? el('button', { type: 'button', class: 'btn', onclick: () => { S.tuned = 0; save(); draw(); } }, 'Untune satellite') : el('button', { type: 'button', class: 'btn', title: 'The tuned post reports every study session', onclick: () => { S.tuned = p.num; save(); draw(); } }, 'Tune satellite here'),
           el('button', { type: 'button', class: 'btn', onclick: () => rename(p) }, 'Rename world')));
         rows.push(p.node ? up('Hyperdrive Node', S.at === p.num ? 'Installed. You are here.' : 'Installed. Jump back any time.', jumpBtn(p, 'btn sx-buy') || el('span', { class: 'sx-done' }, 'Built'), 'built')
-          : up('Hyperdrive Node', 'Lets the ship jump back here from anywhere. One study session.', queue('node:' + p.num + ':')));
+          : stationAt(p) ? up('Hyperdrive Node', 'Not while an Interplanetary Station is parked here.', null, 'locked') : up('Hyperdrive Node', 'Lets the ship jump back here from anywhere. One study session.', queue('node:' + p.num + ':')));
         out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Post'), ...rows));
         // step 3: facilities
         if (p.post && p.post.tp) {
@@ -2263,19 +2314,21 @@
           if (p.nudged && p.nudged.length) qNotes.push('🎛 Your Coordinator chips steered this trip: ' + p.nudged.map(k => { const f = CHIP_F.find(x => x[0] === k); return f[1] + ' ' + f[2]; }).join(', ') + '.');
           S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; if (lucky) S.cnt.lucky++; if (outlaws) S.cnt.outlaws++;
           award(20 + ({ Uncommon: 10, Rare: 25, Legendary: 60 }[p.rarity] || 0), 0);
-          if (!outlaws && Math.random() < ENC_CHANCE + chipP('lantern', amp) + (hasT('nav1') ? .05 : 0) + .02 * roomLv('deck') + .03 * crewN('Scout')) {
+          const station = !outlaws && Math.random() < E.station.chance; chipsReturn();
+          if (station) stationArrive(p, reps);
+          if (!outlaws && !station && Math.random() < ENC_CHANCE + chipP('lantern', amp) + (hasT('nav1') ? .05 : 0) + .02 * roomLv('deck') + .03 * crewN('Scout')) {
             const [ic, title, tpl, lo, hi] = ENCOUNTERS[Math.floor(Math.random() * ENCOUNTERS.length)];
             const dust = addDust((lo + Math.random() * (hi - lo)) * E.encounters.scale * (RANK[p.rarity] >= 2 ? E.encounters.rareWorldMultiplier : 1)), t = tpl.split('{p}').join(nm(p));
             p.enc = { ic, title, t, dust }; encGot = p.enc; award(10, 5); S.cnt.enc++;
             pushEv({ ic, title, t, got: '+' + dust + ' ✦', at: Date.now() });
           }
-          if (!outlaws && Math.random() < E.tradeStation.chance * (hasT('nav3') ? 2 : 1) + chipP('market', amp)) { makeTrader(p); traderNew = S.trader; }
+          if (!outlaws && !station && Math.random() < E.tradeStation.chance * (hasT('nav3') ? 2 : 1) + chipP('market', amp)) { makeTrader(p); traderNew = S.trader; }
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           showCard(p, outlaws ? 'outlaw' : lucky ? 'lucky' : 'new'); foundP = p;
           toBreak();
           hint.textContent = outlaws ? '🏴 Arrived, but ' + p.outlaw.gang + ' control this world! Explore is blocked until you fight them off (one study session). Building and charging still work.'
-            : 'Arrived! ' + (lucky ? 'The Coordinator\'s charge is spent. ' : '') + 'Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
+            : station ? '🛰 Arrived, and there is an Interplanetary Station in orbit! Open the Station tab on the right. It stays until you travel on.' : 'Arrived! ' + (lucky ? 'The Coordinator\'s charge is spent. ' : '') + 'Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
         }
         sessionEnd(reps, foundP, ev);
         openReport();
@@ -2311,7 +2364,7 @@
       barFill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', Math.round(pct));
       if (hooks.scene) { // what the flight scene should show
         const kind = sceneKind();
-        hooks.scene({ mode, kind: pv ? 'view' : kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null, trader: !pv && S.trader ? S.trader.num : null });
+        hooks.scene({ mode, kind: pv ? 'view' : kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null, trader: !pv && S.trader ? S.trader.num : null, station: S.station ? S.station.num : null });
         if (pv) { const tm = pvBar.querySelector('.sx-pv-time'); if (tm) tm.textContent = running ? '⏱ ' + fmt(r) + (mode === 'focus' ? ' left to study' : ' of break left') : ''; }
       }
       if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : campaigning() ? 'Following the trail' : expediting() ? 'Expedition' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
@@ -2320,6 +2373,7 @@
     let wasLocked = false, rightPrev = 'up';
     const focusLock = () => running && mode === 'focus';
     function draw() {
+      stationCheck();
       const lk = focusLock();
       if (lk !== wasLocked) { wasLocked = lk; if (lk) { rightPrev = rightTab; rightTab = 'tx'; if (!settingsPane.hidden) tab('timer'); } else rightTab = rightPrev || 'up'; }
       root.classList.toggle('sx-lock', lk); tabSet.disabled = lk; tabSet.title = lk ? 'Settings open again at the break' : '';
@@ -2625,6 +2679,9 @@
     SQ('wrecking', '🧹', 'Wrecking Ball', 'Tear down 3 facilities', () => (S.cnt.torn || 0) >= 3);
     SQ('stargaze', '🔭', 'Stargazer', 'Open the Planetarium 10 times', () => (S.cnt.pv || 0) >= 10);
     SQ('hyperlane', '🌀', 'Hyperlane Tourist', 'Have Hyperdrive Nodes on worlds of 5 different classes', () => new Set(nodes().map(f => f.p.type)).size >= 5);
+    SQ('station', '🛰', 'Big City in Space', 'Find an Interplanetary Station', () => (S.cnt.stations || 0) >= 1);
+    SQ('shopper', '🛍', 'Last-Minute Shopper', 'Buy 5 things at Interplanetary Stations', () => (S.cnt.stBuys || 0) >= 5);
+    SQ('loan', '🎛', 'Borrowed Power', 'Take the loaner chips from a station', () => (S.cnt.loaned || 0) >= 1);
     SQ('ducks', '🦆', 'Rubber Duck Express', 'Perfectly deliver ten thousand rubber ducks', () => cargoN('ten thousand rubber ducks') > 0);
     SQ('cake', '🎂', 'Special Delivery', 'Perfectly deliver a three-tier wedding cake', () => cargoN('a three-tier wedding cake') > 0);
     SQ('cat', '🐈', 'Cat Courier', 'Perfectly deliver a very patient cat', () => cargoN('a very patient cat') > 0);
@@ -2701,7 +2758,7 @@
           el('button', { type: 'button', class: 'btn sx-buy', disabled: free <= 0 || S.dust < cost || null, onclick: () => recruit(i) }, '✦ ' + cost.toLocaleString()))) : [el('p', { class: 'sl-muted' }, 'Everyone today has been hired. Check back tomorrow.')])));
       if (S.crew.length) out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Aboard'), ...S.crew.map((c, i) => el('div', { class: 'sx-up' }, el('b', {}, ROLES[c.role][0] + ' ' + c.name), el('small', {}, c.role), armBtn('Let go', 'Sure?', () => dismiss(i), 'sx-buy')))));
       const capL = lvInfo(S.xp).L, DES_LV = { Scout: 1, Hauler: 5, Needle: 10, Saucer: 15, Manta: 20 };
-      const colors = Object.entries(HULL_COLORS).map(([k, hex]) => { const own = S.ship.colors.includes(k), on = S.ship.color === k;
+      const colors = Object.entries(HULL_COLORS).filter(([k]) => k !== 'Steel' || S.ship.colors.includes('Steel')).map(([k, hex]) => { const own = S.ship.colors.includes(k), on = S.ship.color === k;
         return el('button', { type: 'button', class: 'sx-swatch' + (on ? ' on' : ''), title: k + (own ? '' : ' (✦ ' + E.shipStyleCost.color + ')'), disabled: (!own && S.dust < E.shipStyleCost.color) || null, onclick: () => buyStyle('color', k) }, el('i', { style: 'background:' + hex }), el('span', {}, own ? k : '✦ ' + E.shipStyleCost.color)); });
       const designs = Object.keys(SHIP_DESIGNS).map(k => { const own = S.ship.designs.includes(k), on = S.ship.design === k, lvOk = capL >= DES_LV[k];
         return el('button', { type: 'button', class: 'sx-design' + (on ? ' on' : ''), disabled: (!own && (!lvOk || S.dust < E.shipStyleCost.design)) || null, onclick: () => buyStyle('design', k) },

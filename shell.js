@@ -435,6 +435,15 @@ void main(){
       gs.fillStyle = '#7a367b'; gs.fillRect(x - 8, y, 2, 2); gs.fillRect(x + 6, y, 2, 2);
       for (let i = 0; i < 4; i++) { gs.fillStyle = (Math.floor(t * 2) + i) % 3 ? '#d0da91' : '#e8c170'; gs.fillRect(x - 4 + i * 3, y, 1, 1); }
       gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#a8ca58' : '#75a743'; gs.fillRect(x, y - 7, 1, 1); }
+    if (info.station != null && pl && pl.num === info.station) { // the Interplanetary Station: a hub with a slowly turning ring
+      const x = Math.round(cx + rad * 1.05), y = Math.round(cy - rad * .62 + (still ? 0 : Math.sin(t * .6) * 1.5)), R = 15, rr = 5, spin = still ? 0 : t * .5;
+      for (let q = 0; q < 56; q++) { const a = q / 56 * Math.PI * 2, px = x + Math.cos(a) * R, py = y + Math.sin(a) * rr; if (Math.sin(a) > 0) continue; gs.fillStyle = '#394a50'; gs.fillRect(Math.round(px), Math.round(py), 2, 2); }
+      gs.fillStyle = '#577277'; gs.fillRect(x - 2, y - 9, 5, 18); gs.fillStyle = '#a8b5b2'; gs.fillRect(x - 3, y - 4, 7, 8); gs.fillStyle = '#c7cfcc'; gs.fillRect(x - 2, y - 3, 5, 2);
+      gs.fillStyle = '#3c5e8b'; gs.fillRect(x - 12, y - 1, 7, 3); gs.fillRect(x + 6, y - 1, 7, 3); gs.fillStyle = '#73bed3'; gs.fillRect(x - 11, y - 1, 1, 3); gs.fillRect(x + 8, y - 1, 1, 3); gs.fillRect(x - 8, y - 1, 1, 3); gs.fillRect(x + 11, y - 1, 1, 3); // solar panels
+      for (let q = 0; q < 56; q++) { const a = q / 56 * Math.PI * 2, px = x + Math.cos(a) * R, py = y + Math.sin(a) * rr; if (Math.sin(a) <= 0) continue; gs.fillStyle = '#819796'; gs.fillRect(Math.round(px), Math.round(py), 2, 2); }
+      for (let k = 0; k < 6; k++) { const a = spin + k / 6 * Math.PI * 2, px = x + Math.cos(a) * R, py = y + Math.sin(a) * rr; gs.fillStyle = (Math.floor(t * 2) + k) % 3 ? '#e8c170' : '#ebede9'; gs.fillRect(Math.round(px), Math.round(py), 1, 1); }
+      gs.fillStyle = (Math.floor(t * 1.4) & 1) ? '#cf573c' : '#752438'; gs.fillRect(x, y - 11, 1, 2);
+    }
     if (info.kind === 'distress' && info.running) { const x = Math.round(cx + rad * .85), y = Math.round(cy - rad * .85), on = Math.floor(t * 2) & 1;
       gs.fillStyle = on ? '#cf573c' : '#752438'; gs.fillRect(x - 1, y - 1, 3, 3); gs.fillStyle = '#ebede9'; if (on) gs.fillRect(x, y, 1, 1);
       if (!still) { const k = (t * .7) % 1, rr = 3 + k * 16; gs.fillStyle = '#cf573c'; gs.globalAlpha = 1 - k; for (let q = 0; q < 24; q++) { const a = q / 24 * Math.PI * 2; gs.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 1, 1); } gs.globalAlpha = 1; } }
@@ -511,5 +520,5 @@ void main(){
       scene,
       settings: appSettings,
     }, econ, items, camp);
-  }).catch(() => { root.innerHTML = '<p class="boot">Solarist couldn\'t start. Reload the page to try again.</p>'; });
+  }).catch(e => { console.error('Solarist failed to start:', e); root.innerHTML = '<p class="boot">Solarist couldn\'t start. Reload the page to try again.</p>'; });
 })();
