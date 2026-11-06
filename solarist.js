@@ -474,6 +474,10 @@
     rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const k = row[i]; if (k !== '.') { g.fillStyle = map[k]; g.fillRect(i * sc, j * sc, sc, sc); } } });
     shipCache.set(key, cv); return cv;
   }
+  function shipColors(color) { // palette-snapped hull tones for the isometric ship in the scene
+    const hull = HULL_COLORS[color] || HULL_COLORS.Lilac, rgbS = c => 'rgb(' + c.join(',') + ')';
+    return { h: hull, s: rgbS(shade(hull, .72)), d: rgbS(shade(hull, .45)), c: '#a4dddb', r: color === 'Crimson' ? '#e8c170' : '#cf573c' };
+  }
   function catWeights(p, kind) {
     let w;
     if (kind === 'loot') w = { wpn: 5, tec: 3, cur: 1, mat: 1, map: 1, coin: 2, ano: .5, sig: .3 };
@@ -2403,7 +2407,7 @@
       barFill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', Math.round(pct));
       if (hooks.scene) { // what the flight scene should show
         const kind = sceneKind();
-        hooks.scene({ mode, kind: pv ? 'view' : kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null, trader: !pv && S.trader ? S.trader.num : null, station: S.station ? S.station.num : null });
+        hooks.scene({ mode, kind: pv ? 'view' : kind, pv: !!pv, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null, trader: !pv && S.trader ? S.trader.num : null, station: S.station ? S.station.num : null });
         if (pv) { const tm = pvBar.querySelector('.sx-pv-time'); if (tm) tm.textContent = running ? '⏱ ' + fmt(r) + (mode === 'focus' ? ' left to study' : ' of break left') : ''; }
       }
       if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : campaigning() ? 'Following the trail' : expediting() ? 'Expedition' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
@@ -2923,5 +2927,5 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden && running && remaining() <= 0) finish(); });
     return { running: () => running };
   }
-  window.Solarist = { mount, makePlanet, makeExtra, paint, lookOf, shipSprite, facTheme: FAC_THEME };
+  window.Solarist = { mount, makePlanet, makeExtra, paint, lookOf, shipSprite, shipColors, facTheme: FAC_THEME };
 })();

@@ -432,7 +432,7 @@ void main(){
   function drawStation(now, cx, cy, rad) {
     const t = now / 1000, still = reduceMotion.matches, bob = still ? 0 : Math.round(Math.sin(t * .7) * 1.4), A = 7, B = 3.5, cols = 4, rows = 3;
     let ox = Math.round(cx + rad * .9 + rows * A), oy = Math.round(cy - rad * .5) + bob; // off the upper right of the planet, clear of its disc
-    const r = info.spot && info.spot.getBoundingClientRect(); if (r) { const right = (r.left + r.width) / PX - 18, top = r.top / PX + 36; if (ox + cols * A > right) ox = Math.round(right - cols * A); if (oy < top) oy = Math.round(top); }
+    const r = info.spot && info.spot.getBoundingClientRect(); if (r) { const right = (r.left + r.width) / PX - 40, top = r.top / PX + 36; if (ox + cols * A > right) ox = Math.round(right - cols * A); if (oy < top) oy = Math.round(top); }
     const cell = (i, j) => [Math.round(ox + (i - j) * A), Math.round(oy + (i + j) * B)];
     const [lx, ly] = cell(0, rows - 1), [rx, ry] = cell(cols - 1, 0), [bx0, by0] = cell(cols - 1, rows - 1);
     const L = [lx - A, ly], R = [rx + A, ry], Bt = [bx0, by0 + B];
@@ -471,8 +471,8 @@ void main(){
       if (kind === 'dome') { gs.fillStyle = '#a4dddb'; gs.fillRect(x - 3, y - h - 3, 6, 2); gs.fillRect(x - 2, y - h - 4, 4, 1); gs.fillStyle = '#ebede9'; gs.fillRect(x - 2, y - h - 3, 1, 1); }
       if (kind === 'shop') { gs.fillStyle = (Math.floor(t * 2) + i) % 3 ? '#df84a5' : '#ebede9'; gs.fillRect(x - 3, y - h + 3, 3, 1); } // a neon sign
     });
-    // a cargo hauler parked on the docking arm off the right edge
-    const [dx, dy] = [R[0] + 1, R[1] + 1]; gs.fillStyle = '#577277'; gs.fillRect(dx, dy, 6, 1); gs.fillStyle = '#be772b'; gs.fillRect(dx + 6, dy - 2, 7, 4); gs.fillStyle = '#de9e41'; gs.fillRect(dx + 6, dy - 2, 7, 1); gs.fillStyle = '#ebede9'; gs.fillRect(dx + 11, dy - 1, 1, 1);
+    // the docking arm off the right edge, where your ship ties up
+    const [dx, dy] = [R[0] + 1, R[1] + 1]; gs.fillStyle = '#577277'; gs.fillRect(dx, dy, 4, 1); gs.fillRect(dx, dy, 8, 1); gs.fillRect(dx + 7, dy, 1, 5); stationDock = { x: dx, y: dy };
   }
   // what's going on around the world: outlaw ships, a Trade Station, a distress beacon
   function drawStatus(now, cx, cy, rad) {
@@ -491,43 +491,61 @@ void main(){
       if (!still) { const k = (t * .7) % 1, rr = 3 + k * 16; gs.fillStyle = '#cf573c'; gs.globalAlpha = 1 - k; for (let q = 0; q < 24; q++) { const a = q / 24 * Math.PI * 2; gs.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 1, 1); } gs.globalAlpha = 1; } }
   }
   // clicking the ship opens its interior (the game listens for this event)
-  let shipBox = null; const shipTrail = [];
+  let shipBox = null;
   const onShip = e => shipBox && !e.target.closest('button, a, input, select, textarea, .sx-report, .sx-page, .sx-side') && e.clientX > shipBox.x - 12 && e.clientX < shipBox.x + shipBox.w + 12 && e.clientY > shipBox.y - 12 && e.clientY < shipBox.y + shipBox.h + 12;
   document.addEventListener('click', e => { if (onShip(e)) document.dispatchEvent(new CustomEvent('solarist-ship')); });
   document.addEventListener('mousemove', e => { const on = onShip(e); if (on !== document.body.classList.contains('sx-shiphover')) document.body.classList.toggle('sx-shiphover', on); });
-  function drawShipSprite(now) { // the ship sits to the left of the planet; it bobs while the timer runs and leaves a flame while traveling
+  /* ---------- your ship: a small isometric model, only drawn while parked (never during a study session) ---------- */
+  // each part: [i, j, z, u, v, h, tone]; i runs toward the nose (down right on screen), j across, z up. tone: h hull, s shade, d dark, c cockpit, r accent, e engine
+  const ISO_SHIPS = {
+    Scout: [[-1, 0, 1, 3, 6, 1, 's'], [0, 0, 0, 7, 2.5, 3, 'h'], [3.5, 0, 3, 2, 1.5, 1.5, 'c'], [-3, 0, 3, 2, 1, 1, 'r'], [-7.5, 0, .5, .6, 1.6, 2, 'e']],
+    Hauler: [[0, 0, 0, 8, 4, 4, 'h'], [-3, -1.8, 4, 2.4, 1.6, 2.5, 'k'], [-3, 1.8, 4, 2.4, 1.6, 2.5, 'k'], [2, 0, 4, 2, 3.4, 2, 'r'], [6.5, 0, 4, 1.4, 2, 1.5, 'c'], [-8.5, -2, 1, .6, 1.4, 2, 'e'], [-8.5, 2, 1, .6, 1.4, 2, 'e']],
+    Needle: [[0, 0, 0, 10, 1.6, 2, 'h'], [-6, 0, 2, 2.5, .8, 2, 's'], [-6, 0, .5, 2, 4, .8, 'd'], [6, 0, 2, 2.4, 1, 1, 'c'], [2, 0, 0, 1, 1.6, 2, 'r'], [-10.5, 0, .4, .6, 1.2, 1.4, 'e']],
+    Saucer: [[0, 0, 0, 6, 3, 1.5, 's'], [0, 0, 0, 3, 6, 1.5, 's'], [0, 0, 0, 5, 5, 1.6, 'h'], [0, 0, 1.6, 3, 3, .8, 'r'], [0, 0, 2.4, 2, 2, 1.8, 'c']],
+    Manta: [[-1, 0, 0, 4, 8, 1.2, 's'], [0, 0, 0, 6.5, 2.2, 2.4, 'h'], [4, 0, 2.4, 1.8, 1.4, 1, 'c'], [-3, -6.5, 1.2, 1.5, 1, .8, 'r'], [-3, 6.5, 1.2, 1.5, 1, .8, 'r'], [-6.8, 0, .5, .6, 1.6, 1.6, 'e']],
+    'Ring Runner': [[0, 0, 0, 6, 2, 3, 'h'], [3, 0, 3, 1.8, 1.2, 1.4, 'c'], [-2, -5, .5, 3, .7, 2, 'd'], [-2, 5, .5, 3, .7, 2, 'd'], [-5, 0, .5, .7, 5.6, 2, 'd'], [1, 0, .5, .7, 5.6, 2, 'd'], [-6.5, 0, .5, .6, 1.4, 2, 'e']]
+  };
+  function isoPart(ox, oy, i, j, z, u, v, h, top, lf, rt, box) { // rasterize one box: screen x = (i - j) * 2, y = i + j - z
+    const x0 = Math.floor(ox + (i - u - j - v) * 2) - 1, x1 = Math.ceil(ox + (i + u - j + v) * 2) + 1, y0 = Math.floor(oy + i + j - u - v - z - h) - 1, y1 = Math.ceil(oy + i + j + u + v - z) + 1;
+    for (let py = y0; py <= y1; py++) for (let px = x0; px <= x1; px++) {
+      const X = (px + .5 - ox) / 2, Y = py + .5 - oy; let c = null;
+      { const a = (Y + z + h + X) / 2 - i, b = (Y + z + h - X) / 2 - j; if (Math.abs(a) <= u && Math.abs(b) <= v) c = top; } // top face at height z + h
+      if (!c) { const b = (i + u) - X - j, zz = (i + u) + (b + j) - Y - z; if (Math.abs(b) <= v && zz >= 0 && zz <= h) c = rt; } // nose-side face (i = +u)
+      if (!c) { const a = X + (j + v) - i, zz = (a + i) + (j + v) - Y - z; if (Math.abs(a) <= u && zz >= 0 && zz <= h) c = lf; } // near side face (j = +v)
+      if (c) { gs.fillStyle = c; gs.fillRect(px, py, 1, 1); box[0] = Math.min(box[0], px); box[1] = Math.min(box[1], py); box[2] = Math.max(box[2], px); box[3] = Math.max(box[3], py); }
+    }
+  }
+  function drawIsoShip(ox, oy, design, color, t, still) {
+    const P = ISO_SHIPS[design] || ISO_SHIPS.Scout, K = window.Solarist.shipColors(color), box = [1e9, 1e9, -1e9, -1e9];
+    const tone = { h: [K.h, K.s, K.d], s: [K.s, K.d, K.d], d: [K.d, '#253a5e', '#172038'], c: ['#a4dddb', '#4f8fba', '#3c5e8b'], r: [K.r, '#752438', '#752438'], e: ['#394a50', '#172038', '#172038'], k: ['#c7cfcc', '#819796', '#577277'] };
+    gs.globalAlpha = .35; gs.fillStyle = '#000'; gs.fillRect(Math.round(ox - 12), Math.round(oy + 9), 24, 2); gs.globalAlpha = 1; // a soft shadow below
+    P.slice().sort((p, q) => (p[0] + p[1] + p[2] * .5) - (q[0] + q[1] + q[2] * .5)).forEach(([i, j, z, u, v, h, k]) => { const T = tone[k]; isoPart(ox, oy, i, j, z, u, v, h, T[0], T[1], T[2], box); });
+    const eng = P.filter(p => p[6] === 'e'); // idle engine glow at the back
+    eng.forEach(([i, j, z, u, v, h]) => { const sx = Math.round(ox + (i - u - j) * 2), sy = Math.round(oy + i - u + j - z - h / 2); gs.fillStyle = still || Math.floor(t * 3) & 1 ? '#73bed3' : '#a4dddb'; gs.fillRect(sx - 1, sy, 2, 1); });
+    if (!still && Math.floor(t * 1.2) % 3 === 0) { gs.fillStyle = '#cf573c'; gs.fillRect(box[0], Math.round((box[1] + box[3]) / 2), 1, 1); } // nav light
+    return box;
+  }
+  let stationDock = null; // where your ship docks at the Interplanetary Station this frame
+  function drawShipSprite(now) { // the scene overlay: island, station and extras, then your parked ship
     gs.clearRect(0, 0, sv.width, sv.height);
-    if (!info || !info.ship || !window.Solarist.shipSprite) return;
+    if (!info || !info.ship || !window.Solarist.shipColors) return;
     const r = info.spot && info.spot.getBoundingClientRect(); if (!r || !r.width) return;
-    const img = window.Solarist.shipSprite(info.ship.design, info.ship.color, 1);
     const cx = (r.left + r.width / 2) / PX, cy = (r.top + r.height / 2) / PX, rad = Math.min(r.width, r.height) / PX * .44;
-    const moving = info.running && !reduceMotion.matches, t = now / 1000;
-    const bob = moving ? Math.round(Math.sin(t * 2.2)) : 0;
-    const travel = info.running && (info.kind === 'explore' || info.kind === 'campaign' || info.kind === 'distress' || info.kind === 'fight');
-    const half = r.width / PX / 2;
-    let x = Math.round(cx - Math.min(rad * (travel ? 1.25 : 1.2), half - 4) - 18), y = Math.round(cy + (travel ? 0 : rad * .6) - 4 + bob);
-    x = Math.max(Math.round(r.left / PX) + 4, x);
+    const t = now / 1000, still = reduceMotion.matches, half = r.width / PX / 2;
+    stationDock = null;
     drawExtras(now, cx, cy, rad, r);
     drawIsland(now, cx, cy, rad, r);
     drawStatus(now, cx, cy, rad);
-    // during a study session the ship circles the planet once per session (a timer you can feel); on breaks it docks at the island
-    const orbit = info.running && info.mode === 'focus' && info.kind !== 'view' && info.kind !== 'shipbuild';
-    let flip = false, hide = false;
-    if (orbit) {
-      const a = Math.PI - (info.pct / 100) * Math.PI * 2, rx = Math.min(rad * 1.3, half - 12), ry = rad * .3;
-      const ox = cx + Math.cos(a) * rx, oy = cy + Math.sin(a) * ry;
-      x = Math.round(ox - img.width / 2); y = Math.round(oy - img.height / 2 + bob); flip = Math.sin(a) < 0; hide = flip && Math.hypot(ox - cx, oy - cy) < rad * .98;
-      const tr = shipTrail; if (!tr.length || Math.hypot(tr[tr.length - 1][0] - ox, tr[tr.length - 1][1] - oy) > 3) { tr.push([ox, oy]); if (tr.length > 14) tr.shift(); }
-      tr.forEach(([qx, qy], i) => { if (qy < cy && Math.hypot(qx - cx, qy - cy) < rad) return; gs.globalAlpha = (i + 1) / tr.length * .55; gs.fillStyle = '#e8c170'; gs.fillRect(Math.round(qx), Math.round(qy), 1, 1); }); gs.globalAlpha = 1;
-    } else { shipTrail.length = 0; if (info.mode !== 'focus' && islandAt) { x = Math.round(islandAt.x - img.width - 3); y = Math.round(islandAt.y - img.height + 2 + bob); } }
-    if (hide) { shipBox = null; return; }
-    if ((travel || orbit) && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#e8c170'; if (flip) { gs.fillRect(x + img.width, y + 3, f, 3); gs.fillStyle = '#d0da91'; gs.fillRect(x + img.width + f - 1, y + 4, 2, 1); } else { gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#d0da91'; gs.fillRect(x - f - 1, y + 4, 2, 1); } }
-    gs.imageSmoothingEnabled = false;
-    if (flip) { gs.save(); gs.translate(x + img.width, y); gs.scale(-1, 1); gs.drawImage(img, 0, 0); gs.restore(); } else gs.drawImage(img, x, y);
-    shipBox = { x: x * PX, y: y * PX, w: img.width * PX, h: img.height * PX };
-    if (info.kind === 'shipbuild' && info.running) { // building a room: welding sparks on the hull
-      const fr = Math.floor(t * 8); for (let i = 0; i < 3; i++) { const h = Math.sin((fr + i * 7) * 12.9898) * 43758.5453, k = h - Math.floor(h); if (k < .45) continue; const sx = x + 3 + Math.floor(k * 13), sy = y + 1 + Math.floor((k * 7.3 % 1) * 7); gs.fillStyle = k > .8 ? '#ebede9' : '#d0da91'; gs.fillRect(sx, sy, 1, 1); if (k > .7) { gs.fillStyle = '#e8c170'; gs.fillRect(sx + 1, sy - 1, 1, 1); } }
-    }
+    // no ship at all during a study session (running or paused) or while browsing other worlds: just the planet
+    const studying = info.mode === 'focus' && (info.running || info.paused);
+    if (studying || info.pv || !info.planet) { shipBox = null; return; }
+    const bob = still ? 0 : Math.round(Math.sin(t * 1.3) * 1.2);
+    let x, y;
+    if (stationDock) { x = stationDock.x + 9; y = stationDock.y + 17; } // docked at the station's arm
+    else if (islandAt) { x = islandAt.x - 22; y = islandAt.y - 2; } // parked beside your Travelers' Post
+    else { x = Math.max(Math.round(r.left / PX) + 26, Math.round(cx - Math.min(rad * 1.15, half - 4) - 16)); y = Math.round(cy + rad * .55); } // parked in orbit, lower left
+    const box = drawIsoShip(Math.round(x), Math.round(y + bob), info.ship.design, info.ship.color, t, still);
+    shipBox = { x: box[0] * PX, y: box[1] * PX, w: (box[2] - box[0] + 1) * PX, h: (box[3] - box[1] + 1) * PX };
   }
   function typeName() { // the new world's name types itself out
     setTimeout(() => { const b = root.querySelector('.sx-name b'); if (!b) return; const full = b.textContent; let k = 0; b.textContent = '';
