@@ -659,7 +659,7 @@
       const out = { Facilities: [], Upgrades: [], 'New Listening Posts': [], 'Hyperdrive Nodes': [] };
       S.found.slice().reverse().forEach(({ p }) => {
         if (held(p)) return;
-        if (!p.node) out['Hyperdrive Nodes'].push({ k: 'node', num: p.num, label: '⚡ Hyperdrive Node on ' + nm(p) + ' (' + pad(p.num) + ')' });
+        if (!p.node) out['Hyperdrive Nodes'].push({ k: 'node', num: p.num, label: 'Hyperdrive Node on ' + nm(p) + ' (' + pad(p.num) + ')' });
         if (!p.post) out['New Listening Posts'].push({ k: 'post', num: p.num, label: '🗼 Listening Post on ' + nm(p) + ' (' + pad(p.num) + ')' });
         else if (!p.post.tp) out.Upgrades.push({ k: 'upgrade', num: p.num, label: '🏘 Upgrade ' + nm(p) + ' to a Travelers\' Post' });
         else if (slotFree(p)) Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => out.Facilities.push({ k: 'add', num: p.num, fac: k, label: FAC[k][0] + ' ' + FAC[k][1] + ' at ' + nm(p) }));
@@ -1741,7 +1741,7 @@
       const all = S.found.slice().reverse().map(f => f.p);
       if (!all.length) buildNum = 0;
       if (buildNum == null || (buildNum !== 0 && !byNum(buildNum))) { const a = atP(); buildNum = (a && !held(a) ? a : posts().length ? posts()[posts().length - 1].p : all[0]).num; }
-      const label = p => nm(p) + (S.at === p.num ? ' (here)' : '') + (p.post ? (p.post.tp ? ', Travelers\' Post' : ', Listening Post') : '') + (p.node ? ', ⚡ Node' : '') + (held(p) ? ', outlaws' : '');
+      const label = p => nm(p) + (S.at === p.num ? ' (here)' : '') + (p.post ? (p.post.tp ? ', Travelers\' Post' : ', Listening Post') : '') + (p.node ? ', Node' : '') + (held(p) ? ', outlaws' : '');
       const withPost = all.filter(p => p.post || p.node), without = all.filter(p => !p.post && !p.node);
       const pick = el('select', { class: 'sx-wpick', 'aria-label': 'World to build on' },
         el('option', { value: 0, selected: buildNum === 0 || null }, 'Your ship: ' + S.ship.name),
@@ -1767,8 +1767,8 @@
         if (p.post) rows.push(el('div', { class: 'sx-row sx-postact' },
           S.tuned === p.num ? el('button', { type: 'button', class: 'btn', onclick: () => { S.tuned = 0; save(); draw(); } }, 'Untune satellite') : el('button', { type: 'button', class: 'btn', title: 'The tuned post reports every study session', onclick: () => { S.tuned = p.num; save(); draw(); } }, 'Tune satellite here'),
           el('button', { type: 'button', class: 'btn', onclick: () => rename(p) }, 'Rename world')));
-        rows.push(p.node ? up('⚡ Hyperdrive Node', S.at === p.num ? 'Installed. You are here.' : 'Installed. Jump back any time.', jumpBtn(p, 'btn sx-buy') || el('span', { class: 'sx-done' }, 'Built'), 'built')
-          : up('⚡ Hyperdrive Node', 'Lets the ship jump back here from anywhere. One study session.', queue('node:' + p.num + ':')));
+        rows.push(p.node ? up('Hyperdrive Node', S.at === p.num ? 'Installed. You are here.' : 'Installed. Jump back any time.', jumpBtn(p, 'btn sx-buy') || el('span', { class: 'sx-done' }, 'Built'), 'built')
+          : up('Hyperdrive Node', 'Lets the ship jump back here from anywhere. One study session.', queue('node:' + p.num + ':')));
         out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Post'), ...rows));
         // step 3: facilities
         if (p.post && p.post.tp) {
@@ -1944,7 +1944,7 @@
       fill();
       return box;
     }
-    const HEAD = { node: '⚡ Hyperdrive Node installed · ', outlaw: '🏴 Outlaw-held world · ', freed: '⚔ World liberated · ', new: '★ New world discovered · ', log: 'World ', lucky: '🧭 Coordinator-guided discovery · ', built: '🗼 Listening Post built · ', upgraded: '🏘 Travelers\' Post opened · ', opened: '🏗 New facility · ', last: 'Last discovery · ' };
+    const HEAD = { node: 'Hyperdrive Node installed · ', outlaw: '🏴 Outlaw-held world · ', freed: '⚔ World liberated · ', new: '★ New world discovered · ', log: 'World ', lucky: '🧭 Coordinator-guided discovery · ', built: '🗼 Listening Post built · ', upgraded: '🏘 Travelers\' Post opened · ', opened: '🏗 New facility · ', last: 'Last discovery · ' };
     function planetCard(p, kind) {
       const tuned = S.tuned === p.num && !!p.post;
       const pic = el('div', { class: 'sl-picwrap' }, el('img', { class: 'sl-pic', src: paint(p, 64), alt: 'Pixel portrait of ' + nm(p), width: 128, height: 128 }),
@@ -1953,7 +1953,7 @@
       return [
         el('div', { class: 'sl-card-h' }, el('span', {}, (HEAD[kind] || '') + pad(p.num)), el('span', { class: 'sl-rar sl-r-' + p.rarity.toLowerCase() }, p.rarity)),
         el('div', { class: 'sl-pl' }, pic,
-          el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), held(p) ? el('span', { class: 'sl-tag sl-tag-bad', title: 'Held by ' + p.outlaw.gang }, '🏴 Outlaws') : null, p.node ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Hyperdrive Node installed: you can jump here' }, '⚡ Node') : null, p.outlaw && p.outlaw.cleared ? el('span', { class: 'sl-tag', title: 'You drove out ' + p.outlaw.gang }, '⚔ Liberated') : null, p.lucky ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Found by following the Interplanetary Coordinator' }, '🧭 Coordinated') : null, p.nudged && p.nudged.length ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Steered by your Coordinator chips' }, '🎛 Steered') : null, tuned ? el('span', { class: 'sl-tag' }, '📡 Tuned') : p.post ? el('span', { class: 'sl-tag off' }, p.post.tp ? '🏘 Travelers\' Post' : '🗼 Post') : null),
+          el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), held(p) ? el('span', { class: 'sl-tag sl-tag-bad', title: 'Held by ' + p.outlaw.gang }, '🏴 Outlaws') : null, p.node ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Hyperdrive Node installed: you can jump here' }, 'Node') : null, p.outlaw && p.outlaw.cleared ? el('span', { class: 'sl-tag', title: 'You drove out ' + p.outlaw.gang }, '⚔ Liberated') : null, p.lucky ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Found by following the Interplanetary Coordinator' }, '🧭 Coordinated') : null, p.nudged && p.nudged.length ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Steered by your Coordinator chips' }, '🎛 Steered') : null, tuned ? el('span', { class: 'sl-tag' }, '📡 Tuned') : p.post ? el('span', { class: 'sl-tag off' }, p.post.tp ? '🏘 Travelers\' Post' : '🗼 Post') : null),
             el('div', { class: 'sl-code' }, p.code + ' · ' + p.type + ' · ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable'), el('p', {}, logText(p)))),
         el('details', { class: 'sl-more' }, el('summary', {}, 'Survey data'), facts(p)),
         p.post && p.post.tp ? el('div', { class: 'sx-postid' }, el('b', {}, (postTheme(p) ? postTheme(p)[0] : '🏘') + ' ' + postName(p)), p.post.tp.desc ? el('p', {}, p.post.tp.desc) : null) : null,
@@ -2084,7 +2084,7 @@
             msg = 'Listening Post built on ' + nm(tp2) + '. ' + (autoTune ? 'The satellite is tuned to it, so it reports in every study session.' : 'Tune the satellite to it on the Ship tab to hear from it.');
           } else if (target.k === 'node') {
             tp2.node = { at: Date.now() }; S.cnt.nodes = (S.cnt.nodes || 0) + 1;
-            msg = '⚡ Hyperdrive Node installed on ' + nm(tp2) + '. You can jump back to it any time from its Logbook page or the Build tab.';
+            msg = 'Hyperdrive Node installed on ' + nm(tp2) + '. You can jump back to it any time from its Logbook page or the Build tab.';
             pushEv({ c: 'ship', ic: '⚡', title: 'Hyperdrive Node: ' + nm(tp2), t: msg, at: Date.now() });
           } else if (target.k === 'upgrade') {
             tp2.post.tp = { at: Date.now(), fac: [] };
@@ -2238,7 +2238,7 @@
     function drawShip() {
       const group = (title, ...kids) => el('fieldset', { class: 'sl-group' }, el('legend', {}, title), ...kids);
       const cm = curMission(), b = building(), locked = running && mode === 'focus';
-      const next = cm === 'discover' && atP() ? '🔍 Survey ' + nm(atP()) + ' for collectibles' : cm === 'build' && b ? (b.k === 'upgrade' ? '🏘 ' : b.k === 'add' ? FAC[b.fac][0] + ' ' : b.k === 'node' ? '⚡ ' : b.k === 'room' ? ROOMS[b.fac][0] + ' ' : '🗼 ') + jobText(b) : cm === 'explore' && heldP() ? '⚔ Fight ' + heldP().outlaw.gang + ' on ' + nm(heldP()) : cm === 'charge' ? '🧭 Charge the Interplanetary Coordinator' : S.coord ? '🚀 Explore (lucky, Coordinator charged)' : '🚀 Explore a new world';
+      const next = cm === 'discover' && atP() ? '🔍 Survey ' + nm(atP()) + ' for collectibles' : cm === 'build' && b ? (b.k === 'upgrade' ? '🏘 ' : b.k === 'add' ? FAC[b.fac][0] + ' ' : b.k === 'node' ? '' : b.k === 'room' ? ROOMS[b.fac][0] + ' ' : '🗼 ') + jobText(b) : cm === 'explore' && heldP() ? '⚔ Fight ' + heldP().outlaw.gang + ' on ' + nm(heldP()) : cm === 'charge' ? '🧭 Charge the Interplanetary Coordinator' : S.coord ? '🚀 Explore (lucky, Coordinator charged)' : '🚀 Explore a new world';
       const bounties = group('🎯 Bounties', el('p', { class: 'sl-muted' }, 'Finish one and a new one takes its place. ' + S.bDone + ' completed so far.'),
         el('div', { class: 'sl-posts' }, S.bounties.map(b => el('div', { class: 'sl-post' }, el('span', { class: 'sl-mod-i' }, '🎯'), el('span', { class: 'sl-row-t' }, el('b', {}, b.t), el('small', {}, b.k === 'sessions' ? (b.prog || 0) + ' / ' + b.v + ' done' : b.k === 'cycle' ? 'finish every session and break of a cycle' : 'on any Explore trip')), el('span', { class: 'sl-reward' }, '✦ ' + Math.round(b.reward * INCOME))))));
       const recRows = REC.filter(([k]) => S.rec[k]).map(([k, ic, label, , f]) => { const r = S.rec[k], fw = byNum(r.num); return el('tr', {}, el('td', {}, ic + ' ' + label), el('td', {}, f(r.v)), el('td', {}, fw ? el('button', { type: 'button', class: 'sl-link', onclick: () => { tab('log'); openWorld(r.num); } }, nm(fw.p)) : '')); });
