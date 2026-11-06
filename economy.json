@@ -64,6 +64,8 @@
 
   "shipStyleCost": { "color": 300, "design": 800 },
   "_shipStyleCost": "Buying a hull paint color (once; switching between owned ones is free). design is only used to refund old ship designs.",
+  "diaryEvery": 8,
+  "_diaryEvery": "A page of the old captain's logbook (Ship Logs) turns up every this many study sessions. 20 pages in all.",
   "decorCost": { "t1": 150, "t2": 400, "t3": 900, "t4": 1800, "station": 2500 },
   "_decorCost": "Ship decorations by price tier (t1 cheapest .. t4 fanciest). station = price of a station-only decoration at an Interplanetary Station.",
 
