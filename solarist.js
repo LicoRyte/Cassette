@@ -602,7 +602,7 @@
     encounters: { chance: .1, scale: 1, rareWorldMultiplier: 1.5 }, trade: { perFacilityLevel: 1, cap: 60 },
     sell: { rarity: { Common: 6, Uncommon: 15, Rare: 45, Legendary: 140 }, perHabitabilityPercent: .25, earthLike: 15, earthLikeAt: 80, perLifeLevel: 4, anomaly: 15, rings: 5, perMoon: 1, moonCap: 10, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 30, perLog: .7 }, survey: { pay: 20 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
-    levels: { base: 40, perLevel: 4, perLevelSquared: .2 },
+    levels: { base: 40, perLevel: 4, perLevelSquared: .2 }, ratingRanks: [0, 400, 1500, 4000, 9000, 18000, 32000, 55000, 90000, 140000, 220000],
     coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, facilitySlots: { base: 5, atTown: 1, max: 10, buyBase: 1500, buyGrowth: 1.8 },
     quests: { delivery: 55, deliveryViaJump: .7, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
@@ -1248,7 +1248,7 @@
     ];
     const itemsOf = r => Object.keys(S.items).filter(k => parseId(k).r === r && itemName(k) !== '???').length;
     const rating = () => RATING.reduce((a, [, , per, f]) => { try { return a + per * (f() || 0); } catch (e) { return a; } }, 0);
-    const RANKS = [[0, 'Stowaway'], [300, 'Deckhand'], [1000, 'Drifter'], [2500, 'Wayfarer'], [5000, 'Surveyor'], [9000, 'Pathfinder'], [15000, 'Voyager'], [25000, 'Star Captain'], [40000, 'Trailblazer'], [65000, 'Living Legend'], [100000, 'Myth of the Void']];
+    const RANKS = ['Stowaway', 'Deckhand', 'Drifter', 'Wayfarer', 'Surveyor', 'Pathfinder', 'Voyager', 'Star Captain', 'Trailblazer', 'Living Legend', 'Myth of the Void'].map((n, i) => [i ? Math.max(1, Math.round(E.ratingRanks[i] || 0)) : 0, n]); // Rating needed for each rank (economy.json ratingRanks)
     const rankOf = v => { let i = 0; while (i + 1 < RANKS.length && v >= RANKS[i + 1][0]) i++; return i; };
     let rt0 = 0; // the rating when this session ended, before its rewards
     wkCheck();
