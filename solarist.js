@@ -405,8 +405,9 @@
     ['wpn', 'Weapon Parts', 'Pieces of things that go boom (safely disassembled)'], ['tec', 'Tech Parts', 'Machines, chips and clever leftovers'], ['spc', 'Specimens', 'Living (or once-living) samples'],
     ['rel', 'Relics', 'Holy objects of travelers and pilgrims'], ['map', 'Star Charts', 'Maps of places nobody should be able to map'],
     // these four only turn up after the matching Xenology research
-    ["sig", "Signals", "Recordings of sounds nobody should be able to hear", "xen1"], ["fos", "Fossils", "Living things that kept their shape for a very long time", "xen2"], ["coin", "Coins", "Money from places that stopped needing it", "xen3"], ["ano", "Anomalies", "Things that break the rules, kept in sealed boxes", "xen4"]];
+    ["sig", "Signals", "Recordings of sounds nobody should be able to hear", "xen1"], ["fos", "Fossils", "Living things that kept their shape for a very long time", "xen2"], ["coin", "Coins", "Money from places that stopped needing it", "xen3"], ["ano", "Anomalies", "Things that break the rules, kept in sealed boxes", "xen4"], ["stn", "Station Souvenirs", "Only sold at Interplanetary Stations", "shop"]];
   const CAT_ITEMS = {
+    stn: {"Common": ["Big Wheel Snow Globe", "\"I Survived the Big Wheel\" Mug", "Station Keychain", "Docking Bay Postcard", "Foam Space Helmet", "Food Court Chopsticks", "Tiny Solar Panel Magnet", "Station Map (Slightly Wrong)"], "Uncommon": ["Signed Pilot Photo", "Glow-in-the-Dark Ring Model", "Commemorative Ration Bar", "Station Choir Recording", "Collector's Docking Pass", "Plush Space Whale"], "Rare": ["Piece of the Original Hull", "Station Founder's Pin", "First-Day Ticket Stub", "Golden Airlock Handle"], "Legendary": ["Keys to the Station", "The Station Cat (Very Real)"]},
     sig: {"Common": ["Static from a Dead Moon", "Radio Jingle for a Closed Diner", "Weather Report from Nowhere", "Morse Code Grocery List", "Hum of a Gas Giant", "Ice Cracking on a Frozen Sea", "Someone Practicing the Trumpet", "Ten Minutes of Solar Wind"], "Uncommon": ["Whale Song from a Gas Giant", "Lullaby in an Unknown Language", "Countdown That Never Finishes", "Pulsar Played Backwards", "Applause from an Empty Stadium", "Ship Horn from 300 Years Ago"], "Rare": ["A Voice That Says Your Name", "Choir of a Thousand Antennas", "Last Broadcast of a Lost Colony", "The Seven-Note Song"], "Legendary": ["Echo of the First Star", "The Keeper's Call"]},
     fos: {"Common": ["Spiral Shell in Sandstone", "Fern Print on Slate", "Tiny Trilobite-ish Thing", "Petrified Tentacle Tip", "Three-Toed Footprint", "Stone Seed Pod", "Ancient Coral Branch", "Fossil Fish with Too Many Fins"], "Uncommon": ["Skull of a Long-Necked Swimmer", "Amber with a Glowing Bug", "Fossil Egg Cluster", "Wing Bone the Size of a Door", "Stone Jellyfish", "Slice of a Petrified Tree"], "Rare": ["Skeleton of a Sky Grazer", "Fossilized Brain (It Was Big)", "Fossil That Is Still Warm", "Imprint of a Hand Like Ours"], "Legendary": ["The First Living Cell, in Stone", "Fossil of Something Not Yet Born"]},
     coin: {"Common": ["Square Copper Coin", "Coin with a Hole in the Middle", "Plastic Arcade Token", "Wooden Trade Chit", "Bent Station Credit", "Coin Stamped with a Fish", "Ration Ticket", "Bus Fare to a Ruined City"], "Uncommon": ["Silver Coin of the Ring Kingdoms", "Glass Coin That Hums", "Outlaw Bounty Token", "Guild Founder's Medal", "Coin Minted on a Comet", "Triangular Moon Dollar"], "Rare": ["Coin Worth a Whole Planet", "Gold Coin from a Drowned Empire", "The Ferryman's Coin", "Two-Headed Coin of Fate"], "Legendary": ["The First Coin Ever Struck", "Coin That Pays for Itself"]},
@@ -438,7 +439,7 @@
   const parseId = id => { const a = id.split(':'); return a.length === 2 ? { c: 'cur', r: a[0], i: +a[1] } : { c: a[0], r: a[1], i: +a[2] }; };
   const catTotal = c => ITEM_RARS.reduce((a, r) => a + catList(c, r).length, 0);
   let TECH = {}; // researched techs (set when the game starts)
-  const catOpen = c => { const x = CATS.find(k => k[0] === c); return !x || !x[3] || !!TECH[x[3]]; }; // some categories need research first
+  const catOpen = c => { const x = CATS.find(k => k[0] === c); return !x || !x[3] || x[3] === 'shop' || !!TECH[x[3]]; }; // some categories need research first
   let ITEM_TOTAL = 0, ITEM_ALL = 0; const countItems = () => { ITEM_TOTAL = CATS.reduce((a, [c]) => a + (catOpen(c) ? catTotal(c) : 0), 0); ITEM_ALL = CATS.reduce((a, [c]) => a + catTotal(c), 0); }; countItems();
   function applyItems(j) { // items.json replaces the built-in lists (only lists of text count; anything else is ignored)
     if (!j || typeof j !== 'object') return;
@@ -457,9 +458,11 @@
     Hauler: ['..................', '.dddddddddd.......', 'rdhhhhhhhhhdd.....', 'rdhhshhshhhhccd...', 'rdhhshhshhhhcccdd.', 'rdssssssssssssd...', 'rdddddddddddd.....', '.r..r..r..........', '..................'],
     Needle: ['..................', '..................', 'r..dd.............', 'rrdhhhhhhhhhhhd...', 'rrdhhhhhhhhhhccchh', 'rrdssssssssssssd..', 'r..dd.............', '..................', '..................'],
     Saucer: ['......dddddd......', '....ddhhhhhhdd....', '...dhhhccccchhd...', '.ddhhhhhhhhhhhhdd.', 'rhhhhhhhhhhhhhhhhr', '.ddssssssssssssdd.', '...ddssssssssdd...', '.....r..r..r......', '..................'],
+    'Ring Runner': ['.......ddd........', '.....ddhhhdd......', '..r.dhhcchhhd.....', '.rrdhhhcchhhhdd...', 'rrrdhhhhhhhhhhhhh.', '.rrdsssssssssssd..', '..r.dssssssdd.....', '.....ddsssdd......', '.......ddd........'], // only sold at Interplanetary Stations
     Manta: ['d.................', 'dsd...............', 'dhhsd.............', '.dhhhhhhhhhdd.....', 'rrhhhhhhhhhhcccdd.', '.dsssssssssdd.....', 'dsssd.............', 'dsd...............', 'd.................'],
   };
-  const HULL_COLORS = { Lilac: '#c7cfcc', White: '#ebede9', Sky: '#a4dddb', Peach: '#e8c170', Rose: '#df84a5', Lime: '#a8ca58', Indigo: '#4f8fba', Crimson: '#cf573c', Steel: '#819796' }; // Steel is only sold at Interplanetary Stations
+  const HULL_COLORS = { Lilac: '#c7cfcc', White: '#ebede9', Sky: '#a4dddb', Peach: '#e8c170', Rose: '#df84a5', Lime: '#a8ca58', Indigo: '#4f8fba', Crimson: '#cf573c', Steel: '#819796', Copper: '#be772b', Navy: '#3c5e8b' }; // Steel, Copper and Navy are only sold at Interplanetary Stations
+  const STATION_ONLY = { colors: ['Steel', 'Copper', 'Navy'], designs: ['Ring Runner'] };
   const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return snap([(n >> 16 & 255) * f, (n >> 8 & 255) * f, (n & 255) * f]); };
   const shipCache = new Map();
   function shipSprite(design, color, scale) { // returns a canvas with the ship drawn, palette-snapped
@@ -603,7 +606,7 @@
     sell: { rarity: { Common: 6, Uncommon: 15, Rare: 45, Legendary: 140 }, perHabitabilityPercent: .25, earthLike: 15, earthLikeAt: 80, perLifeLevel: 4, anomaly: 15, rings: 5, perMoon: 1, moonCap: 10, perRecord: 30 },
     distressRun: { base: 500, random: 200, bonusMin: 100, bonusMax: 250 }, tradeStation: { chance: .12, prices: { Common: 75, Uncommon: 190, Rare: 500, Legendary: 1500 }, sellRatio: .3 }, roomCost: { base: 160, growth: 1.7, maxLevel: 5 }, campaign: { base: 30, perLog: .7 }, survey: { pay: 20 }, crewCost: { base: 200, perCrew: 160 }, shipStyleCost: { color: 300, design: 800 }, moduleCost: { base: 70, growth: 1.27, maxLevel: { engine: 30, scanner: 21, lab: 14, comms: 25, hull: 30 } }, facilityCost: { base: 80, growth: 1.6, maxLevel: 10 },
     levels: { base: 40, perLevel: 4, perLevelSquared: .2 }, ratingRanks: [0, 400, 1500, 4000, 9000, 18000, 32000, 55000, 90000, 140000, 220000],
-    station: { chance: .0375, discount: .2, sellBonus: .25, charge: 600, satellite: 1500, contract: 300, intel: 400, chipDiscount: .25, steel: 1000 },
+    station: { chance: .0375, discount: .2, sellBonus: .25, charge: 600, satellite: 1500, contract: 300, intel: 400, chipDiscount: .25, steel: 1000, design: 2500, veteran: 2500, shift: 220 },
     coordChips: { start: 5, base: 1500, growth: 1.25, max: 60 }, facilitySlots: { base: 5, atTown: 1, max: 10, buyBase: 1500, buyGrowth: 1.8 },
     quests: { delivery: 55, deliveryViaJump: .7, expedition: 350, expeditionSafe: 50, expeditionBold: 20, contract: 900, contractKnowledge: 250, bossBase: 700, bossPerCatch: 150 },
   };
@@ -893,7 +896,7 @@
     function recruit(i) { const c = crewPool()[i], cost = crewCost(); if (!c || S.crew.length >= bunks() || S.dust < cost) return; S.dust -= cost; S.crew.push(Object.assign({ joined: Date.now() }, c)); S.crewPool.list.splice(i, 1);
       pushEv({ ic: ROLES[c.role][0], title: c.name + ' joined the crew', t: c.name + ' (' + c.role.toLowerCase() + ') ' + c.trait + '.', at: Date.now() }); shopXP(20); save(); draw(); }
     function dismiss(i) { const c = S.crew[i]; if (!c) return; S.crew.splice(i, 1); S.cnt.fired = (S.cnt.fired || 0) + 1; pushEv({ ic: '👋', title: c.name + ' left the crew', t: 'They\'ll find another ship. Probably a worse one.', at: Date.now() }); save(); draw(); }
-    const crewN = role => S.crew.filter(c => c.role === role).length;
+    const crewN = role => S.crew.reduce((a, c) => a + (c.role === role ? (c.vet ? 2 : 1) : 0), 0); // veterans count twice
     function shipActivity(reps) { // what the crew got up to this session, with their small bonuses
       if (!S.crew.length) return;
       const pk = a => a[Math.floor(Math.random() * a.length)];
@@ -1242,8 +1245,9 @@
     const stHere = () => stationAt(atP());
     const stDisc = () => stHere() ? 1 - E.station.discount : 1, stSell = () => stHere() ? 1 + E.station.sellBonus : 1;
     function stationArrive(p, reps) {
-      S.station = { num: p.num, name: pk1(STATION_NAMES), at: Date.now(), bought: {}, chips: false, stock: [] };
+      S.station = { num: p.num, name: pk1(STATION_NAMES), at: Date.now(), bought: {}, chips: false, stock: [], souv: [] };
       for (let k = 0; k < 3; k++) { const it = rareFind(p, 'trade'); S.station.stock.push({ id: it.id, price: Math.round(TPRICE(it.rar) * .9) }); }
+      stationExtras(S.station);
       S.cnt.stations = (S.cnt.stations || 0) + 1;
       const t = 'An Interplanetary Station, ' + S.station.name + ', is parked in orbit around ' + nm(p) + '. While you stay, upgrades are cheaper and everything sells for more. ' + pk1(STATION_PA);
       reps.unshift({ ev: { battle: true, ic: '🛰', title: 'Interplanetary Station: ' + S.station.name, t } });
@@ -1260,6 +1264,26 @@
       while (chipsPut() > S.chips.own) { const k = Object.keys(S.chips.put).sort((a, b) => S.chips.put[b] - S.chips.put[a])[0]; if (!k) break; S.chips.put[k]--; if (!S.chips.put[k]) delete S.chips.put[k]; }
       qNotes.push('🎛 The station\'s loaner chips went back.');
     }
+
+    const SHIFTS = ['You fixed the food court\'s noodle robot. It now says "thank you".', 'You helped dock a freighter with a sticky airlock.', 'You ran the souvenir stand for an afternoon and sold forty snow globes.', 'You guided a tour group along the ring walk. Nobody got lost (for long).', 'You repainted the lane markings in docking bay six.', 'You taught station kids how to read a star chart.', 'You stood in for the night-shift traffic controller. Only one near-miss.', 'You helped the station choir carry a piano. Up four decks.'];
+    const shifting = () => S.mission === -6 && stHere() && !S.dr;
+    function stationExtras(st) { // station-only goods: souvenirs, a veteran for hire, a rare color and design
+      st.souv = []; const pickR = () => { const r = Math.random(); return r < .5 ? 'Common' : r < .8 ? 'Uncommon' : r < .95 ? 'Rare' : 'Legendary'; };
+      for (let k = 0, tries = 0; k < 3 && tries < 30; tries++) { const r = pickR(), L = catList('stn', r); if (!L.length) continue; const id = itemId('stn', r, Math.floor(Math.random() * L.length)); if (st.souv.some(o => o.id === id)) continue; st.souv.push({ id, price: Math.round(TPRICE(r) * 1.2) }); k++; }
+      const role = pk1(Object.keys(ROLES)); st.vet = { name: pk1(CREW_FIRST) + ' ' + pk1(CREW_LAST), role, trait: pk1(TRAITS), vet: true };
+      st.color = pk1(STATION_ONLY.colors.filter(c => !S.ship.colors.includes(c)).concat(['Steel'])); st.design = STATION_ONLY.designs.find(d => !S.ship.designs.includes(d)) || null;
+    }
+    function stShift(reps) {
+      const pay = addDust(E.station.shift), t = pk1(SHIFTS); award(40, 10); S.cnt.shifts = (S.cnt.shifts || 0) + 1;
+      reps.unshift({ ev: { battle: true, ic: '🛠', title: 'Station shift at ' + S.station.name, t, got: '+' + pay + ' ✦' } });
+      pushEv({ c: 'ev', ic: '🛠', title: 'Station shift: ' + S.station.name, t, got: '+' + pay + ' ✦', at: Date.now() });
+      return '🛠 Shift done: +' + pay + ' ✦. The station is still here.';
+    }
+    const DONATE = { Common: 4, Uncommon: 10, Rare: 25, Legendary: 60 };
+    function stDonate(id) { if (!stHere() || !S.items[id] || S.items[id].n < 2) return; const r = parseId(id).r, k = DONATE[r] || 4; S.items[id].n--; S.kp += k; S.cnt.donated = (S.cnt.donated || 0) + 1; award(5, 0);
+      pushEv({ c: 'ev', ic: '🏛', title: 'Donated to the station museum', t: itemName(id) + ' is on display at ' + S.station.name + ' now. The curator gave you ' + k + ' Knowledge points.', at: Date.now() }); save(); draw(); }
+    function stHire() { const st = S.station, c = st && st.vet, cost = E.station.veteran; if (!c || S.crew.length >= bunks() || S.dust < cost) return; S.dust -= cost; S.crew.push(Object.assign({ joined: Date.now() }, c)); st.vet = null; S.cnt.vets = (S.cnt.vets || 0) + 1;
+      pushEv({ ic: '★', title: c.name + ' (veteran) joined the crew', t: 'A ' + c.role.toLowerCase() + ' with decades of flying behind them. Their bonus counts twice.', at: Date.now() }); shopXP(20); save(); draw(); }
     function stationView() {
       const st = S.station, here = byNum(st.num), out = [], lock = running && mode === 'focus', b = k => st.bought[k] || 0;
       const row = (name, what, key, cost, fn, ok, limit) => el('div', { class: 'sx-up' }, el('b', {}, name), el('small', {}, what), (limit && b(key) >= limit) ? el('span', { class: 'sx-done' }, 'Bought') : el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || S.dust < cost || !ok || null, onclick: () => stBuy(key, cost, fn) }, '✦ ' + cost.toLocaleString()));
@@ -1272,12 +1296,25 @@
         row('🛰 Distress satellite', S.dr ? 'A run is already going.' : S.drSat ? 'Ready: a distress call is waiting on the left.' : 'Patch into the distress network: another Distress Run is available right away (it still takes its study sessions).', 'sat', E.station.satellite, () => { S.drSat = true; hint.textContent = '🛰 A distress call is waiting. Start it from the left.'; }, !S.dr && !S.drSat, 1),
         row('📦 Station courier job', !S.dl ? '' : 'One more Interstellar Delivery offer today, and it pays 30% better.', 'job', E.station.contract, () => { const d = makeDelivery(); d.pay = Math.round(d.pay * 1.3); d.client = 'The ' + st.name; S.dl.offers.push(d); hint.textContent = '📦 New delivery offer on the left: ' + dName(d) + '.'; }, true, 2),
         row('🔎 Most Wanted intel', !S.mw ? 'No Most Wanted to look for yet.' : S.mw.clues >= S.mw.need ? 'You already know where they are.' : 'A station informant sells you one clue about ' + S.mw.name + '.', 'intel', E.station.intel, () => mwClue(atP(), 1), !!S.mw && S.mw.clues < S.mw.need, 2),
-        row('🎛 Coordinator chip', S.chips.own >= E.coordChips.max ? 'You have every chip there is.' : 'A permanent chip, ' + Math.round(E.station.chipDiscount * 100) + '% off the usual price.', 'chip', Math.round(chipCost() * (1 - E.station.chipDiscount)), () => { S.chips.own++; S.cnt.chipsBought = (S.cnt.chipsBought || 0) + 1; }, S.chips.own < E.coordChips.max, 3),
-        row('🎨 Station Steel hull', S.ship.colors.includes('Steel') ? 'You own it. Pick it in the Hangar.' : 'A hull color only stations sell.', 'steel', E.station.steel, () => { S.ship.colors.push('Steel'); S.ship.color = 'Steel'; }, !S.ship.colors.includes('Steel'), 1)));
+        row('🎛 Coordinator chip', S.chips.own >= E.coordChips.max ? 'You have every chip there is.' : 'A permanent chip, ' + Math.round(E.station.chipDiscount * 100) + '% off the usual price.', 'chip', Math.round(chipCost() * (1 - E.station.chipDiscount)), () => { S.chips.own++; S.cnt.chipsBought = (S.cnt.chipsBought || 0) + 1; }, S.chips.own < E.coordChips.max, 3)));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Station shift'), el('div', { class: 'sx-up' }, el('b', {}, '🛠 Work a shift'), el('small', {}, 'Spend a study session working on the station: ✦ ' + Math.round(E.station.shift * INCOME) + ', some XP and Knowledge. Pick the Shift mission.'),
+        shifting() ? el('span', { class: 'sx-done' }, 'Next session') : el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || !!S.dr || null, onclick: () => setMission('shift') }, 'Pick'))));
+      if (!st.souv) stationExtras(st);
+      const owns = k => S.ship.colors.includes(k), cosm = [];
+      if (st.color && !owns(st.color)) cosm.push(row('🎨 ' + st.color + ' hull', 'A hull color only stations sell.', 'color', E.station.steel, () => { S.ship.colors.push(st.color); S.ship.color = st.color; }, true, 1));
+      if (st.design && !S.ship.designs.includes(st.design)) cosm.push(row('🚀 ' + st.design + ' design', 'A ship design only stations sell. Pick it in the Hangar.', 'design', E.station.design, () => { S.ship.designs.push(st.design); S.ship.design = st.design; }, true, 1));
+      const vet = st.vet;
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Station exclusives'), el('p', { class: 'sl-muted' }, 'Things you can only get here.'), ...cosm,
+        vet ? el('div', { class: 'sx-up' }, el('b', {}, '★ ' + ROLES[vet.role][0] + ' ' + vet.name), el('small', {}, 'Veteran ' + vet.role.toLowerCase() + ', says they ' + vet.trait + '. ' + ROLES[vet.role][1] + ', counted twice.' + (S.crew.length >= bunks() ? ' (No free bunk.)' : '')),
+          el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || S.dust < E.station.veteran || S.crew.length >= bunks() || null, onclick: stHire }, '✦ ' + E.station.veteran.toLocaleString())) : el('p', { class: 'sl-muted' }, 'The veteran signed on with you.'),
+        ...st.souv.map((o, i) => el('div', { class: 'sx-up' }, el('b', {}, '🎁 ' + itemName(o.id)), el('small', {}, el('i', { class: 'sx-r-' + parseId(o.id).r.toLowerCase() }, parseId(o.id).r), ' souvenir'),
+          el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || S.dust < o.price || null, onclick: () => stBuy('souv', o.price, () => { const nw = !S.items[o.id]; S.items[o.id] = S.items[o.id] || { n: 0, at: Date.now() }; S.items[o.id].n++; if (nw) award(0, 12); st.souv.splice(i, 1); }) }, '✦ ' + o.price.toLocaleString())))));
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Rare goods'), st.stock.length ? null : el('p', { class: 'sl-muted' }, 'Sold out.'),
         ...st.stock.map((o, i) => el('div', { class: 'sx-up' }, el('b', {}, itemName(o.id)), el('small', {}, el('i', { class: 'sx-r-' + parseId(o.id).r.toLowerCase() }, parseId(o.id).r)),
           el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || S.dust < o.price || null, onclick: () => stBuy('item', o.price, () => { const nw = !S.items[o.id] || itemName(o.id) === '???'; S.items[o.id] = S.items[o.id] || { n: 0, at: Date.now() }; S.items[o.id].n++; if (nw) award(0, 12); st.stock.splice(i, 1); }) }, '✦ ' + o.price.toLocaleString())))));
       const spares = Object.keys(S.items).filter(k => S.items[k].n > 1 && itemName(k) !== '???').sort((a, b) => ITEM_RARS.indexOf(parseId(b).r) - ITEM_RARS.indexOf(parseId(a).r));
+      out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Station museum'), spares.length ? el('p', { class: 'sl-muted' }, 'Donate a duplicate and the curator pays you in Knowledge points. You always keep at least one.') : el('p', { class: 'sl-muted' }, 'No duplicates to donate.'),
+        ...spares.slice(0, 8).map(id => el('div', { class: 'sx-up' }, el('b', {}, itemName(id) + ' ×' + S.items[id].n), el('small', {}, parseId(id).r), el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || null, onclick: () => stDonate(id) }, '+' + (DONATE[parseId(id).r] || 4) + ' Knowledge')))));
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Sell spares'), spares.length ? el('p', { class: 'sl-muted' }, 'Duplicates only, for ' + Math.round(E.station.sellBonus * 100) + '% more than a Trade Station.') : el('p', { class: 'sl-muted' }, 'No duplicates to sell.'),
         ...spares.slice(0, 12).map(id => el('div', { class: 'sx-up' }, el('b', {}, itemName(id) + ' ×' + S.items[id].n), el('small', {}, parseId(id).r), el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || null, onclick: () => { const v = spareP(id); S.items[id].n--; S.dust += v; S.dustTotal += v; S.sold = S.sold || {}; save(); draw(); } }, '+✦ ' + spareP(id))))));
       return out;
@@ -1289,7 +1326,7 @@
       ['Exploration', 'Surveys', 10, () => S.surveys || 0], ['Exploration', 'Deep-space events', 5, () => S.cnt.ev], ['Exploration', 'Arrival encounters', 10, () => S.cnt.enc],
       ['Adventure', 'Outlaw gangs beaten', 25, () => S.fights || 0], ['Adventure', 'Bounties', 30, () => S.bDone || 0], ['Adventure', 'Distress Runs', 120, () => S.drN || 0], ['Adventure', 'Expedition legs', 20, () => S.cnt.expSteps || 0],
       ['Adventure', 'Expeditions', 200, () => S.expDone || 0], ['Adventure', 'Guild contracts', 250, () => S.cnt.wk || 0], ['Adventure', 'Most Wanted caught', 300, () => S.mwDone || 0], ['Adventure', 'Deliveries', 40, () => (S.dl && S.dl.done) || 0], ['Adventure', 'Meridian logs', 15, () => S.camp.n],
-      ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Hyperdrive Nodes', 30, () => nodes().length], ['Exploration', 'Interplanetary Stations found', 100, () => S.cnt.stations || 0], ['Building', 'Facility slots bought', 20, () => S.cnt.slots || 0], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
+      ['Building', 'Listening Posts', 40, () => posts().length], ['Building', 'Travelers\' Posts', 80, () => posts().filter(f => f.p.post.tp).length], ['Building', 'Hyperdrive Nodes', 30, () => nodes().length], ['Exploration', 'Interplanetary Stations found', 100, () => S.cnt.stations || 0], ['Adventure', 'Station shifts', 15, () => S.cnt.shifts || 0], ['Exploration', 'Museum donations', 5, () => S.cnt.donated || 0], ['Building', 'Facility slots bought', 20, () => S.cnt.slots || 0], ['Building', 'Facility levels', 15, () => posts().reduce((a, f) => a + (f.p.post.tp ? f.p.post.tp.fac.reduce((b, x) => b + (x.lv || 1), 0) : 0), 0)],
       ['Building', 'Ship room levels', 30, () => Object.keys(ROOMS).reduce((a, k) => a + roomLv(k), 0)], ['Building', 'Ship module upgrades', 8, () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0)], ['Building', 'Crew aboard', 25, () => S.crew.length], ['Building', 'Coordinator chips', 30, () => S.chips.own],
       ['Knowledge', 'Research done', 50, () => Object.keys(S.tech).length], ['Knowledge', 'Common collectibles', 3, () => itemsOf('Common')], ['Knowledge', 'Uncommon collectibles', 6, () => itemsOf('Uncommon')], ['Knowledge', 'Rare collectibles', 15, () => itemsOf('Rare')],
       ['Knowledge', 'Legendary collectibles', 40, () => itemsOf('Legendary')], ['Knowledge', 'Medals', 20, () => Object.keys(S.ach).length],
@@ -1475,6 +1512,7 @@
     const screen = el('div', { class: 'sl-screen sunken', 'aria-live': 'off' }, el('div', { class: 'sl-big' }, bigText, dots), timeText);
     let dotN = 0, dotT = 0;
     function headline() {
+      if (shifting() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready for a shift at ' + S.station.name) : 'Working a shift at ' + S.station.name;
       if (expediting() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Expedition: leg ' + (S.exp.step + 1) + ' of ' + EXP_LEN) : 'On the expedition';
       if (hunting() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to hunt ' + S.mw.name) : 'Hunting ' + S.mw.name;
       if (campaigning() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to follow the trail') : 'Following the Meridian\'s trail';
@@ -1503,8 +1541,8 @@
         el('label', {}, 'Long break every ', sel('every', [2, 3, 4, 5, 6]), ' study sessions')));
     // what the next study session is for: travel to a new world, or build a Listening Post on one you've found
     // the mission: what this study session is for. Exactly one is pressed.
-    const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['discover', '🔍', 'Discover', 'Survey the world you\'re at for collectibles'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '🧭', 'Charge', 'Charge the Interplanetary Coordinator: your chips count double on the next Explore, and it steers toward better worlds'], ['campaign', '📼', 'Campaign', 'Follow the Meridian\'s trail to their next log'], ['expedition', '🗺', 'Expedition', 'Take the next leg of your expedition'], ['hunt', '🎯', 'Hunt', 'Track down the Most Wanted (two sessions)']];
-    const curMission = () => S.mission > 0 ? 'build' : S.mission === -1 ? 'charge' : S.mission === -2 ? 'discover' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : S.mission === -5 ? 'hunt' : 'explore';
+    const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['discover', '🔍', 'Discover', 'Survey the world you\'re at for collectibles'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '🧭', 'Charge', 'Charge the Interplanetary Coordinator: your chips count double on the next Explore, and it steers toward better worlds'], ['campaign', '📼', 'Campaign', 'Follow the Meridian\'s trail to their next log'], ['expedition', '🗺', 'Expedition', 'Take the next leg of your expedition'], ['hunt', '🎯', 'Hunt', 'Track down the Most Wanted (two sessions)'], ['shift', '🛠', 'Shift', 'Work a shift at the Interplanetary Station']];
+    const curMission = () => S.mission > 0 ? 'build' : S.mission === -1 ? 'charge' : S.mission === -2 ? 'discover' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : S.mission === -5 ? 'hunt' : S.mission === -6 ? 'shift' : 'explore';
     function setMission(m, num) {
       if (running && mode === 'focus') return;
       if (m === 'explore') S.mission = 0;
@@ -1513,10 +1551,11 @@
       else if (m === 'campaign') { if (campDone()) return; S.mission = -3; }
       else if (m === 'expedition') { if (!S.exp) return; S.mission = -4; }
       else if (m === 'hunt') { if (!mwReady()) return; S.mission = -5; }
+      else if (m === 'shift') { if (!stHere()) return; S.mission = -6; }
       else { if (building()) { S.mission = 1; } else { const o = buildOptions(), first = (o.Facilities[0] || o.Upgrades[0] || o['New Listening Posts'][0]); if (!first) return; S.mission = 1; S.job = { k: first.k, num: first.num, fac: first.fac }; } }
       save(); hint.textContent = ''; draw();
     }
-    const MIS_ORDER = ['explore', 'discover', 'charge', 'build', 'campaign', 'expedition', 'hunt'];
+    const MIS_ORDER = ['explore', 'discover', 'charge', 'build', 'campaign', 'expedition', 'hunt', 'shift'];
     const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip], i) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, 'data-key': i + 1, role: 'radio', title: tip + ' (key ' + (i + 1) + ')', onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
     const buildSel = el('select', { class: 'sl-build-sel', 'aria-label': 'World to build on' });
     buildSel.addEventListener('change', () => setJob(buildSel.value));
@@ -1746,7 +1785,7 @@
       const b = building();
       return kind === 'build' ? (b.p || atP()) : kind === 'fight' ? heldP() : kind === 'distress' || (kind === 'campaign' && running) ? null : kind === 'explore' && running ? null : atP();
     }
-    const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : campaigning() || expediting() ? 'campaign' : hunting() ? 'fight' : building() ? (building().k === 'room' ? 'shipbuild' : 'build') : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
+    const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : campaigning() || expediting() ? 'campaign' : hunting() ? 'fight' : shifting() ? 'view' : building() ? (building().k === 'room' ? 'shipbuild' : 'build') : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
     function drawName() {
       if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
       const kind = sceneKind(), p = scenePlanet(kind);
@@ -2009,7 +2048,7 @@
     }
     function tradeView() {
       const T = S.trader, here = byNum(T.num), out = [];
-      const desc = id => { const { c, r } = parseId(id); return el('small', {}, el('i', { class: 'sx-r-' + r.toLowerCase() }, r), ' ' + ({ cur: 'curiosity', mat: 'material', art: 'artifact', wpn: 'weapon part', tec: 'tech part', spc: 'specimen', rel: 'relic', map: 'star chart', sig: 'signal', fos: 'fossil', coin: 'coin', ano: 'anomaly' }[c] || 'item') + (S.items[id] ? ', you have ' + S.items[id].n : ', new to you')); };
+      const desc = id => { const { c, r } = parseId(id); return el('small', {}, el('i', { class: 'sx-r-' + r.toLowerCase() }, r), ' ' + ({ cur: 'curiosity', mat: 'material', art: 'artifact', wpn: 'weapon part', tec: 'tech part', spc: 'specimen', rel: 'relic', map: 'star chart', sig: 'signal', fos: 'fossil', coin: 'coin', ano: 'anomaly', stn: 'souvenir' }[c] || 'item') + (S.items[id] ? ', you have ' + S.items[id].n : ', new to you')); };
       out.push(el('div', { class: 'sx-queue on sx-trader' }, el('small', {}, 'Trade Station'), el('b', {}, T.name), el('span', { class: 'sl-muted' }, 'Docked at ' + (here ? nm(here.p) : 'a world') + '. It leaves when you travel on.')));
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'For sale'), T.stock.length ? null : el('p', { class: 'sl-muted' }, 'Sold out.'),
         ...T.stock.map((o, i) => el('div', { class: 'sx-up' }, el('b', {}, itemName(o.id)), desc(o.id), el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < o.price || null, onclick: () => traderBuy(i) }, '✦ ' + o.price.toLocaleString())))));
@@ -2243,8 +2282,8 @@
           if (hooks.show) hooks.show();
           showCard(null); toBreak();
           hint.textContent = (campDone() ? 'That was the last log. The campaign is complete.' : 'Log ' + (n + 1) + ' of ' + CAMP.logs.length + ' recovered.') + ' Now a ' + MODES[mode].toLowerCase() + '.';
-        } else if (expediting() || hunting()) {
-          const msg = expediting() ? expLeg(reps) : mwLeg(reps);
+        } else if (expediting() || hunting() || shifting()) {
+          const msg = expediting() ? expLeg(reps) : hunting() ? mwLeg(reps) : stShift(reps);
           if (!quiet && hooks.tada) hooks.tada();
           if (hooks.show) hooks.show();
           showCard(null); toBreak();
@@ -2380,7 +2419,7 @@
       drawClock(); drawLv();
       root.dataset.mode = mode;
       modeBtns.forEach(b => { const on = b.dataset.m === mode; b.classList.toggle('on', on); b.disabled = running && !on; });
-      startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (S.dr ? (S.dr.n ? 'Continue the Run' : 'Start the Run') : campaigning() ? 'Follow the trail' : expediting() ? 'Continue' : hunting() ? 'Start the hunt' : building() ? (building().k === 'upgrade' ? 'Upgrade' : 'Build') : charging() ? 'Charge' : discovering() ? 'Survey' : heldP() ? 'Fight' : 'Launch') : 'Start break');
+      startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (S.dr ? (S.dr.n ? 'Continue the Run' : 'Start the Run') : campaigning() ? 'Follow the trail' : expediting() ? 'Continue' : hunting() ? 'Start the hunt' : shifting() ? 'Start the shift' : building() ? (building().k === 'upgrade' ? 'Upgrade' : 'Build') : charging() ? 'Charge' : discovering() ? 'Survey' : heldP() ? 'Fight' : 'Launch') : 'Start break');
       if (!hint.textContent) hint.textContent = mode === 'focus' ? (S.dr ? '🆘 ' + DISTRESS[S.dr.sc][2] + ' Finish this study session to keep going.' : expediting() ? EXPED[S.exp.id][0] + ' Finish this session for leg ' + (S.exp.step + 1) + ' of ' + EXPED[S.exp.id][1] + '.' : hunting() ? '🎯 Finish this session to close in on ' + S.mw.name + '.' : campaigning() ? 'Finish this session to reach the Meridian\'s next log beacon (log ' + (S.camp.n + 1) + ' of ' + CAMP.logs.length + ').' : building() ? 'Finish this session: ' + jobText(building()).replace(/^./, c => c.toLowerCase()) + '.' : charging() ? 'Finish this session to charge the Interplanetary Coordinator. No new world this time, but the next one will be a good one.' : discovering() ? '🔍 Finish this session to survey ' + nm(atP()) + ' (where you are now). You\'ll bring back collectibles made from its materials.' : heldP() ? '🏴 ' + heldP().outlaw.gang.replace(/^the/, 'The') + ' hold ' + nm(heldP()) + '. Finish this study session to drive them out. (Build and Charge still work.)' : S.coord ? '🧭 The Coordinator is charged: this trip has much better odds.' : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
       if (S.mission > 0 && !building()) { S.mission = 0; S.job = null; }
       if (S.mission === -1 && S.coord) S.mission = 0;
@@ -2388,6 +2427,7 @@
       if (S.mission === -3 && campDone()) S.mission = 0;
       if (S.mission === -4 && !S.exp) S.mission = 0;
       if (S.mission === -5 && !mwReady()) S.mission = 0;
+      if (S.mission === -6 && !stHere()) S.mission = 0;
       const cm = curMission(), locked = running && mode === 'focus', canBuild = anyBuild();
       mission.classList.toggle('off', mode !== 'focus');
       mission.hidden = !!S.dr; drawDr();
@@ -2400,6 +2440,7 @@
         if (k === 'campaign') { b.hidden = !campaigning(); }
         if (k === 'expedition') { b.hidden = !expediting(); }
         if (k === 'hunt') { b.hidden = !hunting(); }
+        if (k === 'shift') { b.hidden = !stHere(); }
         if (k === 'charge') b.title = S.coord ? 'Already charged: your next Explore is a lucky one' : MISSIONS[3][3];
         if (k === 'build') { b.title = canBuild ? MISSIONS[2][3] : 'Nothing left to build'; const bj = building(); b.lastChild.textContent = bj ? 'Build: ' + (bj.k === 'room' ? ROOMS[bj.fac][1] : bj.k === 'node' ? 'Hyperdrive Node' : bj.k === 'post' ? 'Listening Post' : bj.k === 'upgrade' ? 'Travelers\' Post' : FAC[bj.fac][1]) : 'Build'; b.hidden = !bj && cm !== 'build'; }
       });
@@ -2681,6 +2722,10 @@
     SQ('hyperlane', '🌀', 'Hyperlane Tourist', 'Have Hyperdrive Nodes on worlds of 5 different classes', () => new Set(nodes().map(f => f.p.type)).size >= 5);
     SQ('station', '🛰', 'Big City in Space', 'Find an Interplanetary Station', () => (S.cnt.stations || 0) >= 1);
     SQ('shopper', '🛍', 'Last-Minute Shopper', 'Buy 5 things at Interplanetary Stations', () => (S.cnt.stBuys || 0) >= 5);
+    SQ('shift', '🛠', 'Odd Jobs', 'Work 3 shifts at Interplanetary Stations', () => (S.cnt.shifts || 0) >= 3);
+    SQ('museum', '🏛', 'Patron of the Arts', 'Donate 10 collectibles to station museums', () => (S.cnt.donated || 0) >= 10);
+    SQ('vet', '★', 'Old Hand', 'Hire a veteran at an Interplanetary Station', () => (S.cnt.vets || 0) >= 1);
+    SQ('ringrunner', '🚀', 'Ring Runner', 'Fly the station-only Ring Runner design', () => S.ship.design === 'Ring Runner');
     SQ('loan', '🎛', 'Borrowed Power', 'Take the loaner chips from a station', () => (S.cnt.loaned || 0) >= 1);
     SQ('ducks', '🦆', 'Rubber Duck Express', 'Perfectly deliver ten thousand rubber ducks', () => cargoN('ten thousand rubber ducks') > 0);
     SQ('cake', '🎂', 'Special Delivery', 'Perfectly deliver a three-tier wedding cake', () => cargoN('a three-tier wedding cake') > 0);
@@ -2691,9 +2736,9 @@
     tiers('Adventure', 'srv', '🔍', [[1, 'Surveyor'], [25, 'Field Researcher'], [100, 'Planetary Scientist']], () => S.surveys || 0, n => 'Survey ' + n + ' world' + (n === 1 ? '' : 's'));
     tiers('Collection', 'itm', '🎒', [[10, 'Pack Rat'], [50, 'Curator'], [100, 'Museum Wing'], [200, 'Grand Museum']], () => itemCount(), n => 'Own ' + n + ' different collectibles');
     A('Collection', 'itmall', '🏛', 'The Complete Collection', 'Own every collectible in the universe', () => itemCount() >= ITEM_ALL);
-    CATS.forEach(([c, name, , need]) => A('Collection', 'cat-' + c, '📚', 'All the ' + name, 'Own every item in ' + name, () => catTotal(c) > 0 && ITEM_RARS.every(r => catList(c, r).every((_, i) => S.items[itemId(c, r, i)])), need));
+    CATS.forEach(([c, name, , need]) => A('Collection', 'cat-' + c, '📚', 'All the ' + name, 'Own every item in ' + name, () => catTotal(c) > 0 && ITEM_RARS.every(r => catList(c, r).every((_, i) => S.items[itemId(c, r, i)])), need === 'shop' ? undefined : need));
     const hasCat = c => Object.keys(S.items).some(k => parseId(k).c === c && itemName(k) !== '???');
-    [['sig', '📻', 'Tuned In', 'Find your first Signal'], ['fos', '🦴', 'Bone Collector', 'Find your first Fossil'], ['coin', '🪙', 'Spare Change', 'Find your first Coin'], ['ano', '🌀', 'Please Don\'t Open', 'Find your first Anomaly']].forEach(([c, ic, name, desc]) => A('Collection', 'first-' + c, ic, name, desc, () => hasCat(c), CATS.find(x => x[0] === c)[3]));
+    [['sig', '📻', 'Tuned In', 'Find your first Signal'], ['fos', '🦴', 'Bone Collector', 'Find your first Fossil'], ['coin', '🪙', 'Spare Change', 'Find your first Coin'], ['ano', '🌀', 'Please Don\'t Open', 'Find your first Anomaly'], ['stn', '🎁', 'Tourist', 'Buy your first Station Souvenir']].forEach(([c, ic, name, desc]) => A('Collection', 'first-' + c, ic, name, desc, () => hasCat(c), c === 'stn' ? undefined : CATS.find(x => x[0] === c)[3]));
     const STAR_MEDAL = { 'red dwarf': 'Crimson Shadows', 'orange dwarf': 'Endless Afternoon', 'yellow dwarf': 'Almost Home', 'white dwarf': 'Cold Light', 'blue giant': 'Blue Sky', 'red giant': 'Swollen Sun', 'binary pair': 'Double Shadows', 'pulsar': 'Cosmic Clock' };
     STARS.forEach(([st]) => A('Stars', 'star-' + st.replace(' ', '-'), '☀', STAR_MEDAL[st] || st, 'Discover a world around a ' + st, () => S.found.some(f => f.p.star === st), 'nav4'));
     A('Stars', 'star-all', '🌌', 'Every Kind of Light', 'Discover a world around every kind of star', () => STARS.every(([st]) => S.found.some(f => f.p.star === st)), 'nav4');
@@ -2758,9 +2803,9 @@
           el('button', { type: 'button', class: 'btn sx-buy', disabled: free <= 0 || S.dust < cost || null, onclick: () => recruit(i) }, '✦ ' + cost.toLocaleString()))) : [el('p', { class: 'sl-muted' }, 'Everyone today has been hired. Check back tomorrow.')])));
       if (S.crew.length) out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Aboard'), ...S.crew.map((c, i) => el('div', { class: 'sx-up' }, el('b', {}, ROLES[c.role][0] + ' ' + c.name), el('small', {}, c.role), armBtn('Let go', 'Sure?', () => dismiss(i), 'sx-buy')))));
       const capL = lvInfo(S.xp).L, DES_LV = { Scout: 1, Hauler: 5, Needle: 10, Saucer: 15, Manta: 20 };
-      const colors = Object.entries(HULL_COLORS).filter(([k]) => k !== 'Steel' || S.ship.colors.includes('Steel')).map(([k, hex]) => { const own = S.ship.colors.includes(k), on = S.ship.color === k;
+      const colors = Object.entries(HULL_COLORS).filter(([k]) => !STATION_ONLY.colors.includes(k) || S.ship.colors.includes(k)).map(([k, hex]) => { const own = S.ship.colors.includes(k), on = S.ship.color === k;
         return el('button', { type: 'button', class: 'sx-swatch' + (on ? ' on' : ''), title: k + (own ? '' : ' (✦ ' + E.shipStyleCost.color + ')'), disabled: (!own && S.dust < E.shipStyleCost.color) || null, onclick: () => buyStyle('color', k) }, el('i', { style: 'background:' + hex }), el('span', {}, own ? k : '✦ ' + E.shipStyleCost.color)); });
-      const designs = Object.keys(SHIP_DESIGNS).map(k => { const own = S.ship.designs.includes(k), on = S.ship.design === k, lvOk = capL >= DES_LV[k];
+      const designs = Object.keys(SHIP_DESIGNS).filter(k => !STATION_ONLY.designs.includes(k) || S.ship.designs.includes(k)).map(k => { const own = S.ship.designs.includes(k), on = S.ship.design === k, lvOk = capL >= DES_LV[k];
         return el('button', { type: 'button', class: 'sx-design' + (on ? ' on' : ''), disabled: (!own && (!lvOk || S.dust < E.shipStyleCost.design)) || null, onclick: () => buyStyle('design', k) },
           el('img', { src: shipSprite(k, S.ship.color, 4).toDataURL(), alt: '' }), el('b', {}, k), el('small', {}, own ? (on ? 'Flying it' : 'Owned') : lvOk ? '✦ ' + E.shipStyleCost.design : 'Captain Lv ' + DES_LV[k])); });
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Hull color'), el('div', { class: 'sx-swatches' }, colors)));

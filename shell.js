@@ -150,7 +150,7 @@
 
   /* ---------- the viewport ---------- */
   const PX = 3; // one art pixel = 3 screen pixels
-  const PAL = ['#000000', '#172038', '#253a5e', '#3c5e8b', '#4f8fba', '#73bed3', '#a4dddb', '#19332d', '#25562e', '#468232', '#75a743', '#a8ca58', '#d0da91', '#4d2b32', '#7a4841', '#ad7757', '#c09473', '#d7b594', '#e7d5b3', '#341c27', '#602c2c', '#884b2b', '#be772b', '#de9e41', '#e8c170', '#241527', '#411d31', '#752438', '#a53030', '#cf573c', '#da863e', '#1e1d39', '#402751', '#7a367b', '#a23e8c', '#c65197', '#df84a5', '#090a14', '#10141f', '#151d28', '#202e37', '#394a50', '#577277', '#819796', '#a8b5b2', '#c7cfcc', '#ebede9'];
+  const PAL = ['#000000', '#172038', '#253a5e', '#3c5e8b', '#4f8fba', '#73bed3', '#a4dddb', '#19332d', '#25562e', '#468232', '#75a743', '#a8ca58', '#d0da91', '#4d2b32', '#7a4841', '#ad7757', '#c09473', '#d7b594', '#e7d5b3', '#341c27', '#602c2c', '#884b2b', '#be772b', '#de9e41', '#e8c170', '#241527', '#411d31', '#752438', '#a53030', '#cf573c', '#de9e41', '#1e1d39', '#402751', '#7a367b', '#a23e8c', '#c65197', '#df84a5', '#090a14', '#10141f', '#151d28', '#202e37', '#394a50', '#577277', '#819796', '#a8b5b2', '#c7cfcc', '#ebede9'];
   const rgb = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
   const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6, shipbuild: 7, view: 8 };
   const cv = mk('canvas', { class: 'sx-view', 'aria-hidden': 'true' });
@@ -424,6 +424,58 @@ void main(){
         if (Math.hypot(x - cx, y - cy) < rad * .97 && e > .9) continue; // landing: it disappears into the atmosphere
         const dir = u < .5 ? -1 : 1; gs.fillStyle = '#d0da91'; gs.fillRect(Math.round(x), Math.round(y), 2, 1); gs.fillStyle = '#e8c170'; gs.fillRect(Math.round(x) - dir * 2 + (dir > 0 ? 0 : 1), Math.round(y), 1, 1); } }
   }
+  /* ---------- the Interplanetary Station: a fixed isometric city block on a floating metal deck ---------- */
+  const ST_C = { hull: ['#c7cfcc', '#577277', '#819796', '#73bed3'], hab: ['#ebede9', '#4f8fba', '#73bed3', '#e8c170'], shop: ['#e8c170', '#be772b', '#de9e41', '#ebede9'],
+    dome: ['#a4dddb', '#3c5e8b', '#4f8fba', '#ebede9'], dark: ['#819796', '#394a50', '#577277', '#d0da91'], red: ['#df84a5', '#a23e8c', '#c65197', '#ebede9'] };
+  const ST_BLOCK = [ // [column, row, palette, height, style] on a 4 x 3 deck, drawn back to front
+    [0, 0, 'hab', 14, 0], [1, 0, 'shop', 6, 1], [2, 0, 'dark', 9, 4], [3, 0, 'hab', 11, 8],
+    [0, 1, 'dome', 5, 0], [1, 1, 'tower', 0, 0], [2, 1, 'red', 7, 5], [3, 1, 'shop', 5, 6],
+    [0, 2, 'dark', 4, 12], [1, 2, 'pad', 0, 0], [2, 2, 'hull', 8, 2], [3, 2, 'dome', 4, 0]];
+  function drawStation(now, cx, cy, rad) {
+    const t = now / 1000, still = reduceMotion.matches, bob = still ? 0 : Math.round(Math.sin(t * .7) * 1.4), A = 7, B = 3.5, cols = 4, rows = 3;
+    let ox = Math.round(cx + rad * .9 + rows * A), oy = Math.round(cy - rad * .5) + bob; // off the upper right of the planet, clear of its disc
+    const r = info.spot && info.spot.getBoundingClientRect(); if (r) { const right = (r.left + r.width) / PX - 18, top = r.top / PX + 36; if (ox + cols * A > right) ox = Math.round(right - cols * A); if (oy < top) oy = Math.round(top); }
+    const cell = (i, j) => [Math.round(ox + (i - j) * A), Math.round(oy + (i + j) * B)];
+    const [lx, ly] = cell(0, rows - 1), [rx, ry] = cell(cols - 1, 0), [bx0, by0] = cell(cols - 1, rows - 1);
+    const L = [lx - A, ly], R = [rx + A, ry], Bt = [bx0, by0 + B];
+    const edge = x => x < Bt[0] ? L[1] + (x - L[0]) * (Bt[1] - L[1]) / Math.max(1, Bt[0] - L[0]) : Bt[1] + (x - Bt[0]) * (R[1] - Bt[1]) / Math.max(1, R[0] - Bt[0]);
+    // underside: a stepped machine hull with a row of lit portholes and thruster glow
+    for (let x = L[0]; x < R[0]; x++) {
+      const u = x < Bt[0] ? (Bt[0] - x) / Math.max(1, Bt[0] - L[0]) : (x - Bt[0]) / Math.max(1, R[0] - Bt[0]);
+      const d = Math.round(3 + 9 * Math.max(0, 1 - u * 1.15)), top = Math.round(edge(x + .5)) - 1, left = x < Bt[0];
+      for (let y = 0; y < d; y++) { gs.fillStyle = y < 2 ? (left ? '#577277' : '#819796') : y === 2 ? '#394a50' : (left ? '#253a5e' : '#3c5e8b'); gs.fillRect(x, top + y, 1, 1); }
+      if (d > 5 && x % 3 === 0) { gs.fillStyle = (Math.floor(t * 1.2) + x) % 7 ? '#e8c170' : '#ebede9'; gs.fillRect(x, top + 4, 1, 1); }
+    }
+    const [mx, my] = [Bt[0], Bt[1] + 12]; gs.fillStyle = '#394a50'; gs.fillRect(mx - 2, my - 4, 5, 4); gs.fillStyle = '#253a5e'; gs.fillRect(mx - 1, my, 3, 2); // keel antenna pod
+    if (!still) { gs.fillStyle = Math.floor(t * 6) & 1 ? '#73bed3' : '#a4dddb'; gs.fillRect(mx - 1, my + 2, 3, 1); gs.globalAlpha = .5; gs.fillRect(mx, my + 3, 1, 2); gs.globalAlpha = 1; }
+    // the deck: alternating steel plates, with a light at each outer corner
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const [tx, ty] = cell(i, j);
+      for (let y = -B; y < B; y++) { const w = Math.round((B - Math.abs(y + .5)) * A / B); gs.fillStyle = (i + j) & 1 ? '#a8b5b2' : '#c7cfcc'; gs.fillRect(tx - w, Math.round(ty + y), w * 2, 1); } }
+    const blink = Math.floor(t * 1.4) & 1; [L, R, Bt, [cell(0, 0)[0], cell(0, 0)[1] - B]].forEach(([x, y], k) => { gs.fillStyle = (blink + k) & 1 ? '#cf573c' : '#752438'; gs.fillRect(Math.round(x), Math.round(y) - 1, 1, 1); });
+    // the fixed buildings
+    ST_BLOCK.slice().sort((p, q) => (p[0] + p[1]) - (q[0] + q[1]) || p[0] - q[0]).forEach(([i, j, kind, h, style]) => {
+      const [x, y] = cell(i, j);
+      if (kind === 'pad') { // landing pad with a shuttle that comes and goes
+        gs.fillStyle = '#394a50'; for (let yy = -2; yy < 2; yy++) { const w = Math.round((2 - Math.abs(yy + .5)) * 2); gs.fillRect(x - w, y + yy, w * 2, 1); }
+        gs.fillStyle = '#e8c170'; gs.fillRect(x - 1, y - 1, 1, 2); gs.fillRect(x + 1, y - 1, 1, 2); gs.fillRect(x, y, 1, 1);
+        const u = still ? 0 : (t * .12) % 1, lift = u < .6 ? 0 : Math.round((u - .6) * 60); if (lift < 22) { gs.fillStyle = '#ebede9'; gs.fillRect(x - 2, y - 3 - lift, 4, 2); gs.fillStyle = '#4f8fba'; gs.fillRect(x - 1, y - 3 - lift, 1, 1); if (lift) { gs.fillStyle = '#e8c170'; gs.fillRect(x - 1, y - 1 - lift, 2, 1); } }
+        return;
+      }
+      if (kind === 'tower') { // the control spire: tall mast, a glass ring and a rotating beacon
+        isoBox(x, y + 1, 3, 1.5, 22, ST_C.hull, 1, t);
+        gs.fillStyle = '#73bed3'; gs.fillRect(x - 4, y - 20, 9, 2); gs.fillStyle = '#ebede9'; gs.fillRect(x - 3, y - 20, 1, 1); gs.fillRect(x + 2, y - 20, 1, 1);
+        gs.fillStyle = '#c7cfcc'; gs.fillRect(x, y - 30, 1, 8); gs.fillRect(x - 2, y - 27, 5, 1);
+        gs.fillStyle = blink ? '#ebede9' : '#e8c170'; gs.fillRect(x, y - 31, 1, 1);
+        if (!still) { const k = Math.cos(t * 2.2); gs.globalAlpha = .55; gs.fillStyle = '#ebede9'; for (let q = 1; q < 7; q++) gs.fillRect(Math.round(x + k * q * 2), y - 31, 1, 1); gs.globalAlpha = 1; }
+        return;
+      }
+      isoBox(x, y + 1, 5, 2.5, h, ST_C[kind], style, t);
+      if (kind === 'dome') { gs.fillStyle = '#a4dddb'; gs.fillRect(x - 3, y - h - 3, 6, 2); gs.fillRect(x - 2, y - h - 4, 4, 1); gs.fillStyle = '#ebede9'; gs.fillRect(x - 2, y - h - 3, 1, 1); }
+      if (kind === 'shop') { gs.fillStyle = (Math.floor(t * 2) + i) % 3 ? '#df84a5' : '#ebede9'; gs.fillRect(x - 3, y - h + 3, 3, 1); } // a neon sign
+    });
+    // a cargo hauler parked on the docking arm off the right edge
+    const [dx, dy] = [R[0] + 1, R[1] + 1]; gs.fillStyle = '#577277'; gs.fillRect(dx, dy, 6, 1); gs.fillStyle = '#be772b'; gs.fillRect(dx + 6, dy - 2, 7, 4); gs.fillStyle = '#de9e41'; gs.fillRect(dx + 6, dy - 2, 7, 1); gs.fillStyle = '#ebede9'; gs.fillRect(dx + 11, dy - 1, 1, 1);
+  }
   // what's going on around the world: outlaw ships, a Trade Station, a distress beacon
   function drawStatus(now, cx, cy, rad) {
     const pl = info.planet, t = now / 1000, still = reduceMotion.matches;
@@ -435,15 +487,7 @@ void main(){
       gs.fillStyle = '#7a367b'; gs.fillRect(x - 8, y, 2, 2); gs.fillRect(x + 6, y, 2, 2);
       for (let i = 0; i < 4; i++) { gs.fillStyle = (Math.floor(t * 2) + i) % 3 ? '#d0da91' : '#e8c170'; gs.fillRect(x - 4 + i * 3, y, 1, 1); }
       gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#a8ca58' : '#75a743'; gs.fillRect(x, y - 7, 1, 1); }
-    if (info.station != null && pl && pl.num === info.station) { // the Interplanetary Station: a hub with a slowly turning ring
-      const x = Math.round(cx + rad * 1.05), y = Math.round(cy - rad * .62 + (still ? 0 : Math.sin(t * .6) * 1.5)), R = 15, rr = 5, spin = still ? 0 : t * .5;
-      for (let q = 0; q < 56; q++) { const a = q / 56 * Math.PI * 2, px = x + Math.cos(a) * R, py = y + Math.sin(a) * rr; if (Math.sin(a) > 0) continue; gs.fillStyle = '#394a50'; gs.fillRect(Math.round(px), Math.round(py), 2, 2); }
-      gs.fillStyle = '#577277'; gs.fillRect(x - 2, y - 9, 5, 18); gs.fillStyle = '#a8b5b2'; gs.fillRect(x - 3, y - 4, 7, 8); gs.fillStyle = '#c7cfcc'; gs.fillRect(x - 2, y - 3, 5, 2);
-      gs.fillStyle = '#3c5e8b'; gs.fillRect(x - 12, y - 1, 7, 3); gs.fillRect(x + 6, y - 1, 7, 3); gs.fillStyle = '#73bed3'; gs.fillRect(x - 11, y - 1, 1, 3); gs.fillRect(x + 8, y - 1, 1, 3); gs.fillRect(x - 8, y - 1, 1, 3); gs.fillRect(x + 11, y - 1, 1, 3); // solar panels
-      for (let q = 0; q < 56; q++) { const a = q / 56 * Math.PI * 2, px = x + Math.cos(a) * R, py = y + Math.sin(a) * rr; if (Math.sin(a) <= 0) continue; gs.fillStyle = '#819796'; gs.fillRect(Math.round(px), Math.round(py), 2, 2); }
-      for (let k = 0; k < 6; k++) { const a = spin + k / 6 * Math.PI * 2, px = x + Math.cos(a) * R, py = y + Math.sin(a) * rr; gs.fillStyle = (Math.floor(t * 2) + k) % 3 ? '#e8c170' : '#ebede9'; gs.fillRect(Math.round(px), Math.round(py), 1, 1); }
-      gs.fillStyle = (Math.floor(t * 1.4) & 1) ? '#cf573c' : '#752438'; gs.fillRect(x, y - 11, 1, 2);
-    }
+    if (info.station != null && pl && pl.num === info.station) drawStation(now, cx, cy, rad);
     if (info.kind === 'distress' && info.running) { const x = Math.round(cx + rad * .85), y = Math.round(cy - rad * .85), on = Math.floor(t * 2) & 1;
       gs.fillStyle = on ? '#cf573c' : '#752438'; gs.fillRect(x - 1, y - 1, 3, 3); gs.fillStyle = '#ebede9'; if (on) gs.fillRect(x, y, 1, 1);
       if (!still) { const k = (t * .7) % 1, rr = 3 + k * 16; gs.fillStyle = '#cf573c'; gs.globalAlpha = 1 - k; for (let q = 0; q < 24; q++) { const a = q / 24 * Math.PI * 2; gs.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 1, 1); } gs.globalAlpha = 1; } }

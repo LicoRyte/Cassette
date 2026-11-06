@@ -459,5 +459,35 @@
       "A Second That Lasts an Hour",
       "Tear in Space (Framed)"
     ]
+  },
+  "Station Souvenirs": {
+    "Common": [
+      "Big Wheel Snow Globe",
+      "\"I Survived the Big Wheel\" Mug",
+      "Station Keychain",
+      "Docking Bay Postcard",
+      "Foam Space Helmet",
+      "Food Court Chopsticks",
+      "Tiny Solar Panel Magnet",
+      "Station Map (Slightly Wrong)"
+    ],
+    "Uncommon": [
+      "Signed Pilot Photo",
+      "Glow-in-the-Dark Ring Model",
+      "Commemorative Ration Bar",
+      "Station Choir Recording",
+      "Collector's Docking Pass",
+      "Plush Space Whale"
+    ],
+    "Rare": [
+      "Piece of the Original Hull",
+      "Station Founder's Pin",
+      "First-Day Ticket Stub",
+      "Golden Airlock Handle"
+    ],
+    "Legendary": [
+      "Keys to the Station",
+      "The Station Cat (Very Real)"
+    ]
   }
 }
