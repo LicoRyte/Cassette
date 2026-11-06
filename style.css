@@ -528,3 +528,4 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-ren { margin-left: 6px; font-size: 15px; text-decoration: none; }
 .sx-up small .btn.sx-mini { margin-left: 4px; vertical-align: 1px; }
 .sx-postid { margin: 14px 0 6px; } .sx-postid b { font: 700 19px var(--ui); color: var(--white); } .sx-postid p { margin: 2px 0 0; font: 15px/1.5 var(--text); color: var(--soft); }
+.sx-themeh { margin: 16px 0 2px; font: 600 15px var(--ui); color: var(--violet); letter-spacing: .04em; text-transform: uppercase; }
