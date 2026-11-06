@@ -71,6 +71,9 @@
   "_survey": "Resources for a Discover (survey) session, on top of the normal session pay. Its real reward is collectibles and Knowledge.",
   "_campaign": "Each Meridian log pays base + perLog x the log's number.",
 
+  "levels": { "base": 40, "perLevel": 4, "perLevelSquared": 0.2 },
+  "_levels": "Captain and Knowledge Levels: going from level L to L+1 needs base + perLevel x L + perLevelSquared x L x L points. Bigger perLevelSquared = steeper late game. The old curve was base 40, perLevel 6, perLevelSquared 0.",
+
   "coordChips": { "start": 5, "base": 1200, "growth": 1.025, "max": 45 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
 
