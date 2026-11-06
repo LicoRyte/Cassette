@@ -1655,6 +1655,14 @@
         ['land', 'Landscape', 3, 0, 'land', '#7a4841', '#75a743'], ['abstract', 'Abstract art', 3, 0, 'abstract', '#ebede9', '#cf573c'], ['map', 'Old map', 2, 0, 'map', '#d7b594', '#884b2b'], ['cert', 'Pilot license', 1, 0, 'cert', '#ebede9', '#de9e41'],
         ['guitar', 'Wall guitar', 3, 0, 'guitar', '#be772b', '#4d2b32'], ['dart', 'Dartboard', 2, 0, 'dart', '#241527', '#cf573c'], ['kid', 'Kid\'s drawing', 1, 0, 'kid', '#ebede9', '#4f8fba'],
         ['open', 'Neon "OPEN" sign', 5, 1, 'open', '#df84a5', '#241527'], ['heart', 'Neon heart', 5, 1, 'heart', '#cf573c', '#241527'], ['gold', 'Gold record', 5, 1, 'goldrec', '#e8c170', '#241527'], ['wanted', 'Wanted poster', 5, 1, 'wanted', '#d7b594', '#4d2b32'], ['tickets', 'Ticket stub wall', 5, 1, 'tickets', '#e8c170', '#df84a5']]],
+      ceil: ['Ceiling', [['none', 'Plain ceiling', 0, 0, 'none'], ['vent', 'Air vents', 1, 0, 'vent', '#819796'], ['pipes', 'Steel pipes', 1, 0, 'pipes', '#819796'], ['copper', 'Copper pipes', 2, 0, 'pipes', '#be772b'], ['ac', 'Air conditioners', 2, 0, 'ac', '#c7cfcc'],
+        ['fan', 'Ceiling fans', 3, 0, 'fan', '#c7cfcc'], ['cables', 'Cable trays', 2, 0, 'cables', '#394a50'], ['sprink', 'Sprinklers', 1, 0, 'sprink', '#cf573c'], ['duct', 'Big duct', 2, 0, 'duct', '#577277'], ['chains', 'Hanging chains', 2, 0, 'chains', '#819796'],
+        ['bunting', 'Party bunting', 2, 0, 'bunting', '#cf573c'], ['hangp', 'Hanging plants', 3, 0, 'hangp', '#75a743'], ['wires', 'Messy wires', 1, 0, 'wires', '#241527'], ['mobile', 'Planet mobile', 3, 0, 'mobile', '#e8c170'], ['beams', 'Wooden beams', 2, 0, 'beams', '#7a4841'],
+        ['tubes', 'Neon tubes', 5, 1, 'tubes', '#df84a5'], ['proj', 'Star projector', 5, 1, 'proj', '#ebede9'], ['ticker', 'News ticker', 5, 1, 'ticker', '#a8ca58'], ['gtrim', 'Gold trim', 5, 1, 'gtrim', '#e8c170'], ['bubbles', 'Bubble machine', 5, 1, 'bubbles', '#a4dddb']]],
+      lights: ['Hull lights', [['none', 'No hull lights', 0, 0, 'none'], ['white', 'White', 1, 0, 'steady', '#ebede9'], ['amber', 'Amber', 1, 0, 'steady', '#e8c170'], ['red', 'Red', 1, 0, 'steady', '#cf573c'], ['green', 'Green', 1, 0, 'steady', '#a8ca58'],
+        ['blue', 'Blue', 1, 0, 'steady', '#73bed3'], ['pink', 'Pink', 1, 0, 'steady', '#df84a5'], ['purple', 'Purple', 1, 0, 'steady', '#a23e8c'], ['nav', 'Red and green', 2, 0, 'alt', '#cf573c', '#a8ca58'], ['twinkle', 'Twinkling white', 2, 0, 'twinkle', '#ebede9'],
+        ['pulse', 'Pulsing blue', 2, 0, 'pulse', '#73bed3'], ['gold', 'Gold', 3, 0, 'steady', '#de9e41'], ['ice', 'Ice', 3, 0, 'twinkle', '#a4dddb'], ['xmas', 'Holiday', 3, 0, 'chase', '#cf573c', '#a8ca58', '#e8c170'], ['chase', 'Rainbow chase', 4, 0, 'chase', '#cf573c', '#e8c170', '#a8ca58', '#73bed3', '#df84a5'],
+        ['police', 'Patrol strobes', 5, 1, 'strobe', '#cf573c', '#4f8fba'], ['sweep', 'Lightning sweep', 5, 1, 'sweep', '#ebede9'], ['comet', 'Comet trail', 5, 1, 'comet', '#e8c170'], ['neon', 'Neon pink chase', 5, 1, 'chase', '#df84a5', '#a23e8c'], ['beacon', 'Station beacons', 5, 1, 'pulse', '#e8c170']]],
       furn: ['Furniture', [['none', 'Nothing extra', 0, 0, 'none'], ['chair', 'Armchair', 1, 0, 'chair', '#a23e8c', '#c65197'], ['beanbag', 'Beanbag', 1, 0, 'beanbag', '#4f8fba', '#73bed3'], ['books', 'Bookshelf', 2, 0, 'books', '#4d2b32'],
         ['records', 'Record player', 2, 0, 'records', '#7a4841', '#cf573c'], ['lava', 'Lava lamp', 2, 0, 'lava', '#a23e8c', '#de9e41'], ['tank', 'Fish tank', 3, 0, 'tank', '#4f8fba', '#de9e41'], ['sofa', 'Little sofa', 2, 0, 'sofa', '#468232', '#75a743'],
         ['globe', 'Globe', 2, 0, 'globe', '#4f8fba', '#75a743'], ['tv', 'Old TV', 2, 0, 'tv', '#7a4841', '#73bed3'], ['coffee', 'Coffee machine', 3, 0, 'coffee', '#394a50', '#cf573c'], ['easel', 'Easel', 2, 0, 'easel', '#be772b', '#df84a5'],
@@ -1666,16 +1674,7 @@
         ['slit', 'Slit window', 1, 0, 'slit', '#577277', 'stars'], ['cred', 'Porthole, red curtains', 2, 0, 'curt', '#a53030', 'stars'], ['cblue', 'Porthole, blue curtains', 2, 0, 'curt', '#3c5e8b', 'stars'],
         ['neb', 'Nebula view', 5, 1, 'wide', '#c7cfcc', 'nebula'], ['rings', 'Ringed planet view', 5, 1, 'wide', '#e8c170', 'rings'], ['comet', 'Comet porthole', 5, 1, 'big', '#e8c170', 'comet'], ['stview', 'Station lights view', 5, 1, 'wide', '#819796', 'station'], ['galaxy', 'Galaxy porthole', 5, 1, 'big', '#de9e41', 'galaxy']]],
     };
-    const SHIP_DECOR = { // the whole ship at once
-      ceil: ['Ceiling', [['none', 'Plain ceiling', 0, 0, 'none'], ['vent', 'Air vents', 1, 0, 'vent', '#819796'], ['pipes', 'Steel pipes', 1, 0, 'pipes', '#819796'], ['copper', 'Copper pipes', 2, 0, 'pipes', '#be772b'], ['ac', 'Air conditioners', 2, 0, 'ac', '#c7cfcc'],
-        ['fan', 'Ceiling fans', 3, 0, 'fan', '#c7cfcc'], ['cables', 'Cable trays', 2, 0, 'cables', '#394a50'], ['sprink', 'Sprinklers', 1, 0, 'sprink', '#cf573c'], ['duct', 'Big duct', 2, 0, 'duct', '#577277'], ['chains', 'Hanging chains', 2, 0, 'chains', '#819796'],
-        ['bunting', 'Party bunting', 2, 0, 'bunting', '#cf573c'], ['hangp', 'Hanging plants', 3, 0, 'hangp', '#75a743'], ['wires', 'Messy wires', 1, 0, 'wires', '#241527'], ['mobile', 'Planet mobile', 3, 0, 'mobile', '#e8c170'], ['beams', 'Wooden beams', 2, 0, 'beams', '#7a4841'],
-        ['tubes', 'Neon tubes', 5, 1, 'tubes', '#df84a5'], ['proj', 'Star projector', 5, 1, 'proj', '#ebede9'], ['ticker', 'News ticker', 5, 1, 'ticker', '#a8ca58'], ['gtrim', 'Gold trim', 5, 1, 'gtrim', '#e8c170'], ['bubbles', 'Bubble machine', 5, 1, 'bubbles', '#a4dddb']]],
-      lights: ['Hull lights', [['none', 'No hull lights', 0, 0, 'none'], ['white', 'White', 1, 0, 'steady', '#ebede9'], ['amber', 'Amber', 1, 0, 'steady', '#e8c170'], ['red', 'Red', 1, 0, 'steady', '#cf573c'], ['green', 'Green', 1, 0, 'steady', '#a8ca58'],
-        ['blue', 'Blue', 1, 0, 'steady', '#73bed3'], ['pink', 'Pink', 1, 0, 'steady', '#df84a5'], ['purple', 'Purple', 1, 0, 'steady', '#a23e8c'], ['nav', 'Red and green', 2, 0, 'alt', '#cf573c', '#a8ca58'], ['twinkle', 'Twinkling white', 2, 0, 'twinkle', '#ebede9'],
-        ['pulse', 'Pulsing blue', 2, 0, 'pulse', '#73bed3'], ['gold', 'Gold', 3, 0, 'steady', '#de9e41'], ['ice', 'Ice', 3, 0, 'twinkle', '#a4dddb'], ['xmas', 'Holiday', 3, 0, 'chase', '#cf573c', '#a8ca58', '#e8c170'], ['chase', 'Rainbow chase', 4, 0, 'chase', '#cf573c', '#e8c170', '#a8ca58', '#73bed3', '#df84a5'],
-        ['police', 'Patrol strobes', 5, 1, 'strobe', '#cf573c', '#4f8fba'], ['sweep', 'Lightning sweep', 5, 1, 'sweep', '#ebede9'], ['comet', 'Comet trail', 5, 1, 'comet', '#e8c170'], ['neon', 'Neon pink chase', 5, 1, 'chase', '#df84a5', '#a23e8c'], ['beacon', 'Station beacons', 5, 1, 'pulse', '#e8c170']]],
-    };
+    const SHIP_DECOR = {}; // (ceiling and hull lights used to be ship-wide; they're per room now)
     const DEC_ALL = Object.assign({}, DECOR, SHIP_DECOR);
     // your own art: art/decor/decor.json lists PNGs that replace a built-in decoration ("replace") or add new ones ("custom")
     const DEC_IMG = {}; // 'cat:id' -> { img, frames, fps }
@@ -1693,7 +1692,7 @@
     if (!S.decor) S.decor = { own: {}, room: {}, ship: {} };
     const decOwn = (cat, id) => { const it = decItem(cat, id); return !it[2] || !!S.decor.own[decKey(cat, it[0])]; };
     const decOf = (k, cat) => (S.decor.room[k] && S.decor.room[k][cat]) || DECOR[cat][1][0][0];
-    const shipDec = cat => S.decor.ship[cat] || SHIP_DECOR[cat][1][0][0];
+    if (S.decor.ship && (S.decor.ship.ceil || S.decor.ship.lights)) { ROOM_SPOTS.forEach(r => { S.decor.room[r] = S.decor.room[r] || {}; ['ceil', 'lights'].forEach(c => { if (S.decor.ship[c] && !S.decor.room[r][c]) S.decor.room[r][c] = S.decor.ship[c]; }); }); S.decor.ship = {}; }
     const decOwned = () => Object.keys(S.decor.own).length;
     const decTotal = () => Object.values(DEC_ALL).reduce((a, [, L]) => a + L.filter(x => x[2]).length, 0);
     const decStOwned = () => Object.entries(DEC_ALL).reduce((a, [c, [, L]]) => a + L.filter(x => x[3] && S.decor.own[decKey(c, x[0])]).length, 0);
@@ -1876,13 +1875,6 @@
       for (let y = y0; y < y1; y++) { const w = Math.max(0, Math.round(20 - Math.abs(y - mid) * 20 / ((y1 - y0) / 2))); px(x1, y, hull, w, 1); if (w) px(x1 + w - 1, y, 'rgba(0,0,0,.2)'); } // nose
       px(x0 - 8, y0 + 8, '#577277', 8, y1 - y0 - 16); px(x0 - 10, y0 + 10, '#394a50', 2, y1 - y0 - 20); // engine block
       if (!still) { px(x0 - 13 - blink(5), y0 + 14, '#73bed3', 3 + blink(5), y1 - y0 - 28); px(x0 - 15 - blink(5) * 2, y0 + 16, '#a4dddb', 2, y1 - y0 - 32); }
-      const hl = decItem('lights', shipDec('lights')), hlA = decArt('lights', hl[0]), hm = hlA && hl[4] === 'img' ? 'steady' : hl[4]; // hull running lights along the top and bottom edges
-      if (hm !== 'none') { const cs = hl.slice(5), N = Math.floor((x1 - x0 - 4) / 6);
-        for (let n = 0; n < N; n++) { const x = x0 + 3 + n * 6; let c = cs[0], on = true;
-          if (hm === 'alt') c = cs[n % 2]; if (hm === 'twinkle') on = still || ((n * 7 + Math.floor(t * 2)) % 5) > 0; if (hm === 'pulse') on = still || Math.floor(t * 1.5) % 2 === 0;
-          if (hm === 'chase') c = cs[(n + Math.floor(t * 4)) % cs.length]; if (hm === 'strobe') { c = cs[Math.floor(t * 4) % 2]; on = still || (n % 2) === Math.floor(t * 4) % 2; }
-          if (hm === 'sweep') on = still || Math.abs(n - (t * 14) % (N + 6)) < 1.5; if (hm === 'comet') { const d = ((t * 8) % (N + 4)) - n; on = still || (d >= 0 && d < 4); if (d > 0) c = d < 1 ? '#ebede9' : cs[0]; }
-          if (on) { if (hlA) { const [w, h] = artFrame(hlA); artAt(hlA, x - Math.floor(w / 2), y0 + 1 - Math.floor(h / 2)); artAt(hlA, x - Math.floor(w / 2), y1 - 2 - Math.floor(h / 2)); } else { px(x, y0 + 1, c); px(x, y1 - 2, c); } } } }
       DECKS.forEach(row => row.forEach(k => {
         const [rx, ry] = roomXY(k), lv = roomAt(k);
         const d = cat => { const p = P(k), id = p && p[1] === cat ? p[2] : decOf(k, cat); return decItem(cat, id); };
@@ -1912,13 +1904,21 @@
         F[k] && F[k]();
         const fu = d('furn'), fuA = decArt('furn', fu[0]); if (fuA) { const [, h] = artFrame(fuA); artAt(fuA, rx + 2, FY - h); } else if (fu[4] !== 'none') FURN(fu[4], rx + 2, FY, fu[5], fu[6]);
         const pl = d('plant'), plA = decArt('plant', pl[0]); if (plA) { const [w, h] = artFrame(plA); artAt(plA, rx + RW - 2 - w, FY - h); } else if (pl[4] !== 'none') PLANT(pl[4], rx + RW - 8, FY, ry, rx, pl[5], pl[6]);
-        const ce = decItem('ceil', shipDec('ceil')), ceA = decArt('ceil', ce[0]); if (ceA) { const [w] = artFrame(ceA); artAt(ceA, w >= RW ? rx : rx + 5, ry); } else if (ce[4] !== 'none') CEIL(ce[4], rx, ry, ce[5]);
+        const ce = d('ceil'), ceA = decArt('ceil', ce[0]); if (ceA) { const [w] = artFrame(ceA); artAt(ceA, w >= RW ? rx : rx + 5, ry); } else if (ce[4] !== 'none') CEIL(ce[4], rx, ry, ce[5]);
         const li = d('light'), liA = decArt('light', li[0]), lx = rx + RW / 2 + 4; if (liA) { const [w] = artFrame(liA); alpha(.12, () => { for (let y = 0; y < RH - 6; y++) { const gw = 3 + y * .9; px(lx - gw, ry + 3 + y, li[5] || '#e8c170', gw * 2, 1); } }); artAt(liA, lx - Math.floor(w / 2), ry); } else LIGHT(li[4], lx, ry, li[5], li[6]);
         // crew: they stay in their room this session, shuffling about a little
         crewIn(k).forEach((c, m, all) => {
           const ph = m * 2.1 + c.name.length, base = rx + 8 + (m + 1) * (RW - 16) / (all.length + 1), bx = Math.round(base + (still ? 0 : Math.sin(t * .5 + ph) * 3)), step = !still && Math.abs(Math.cos(t * .5 + ph)) > .3 ? blink(4, m) : 0;
           px(bx, FY - 9, '#4d2b32', 2, 1); px(bx, FY - 8, '#e8c170', 2, 2); px(bx, FY - 6, ROLE_C[c.role] || '#c7cfcc', 2, 4); px(bx + step, FY - 2, '#241527', 1, 2); px(bx + 1 - step, FY - 2, '#241527', 1, 2); if (c.vet) px(bx, FY - 10, '#e8c170', 2, 1);
         });
+        // this room's stretch of hull lights: along the top edge for the upper deck, the bottom edge for the lower deck
+        const hl = d('lights'), hlA = decArt('lights', hl[0]), hm = hlA && hl[4] === 'img' ? 'steady' : hl[4], deck = DECKS[0].includes(k) ? 0 : 1, col = DECKS[deck].indexOf(k);
+        if (hm !== 'none') { const cs = hl.slice(5), N = Math.floor(RW / 6), hy = deck ? IY + RH * 2 + 2 + 1 : IY - 3;
+          for (let q = 0; q < N; q++) { const n = col * N + q, x = rx + 3 + q * 6; let c = cs[0] || '#e8c170', on = true;
+            if (hm === 'alt') c = cs[n % 2]; if (hm === 'twinkle') on = still || ((n * 7 + Math.floor(t * 2)) % 5) > 0; if (hm === 'pulse') on = still || Math.floor(t * 1.5) % 2 === 0;
+            if (hm === 'chase') c = cs[(n + Math.floor(t * 4)) % cs.length]; if (hm === 'strobe') { c = cs[Math.floor(t * 4) % 2]; on = still || (n % 2) === Math.floor(t * 4) % 2; }
+            if (hm === 'sweep') on = still || Math.abs(q - (t * 10) % (N + 4)) < 1.5; if (hm === 'comet') { const dd = ((t * 6) % (N + 4)) - q; on = still || (dd >= 0 && dd < 4); if (dd > 0) c = dd < 1 ? '#ebede9' : cs[0]; }
+            if (on) { if (hlA) { const [w, h] = artFrame(hlA); artAt(hlA, x - Math.floor(w / 2), hy - Math.floor(h / 2)); } else px(x, hy, c); } } }
         const edge = c => { px(rx, ry, c, RW, 1); px(rx, ry + RH - 1, c, RW, 1); px(rx, ry, c, 1, RH); px(rx + RW - 1, ry, c, 1, RH); };
         if (inSel === k) edge('#e8c170'); else if (inHover === k) alpha(.5, () => edge('#d0da91'));
         px(rx + RW - 1, ry, 'rgba(0,0,0,.35)', 1, RH); // the wall between rooms
@@ -1947,14 +1947,13 @@
         const prev = () => { inPrev = SHIP_DECOR[cat] ? null : [inSel, cat, it[0]]; }, unprev = () => { inPrev = null; };
         b.addEventListener('mouseenter', prev); b.addEventListener('mouseleave', unprev); b.addEventListener('focus', prev); b.addEventListener('blur', unprev);
         return b; };
-      const catBtns = Object.entries(DECOR).map(([k, [label]]) => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === inCat), onclick: () => { inCat = k; drawShip(); } }, label));
-      const shipRows = Object.entries(SHIP_DECOR).map(([cat, [label, list]]) => el('div', { class: 'sx-decrow' }, el('h4', {}, label), el('div', { class: 'sx-decs' }, list.map(it => itemBtn(cat, it, shipDec(cat) === it[0])))));
+      const catBtns = ['wall', 'floor', 'window', 'art', 'light', 'plant', 'furn', 'ceil', 'lights'].map(k => [k, DECOR[k]]).map(([k, [label]]) => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === inCat), onclick: () => { inCat = k; drawShip(); } }, label));
       const colors = Object.entries(HULL_COLORS).filter(([k]) => !STATION_ONLY.colors.includes(k) || S.ship.colors.includes(k)).map(([k, hex]) => { const own = S.ship.colors.includes(k), on = S.ship.color === k;
         return el('button', { type: 'button', class: 'sx-swatch' + (on ? ' on' : ''), title: k + (own ? '' : ' (✦ ' + E.shipStyleCost.color + ')'), disabled: lock || (!own && S.dust < E.shipStyleCost.color) || null, onclick: () => buyStyle('color', k) }, el('i', { style: 'background:' + hex }), el('span', {}, k)); });
       return [el('div', { class: 'sx-interior' }, inCv, inTip),
         el('div', { class: 'sx-sec' }, el('h3', {}, 'Decorate: ' + ic + ' ' + name, el('small', { class: 'sx-h-n' }, '  ✦ ' + S.dust.toLocaleString())), el('p', { class: 'sl-muted' }, lock ? 'Decorating waits until the study session is over. You can still look.' : 'Buy a decoration once and use it in every room. Hover one to preview it. Click a room above to pick it.'),
           el('div', { class: 'sl-stabs', role: 'tablist' }, catBtns), el('div', { class: 'sx-decs' }, DECOR[inCat][1].map(it => itemBtn(inCat, it, decOf(inSel, inCat) === it[0])))),
-        el('div', { class: 'sx-sec' }, el('h3', {}, 'Whole ship'), el('div', { class: 'sx-decrow' }, el('h4', {}, 'Hull paint'), el('div', { class: 'sx-swatches' }, colors)), ...shipRows,
+        el('div', { class: 'sx-sec' }, el('h3', {}, 'Whole ship'), el('div', { class: 'sx-decrow' }, el('h4', {}, 'Hull paint'), el('div', { class: 'sx-swatches' }, colors)),
           el('p', { class: 'sl-muted' }, decOwned() + ' of ' + decTotal() + ' decorations owned. The 🛰 ones only turn up at Interplanetary Stations.'))];
     }
 

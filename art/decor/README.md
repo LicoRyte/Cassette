@@ -248,9 +248,9 @@ Size: about 20 × 14 px. Centered on the left half of the wall.
 | `stview` | Station lights view 🛰 |
 | `galaxy` | Galaxy porthole 🛰 |
 
-### Ceiling (whole ship) (`ceil`)
+### Ceiling (`ceil`)
 
-Size: any width. Narrower than 44 px: hangs at the top-left of every room. 44 px or wider: starts at the room's left edge. Top edge = ceiling.
+Size: any width. Narrower than 44 px: hangs at the top-left of the room. 44 px or wider: starts at the room's left edge. Top edge = ceiling.
 
 | id | name |
 |---|---|
@@ -275,9 +275,9 @@ Size: any width. Narrower than 44 px: hangs at the top-left of every room. 44 px
 | `gtrim` | Gold trim 🛰 |
 | `bubbles` | Bubble machine 🛰 |
 
-### Hull lights (whole ship) (`lights`)
+### Hull lights (`lights`)
 
-Size: about 1 × 1 to 3 × 3 px. One light, repeated along the top and bottom edges of the hull every 6 px.
+Size: about 1 × 1 to 3 × 3 px. One light, repeated every 6 px along the stretch of hull outside that room (the top edge for upper-deck rooms, the bottom edge for lower-deck rooms).
 
 | id | name |
 |---|---|
