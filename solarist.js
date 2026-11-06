@@ -1552,6 +1552,86 @@
     }
     function openReport(replay) { if (trans.hidden && card.hidden && encBox.hidden) return; report.hidden = false; reportBtn.hidden = false; if (!replay) typeOut(); const b = report.querySelector('.sx-report-ft .btn'); if (b) b.focus({ preventScroll: true }); }
     function closeReport() { report.hidden = true; }
+    // ---------- Ship interior: click the ship to see a cutaway of its rooms, with your crew inside ----------
+    const ROOM_SPOTS = ['bridge', 'quarters', 'galley', 'lab', 'workshop', 'deck', 'hold', 'medbay']; // 4 x 2 grid, back to front
+    const ROOM_C = { bridge: '#6d80fa', quarters: '#8465ec', galley: '#cc425e', lab: '#5ba675', workshop: '#873555', deck: '#390947', hold: '#a6555f', medbay: '#a6859f' };
+    const ROLE_ROOM = { Engineer: 'workshop', Cook: 'galley', Scientist: 'lab', Pilot: 'bridge', Scout: 'deck', Trader: 'hold', Medic: 'medbay', Storyteller: 'quarters' };
+    const ROLE_C = { Engineer: '#ffb879', Cook: '#ffffff', Scientist: '#aee2ff', Pilot: '#6d80fa', Scout: '#abdd64', Trader: '#fcef8d', Medic: '#ea6262', Storyteller: '#ee8fcb' };
+    const inCv = el('canvas', { class: 'sx-incv', width: 124, height: 84, role: 'img', 'aria-label': 'Cutaway of your ship' });
+    const inTip = el('p', { class: 'sx-intip' }), inList = el('div', { class: 'sx-inlist' }), inTitle = el('h2', {});
+    const interior = el('div', { class: 'sx-report sx-interior', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Inside your ship' },
+      el('div', { class: 'sx-report-in' }, inTitle, inCv, inTip, inList, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeInterior() }, 'Close'))));
+    interior.addEventListener('click', e => { if (e.target === interior) closeInterior(); });
+    let inRaf = 0, inHover = null;
+    const IA = 16, IB = 8, IOX = 46, IOY = 24; // tile half size and where tile (0,0) sits
+    const inCell = (i, j) => [IOX + (i - j) * IA, IOY + (i + j) * IB];
+    const roomAt = k => k === 'bridge' ? 1 : roomLv(k);
+    function crewIn(k) { return S.crew.filter(c => { const r = ROLE_ROOM[c.role] || 'quarters'; return (roomAt(r) ? r : 'bridge') === k; }); }
+    function drawInterior(now) {
+      const g = inCv.getContext('2d'), t = now / 1000, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      g.clearRect(0, 0, inCv.width, inCv.height);
+      const px = (x, y, c, w, h) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w || 1, h || 1); };
+      const hull = HULL_COLORS[S.ship.color] || '#d9bdc8';
+      const diamond = (cx, cy, a, b, c) => { for (let y = -b; y < b; y++) { const w = Math.round((b - Math.abs(y + .5)) * a / b); px(cx - w, cy + y, c, w * 2, 1); } };
+      // the hull under the deck: a thick plate in your hull color
+      const corners = [inCell(0, 1), inCell(3, 1)], depth = 9;
+      for (let x = inCell(0, 1)[0] - IA; x < inCell(3, 0)[0] + IA; x++) {
+        const L = [inCell(0, 1)[0] - IA, inCell(0, 1)[1]], Bt = [inCell(3, 1)[0], inCell(3, 1)[1] + IB], R = [inCell(3, 0)[0] + IA, inCell(3, 0)[1]];
+        const y = x < Bt[0] ? L[1] + (x - L[0]) * (Bt[1] - L[1]) / (Bt[0] - L[0]) : Bt[1] + (x - Bt[0]) * (R[1] - Bt[1]) / (R[0] - Bt[0]);
+        px(x, Math.round(y), x < Bt[0] ? '#4a3052' : '#7b5480', 1, depth); px(x, Math.round(y), hull, 1, 2);
+        if (x % 6 === 0) px(x, Math.round(y) + 4, '#fcef8d'); // little portholes
+      }
+      void corners;
+      ROOM_SPOTS.forEach((k, n) => {
+        const i = n % 4, j = Math.floor(n / 4), [cx, cy] = inCell(i, j), lv = roomAt(k), built = lv > 0, hov = inHover === k;
+        diamond(cx, cy, IA - 1, IB - .5, built ? ROOM_C[k] : '#1f102a');
+        if (built) for (let y = -IB + 2; y < IB - 1; y += 2) for (let x = -IA + 4; x < IA - 3; x += 4) if (Math.abs(x) / IA + Math.abs(y) / IB < .8) px(cx + x + (y & 2), cy + y, 'rgba(0,0,0,.18)'); // floor tiles
+        // low back walls along the two far edges
+        const wh = built ? 9 : 3, wall = built ? '#4a3052' : '#2b1a36';
+        for (let x = -IA + 1; x < 0; x++) { const ey = cy + Math.round((-IA - x) * IB / IA) - 0; px(cx + x, ey - wh + IB * 0, wall, 1, wh); }
+        for (let x = 0; x < IA - 1; x++) { const ey = cy - IB + Math.round(x * IB / IA); px(cx + x, ey - wh, built ? '#7b5480' : '#2b1a36', 1, wh); }
+        if (!built) { px(cx - 1, cy - 1, '#4a3052', 3, 1); px(cx, cy - 2, '#4a3052', 1, 3); return; } // empty slot: a little +
+        // furniture
+        const F = {
+          bridge: () => { px(cx - 6, cy - 4, '#1f102a', 12, 3); px(cx - 5, cy - 4, '#aee2ff', 4, 1); px(cx + 1, cy - 4, (Math.floor(t * 2) & 1) ? '#abdd64' : '#5ba675', 4, 1); px(cx - 1, cy + 1, '#a6859f', 3, 2); },
+          quarters: () => { for (let b = 0; b < Math.min(5, lv); b++) { const bx = cx - 10 + b * 4, by = cy - 2 + (b % 2) * 3; px(bx, by, '#d9bdc8', 3, 2); px(bx, by, '#8db7ff', 1, 2); } },
+          galley: () => { px(cx - 7, cy - 4, '#7b5480', 5, 3); px(cx - 7, cy - 4, '#ffb879', 5, 1); px(cx + 1, cy, '#a6859f', 6, 2); if (!still && Math.floor(t * 3) % 3) px(cx - 5, cy - 6 - Math.floor(t * 3) % 2, '#d9bdc8'); },
+          lab: () => { px(cx - 7, cy - 3, '#d9bdc8', 10, 2); px(cx - 6, cy - 5, '#abdd64', 1, 2); px(cx - 3, cy - 5, '#8db7ff', 1, 2); px(cx, cy - 5, '#ee8fcb', 1, 2); px(cx + 4, cy + 1, '#aee2ff', 3, 2); },
+          workshop: () => { px(cx - 7, cy - 3, '#a6555f', 9, 2); px(cx + 3, cy, '#ffb879', 3, 3); if (!still && (Math.floor(t * 6) % 4) === 0) { px(cx - 3, cy - 6, '#fcef8d'); px(cx - 1, cy - 5, '#ffffff'); } },
+          deck: () => { px(cx + 2, cy - 14, '#000000', 9, 5); [[3, -13], [7, -12], [5, -11], [9, -13]].forEach(([dx, dy]) => px(cx + dx, cy + dy, '#ffffff')); px(cx - 4, cy - 3, '#d9bdc8', 1, 4); px(cx - 5, cy - 4, '#d9bdc8', 4, 1); },
+          hold: () => { for (let b = 0; b < Math.min(6, lv + 1); b++) { const bx = cx - 9 + (b % 3) * 6, by = cy - 2 - Math.floor(b / 3) * 4 + (b % 3); px(bx, by, '#ffb879', 4, 3); px(bx, by, '#cc425e', 4, 1); } },
+          medbay: () => { px(cx - 6, cy - 2, '#ffffff', 7, 2); px(cx - 6, cy - 2, '#d9bdc8', 2, 2); px(cx + 6, cy - 11, '#ea6262', 3, 1); px(cx + 7, cy - 12, '#ea6262', 1, 3); },
+        };
+        F[k] && F[k]();
+        // crew: tiny people, swaying a little
+        crewIn(k).slice(0, 4).forEach((c, m) => { const bx = cx - 6 + m * 4, by = cy + 2 - (m % 2) + (still ? 0 : Math.round(Math.sin(t * 2 + m * 1.7) * .5)); px(bx, by - 4, '#ffc3f2', 2, 2); px(bx, by - 2, ROLE_C[c.role] || '#d9bdc8', 2, 3); });
+        if (hov) { const a = IA - 1, b = IB - .5; for (let x = -a; x < a; x++) { const e = Math.round((a - Math.abs(x + .5)) * b / a); px(cx + x, cy - e, '#fcef8d'); px(cx + x, cy + e - 1, '#fcef8d'); } }
+      });
+      if (!interior.hidden) inRaf = requestAnimationFrame(drawInterior);
+    }
+    function inTipFor(k) {
+      if (!k) return 'Hover a room to see what it does.';
+      const lv = roomAt(k), who = crewIn(k).map(c => c.name.split(' ')[0] + ' (' + c.role + ')');
+      if (k === 'bridge') return '🧭 Bridge. Where the ship is flown from.' + (who.length ? ' Here: ' + who.join(', ') + '.' : '');
+      const [ic, name, what] = ROOMS[k];
+      return lv ? ic + ' ' + name + ' · Lv ' + lv + '. ' + what + '.' + (who.length ? ' Here: ' + who.join(', ') + '.' : '') : ic + ' ' + name + ': not built yet. Build it from the Build tab (Your ship).';
+    }
+    inCv.addEventListener('mousemove', e => {
+      const b = inCv.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * inCv.width, y = (e.clientY - b.top) / b.height * inCv.height;
+      const u = ((x - IOX) / IA + (y - IOY) / IB) / 2, v = ((y - IOY) / IB - (x - IOX) / IA) / 2, i = Math.round(u), j = Math.round(v);
+      const k = i >= 0 && i < 4 && j >= 0 && j < 2 ? ROOM_SPOTS[j * 4 + i] : null; if (k !== inHover) { inHover = k; inTip.textContent = inTipFor(k); }
+    });
+    inCv.addEventListener('mouseleave', () => { inHover = null; inTip.textContent = inTipFor(null); });
+    function openInterior() {
+      if (!report.hidden) return;
+      inTitle.textContent = 'Inside the ' + S.ship.name.replace(/^The /, '');
+      inTip.textContent = inTipFor(null);
+      inList.replaceChildren(...ROOM_SPOTS.filter(k => k !== 'bridge').map(k => { const lv = roomLv(k); return el('span', { class: lv ? '' : 'off' }, ROOMS[k][0] + ' ' + ROOMS[k][1] + (lv ? ' ' + lv : '')); }));
+      interior.hidden = false; cancelAnimationFrame(inRaf); inRaf = requestAnimationFrame(drawInterior);
+    }
+    function closeInterior() { interior.hidden = true; cancelAnimationFrame(inRaf); }
+    document.addEventListener('solarist-ship', () => openInterior());
+
     const status = el('span', { class: 'sx-cap' }), status2 = el('span', { hidden: true });
     const timeBlock = el('div', { class: 'sx-clock' }, screen, cycleBar, status);
     const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, pvBar, timeBlock, mission, el('div', { class: 'sl-btns' }, startB, resetB, skipB), hint, reportBtn);
@@ -1582,7 +1662,7 @@
       el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, mapPane, settingsPane));
     [tabTimer, tabLog, tabShip].forEach(b => b.removeAttribute('role'));
     root.classList.add('sx');
-    root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, cleanB, tabLog, tabMap, tabShip, tabItems, tabSet)), leftCol, midCol, rightCol, feedLine, report, page, el('div', { hidden: true }, tabTimer, status2));
+    root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, cleanB, tabLog, tabMap, tabShip, tabItems, tabSet)), leftCol, midCol, rightCol, feedLine, report, interior, page, el('div', { hidden: true }, tabTimer, status2));
     function tab(t) {
       if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Logbook again goes back to the grid
       const names = { log: 'Logbook', ship: 'Ship', items: 'Collection', settings: 'Settings', map: 'Star map' };
@@ -1885,6 +1965,7 @@
     // keyboard: 1-4 pick the mission, Space starts or pauses, Esc closes a report or page
     document.addEventListener('keydown', e => {
       if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, select, textarea')) return;
+      if (!interior.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeInterior(); } return; }
       if (!report.hidden) { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeReport(); } return; }
       if (!page.hidden) { if (e.key === 'Escape') { e.preventDefault(); tab('timer'); } return; }
       if ((e.key === 'h' || e.key === 'H') && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); setClean(!clean); return; }
@@ -2591,7 +2672,8 @@
       nameIn.addEventListener('change', () => { S.ship.name = nameIn.value.trim().slice(0, 28) || 'The Lantern'; save(); draw(); });
       const rooms = Object.entries(ROOMS).map(([k, [ic, name, what]]) => { const l = roomLv(k); return el('tr', {}, el('td', {}, ic + ' ' + name), el('td', {}, l ? 'Lv ' + l : '-'), el('td', {}, what)); });
       const mods = Object.entries(MODS).map(([k, [ic, name, eff, what]]) => el('tr', {}, el('td', {}, ic + ' ' + name), el('td', {}, 'Lv ' + lvl(k) + ' / ' + modMax(k)), el('td', {}, eff(lvl(k)) + ' ' + what)));
-      return [group('Your ship', el('div', { class: 'sx-hangar' }, big, el('div', {}, el('label', { class: 'sl-muted' }, 'Name'), nameIn, el('p', { class: 'sl-muted' }, S.ship.design + ', ' + S.ship.color.toLowerCase() + ' hull. ' + Object.keys(S.rooms).length + ' rooms, ' + S.crew.length + ' crew. New colors and designs are in the Hangar tab on the right.')))),
+      big.style.cursor = 'pointer'; big.title = 'Look inside'; big.addEventListener('click', () => { tab('timer'); openInterior(); });
+      return [group('Your ship', el('div', { class: 'sx-hangar' }, big, el('div', {}, el('button', { type: 'button', class: 'btn', onclick: () => { tab('timer'); openInterior(); } }, 'Look inside'), el('label', { class: 'sl-muted' }, 'Name'), nameIn, el('p', { class: 'sl-muted' }, S.ship.design + ', ' + S.ship.color.toLowerCase() + ' hull. ' + Object.keys(S.rooms).length + ' rooms, ' + S.crew.length + ' crew. New colors and designs are in the Hangar tab on the right.')))),
         group('Rooms', el('table', { class: 'sl-rec sl-stats' }, el('tbody', {}, rooms))), group('Modules', el('table', { class: 'sl-rec sl-stats' }, el('tbody', {}, mods)))];
     }
     function hangarView() { // right side: hire crew, buy hull colors and designs

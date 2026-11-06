@@ -406,6 +406,11 @@ void main(){
       isoBox(bx, by + 1, 6, 3, h, C, style, t);
     });
   }
+  // clicking the ship opens its interior (the game listens for this event)
+  let shipBox = null;
+  const onShip = e => shipBox && !e.target.closest('button, a, input, select, textarea, .sx-report, .sx-page, .sx-side') && e.clientX > shipBox.x - 12 && e.clientX < shipBox.x + shipBox.w + 12 && e.clientY > shipBox.y - 12 && e.clientY < shipBox.y + shipBox.h + 12;
+  document.addEventListener('click', e => { if (onShip(e)) document.dispatchEvent(new CustomEvent('solarist-ship')); });
+  document.addEventListener('mousemove', e => { const on = onShip(e); if (on !== document.body.classList.contains('sx-shiphover')) document.body.classList.toggle('sx-shiphover', on); });
   function drawShipSprite(now) { // the ship sits to the left of the planet; it bobs while the timer runs and leaves a flame while traveling
     gs.clearRect(0, 0, sv.width, sv.height);
     if (!info || !info.ship || !window.Solarist.shipSprite) return;
@@ -422,6 +427,7 @@ void main(){
     drawExtras(now, cx, cy, rad, r);
     drawIsland(now, cx, cy, rad, r);
     gs.imageSmoothingEnabled = false; gs.drawImage(img, x, y);
+    shipBox = { x: x * PX, y: y * PX, w: img.width * PX, h: img.height * PX };
     if (info.kind === 'shipbuild' && info.running) { // building a room: welding sparks on the hull
       const fr = Math.floor(t * 8); for (let i = 0; i < 3; i++) { const h = Math.sin((fr + i * 7) * 12.9898) * 43758.5453, k = h - Math.floor(h); if (k < .45) continue; const sx = x + 3 + Math.floor(k * 13), sy = y + 1 + Math.floor((k * 7.3 % 1) * 7); gs.fillStyle = k > .8 ? '#ffffff' : '#fcef8d'; gs.fillRect(sx, sy, 1, 1); if (k > .7) { gs.fillStyle = '#ffb879'; gs.fillRect(sx + 1, sy - 1, 1, 1); } }
     }

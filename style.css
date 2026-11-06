@@ -537,3 +537,11 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-cleanb[aria-pressed="true"] { color: var(--amber) !important; }
 @media (max-width: 900px) { .sx-clean .sx-left, .sx-clean .sx-right { display: none; } }
 @media (max-width: 520px) { .sx-cleant { display: none; } .sx-cleanb { margin-right: 0; } }
+
+/* ship interior */
+body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
+.sx-incv { display: block; width: 100%; max-width: 620px; margin: 6px auto 0; image-rendering: pixelated; background: radial-gradient(#140a1d, #000 70%); }
+.sx-intip { min-height: 2.9em; margin: 10px 0 6px; font: 15px/1.45 var(--text); color: var(--soft); }
+.sx-inlist { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 500 15px var(--ui); color: var(--white); }
+.sx-inlist .off { color: var(--dim); }
+.sx-interior .sx-report-in { width: min(760px, 100%); }
