@@ -490,45 +490,10 @@ void main(){
       gs.fillStyle = on ? '#cf573c' : '#752438'; gs.fillRect(x - 1, y - 1, 3, 3); gs.fillStyle = '#ebede9'; if (on) gs.fillRect(x, y, 1, 1);
       if (!still) { const k = (t * .7) % 1, rr = 3 + k * 16; gs.fillStyle = '#cf573c'; gs.globalAlpha = 1 - k; for (let q = 0; q < 24; q++) { const a = q / 24 * Math.PI * 2; gs.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 1, 1); } gs.globalAlpha = 1; } }
   }
-  // clicking the ship opens its interior (the game listens for this event)
-  let shipBox = null;
-  const onShip = e => shipBox && !e.target.closest('button, a, input, select, textarea, .sx-report, .sx-page, .sx-side') && e.clientX > shipBox.x - 12 && e.clientX < shipBox.x + shipBox.w + 12 && e.clientY > shipBox.y - 12 && e.clientY < shipBox.y + shipBox.h + 12;
-  document.addEventListener('click', e => { if (onShip(e)) document.dispatchEvent(new CustomEvent('solarist-ship')); });
-  document.addEventListener('mousemove', e => { const on = onShip(e); if (on !== document.body.classList.contains('sx-shiphover')) document.body.classList.toggle('sx-shiphover', on); });
-  /* ---------- your ship: a small isometric model, drawn unless it is away on a trip ---------- */
-  // each part: [i, j, z, u, v, h, tone]; i runs toward the nose (down right on screen), j across, z up. tone: h hull, s shade, d dark, c cockpit, r accent, e engine
-  const ISO_SHIPS = {
-    Scout: [[-1, 0, 1, 3, 6, 1, 's'], [0, 0, 0, 7, 2.5, 3, 'h'], [3.5, 0, 3, 2, 1.5, 1.5, 'c'], [-3, 0, 3, 2, 1, 1, 'r'], [-7.5, 0, .5, .6, 1.6, 2, 'e']],
-    Hauler: [[0, 0, 0, 8, 4, 4, 'h'], [-3, -1.8, 4, 2.4, 1.6, 2.5, 'k'], [-3, 1.8, 4, 2.4, 1.6, 2.5, 'k'], [2, 0, 4, 2, 3.4, 2, 'r'], [6.5, 0, 4, 1.4, 2, 1.5, 'c'], [-8.5, -2, 1, .6, 1.4, 2, 'e'], [-8.5, 2, 1, .6, 1.4, 2, 'e']],
-    Needle: [[0, 0, 0, 10, 1.6, 2, 'h'], [-6, 0, 2, 2.5, .8, 2, 's'], [-6, 0, .5, 2, 4, .8, 'd'], [6, 0, 2, 2.4, 1, 1, 'c'], [2, 0, 0, 1, 1.6, 2, 'r'], [-10.5, 0, .4, .6, 1.2, 1.4, 'e']],
-    Saucer: [[0, 0, 0, 6, 3, 1.5, 's'], [0, 0, 0, 3, 6, 1.5, 's'], [0, 0, 0, 5, 5, 1.6, 'h'], [0, 0, 1.6, 3, 3, .8, 'r'], [0, 0, 2.4, 2, 2, 1.8, 'c']],
-    Manta: [[-1, 0, 0, 4, 8, 1.2, 's'], [0, 0, 0, 6.5, 2.2, 2.4, 'h'], [4, 0, 2.4, 1.8, 1.4, 1, 'c'], [-3, -6.5, 1.2, 1.5, 1, .8, 'r'], [-3, 6.5, 1.2, 1.5, 1, .8, 'r'], [-6.8, 0, .5, .6, 1.6, 1.6, 'e']],
-    'Ring Runner': [[0, 0, 0, 6, 2, 3, 'h'], [3, 0, 3, 1.8, 1.2, 1.4, 'c'], [-2, -5, .5, 3, .7, 2, 'd'], [-2, 5, .5, 3, .7, 2, 'd'], [-5, 0, .5, .7, 5.6, 2, 'd'], [1, 0, .5, .7, 5.6, 2, 'd'], [-6.5, 0, .5, .6, 1.4, 2, 'e']]
-  };
-  function isoPart(ox, oy, i, j, z, u, v, h, top, lf, rt, box) { // rasterize one box: screen x = (i - j) * 2, y = i + j - z
-    const x0 = Math.floor(ox + (i - u - j - v) * 2) - 1, x1 = Math.ceil(ox + (i + u - j + v) * 2) + 1, y0 = Math.floor(oy + i + j - u - v - z - h) - 1, y1 = Math.ceil(oy + i + j + u + v - z) + 1;
-    for (let py = y0; py <= y1; py++) for (let px = x0; px <= x1; px++) {
-      const X = (px + .5 - ox) / 2, Y = py + .5 - oy; let c = null;
-      { const a = (Y + z + h + X) / 2 - i, b = (Y + z + h - X) / 2 - j; if (Math.abs(a) <= u && Math.abs(b) <= v) c = top; } // top face at height z + h
-      if (!c) { const b = (i + u) - X - j, zz = (i + u) + (b + j) - Y - z; if (Math.abs(b) <= v && zz >= 0 && zz <= h) c = rt; } // nose-side face (i = +u)
-      if (!c) { const a = X + (j + v) - i, zz = (a + i) + (j + v) - Y - z; if (Math.abs(a) <= u && zz >= 0 && zz <= h) c = lf; } // near side face (j = +v)
-      if (c) { gs.fillStyle = c; gs.fillRect(px, py, 1, 1); box[0] = Math.min(box[0], px); box[1] = Math.min(box[1], py); box[2] = Math.max(box[2], px); box[3] = Math.max(box[3], py); }
-    }
-  }
-  function drawIsoShip(ox, oy, design, color, t, still) {
-    const P = ISO_SHIPS[design] || ISO_SHIPS.Scout, K = window.Solarist.shipColors(color), box = [1e9, 1e9, -1e9, -1e9];
-    const tone = { h: [K.h, K.s, K.d], s: [K.s, K.d, K.d], d: [K.d, '#253a5e', '#172038'], c: ['#a4dddb', '#4f8fba', '#3c5e8b'], r: [K.r, '#752438', '#752438'], e: ['#394a50', '#172038', '#172038'], k: ['#c7cfcc', '#819796', '#577277'] };
-    gs.globalAlpha = .35; gs.fillStyle = '#000'; gs.fillRect(Math.round(ox - 12), Math.round(oy + 9), 24, 2); gs.globalAlpha = 1; // a soft shadow below
-    P.slice().sort((p, q) => (p[0] + p[1] + p[2] * .5) - (q[0] + q[1] + q[2] * .5)).forEach(([i, j, z, u, v, h, k]) => { const T = tone[k]; isoPart(ox, oy, i, j, z, u, v, h, T[0], T[1], T[2], box); });
-    const eng = P.filter(p => p[6] === 'e'); // idle engine glow at the back
-    eng.forEach(([i, j, z, u, v, h]) => { const sx = Math.round(ox + (i - u - j) * 2), sy = Math.round(oy + i - u + j - z - h / 2); gs.fillStyle = still || Math.floor(t * 3) & 1 ? '#73bed3' : '#a4dddb'; gs.fillRect(sx - 1, sy, 2, 1); });
-    if (!still && Math.floor(t * 1.2) % 3 === 0) { gs.fillStyle = '#cf573c'; gs.fillRect(box[0], Math.round((box[1] + box[3]) / 2), 1, 1); } // nav light
-    return box;
-  }
   let stationDock = null; // where your ship docks at the Interplanetary Station this frame
-  function drawShipSprite(now) { // the scene overlay: island, station and extras, then your parked ship
+  function drawShipSprite(now) { // the scene overlay: your Post's island, the station and other things around the world
     gs.clearRect(0, 0, sv.width, sv.height);
-    if (!info || !info.ship || !window.Solarist.shipColors) return;
+    if (!info) return;
     const r = info.spot && info.spot.getBoundingClientRect(); if (!r || !r.width) return;
     const cx = (r.left + r.width / 2) / PX, cy = (r.top + r.height / 2) / PX, rad = Math.min(r.width, r.height) / PX * .44;
     const t = now / 1000, still = reduceMotion.matches, half = r.width / PX / 2;
@@ -536,16 +501,6 @@ void main(){
     drawExtras(now, cx, cy, rad, r);
     drawIsland(now, cx, cy, rad, r);
     drawStatus(now, cx, cy, rad);
-    // no ship while it is off traveling (a running Explore, Campaign, Expedition, Hunt or Distress trip) or while browsing other worlds
-    const away = info.running && info.mode === 'focus' && ['explore', 'campaign', 'distress', 'fight'].includes(info.kind);
-    if (away || info.pv || !info.planet) { shipBox = null; return; }
-    const bob = still ? 0 : Math.round(Math.sin(t * 1.3) * 1.2);
-    let x, y;
-    if (stationDock) { x = stationDock.x + 9; y = stationDock.y + 17; } // docked at the station's arm
-    else if (islandAt) { x = islandAt.x - 22; y = islandAt.y - 2; } // parked beside your Travelers' Post
-    else { x = Math.max(Math.round(r.left / PX) + 26, Math.round(cx - Math.min(rad * 1.15, half - 4) - 16)); y = Math.round(cy + rad * .55); } // parked in orbit, lower left
-    const box = drawIsoShip(Math.round(x), Math.round(y + bob), info.ship.design, info.ship.color, t, still);
-    shipBox = { x: box[0] * PX, y: box[1] * PX, w: (box[2] - box[0] + 1) * PX, h: (box[3] - box[1] + 1) * PX };
   }
   function typeName() { // the new world's name types itself out
     setTimeout(() => { const b = root.querySelector('.sx-name b'); if (!b) return; const full = b.textContent; let k = 0; b.textContent = '';

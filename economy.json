@@ -63,7 +63,9 @@
   "_crewCost": "Hiring costs base + perCrew x crew already aboard.",
 
   "shipStyleCost": { "color": 300, "design": 800 },
-  "_shipStyleCost": "Buying a hull color or a ship design (once; switching between owned ones is free).",
+  "_shipStyleCost": "Buying a hull paint color (once; switching between owned ones is free). design is only used to refund old ship designs.",
+  "decorCost": { "t1": 150, "t2": 400, "t3": 900, "t4": 1800, "station": 2500 },
+  "_decorCost": "Ship decorations by price tier (t1 cheapest .. t4 fanciest). station = price of a station-only decoration at an Interplanetary Station.",
 
   "campaign": { "base": 30, "perLog": 0.7 },
 

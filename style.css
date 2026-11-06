@@ -564,3 +564,17 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 }
 @keyframes sx-lockin { from { opacity: 0; } to { opacity: 1; } }
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) { .sx-clean .sx-mid { animation: none; } }
+
+/* Ship page: the 2D cutaway and decorating */
+.sl-group .sx-interior { margin: 4px 0 10px; }
+.sl-group .sx-incv { display: block; width: 100%; max-width: 980px; margin: 0; image-rendering: pixelated; background: #000; }
+.sx-decs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 10px; }
+.sx-dec { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 7px 10px; background: none; border: 1px solid var(--line); color: var(--white); text-align: left; cursor: pointer; font: 500 15px var(--ui); }
+.sx-dec small { font: 13px var(--ui); color: var(--mute); }
+.sx-dec:hover:not(:disabled) { border-color: var(--soft); }
+.sx-dec.on { border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber); }
+.sx-dec.on small { color: var(--amber); }
+.sx-dec.st small { color: var(--sky); }
+.sx-dec:disabled { opacity: .45; cursor: default; }
+.sx-decrow { margin-top: 14px; } .sx-decrow h4 { margin: 0 0 4px; font: 600 15px var(--ui); color: var(--violet); letter-spacing: .04em; text-transform: uppercase; }
+.sx-decrow .sx-decs { margin-top: 4px; }
