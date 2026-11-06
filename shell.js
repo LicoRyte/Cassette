@@ -495,7 +495,7 @@ void main(){
   const onShip = e => shipBox && !e.target.closest('button, a, input, select, textarea, .sx-report, .sx-page, .sx-side') && e.clientX > shipBox.x - 12 && e.clientX < shipBox.x + shipBox.w + 12 && e.clientY > shipBox.y - 12 && e.clientY < shipBox.y + shipBox.h + 12;
   document.addEventListener('click', e => { if (onShip(e)) document.dispatchEvent(new CustomEvent('solarist-ship')); });
   document.addEventListener('mousemove', e => { const on = onShip(e); if (on !== document.body.classList.contains('sx-shiphover')) document.body.classList.toggle('sx-shiphover', on); });
-  /* ---------- your ship: a small isometric model, only drawn while parked (never during a study session) ---------- */
+  /* ---------- your ship: a small isometric model, drawn unless it is away on a trip ---------- */
   // each part: [i, j, z, u, v, h, tone]; i runs toward the nose (down right on screen), j across, z up. tone: h hull, s shade, d dark, c cockpit, r accent, e engine
   const ISO_SHIPS = {
     Scout: [[-1, 0, 1, 3, 6, 1, 's'], [0, 0, 0, 7, 2.5, 3, 'h'], [3.5, 0, 3, 2, 1.5, 1.5, 'c'], [-3, 0, 3, 2, 1, 1, 'r'], [-7.5, 0, .5, .6, 1.6, 2, 'e']],
@@ -536,9 +536,9 @@ void main(){
     drawExtras(now, cx, cy, rad, r);
     drawIsland(now, cx, cy, rad, r);
     drawStatus(now, cx, cy, rad);
-    // no ship at all during a study session (running or paused) or while browsing other worlds: just the planet
-    const studying = info.mode === 'focus' && (info.running || info.paused);
-    if (studying || info.pv || !info.planet) { shipBox = null; return; }
+    // no ship while it is off traveling (a running Explore, Campaign, Expedition, Hunt or Distress trip) or while browsing other worlds
+    const away = info.running && info.mode === 'focus' && ['explore', 'campaign', 'distress', 'fight'].includes(info.kind);
+    if (away || info.pv || !info.planet) { shipBox = null; return; }
     const bob = still ? 0 : Math.round(Math.sin(t * 1.3) * 1.2);
     let x, y;
     if (stationDock) { x = stationDock.x + 9; y = stationDock.y + 17; } // docked at the station's arm
