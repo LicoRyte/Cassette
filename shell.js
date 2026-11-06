@@ -209,8 +209,8 @@ void main(){
       col = c * (.08 + 1.02 * lit); col = mix(col, c, emit * .9);
       col += vec3(.35, .45, .9) * pow(1. - n.z, 3.) * .45 * (lit + .15);
       // your post's lights on the night side, more of them as the settlers grow
-      if (postLv > 0. && lit < .12){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[5] : pal[4]; }
-      if (kind == 2. && run > .5){ vec3 cell = floor(q * 26.); if (h3(cell + seed) > .982 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0.) col = h3(cell + 3.) > .5 ? pal[4] : pal[3]; } // little work lights on the build site
+      if (postLv > 9.){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[5] : pal[4]; }
+      if (kind == 99.){ vec3 cell = floor(q * 26.); if (h3(cell + seed) > .982 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0.) col = h3(cell + 3.) > .5 ? pal[4] : pal[3]; } // little work lights on the build site
       if (kind == 1.){ // radar sweep: a green band moving down, then back up, with a fading trail
         float ph = mod(tt * .3, 2.), y = ph < 1. ? 1. - ph : ph - 1., dir = ph < 1. ? -1. : 1.;
         float yy = (uv.y + 1.) * .5, dy = (yy - y) * -dir;
@@ -346,6 +346,66 @@ void main(){
     if (!still && now > shootAt && !shoot) { shoot = { x: Math.random() * sv.width * .8, y: Math.random() * sv.height * .35, at: now }; shootAt = now + 45000 + Math.random() * 75000; }
     if (shoot) { const u = (now - shoot.at) / 900; if (u > 1) shoot = null; else { const hx = shoot.x + u * 70, hy = shoot.y + u * 26; for (let j = 0; j < 9; j++) dot(hx - j * 2.7, hy - j, j < 2 ? '#ffffff' : j < 5 ? '#a6859f' : '#4a3052'); } }
   }
+  /* ---------- the post island: a floating rock next to the planet with one little isometric building per facility ---------- */
+  const THEME_C = { // [top, left face, right face, accent]
+    food: ['#ffb879', '#cc425e', '#ea6262', '#fcef8d'], sci: ['#aee2ff', '#6d80fa', '#8db7ff', '#ffffff'], fun: ['#ffc3f2', '#d46eb3', '#ee8fcb', '#fcef8d'],
+    rest: ['#abdd64', '#5ba675', '#6bc96c', '#ffffff'], work: ['#a6859f', '#4a3052', '#7b5480', '#ffb879'], art: ['#d9bdc8', '#834dc4', '#8465ec', '#fcef8d'] };
+  const hashK = k => { let h = 7; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+  function isoBox(bx, by, a, b, h, C, style, t) { // base centre (bx,by), footprint half-size a x b (2:1), height h
+    for (let x = -a; x < a; x++) { // the two side faces, one column at a time
+      const e = Math.round((a - Math.abs(x + .5)) * b / a), y0 = by + e - h;
+      gs.fillStyle = x < 0 ? C[1] : C[2]; gs.fillRect(bx + x, y0, 1, h);
+      if (style % 4 === 0 && h > 4) { gs.fillStyle = C[3]; for (let y = 2; y < h - 1; y += 3) if ((x & 1) === 0 && Math.abs(x) > 1) gs.fillRect(bx + x, y0 + y, 1, 1); } // windows
+      if (style % 4 === 1) { gs.fillStyle = C[3]; gs.fillRect(bx + x, y0 + 1, 1, 1); } // a stripe under the roof
+    }
+    if (style % 4 === 2) { gs.fillStyle = '#1f102a'; gs.fillRect(bx + 1, by + b - 3, 1, 2); gs.fillRect(bx + 2, by + b - 3, 1, 2); } // a door
+    for (let y = -b; y < b; y++) { const w = Math.round((b - Math.abs(y + .5)) * a / b); gs.fillStyle = C[0]; gs.fillRect(bx - w, by - h + y, w * 2, 1); } // the roof
+    const ry = by - h - b; // roof features
+    const f = (style >> 2) % 5;
+    if (f === 0) { gs.fillStyle = C[3]; gs.fillRect(bx - 1, ry, 2, 2); gs.fillRect(bx - 2, ry + 1, 4, 1); } // dome
+    else if (f === 1) { gs.fillStyle = '#d9bdc8'; gs.fillRect(bx, ry - 3, 1, 4); gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#ea6262' : '#751756'; gs.fillRect(bx, ry - 4, 1, 1); } // antenna with a blinking tip
+    else if (f === 2) { gs.fillStyle = '#4a3052'; gs.fillRect(bx + 2, ry - 1, 2, 3); gs.fillStyle = '#a6859f'; const k = Math.floor(t * 3) % 3; gs.fillRect(bx + 2 + (k > 1 ? 1 : 0), ry - 3 - k, 1, 1); } // chimney and smoke
+    else if (f === 3) { gs.fillStyle = '#d9bdc8'; gs.fillRect(bx - 2, ry - 3, 1, 4); gs.fillStyle = C[3]; gs.fillRect(bx - 1, ry - 3, 2, 1); gs.fillRect(bx - 1, ry - 2, 1, 1); } // flag
+  }
+  function drawIsland(now, cx, cy, rad, r) {
+    const pl = info.planet, post = pl && pl.post, bj = info.build;
+    if (!post && !(bj && bj.k === 'post')) return;
+    const t = now / 1000, still = reduceMotion.matches, bob = still ? 0 : Math.round(Math.sin(t * 1.1) * 1.2);
+    const tp = post && post.tp, fac = tp ? tp.fac.slice(0, 12) : [], adding = bj && bj.k === 'add', building = bj && (bj.k === 'upgrade' || bj.k === 'post');
+    const n = fac.length + (adding ? 1 : 0), cols = tp || (bj && bj.k === 'upgrade') ? Math.max(2, Math.min(4, Math.ceil(Math.sqrt(Math.max(1, n) * 1.4)))) : 1, rows = tp || (bj && bj.k === 'upgrade') ? Math.max(1, Math.ceil(Math.max(1, n) / cols)) : 1;
+    const A = 8, B = 4, depth = Math.round(7 + (cols + rows) * 2.6);
+    // float just outside the planet's lower right edge (inside the planet's box on the screen)
+    let ox = Math.round(cx + rad * .92 + rows * A - A + 4), oy = Math.round(cy + rad * .5 - (cols + rows) * B / 2) + bob;
+    const right = (r.left + r.width) / PX - 4; if (ox + cols * A > right) ox = Math.round(right - cols * A);
+    const cell = (i, j) => [ox + (i - j) * A, oy + (i + j) * B]; // centre of tile (i = column, j = row)
+    // rock underneath: a rough dithered cone hanging below the plate
+    const [lcx, lcy] = cell(0, rows - 1), [rcx, rcy] = cell(cols - 1, 0), [bcx, bcy] = cell(cols - 1, rows - 1);
+    const L = [lcx - A, lcy], R = [rcx + A, rcy], Bt = [bcx, bcy + B];
+    const edge = x => x < Bt[0] ? L[1] + (x - L[0]) * (Bt[1] - L[1]) / Math.max(1, Bt[0] - L[0]) : Bt[1] + (x - Bt[0]) * (R[1] - Bt[1]) / Math.max(1, R[0] - Bt[0]);
+    for (let x = L[0]; x < R[0]; x++) {
+      const u = x < Bt[0] ? (Bt[0] - x) / Math.max(1, Bt[0] - L[0]) : (x - Bt[0]) / Math.max(1, R[0] - Bt[0]);
+      const d = Math.round(depth * Math.pow(Math.max(0, 1 - u), .7) + (hashK('r' + x) % 3)), top = Math.round(edge(x + .5)) - 1;
+      for (let y = 0; y < d; y++) { gs.fillStyle = y < 2 ? '#7b5480' : ((x + y) & 1) && y > d * .55 ? '#1f102a' : y > d * .8 ? '#390947' : '#4a3052'; gs.fillRect(x, top + y, 1, 1); }
+    }
+    // the plate: one stone tile per cell
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const [tx, ty] = cell(i, j);
+      for (let y = -B; y < B; y++) { const w = Math.round((B - Math.abs(y + .5)) * A / B); gs.fillStyle = (i + j) & 1 ? '#a6859f' : '#9a7c95'; gs.fillRect(tx - w, ty + y, w * 2, 1); } }
+    if (building && (Math.floor(t * 2) & 1)) { gs.fillStyle = '#fcef8d'; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const [tx, ty] = cell(i, j); gs.fillRect(tx, ty, 1, 1); } }
+    if (!tp) { // just a Listening Post: an antenna on a small rock
+      const [tx, ty] = cell(0, 0); gs.fillStyle = '#d9bdc8'; gs.fillRect(tx, ty - 9, 1, 9); gs.fillRect(tx - 2, ty - 7, 5, 1); gs.fillRect(tx - 1, ty - 5, 3, 1);
+      gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#ea6262' : '#751756'; gs.fillRect(tx, ty - 10, 1, 1);
+      if (bj && bj.k === 'post' && (Math.floor(t * 3) & 1)) { gs.fillStyle = '#fcef8d'; gs.fillRect(tx - 2, ty - 11, 1, 1); gs.fillRect(tx + 2, ty - 8, 1, 1); }
+      return;
+    }
+    // buildings, back to front
+    const slots = fac.map((f, k) => ({ f, i: k % cols, j: Math.floor(k / cols) }));
+    if (adding) slots.push({ f: { k: bj.fac, lv: 1 }, i: fac.length % cols, j: Math.floor(fac.length / cols), wip: true });
+    slots.sort((p, q) => (p.i + p.j) - (q.i + q.j) || p.i - q.i).forEach(({ f, i, j, wip }) => {
+      const [bx, by] = cell(i, j), th = (window.Solarist.facTheme || {})[f.k] || 'work', C = THEME_C[th] || THEME_C.work, h = 4 + Math.min(9, Math.round((f.lv || 1) * .8)), style = hashK(f.k);
+      if (wip) { if (Math.floor(t * 2) & 1) { gs.fillStyle = '#fcef8d'; [[-6, 0], [6, 0], [0, 3], [0, -3]].forEach(([dx, dy]) => gs.fillRect(bx + dx, by + dy - 6, 1, 6)); gs.fillRect(bx - 6, by - 6, 13, 1); } return; } // scaffolding
+      isoBox(bx, by + 1, 6, 3, h, C, style, t);
+    });
+  }
   function drawShipSprite(now) { // the ship sits to the left of the planet; it bobs while the timer runs and leaves a flame while traveling
     gs.clearRect(0, 0, sv.width, sv.height);
     if (!info || !info.ship || !window.Solarist.shipSprite) return;
@@ -360,6 +420,7 @@ void main(){
     x = Math.max(Math.round(r.left / PX) + 4, x);
     if (travel && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#ffb879'; gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x - f - 1, y + 4, 2, 1); }
     drawExtras(now, cx, cy, rad, r);
+    drawIsland(now, cx, cy, rad, r);
     gs.imageSmoothingEnabled = false; gs.drawImage(img, x, y);
     if (info.kind === 'shipbuild' && info.running) { // building a room: welding sparks on the hull
       const fr = Math.floor(t * 8); for (let i = 0; i < 3; i++) { const h = Math.sin((fr + i * 7) * 12.9898) * 43758.5453, k = h - Math.floor(h); if (k < .45) continue; const sx = x + 3 + Math.floor(k * 13), sy = y + 1 + Math.floor((k * 7.3 % 1) * 7); gs.fillStyle = k > .8 ? '#ffffff' : '#fcef8d'; gs.fillRect(sx, sy, 1, 1); if (k > .7) { gs.fillStyle = '#ffb879'; gs.fillRect(sx + 1, sy - 1, 1, 1); } }
