@@ -160,7 +160,7 @@
   const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
   const FS = `precision highp float;
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
-uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, atmOn, reveal, warp, neb; uniform vec3 atmC;
+uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, atmOn, reveal, warp, neb, fIce, fStorm, fAur, fSpot; uniform vec3 atmC;
 uniform vec3 pal[33]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
@@ -207,6 +207,14 @@ void main(){
     else {
       float emit; vec3 c = surface(q, emit);
       col = c * (.08 + 1.02 * lit); col = mix(col, c, emit * .9);
+      // world-type effects: glowing lava, glittering ice, a gas giant's storm, lightning, auroras
+      if (fLava > .5 && emit > .5) col *= .8 + .35 * sin(tt * 1.6 + q.x * 2.3 + q.y * 3.1);
+      if (fSpot > .5){ float sx = mod(seed * 1.7, 7.85) - 3.93, dx = mod(q.x - sx + 3.93, 7.85) - 3.93, dy = (q.y - (fract(seed * .37) - .5) * .9) * 2.3, e = length(vec2(dx, dy));
+        if (e < .42){ float sw = fract(e * 5. - tt * .25 + atan(dy, dx) * .16); vec3 sc = sw < .5 ? pc[0] : pc[3]; col = mix(col, sc * (.12 + 1.0 * lit), .85); } }
+      if (fIce > .5){ vec3 cell = floor(q * 34.); float g = h3(cell + seed + 5.); if (g > .978 && lit > .2 && fract(tt * .45 + g * 13.) < .16) col = vec3(1.); }
+      if (fStorm > .5 && lit < .45){ vec3 cell = floor(q * 6.); float fl = floor(tt * 1.1); float hh = h3(cell + fl + seed); if (hh > .93 && fract(tt * 1.1) < .22 && h3(floor(q * 30.) + fl) > .45) col = mix(col, vec3(.88, .93, 1.), .85); }
+      if (fAur > .5 && lit < .28){ float ah = abs(lat) - 1.0 - .06 * sin(lon * 4. + tt * .35); float ray = fract(lon * 7. + sin(lon * 13. + tt * .3) * .3); // curtains of light near the poles, on the night side
+        if (ah > 0. && ah < .16 && ray < .55){ float k = (1. - ah / .16) * (1. - ray / .55) * (1. - lit / .28); if (bayer(fc) < k * .8) col = mix(col, ah > .1 ? pal[17] : pal[2], .8); } }
       col += vec3(.35, .45, .9) * pow(1. - n.z, 3.) * .45 * (lit + .15);
       // your post's lights on the night side, more of them as the settlers grow
       if (postLv > 9.){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[5] : pal[4]; }
@@ -245,7 +253,7 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'atmOn', 'atmC', 'reveal', 'warp', 'neb'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fAur', 'fSpot', 'atmOn', 'atmC', 'reveal', 'warp', 'neb'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
       gl.uniform3fv(U.pal, PAL.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
@@ -271,6 +279,8 @@ void main(){
     gl.uniform1f(U.fClouds, L.clouds ? 1 : 0); gl.uniform1f(U.fBands, L.bands ? 1 : 0); gl.uniform1f(U.fLava, L.lava ? 1 : 0); gl.uniform1f(U.fLocked, L.locked ? 1 : 0);
     const [ao, ac] = ATM(p.atm); gl.uniform1f(U.atmOn, ao); gl.uniform3fv(U.atmC, rgb(ac)); gl.uniform1f(U.neb, (p.seed % 3) === 0 ? 1 : 0);
     gl.uniform1f(U.fSpark, L.sparkle ? 1 : 0); gl.uniform1f(U.fRings, p.rings ? 1 : 0); gl.uniform1f(U.fLand, L.land ? 1 : 0);
+    gl.uniform1f(U.fIce, /^(Ice|Crystal|Ice giant)$/.test(p.type) ? 1 : 0); gl.uniform1f(U.fStorm, /^(Toxic|Glass storm)$/.test(p.type) ? 1 : 0);
+    gl.uniform1f(U.fSpot, L.bands && (p.seed % 2) === 0 ? 1 : 0); gl.uniform1f(U.fAur, ao > 0 && !L.bands && (p.seed % 3) === 1 ? 1 : 0);
   }
   function render(now) {
     raf = 0; if (!info) return;
@@ -367,8 +377,9 @@ void main(){
     else if (f === 2) { gs.fillStyle = '#4a3052'; gs.fillRect(bx + 2, ry - 1, 2, 3); gs.fillStyle = '#a6859f'; const k = Math.floor(t * 3) % 3; gs.fillRect(bx + 2 + (k > 1 ? 1 : 0), ry - 3 - k, 1, 1); } // chimney and smoke
     else if (f === 3) { gs.fillStyle = '#d9bdc8'; gs.fillRect(bx - 2, ry - 3, 1, 4); gs.fillStyle = C[3]; gs.fillRect(bx - 1, ry - 3, 2, 1); gs.fillRect(bx - 1, ry - 2, 1, 1); } // flag
   }
+  let islandAt = null; // where the island floats this frame (the ship docks next to it on breaks)
   function drawIsland(now, cx, cy, rad, r) {
-    const pl = info.planet, post = pl && pl.post, bj = info.build;
+    const pl = info.planet, post = pl && pl.post, bj = info.build; islandAt = null;
     if (!post && !(bj && bj.k === 'post')) return;
     const t = now / 1000, still = reduceMotion.matches, bob = still ? 0 : Math.round(Math.sin(t * 1.1) * 1.2);
     const tp = post && post.tp, fac = tp ? tp.fac.slice(0, 12) : [], adding = bj && bj.k === 'add', building = bj && (bj.k === 'upgrade' || bj.k === 'post');
@@ -380,7 +391,7 @@ void main(){
     const cell = (i, j) => [ox + (i - j) * A, oy + (i + j) * B]; // centre of tile (i = column, j = row)
     // rock underneath: a rough dithered cone hanging below the plate
     const [lcx, lcy] = cell(0, rows - 1), [rcx, rcy] = cell(cols - 1, 0), [bcx, bcy] = cell(cols - 1, rows - 1);
-    const L = [lcx - A, lcy], R = [rcx + A, rcy], Bt = [bcx, bcy + B];
+    const L = [lcx - A, lcy], R = [rcx + A, rcy], Bt = [bcx, bcy + B]; islandAt = { x: L[0], y: L[1] };
     const edge = x => x < Bt[0] ? L[1] + (x - L[0]) * (Bt[1] - L[1]) / Math.max(1, Bt[0] - L[0]) : Bt[1] + (x - Bt[0]) * (R[1] - Bt[1]) / Math.max(1, R[0] - Bt[0]);
     for (let x = L[0]; x < R[0]; x++) {
       const u = x < Bt[0] ? (Bt[0] - x) / Math.max(1, Bt[0] - L[0]) : (x - Bt[0]) / Math.max(1, R[0] - Bt[0]);
@@ -405,9 +416,31 @@ void main(){
       if (wip) { if (Math.floor(t * 2) & 1) { gs.fillStyle = '#fcef8d'; [[-6, 0], [6, 0], [0, 3], [0, -3]].forEach(([dx, dy]) => gs.fillRect(bx + dx, by + dy - 6, 1, 6)); gs.fillRect(bx - 6, by - 6, 13, 1); } return; } // scaffolding
       isoBox(bx, by + 1, 6, 3, h, C, style, t);
     });
+    // shuttles hop between the island and the planet: busier posts, more traffic
+    if (!still) { const n = Math.min(4, 1 + Math.floor(fac.length / 3)), sx0 = (L[0] + R[0]) / 2, sy0 = oy - 8;
+      for (let k = 0; k < n; k++) { const u = (t * .09 + k / n) % 1, s2 = u < .5 ? u * 2 : 2 - u * 2, e = s2 * s2 * (3 - 2 * s2);
+        const tx = cx + rad * (.35 + .12 * k), ty = cy - rad * (.15 - .18 * k), mx = (sx0 + tx) / 2, my = Math.min(sy0, ty) - 14 - k * 4;
+        const x = (1 - e) * (1 - e) * sx0 + 2 * (1 - e) * e * mx + e * e * tx, y = (1 - e) * (1 - e) * sy0 + 2 * (1 - e) * e * my + e * e * ty;
+        if (Math.hypot(x - cx, y - cy) < rad * .97 && e > .9) continue; // landing: it disappears into the atmosphere
+        const dir = u < .5 ? -1 : 1; gs.fillStyle = '#fcef8d'; gs.fillRect(Math.round(x), Math.round(y), 2, 1); gs.fillStyle = '#ffb879'; gs.fillRect(Math.round(x) - dir * 2 + (dir > 0 ? 0 : 1), Math.round(y), 1, 1); } }
+  }
+  // what's going on around the world: outlaw ships, a Trade Station, a distress beacon
+  function drawStatus(now, cx, cy, rad) {
+    const pl = info.planet, t = now / 1000, still = reduceMotion.matches;
+    if (pl && pl.outlaw && !pl.outlaw.cleared) for (let k = 0; k < 3; k++) { const a = (still ? 0 : t * .55) + k * 2.1, x = cx + Math.cos(a) * rad * 1.12, y = cy + Math.sin(a) * rad * .28;
+      if (Math.sin(a) < 0 && Math.hypot(x - cx, y - cy) < rad) continue; const dir = -Math.sin(a) >= 0 ? 1 : -1;
+      gs.fillStyle = '#a32858'; gs.fillRect(Math.round(x) - 3, Math.round(y), 6, 2); gs.fillStyle = '#ea6262'; gs.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 1); gs.fillStyle = '#fcef8d'; gs.fillRect(Math.round(x) + (dir > 0 ? 3 : -4), Math.round(y), 1, 1); gs.fillStyle = '#390947'; gs.fillRect(Math.round(x) - 3, Math.round(y) + 2, 6, 1); }
+    if (info.trader != null && pl && pl.num === info.trader) { const x = Math.round(cx + rad * 1.02), y = Math.round(cy - rad * .7 + (still ? 0 : Math.sin(t * .9) * 1.2));
+      gs.fillStyle = '#4a3052'; gs.fillRect(x - 6, y - 2, 12, 5); gs.fillStyle = '#a6859f'; gs.fillRect(x - 5, y - 3, 10, 2); gs.fillRect(x - 1, y - 6, 2, 3);
+      gs.fillStyle = '#7b5480'; gs.fillRect(x - 8, y, 2, 2); gs.fillRect(x + 6, y, 2, 2);
+      for (let i = 0; i < 4; i++) { gs.fillStyle = (Math.floor(t * 2) + i) % 3 ? '#fcef8d' : '#ffb879'; gs.fillRect(x - 4 + i * 3, y, 1, 1); }
+      gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#abdd64' : '#5ba675'; gs.fillRect(x, y - 7, 1, 1); }
+    if (info.kind === 'distress' && info.running) { const x = Math.round(cx + rad * .85), y = Math.round(cy - rad * .85), on = Math.floor(t * 2) & 1;
+      gs.fillStyle = on ? '#ea6262' : '#751756'; gs.fillRect(x - 1, y - 1, 3, 3); gs.fillStyle = '#ffffff'; if (on) gs.fillRect(x, y, 1, 1);
+      if (!still) { const k = (t * .7) % 1, rr = 3 + k * 16; gs.fillStyle = '#ea6262'; gs.globalAlpha = 1 - k; for (let q = 0; q < 24; q++) { const a = q / 24 * Math.PI * 2; gs.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 1, 1); } gs.globalAlpha = 1; } }
   }
   // clicking the ship opens its interior (the game listens for this event)
-  let shipBox = null;
+  let shipBox = null; const shipTrail = [];
   const onShip = e => shipBox && !e.target.closest('button, a, input, select, textarea, .sx-report, .sx-page, .sx-side') && e.clientX > shipBox.x - 12 && e.clientX < shipBox.x + shipBox.w + 12 && e.clientY > shipBox.y - 12 && e.clientY < shipBox.y + shipBox.h + 12;
   document.addEventListener('click', e => { if (onShip(e)) document.dispatchEvent(new CustomEvent('solarist-ship')); });
   document.addEventListener('mousemove', e => { const on = onShip(e); if (on !== document.body.classList.contains('sx-shiphover')) document.body.classList.toggle('sx-shiphover', on); });
@@ -423,10 +456,23 @@ void main(){
     const half = r.width / PX / 2;
     let x = Math.round(cx - Math.min(rad * (travel ? 1.25 : 1.2), half - 4) - 18), y = Math.round(cy + (travel ? 0 : rad * .6) - 4 + bob);
     x = Math.max(Math.round(r.left / PX) + 4, x);
-    if (travel && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#ffb879'; gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x - f - 1, y + 4, 2, 1); }
     drawExtras(now, cx, cy, rad, r);
     drawIsland(now, cx, cy, rad, r);
-    gs.imageSmoothingEnabled = false; gs.drawImage(img, x, y);
+    drawStatus(now, cx, cy, rad);
+    // during a study session the ship circles the planet once per session (a timer you can feel); on breaks it docks at the island
+    const orbit = info.running && info.mode === 'focus' && info.kind !== 'view' && info.kind !== 'shipbuild';
+    let flip = false, hide = false;
+    if (orbit) {
+      const a = Math.PI - (info.pct / 100) * Math.PI * 2, rx = Math.min(rad * 1.3, half - 12), ry = rad * .3;
+      const ox = cx + Math.cos(a) * rx, oy = cy + Math.sin(a) * ry;
+      x = Math.round(ox - img.width / 2); y = Math.round(oy - img.height / 2 + bob); flip = Math.sin(a) < 0; hide = flip && Math.hypot(ox - cx, oy - cy) < rad * .98;
+      const tr = shipTrail; if (!tr.length || Math.hypot(tr[tr.length - 1][0] - ox, tr[tr.length - 1][1] - oy) > 3) { tr.push([ox, oy]); if (tr.length > 14) tr.shift(); }
+      tr.forEach(([qx, qy], i) => { if (qy < cy && Math.hypot(qx - cx, qy - cy) < rad) return; gs.globalAlpha = (i + 1) / tr.length * .55; gs.fillStyle = '#ffb879'; gs.fillRect(Math.round(qx), Math.round(qy), 1, 1); }); gs.globalAlpha = 1;
+    } else { shipTrail.length = 0; if (info.mode !== 'focus' && islandAt) { x = Math.round(islandAt.x - img.width - 3); y = Math.round(islandAt.y - img.height + 2 + bob); } }
+    if (hide) { shipBox = null; return; }
+    if ((travel || orbit) && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#ffb879'; if (flip) { gs.fillRect(x + img.width, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x + img.width + f - 1, y + 4, 2, 1); } else { gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x - f - 1, y + 4, 2, 1); } }
+    gs.imageSmoothingEnabled = false;
+    if (flip) { gs.save(); gs.translate(x + img.width, y); gs.scale(-1, 1); gs.drawImage(img, 0, 0); gs.restore(); } else gs.drawImage(img, x, y);
     shipBox = { x: x * PX, y: y * PX, w: img.width * PX, h: img.height * PX };
     if (info.kind === 'shipbuild' && info.running) { // building a room: welding sparks on the hull
       const fr = Math.floor(t * 8); for (let i = 0; i < 3; i++) { const h = Math.sin((fr + i * 7) * 12.9898) * 43758.5453, k = h - Math.floor(h); if (k < .45) continue; const sx = x + 3 + Math.floor(k * 13), sy = y + 1 + Math.floor((k * 7.3 % 1) * 7); gs.fillStyle = k > .8 ? '#ffffff' : '#fcef8d'; gs.fillRect(sx, sy, 1, 1); if (k > .7) { gs.fillStyle = '#ffb879'; gs.fillRect(sx + 1, sy - 1, 1, 1); } }

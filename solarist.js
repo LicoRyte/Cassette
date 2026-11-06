@@ -1562,7 +1562,7 @@
     const interior = el('div', { class: 'sx-report sx-interior', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Inside your ship' },
       el('div', { class: 'sx-report-in' }, inTitle, inCv, inTip, inList, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeInterior() }, 'Close'))));
     interior.addEventListener('click', e => { if (e.target === interior) closeInterior(); });
-    let inRaf = 0, inHover = null;
+    let inRaf = 0, inHover = null, inLast = 0; const inWalk = {};
     const IA = 16, IB = 8, IOX = 46, IOY = 24; // tile half size and where tile (0,0) sits
     const inCell = (i, j) => [IOX + (i - j) * IA, IOY + (i + j) * IB];
     const roomAt = k => k === 'bridge' ? 1 : roomLv(k);
@@ -1587,9 +1587,10 @@
         diamond(cx, cy, IA - 1, IB - .5, built ? ROOM_C[k] : '#1f102a');
         if (built) for (let y = -IB + 2; y < IB - 1; y += 2) for (let x = -IA + 4; x < IA - 3; x += 4) if (Math.abs(x) / IA + Math.abs(y) / IB < .8) px(cx + x + (y & 2), cy + y, 'rgba(0,0,0,.18)'); // floor tiles
         // low back walls along the two far edges
-        const wh = built ? 9 : 3, wall = built ? '#4a3052' : '#2b1a36';
-        for (let x = -IA + 1; x < 0; x++) { const ey = cy + Math.round((-IA - x) * IB / IA) - 0; px(cx + x, ey - wh + IB * 0, wall, 1, wh); }
-        for (let x = 0; x < IA - 1; x++) { const ey = cy - IB + Math.round(x * IB / IA); px(cx + x, ey - wh, built ? '#7b5480' : '#2b1a36', 1, wh); }
+        // tall walls only on the hull's outer edges, low dividers between rooms (so you can see into every room)
+        const whL = i === 0 ? (built ? 9 : 4) : 2, whR = j === 0 ? (built ? 9 : 4) : 2;
+        for (let x = -IA + 1; x < 0; x++) { const ey = cy + Math.round((-IA - x) * IB / IA); px(cx + x, ey - whL, built ? '#4a3052' : '#2b1a36', 1, whL); }
+        for (let x = 0; x < IA - 1; x++) { const ey = cy - IB + Math.round(x * IB / IA); px(cx + x, ey - whR, built ? '#7b5480' : '#2b1a36', 1, whR); }
         if (!built) { px(cx - 1, cy - 1, '#4a3052', 3, 1); px(cx, cy - 2, '#4a3052', 1, 3); return; } // empty slot: a little +
         // furniture
         const F = {
@@ -1603,9 +1604,24 @@
           medbay: () => { px(cx - 6, cy - 2, '#ffffff', 7, 2); px(cx - 6, cy - 2, '#d9bdc8', 2, 2); px(cx + 6, cy - 11, '#ea6262', 3, 1); px(cx + 7, cy - 12, '#ea6262', 1, 3); },
         };
         F[k] && F[k]();
+        if (lv >= 2) for (let x = -4; x <= 4; x += 2) px(cx + x, cy + 3 + (Math.abs(x) % 4 ? 0 : 1), '#ee8fcb'); // a rug
+        if (lv >= 3) { px(cx - IA + 4, cy - 3, '#7b5480', 2, 2); px(cx - IA + 4, cy - 6, '#6bc96c', 2, 3); px(cx - IA + 3, cy - 5, '#5ba675'); } // a potted plant
+        if (lv >= 4) { px(cx + IA - 7, cy - IB - 6, '#fcef8d'); if (Math.floor(t * .7) % 5) px(cx + IA - 7, cy - IB - 5, 'rgba(252,239,141,.35)', 1, 2); } // a wall lamp
+        if (lv >= 5) { const a = IA - 1, b = IB - .5; for (let x = -a; x < a; x += 3) { const e = Math.round((a - Math.abs(x + .5)) * b / a); px(cx + x, cy + e - 1, '#fcef8d'); } } // gold trim
         // crew: tiny people, swaying a little
-        crewIn(k).slice(0, 4).forEach((c, m) => { const bx = cx - 6 + m * 4, by = cy + 2 - (m % 2) + (still ? 0 : Math.round(Math.sin(t * 2 + m * 1.7) * .5)); px(bx, by - 4, '#ffc3f2', 2, 2); px(bx, by - 2, ROLE_C[c.role] || '#d9bdc8', 2, 3); });
         if (hov) { const a = IA - 1, b = IB - .5; for (let x = -a; x < a; x++) { const e = Math.round((a - Math.abs(x + .5)) * b / a); px(cx + x, cy - e, '#fcef8d'); px(cx + x, cy + e - 1, '#fcef8d'); } }
+      });
+      // crew walk between rooms: mostly their own, sometimes visiting (for a snack, a chat, a look out the window)
+      const dt = Math.min(.1, (now - (inLast || now)) / 1000); inLast = now;
+      const built = ROOM_SPOTS.filter(k => roomAt(k)), spot = k => { const n = ROOM_SPOTS.indexOf(k), [x, y] = inCell(n % 4, Math.floor(n / 4)); return [x + (Math.random() * 12 - 6), y + (Math.random() * 4 - 1)]; };
+      S.crew.forEach((c, m) => {
+        let w = inWalk[c.name]; const home = (roomAt(ROLE_ROOM[c.role]) ? ROLE_ROOM[c.role] : 'bridge');
+        if (!w) { const [x, y] = spot(home); w = inWalk[c.name] = { x, y, tx: x, ty: y, wait: 1 + Math.random() * 4 }; }
+        const d = Math.hypot(w.tx - w.x, w.ty - w.y);
+        if (d > .5 && !still) { const sp = 7 * dt; w.x += (w.tx - w.x) / d * Math.min(sp, d); w.y += (w.ty - w.y) / d * Math.min(sp, d); }
+        else if ((w.wait -= dt) <= 0) { const go = Math.random() < .6 ? home : built[Math.floor(Math.random() * built.length)]; [w.tx, w.ty] = spot(go); w.wait = 2 + Math.random() * 5; }
+        const step = d > .5 && !still ? Math.floor(t * 6 + m) & 1 : 0, bx = Math.round(w.x), by = Math.round(w.y);
+        px(bx, by - 5 - step, '#ffc3f2', 2, 2); px(bx, by - 3 - step, ROLE_C[c.role] || '#d9bdc8', 2, 3); px(bx + (step ? 1 : 0), by, '#1f102a', 1, 1);
       });
       if (!interior.hidden) inRaf = requestAnimationFrame(drawInterior);
     }
@@ -2295,7 +2311,7 @@
       barFill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', Math.round(pct));
       if (hooks.scene) { // what the flight scene should show
         const kind = sceneKind();
-        hooks.scene({ mode, kind: pv ? 'view' : kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null });
+        hooks.scene({ mode, kind: pv ? 'view' : kind, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null, trader: !pv && S.trader ? S.trader.num : null });
         if (pv) { const tm = pvBar.querySelector('.sx-pv-time'); if (tm) tm.textContent = running ? '⏱ ' + fmt(r) + (mode === 'focus' ? ' left to study' : ' of break left') : ''; }
       }
       if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : campaigning() ? 'Following the trail' : expediting() ? 'Expedition' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : discovering() ? 'Surveying' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
