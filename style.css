@@ -546,3 +546,21 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-inlist .off { color: var(--dim); }
 .sx-interior .sx-report-in { width: min(760px, 100%); }
 .sx-credits { margin-top: 18px; font-size: 14px; }
+
+/* clean view on wide screens: a lock screen. The clock and controls sit on the left, the planet gets the right side */
+@media (min-width: 901px) {
+  .sx-clean .sx-mid { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(340px, 36%) minmax(0, 1fr); grid-auto-rows: min-content; align-content: center; column-gap: 24px; text-align: left; align-items: start; }
+  .sx-clean .sx-mid > * { grid-column: 1; justify-self: start; }
+  .sx-clean .sx-mid > .sx-planet { grid-column: 2; grid-row: 1 / span 20; align-self: stretch; height: 100%; min-height: 0; }
+  .sx-clean .sx-mid > .sx-pvbar { margin: 10px 0 0; }
+  .sx-clean .sx-name, .sx-clean .sx-clock { align-items: flex-start; text-align: left; }
+  .sx-clean .sx-name b { font-size: 40px; }
+  .sx-clean .sl-time { font-size: clamp(88px, 10vw, 150px); margin: 6px 0 14px; letter-spacing: -2px; }
+  .sx-clean .sl-big { font-size: 24px; }
+  .sx-clean .sx-mid > .sx-clock { margin-top: 28px; }
+  .sx-clean .sx-mid .sl-btns, .sx-clean .sx-mid .sl-missions, .sx-clean .sx-mid .sl-mis-g, .sx-clean .sx-cycle { justify-content: flex-start; }
+  .sx-clean .sx-mid .sl-hint { text-align: left; max-width: 34em; }
+  .sx-clean .sx-mid { animation: sx-lockin .5s ease-out; }
+}
+@keyframes sx-lockin { from { opacity: 0; } to { opacity: 1; } }
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) { .sx-clean .sx-mid { animation: none; } }
