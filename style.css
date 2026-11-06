@@ -529,3 +529,11 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-up small .btn.sx-mini { margin-left: 4px; vertical-align: 1px; }
 .sx-postid { margin: 14px 0 6px; } .sx-postid b { font: 700 19px var(--ui); color: var(--white); } .sx-postid p { margin: 2px 0 0; font: 15px/1.5 var(--text); color: var(--soft); }
 .sx-themeh { margin: 16px 0 2px; font: 600 15px var(--ui); color: var(--violet); letter-spacing: .04em; text-transform: uppercase; }
+
+/* clean view: side panels tucked away */
+.sx-left, .sx-right { transition: opacity .4s, visibility .4s; }
+.sx-clean .sx-left, .sx-clean .sx-right { opacity: 0; visibility: hidden; pointer-events: none; }
+.sx-cleanb { color: var(--mute) !important; margin-right: 6px; }
+.sx-cleanb[aria-pressed="true"] { color: var(--amber) !important; }
+@media (max-width: 900px) { .sx-clean .sx-left, .sx-clean .sx-right { display: none; } }
+@media (max-width: 520px) { .sx-cleant { display: none; } .sx-cleanb { margin-right: 0; } }
