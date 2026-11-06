@@ -315,7 +315,21 @@ void main(){
     if (p && !sil && p.type !== 'Rogue') {
       const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#fcef8d';
       const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
-      if (!blink) { dot(sx - 1, sy - 1, c, 3); [[-3, 0], [3, 0], [0, -3], [0, 3], [-2, -2], [2, 2], [-2, 2], [2, -2]].forEach(([dx, dy]) => dot(sx + dx, sy + dy, '#4a3052')); }
+      // a dithered pixel glow around the sun: bigger for giants, a soft breathing pulse, a strong one for pulsars
+      const big = /giant/.test(p.star) ? 1.5 : p.star === 'white dwarf' ? .75 : 1, pulse = still ? 1 : p.star === 'pulsar' ? (blink ? .35 : 1.1) : 1 + Math.sin(t * 1.3) * .08;
+      const R = Math.round(11 * big * pulse), gx = Math.round(sx), gy = Math.round(sy);
+      const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+      for (let y = -R; y <= R; y++) for (let x = -R; x <= R; x++) {
+        const d = Math.hypot(x, y) / R; if (d > 1) continue;
+        const k = Math.pow(1 - d, 1.7) * 1.15, th = (B4[((gy + y) & 3) * 4 + ((gx + x) & 3)] + .5) / 16;
+        if (d < .3 || k > th) { gs.globalAlpha = d < .3 ? .95 : d < .45 ? .8 : d < .7 ? .5 : .28; dot(gx + x, gy + y, c); }
+      }
+      gs.globalAlpha = 1;
+      if (!blink) {
+        const ray = Math.round((3 + (still ? 0 : Math.sin(t * 2.1) * 1)) * big); // little light spikes
+        for (let i = 2; i <= 2 + ray; i++) { gs.globalAlpha = 1 - (i - 2) / (ray + 1) * .8; [[i, 0], [-i, 0], [0, i], [0, -i]].forEach(([dx, dy]) => dot(gx + dx, gy + dy, c)); }
+        gs.globalAlpha = 1; dot(gx - 1, gy - 1, '#fff6d8', 3); dot(gx, gy, '#ffffff');
+      }
       if (p.star === 'binary pair') dot(sx + 6, sy + 3, '#ffb879', 2);
     }
     // moons on tilted orbits; the far half of each orbit goes behind the planet
