@@ -1224,7 +1224,7 @@
       const d = S.dl.active; if (!d || !p || p.num === d.from) return null;
       const sc = dlScore(p), full = sc >= 1, pay = addDust(dlPayAt(p));
       award(full ? 60 : 25, full ? 30 : 10); S.dl.done++; S.dl.active = null;
-      if (full) S.cnt.dlPerfect = (S.cnt.dlPerfect || 0) + 1; else if (sc < .5) S.cnt.dlClose = (S.cnt.dlClose || 0) + 1;
+      if (full) { S.cnt.dlPerfect = (S.cnt.dlPerfect || 0) + 1; (S.cnt.cargo = S.cnt.cargo || {})[d.cargo] = (S.cnt.cargo[d.cargo] || 0) + 1; } else if (sc < .5) S.cnt.dlClose = (S.cnt.dlClose || 0) + 1;
       let extra = ''; if (full && d.chance < .05) { const it = rareFind(p, 'gift'), nw = gainItem(it, p); if (nw) award(0, 12); extra = ' They threw in a tip: ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ').'; }
       const t = (full ? 'Delivered ' + d.cargo + ' to ' + nm(p) + '. ' + d.client + ' is delighted.' : 'Dropped ' + d.cargo + ' off early at ' + nm(p) + ' (' + Math.round(sc * 100) + '% of what they asked for). ' + d.client + ' paid, grumbling.') + extra;
       pushEv({ c: 'quest', ic: '📦', title: (full ? 'Delivered: ' : 'Delivered early: ') + dName(d), t, got: '+' + pay + ' ✦', at: Date.now() });
@@ -1807,7 +1807,7 @@
           out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Identity'), el('p', { class: 'sl-muted' }, th ? th[0] + ' Its facilities make it a ' + th[1] + '.' : 'Build two or more facilities of one kind (food, science, fun, rest, work, culture) and the post gets a theme.'), nameIn, descIn));
           built.forEach(f => { const lv = f.lv || 1, max = lv >= FAC_MAX, c = facCost(lv + 1);
             const ren = el('button', { type: 'button', class: 'sl-link sx-ren', disabled: locked || null, title: 'Give it your own name', onclick: () => { const v = window.prompt('Name this ' + FAC[f.k][1] + ' (leave empty for the default):', f.name || ''); if (v == null) return; const t = v.trim().slice(0, 32); if (t) f.name = t; else delete f.name; save(); draw(); } }, '✎');
-            frows.push(el('div', { class: 'sx-up' }, el('b', {}, FAC[f.k][0] + ' ' + facName(f) + ' ' + lv, ren), el('small', {}, (f.name ? FAC[f.k][1] + '. ' : '') + (max ? 'Max level' : 'Level ' + (lv + 1) + ': bigger numbers in its logs'), ' ', armBtn('Tear down', 'Sure? No refund', () => { tp.fac = tp.fac.filter(x => x !== f); pushEv({ c: 'ship', ic: FAC[f.k][0], title: 'Torn down: ' + facName(f), t: 'The ' + facName(f) + ' at ' + postName(p) + ' was cleared to make room.', at: Date.now() }); save(); draw(); }, 'sx-mini')),
+            frows.push(el('div', { class: 'sx-up' }, el('b', {}, FAC[f.k][0] + ' ' + facName(f) + ' ' + lv, ren), el('small', {}, (f.name ? FAC[f.k][1] + '. ' : '') + (max ? 'Max level' : 'Level ' + (lv + 1) + ': bigger numbers in its logs'), ' ', armBtn('Tear down', 'Sure? No refund', () => { tp.fac = tp.fac.filter(x => x !== f); S.cnt.torn = (S.cnt.torn || 0) + 1; pushEv({ c: 'ship', ic: FAC[f.k][0], title: 'Torn down: ' + facName(f), t: 'The ' + facName(f) + ' at ' + postName(p) + ' was cleared to make room.', at: Date.now() }); save(); draw(); }, 'sx-mini')),
               max ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < c || null, onclick: () => upgradeFac(p, f) }, '✦ ' + c.toLocaleString()))); });
           if (free) Object.keys(THEMES).forEach(t => { const ks = Object.keys(FAC).filter(k => FAC_THEME[k] === t && !hasFac(p, k)); if (!ks.length) return;
             frows.push(el('p', { class: 'sx-themeh' }, THEMES[t][0] + ' ' + THEMES[t][1].replace(/ (Post|Stop)$/, '').replace('Research', 'Science'))); ks.forEach(k => frows.push(up(FAC[k][0] + ' ' + FAC[k][1], FAC_DESC[k], queue('add:' + p.num + ':' + k), 'unbuilt'))); });
@@ -1891,7 +1891,7 @@
     const pvP = () => pv && pv.list[pv.i] ? pv.list[pv.i].p : null;
     function pvOpen(list, num) {
       list = list && list.length ? list.slice() : S.found.slice().reverse(); if (!list.length) return;
-      pv = { list, i: Math.max(0, list.findIndex(f => f.p.num === num)) }; tab('timer'); root.classList.add('sx-pv'); drawPv(); draw();
+      pv = { list, i: Math.max(0, list.findIndex(f => f.p.num === num)) }; S.cnt.pv = (S.cnt.pv || 0) + 1; tab('timer'); root.classList.add('sx-pv'); drawPv(); draw();
     }
     function pvClose(quiet) { if (!pv) return; pv = null; root.classList.remove('sx-pv'); pvBar.hidden = true; if (!quiet) draw(); }
     function pvStep(d) { if (!pv) return; pv.i = (pv.i + d + pv.list.length) % pv.list.length; drawPv(); drawName(); drawClock(); }
@@ -2495,6 +2495,35 @@
     tiers('Adventure', 'dl', '📦', [[1, 'First Delivery'], [10, 'Courier'], [50, 'Express Service'], [150, 'Postmaster of the Stars']], () => (S.dl && S.dl.done) || 0, n => 'Finish ' + n + ' deliver' + (n === 1 ? 'y' : 'ies'));
     SQ('perfect', '📬', 'Signed, Sealed, Delivered', 'Make 10 perfect deliveries', () => (S.cnt.dlPerfect || 0) >= 10);
     SQ('closeenough', '🤷', 'Close Enough', 'Deliver early at a world that is less than half of what they asked for', () => (S.cnt.dlClose || 0) >= 1);
+    // facility and post side quests
+    const tps = () => posts().filter(x => x.p.post.tp).map(x => x.p), facAt = (p, k) => p.post.tp.fac.some(f => f.k === k);
+    const themeN = (p, t) => p.post.tp.fac.filter(f => FAC_THEME[f.k] === t).length, cargoN = c => (S.cnt.cargo && S.cnt.cargo[c]) || 0;
+    SQ('openmic', '🎤', 'Open Mic Night', 'Have a Karaoke Bar and a Music Hall at the same post', () => tps().some(p => facAt(p, 'karaoke') && facAt(p, 'music')));
+    SQ('freeze', '🍦', 'Brain Freeze', 'Build an Ice Cream Parlor on a world colder than −50 °C', () => tps().some(p => facAt(p, 'icecream') && p.temp < -50));
+    SQ('catch', '🐟', 'Fresh Catch', 'Build a Fish Market on an Ocean world', () => tps().some(p => facAt(p, 'fishmarket') && p.type === 'Ocean'));
+    SQ('gold', '⛏', 'Strike It Rich', 'Build a Mine on an Iron or Crystal world', () => tps().some(p => facAt(p, 'mine') && (p.type === 'Iron' || p.type === 'Crystal')));
+    SQ('liftoff', '🚀', 'Easy Liftoff', 'Build a Launch Pad on a world under 0.5 g', () => tps().some(p => facAt(p, 'launchpad') && p.gravity < .5));
+    SQ('soldout', '🏟', 'Sold Out', 'Have a Stadium in a City of 10,000 settlers', () => tps().some(p => facAt(p, 'stadium') && (p.post.tp.pop || 0) >= 10000));
+    SQ('peace', '🧘', 'Inner Peace', 'Have a Meditation Garden, a Shrine and a Spa at one post', () => tps().some(p => facAt(p, 'zen') && facAt(p, 'shrine') && facAt(p, 'spa')));
+    SQ('movie', '🍿', 'Movie Night', 'Have a Cinema and an Ice Cream Parlor at one post', () => tps().some(p => facAt(p, 'cinema') && facAt(p, 'icecream')));
+    SQ('court', '🍱', 'Food Court', 'Have 5 food facilities at one post', () => tps().some(p => themeN(p, 'food') >= 5));
+    SQ('brains', '🧠', 'Brain Trust', 'Have 5 science facilities at one post', () => tps().some(p => themeN(p, 'sci') >= 5));
+    SQ('party', '🎉', 'Party Planet', 'Have 5 fun facilities at one post', () => tps().some(p => themeN(p, 'fun') >= 5));
+    SQ('retreat', '🛀', 'Wellness Retreat', 'Have 5 rest facilities at one post', () => tps().some(p => themeN(p, 'rest') >= 5));
+    SQ('industry', '🏭', 'Industrial Revolution', 'Have 5 work facilities at one post', () => tps().some(p => themeN(p, 'work') >= 5));
+    SQ('renaissance', '🖼', 'Renaissance', 'Have 5 culture facilities at one post', () => tps().some(p => themeN(p, 'art') >= 5));
+    SQ('everyone', '🌐', 'Something for Everyone', 'Have a facility from every theme at one post', () => tps().some(p => Object.keys(THEMES).every(t => themeN(p, t) > 0)));
+    SQ('twins', '👯', 'Twin Cities', 'Have two posts with the same theme', () => { const t = tps().map(p => postTheme(p)).filter(Boolean).map(x => x[1]); return new Set(t).size < t.length; });
+    SQ('tour6', '🗺', 'Grand Tour', 'Have posts of all six themes', () => new Set(tps().map(p => postTheme(p)).filter(Boolean).map(x => x[1])).size >= 6);
+    SQ('names5', '🏷', 'Name Dropper', 'Give 5 facilities names of your own', () => tps().reduce((a, p) => a + p.post.tp.fac.filter(f => f.name).length, 0) >= 5);
+    SQ('brochure', '📝', 'Glossy Brochure', 'Write a description for a Travelers\' Post', () => tps().some(p => !!p.post.tp.desc));
+    SQ('planner', '🏗', 'Urban Planner', 'Buy all the extra land at one post', () => tps().some(p => (p.post.tp.extra || 0) >= slotBuyMax()));
+    SQ('wrecking', '🧹', 'Wrecking Ball', 'Tear down 3 facilities', () => (S.cnt.torn || 0) >= 3);
+    SQ('stargaze', '🔭', 'Stargazer', 'Open the Planetarium 10 times', () => (S.cnt.pv || 0) >= 10);
+    SQ('hyperlane', '🌀', 'Hyperlane Tourist', 'Have Hyperdrive Nodes on worlds of 5 different classes', () => new Set(nodes().map(f => f.p.type)).size >= 5);
+    SQ('ducks', '🦆', 'Rubber Duck Express', 'Perfectly deliver ten thousand rubber ducks', () => cargoN('ten thousand rubber ducks') > 0);
+    SQ('cake', '🎂', 'Special Delivery', 'Perfectly deliver a three-tier wedding cake', () => cargoN('a three-tier wedding cake') > 0);
+    SQ('cat', '🐈', 'Cat Courier', 'Perfectly deliver a very patient cat', () => cargoN('a very patient cat') > 0);
     tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
     tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
     tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
