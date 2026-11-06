@@ -14,7 +14,7 @@ Your progress is saved in this browser.
 
 | File | What it is |
 |---|---|
-| `index.html`, `style.css` | The page and its look: black space, floating text, colours from the 32-colour palette at the top of `style.css` |
+| `index.html`, `style.css` | The page and its look: black space, floating text, colours from the 46-colour Apollo palette (see `CREDITS.md`) |
 | `shell.js` | Sounds, notifications, install, offline support, and the planet viewport: a WebGL shader that draws each world as a dithered, palette-snapped 3D sphere (radar sweep while surveying, construction lights while building, and so on) |
 | `solarist.js` | The game: timer, planets, missions, posts, collectibles, levels, Distress Runs, stats |
 | `economy.json` | Every resource income and price. Edit, commit, reload. Notes inside explain each number |
@@ -22,13 +22,15 @@ Your progress is saved in this browser.
 | `campaign.json` | The campaign: 100 logs of the lost survey ship Meridian. Edit the text freely; keep the order |
 | `sw.js` | Offline support. Files are always fetched fresh when online, so edits show up on the next reload. Bump `VERSION` only if you add or remove files |
 | `manifest.webmanifest`, `icons/` | App name and icons for installing |
-| `fonts/` | Barlow and Barlow Condensed (SIL Open Font License, see `fonts/OFL-Barlow.txt`) |
+| `fonts/` | Barlow Condensed and Courier Prime (SIL Open Font License, see the OFL files) |
 | `sfx/` | Sounds (see `sfx/CREDITS.txt`) |
+| `music/`, `music.json` | Break music and its credits |
+| `CREDITS.md` | Who made the palette, fonts, sounds and music |
 
 
 ## Controls
 
-`1`-`4` pick the mission, `Space` starts or pauses, `Esc` closes a page or the session report.
+`1`-`7` pick the mission, `Space` starts or pauses, `H` hides the side panels, `←` `→` flip worlds in the Planetarium, `Esc` closes a page, the report or the ship view.
 
 ## What's in it
 

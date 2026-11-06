@@ -2,7 +2,7 @@
    and saved, so the app also works offline. VERSION only needs bumping when this list of files changes. */
 const VERSION = 'solarist-10';
 const FILES = [
-  './', 'index.html', 'style.css', 'shell.js', 'solarist.js', 'manifest.webmanifest', 'economy.json', 'items.json', 'campaign.json', 'music.json',
+  './', 'index.html', 'style.css', 'shell.js', 'solarist.js', 'manifest.webmanifest', 'economy.json', 'items.json', 'campaign.json', 'music.json', 'CREDITS.md',
   'fonts/barlow-condensed-latin-400-normal.woff2', 'fonts/barlow-condensed-latin-500-normal.woff2', 'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2',
   'fonts/courier-prime-latin-400-normal.woff2', 'fonts/courier-prime-latin-700-normal.woff2', 'fonts/courier-prime-latin-400-italic.woff2',
   'sfx/granted.wav', 'sfx/messagebox.wav', 'sfx/twm_mouse_click.wav', 'sfx/twm_notif.wav',

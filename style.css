@@ -545,3 +545,4 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-inlist { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 500 15px var(--ui); color: var(--white); }
 .sx-inlist .off { color: var(--dim); }
 .sx-interior .sx-report-in { width: min(760px, 100%); }
+.sx-credits { margin-top: 18px; font-size: 14px; }
