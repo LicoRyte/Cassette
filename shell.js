@@ -149,8 +149,7 @@
 
   /* ---------- the viewport ---------- */
   const PX = 3; // one art pixel = 3 screen pixels
-  const PAL = ['#000000', '#5ba675', '#6bc96c', '#abdd64', '#fcef8d', '#ffb879', '#ea6262', '#cc425e', '#a32858', '#751756', '#390947', '#611851', '#873555', '#a6555f', '#c97373', '#f2ae99', '#ffc3f2',
-    '#ee8fcb', '#d46eb3', '#873e84', '#1f102a', '#4a3052', '#7b5480', '#a6859f', '#d9bdc8', '#ffffff', '#aee2ff', '#8db7ff', '#6d80fa', '#8465ec', '#834dc4', '#7d2da0', '#4e187c'];
+  const PAL = ['#000000', '#172038', '#253a5e', '#3c5e8b', '#4f8fba', '#73bed3', '#a4dddb', '#19332d', '#25562e', '#468232', '#75a743', '#a8ca58', '#d0da91', '#4d2b32', '#7a4841', '#ad7757', '#c09473', '#d7b594', '#e7d5b3', '#341c27', '#602c2c', '#884b2b', '#be772b', '#de9e41', '#e8c170', '#241527', '#411d31', '#752438', '#a53030', '#cf573c', '#da863e', '#1e1d39', '#402751', '#7a367b', '#a23e8c', '#c65197', '#df84a5', '#090a14', '#10141f', '#151d28', '#202e37', '#394a50', '#577277', '#819796', '#a8b5b2', '#c7cfcc', '#ebede9'];
   const rgb = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
   const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6, shipbuild: 7, view: 8 };
   const cv = mk('canvas', { class: 'sx-view', 'aria-hidden': 'true' });
@@ -161,7 +160,7 @@
   const FS = `precision highp float;
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
 uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, atmOn, reveal, warp, neb, fIce, fStorm, fAur, fSpot; uniform vec3 atmC;
-uniform vec3 pal[33]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
+uniform vec3 pal[47]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float n3(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f);
@@ -172,7 +171,7 @@ float bayer(vec2 p){ vec2 q = mod(floor(p), 4.); float x = q.x, y = q.y;
   float v = mod(x, 2.) * 2. + mod(y, 2.) * 3. - mod(x, 2.) * mod(y, 2.) * 4.; // 2x2 pattern 0 2 3 1
   float w = floor(x / 2.) * 2. + floor(y / 2.) * 3. - floor(x / 2.) * floor(y / 2.) * 4.;
   return (v * 4. + w) / 16. - .47; }
-vec3 snap(vec3 c){ vec3 b = pal[0]; float bd = 1e9; for (int i = 0; i < 33; i++){ vec3 d = c - pal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = pal[i]; } } return b; }
+vec3 snap(vec3 c){ vec3 b = pal[0]; float bd = 1e9; for (int i = 0; i < 47; i++){ vec3 d = c - pal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = pal[i]; } } return b; }
 vec3 surface(vec3 q, out float emit){
   emit = 0.; float h = fbm(q * 2.2 + seed); vec3 c;
   if (fBands > .5){ float b = fract(q.y * 1.9 + fbm(q * vec3(1., 3., 1.) + seed) * .9); c = b < .25 ? pc[0] : b < .5 ? pc[1] : b < .75 ? pc[2] : pc[3]; }
@@ -186,12 +185,12 @@ vec3 surface(vec3 q, out float emit){
 void main(){
   vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false;
   // a faint nebula behind some worlds: dithered so only a few of its pixels light up
-  if (neb > .5){ float nf = fbm(vec3(fc / res.y * 2.4, seed * .7 + 3.)); float nb = smoothstep(.56, .72, nf) * .55; if (nb > 0. && bayer(fc) + .47 < nb * .6) { col = nf > .66 ? pal[32] : pal[20]; } }
+  if (neb > .5){ float nf = fbm(vec3(fc / res.y * 2.4, seed * .7 + 3.)); float nb = smoothstep(.56, .72, nf) * .55; if (nb > 0. && bayer(fc) + .47 < nb * .6) { col = nf > .66 ? pal[25] : pal[39]; } }
   // a few stars, drifting slowly (faster while you travel) on black space
   for (int l = 0; l < 2; l++){ float fl = float(l); vec2 sp = floor(fc + vec2(tt * (1.5 + fl * 3.5) * (1. + run * (kind < .5 || kind == 4. || kind == 5. ? 5. : 0.)) + fl * 91., fl * 37.));
-    float s = h3(vec3(mod(sp, 4096.), fl * 7. + 3.)); if (s > (fl < .5 ? .9988 : .9994)) col = fl < .5 ? pal[21] : (h3(vec3(mod(sp, 4096.), 11.)) > .6 ? vec3(1.) : pal[23]); }
+    float s = h3(vec3(mod(sp, 4096.), fl * 7. + 3.)); if (s > (fl < .5 ? .9988 : .9994)) col = fl < .5 ? pal[32] : (h3(vec3(mod(sp, 4096.), 11.)) > .6 ? vec3(1.) : pal[43]); }
   // the jump: for a moment every star stretches into a streak
-  if (warp > 0.) for (int k = 1; k < 24; k++){ float fk = float(k); if (fk > warp * 23.) break; vec2 sp = floor(fc + vec2(fk + tt * 40., 37.) + vec2(91., 0.)); if (h3(vec3(mod(sp, 4096.), 10.)) > .9994) { col = mix(pal[23], vec3(1.), 1. - fk / 24.); } }
+  if (warp > 0.) for (int k = 1; k < 24; k++){ float fk = float(k); if (fk > warp * 23.) break; vec2 sp = floor(fc + vec2(fk + tt * 40., 37.) + vec2(91., 0.)); if (h3(vec3(mod(sp, 4096.), 10.)) > .9994) { col = mix(pal[43], vec3(1.), 1. - fk / 24.); } }
   vec2 uv = (fc - ctr) / R; float d2 = dot(uv, uv);
   float tl = tilt; mat2 rz = mat2(cos(tl), -sin(tl), sin(tl), cos(tl)); vec2 tu = rz * uv;
   // rings (an ellipse in a plane tilted towards you); the part behind the planet is hidden
@@ -203,7 +202,7 @@ void main(){
     float lon = atan(n.x, n.z), lat = asin(clamp(n.y, -1., 1.));
     vec3 q = vec3(lon * 1.25 + spin * (fLocked > .5 ? .05 : .16), lat * 1.25, 0.);
     vec3 L = normalize(fLocked > .5 ? vec3(-1., .1, .25) : vec3(-.55, .35, .75)); float lit = clamp(dot(n, L), 0., 1.);
-    if (sil > .5){ col = pal[20] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = coord > .5 ? pal[5] : pal[28]; }
+    if (sil > .5){ col = pal[25] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = coord > .5 ? pal[24] : pal[4]; }
     else {
       float emit; vec3 c = surface(q, emit);
       col = c * (.08 + 1.02 * lit); col = mix(col, c, emit * .9);
@@ -214,11 +213,11 @@ void main(){
       if (fIce > .5){ vec3 cell = floor(q * 34.); float g = h3(cell + seed + 5.); if (g > .978 && lit > .2 && fract(tt * .45 + g * 13.) < .16) col = vec3(1.); }
       if (fStorm > .5 && lit < .45){ vec3 cell = floor(q * 6.); float fl = floor(tt * 1.1); float hh = h3(cell + fl + seed); if (hh > .93 && fract(tt * 1.1) < .22 && h3(floor(q * 30.) + fl) > .45) col = mix(col, vec3(.88, .93, 1.), .85); }
       if (fAur > .5 && lit < .28){ float ah = abs(lat) - 1.0 - .06 * sin(lon * 4. + tt * .35); float ray = fract(lon * 7. + sin(lon * 13. + tt * .3) * .3); // curtains of light near the poles, on the night side
-        if (ah > 0. && ah < .16 && ray < .55){ float k = (1. - ah / .16) * (1. - ray / .55) * (1. - lit / .28); if (bayer(fc) < k * .8) col = mix(col, ah > .1 ? pal[17] : pal[2], .8); } }
+        if (ah > 0. && ah < .16 && ray < .55){ float k = (1. - ah / .16) * (1. - ray / .55) * (1. - lit / .28); if (bayer(fc) < k * .8) col = mix(col, ah > .1 ? pal[36] : pal[11], .8); } }
       col += vec3(.35, .45, .9) * pow(1. - n.z, 3.) * .45 * (lit + .15);
       // your post's lights on the night side, more of them as the settlers grow
-      if (postLv > 9.){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[5] : pal[4]; }
-      if (kind == 99.){ vec3 cell = floor(q * 26.); if (h3(cell + seed) > .982 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0.) col = h3(cell + 3.) > .5 ? pal[4] : pal[3]; } // little work lights on the build site
+      if (postLv > 9.){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[24] : pal[12]; }
+      if (kind == 99.){ vec3 cell = floor(q * 26.); if (h3(cell + seed) > .982 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0.) col = h3(cell + 3.) > .5 ? pal[12] : pal[11]; } // little work lights on the build site
       if (kind == 1.){ // radar sweep: a green band moving down, then back up, with a fading trail
         float ph = mod(tt * .3, 2.), y = ph < 1. ? 1. - ph : ph - 1., dir = ph < 1. ? -1. : 1.;
         float yy = (uv.y + 1.) * .5, dy = (yy - y) * -dir;
@@ -226,7 +225,7 @@ void main(){
         col = mix(col, vec3(.42, .79, .42), clamp(band * .95 + trail, 0., 1.)); }
     }
     // arrival reveal: the dark silhouette dissolves into the real world through the dither
-    if (reveal < 1. && sil < .5 && bayer(fc) + .47 > reveal) { col = pal[20] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = pal[28]; }
+    if (reveal < 1. && sil < .5 && bayer(fc) + .47 > reveal) { col = pal[25] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = pal[4]; }
     dith = true;
     if (ringHit > .5 && ringZ > n.z * .2 && tu.y < 0.) { col = ringC * (.35 + .65 * clamp(.5 - tu.x * .3, 0., 1.)); }
   } else if (hasP > .5 && sil < .5 && atmOn > 0. && d2 < 1.075 && reveal >= 1.) { // a thin atmosphere rim, brightest on the lit side
@@ -234,14 +233,14 @@ void main(){
   } else if (ringHit > .5) { col = ringC * (.4 + .6 * clamp(.5 - tu.x * .3, 0., 1.)) * (d2 < 1.6 && tu.y > 0. ? .45 : 1.); dith = true; }
   // distress: a red beacon ahead that pulses and grows
   if (kind == 5.){ float r = .05 + pct * .0012; float d = length(uv); float pulse = fract(tt * .6);
-    if (d < r) col = mod(floor(tt * 2.), 2.) > 0. || run < .5 ? pal[6] : pal[12];
-    if (abs(d - (r + pulse * .9)) < .012) { col = pal[6] * (1. - pulse); dith = true; } }
+    if (d < r) col = mod(floor(tt * 2.), 2.) > 0. || run < .5 ? pal[29] : pal[27];
+    if (abs(d - (r + pulse * .9)) < .012) { col = pal[29] * (1. - pulse); dith = true; } }
   // charging: violet rings pulsing out from the planet
-  if (kind == 3.){ float d = length(uv); for (int k = 0; k < 2; k++){ float ph = fract(tt * .25 * run + float(k) * .5); if (abs(d - (1.15 + ph * 1.1)) < .014) { col = mix(col, pal[29], 1. - ph); dith = true; } } }
+  if (kind == 3.){ float d = length(uv); for (int k = 0; k < 2; k++){ float ph = fract(tt * .25 * run + float(k) * .5); if (abs(d - (1.15 + ph * 1.1)) < .014) { col = mix(col, pal[4], 1. - ph); dith = true; } } }
   // outlaws: raider blips circling, red at the edges of the screen
   if (kind == 4.){ for (int k = 0; k < 4; k++){ float fk = float(k), an = tt * (.5 + fk * .13) * (run * .9 + .1) + fk * 1.7;
-      vec2 bp = vec2(cos(an) * 1.45, sin(an) * .55); if (length((uv - bp) * R) < 2.2) { col = pal[6]; dith = false; } }
-    vec2 e = fc / res; float v = min(min(e.x, 1. - e.x), min(e.y, 1. - e.y)); if (v < .025 && h1(floor(fc / 2.) + floor(tt * 3.)) > .55 + v * 18.) col = pal[11]; }
+      vec2 bp = vec2(cos(an) * 1.45, sin(an) * .55); if (length((uv - bp) * R) < 2.2) { col = pal[29]; dith = false; } }
+    vec2 e = fc / res; float v = min(min(e.x, 1. - e.x), min(e.y, 1. - e.y)); if (v < .025 && h1(floor(fc / 2.) + floor(tt * 3.)) > .55 + v * 18.) col = pal[32]; }
   gl_FragColor = vec4(dith ? snap(col + bayer(fc) * .16) : col, 1.);
 }`;
   let prog = null, U = {}, ok = false;
@@ -265,8 +264,8 @@ void main(){
   function size() { cv.width = sv.width = Math.max(1, Math.round(innerWidth / PX)); cv.height = sv.height = Math.max(1, Math.round(innerHeight / PX)); }
   size(); addEventListener('resize', () => { size(); lastDraw = 0; kick(); });
   addEventListener('scroll', () => { lastDraw = 0; kick(); }, { passive: true }); // on phones the planet scrolls with the page
-  const ATM = a => !a || /^(Almost none|Frozen solid|None)/i.test(a) ? [0, '#000000'] : /methane|spore/i.test(a) ? [.8, '#abdd64'] : /sulfur|ash|chlorine|carbon dioxide|CO₂|acid/i.test(a) ? [.8, '#ffb879'] : /hydrogen|helium|neon|argon/i.test(a) ? [.9, '#8465ec'] : [/thin/i.test(a) ? .6 : 1, '#8db7ff'];
-  const STAR_C = { 'red dwarf': '#ea6262', 'orange dwarf': '#ffb879', 'yellow dwarf': '#fcef8d', 'white dwarf': '#ffffff', 'blue giant': '#aee2ff', 'red giant': '#cc425e', 'binary pair': '#fcef8d', 'pulsar': '#aee2ff' };
+  const ATM = a => !a || /^(Almost none|Frozen solid|None)/i.test(a) ? [0, '#000000'] : /methane|spore/i.test(a) ? [.8, '#a8ca58'] : /sulfur|ash|chlorine|carbon dioxide|CO₂|acid/i.test(a) ? [.8, '#e8c170'] : /hydrogen|helium|neon|argon/i.test(a) ? [.9, '#4f8fba'] : [/thin/i.test(a) ? .6 : 1, '#73bed3'];
+  const STAR_C = { 'red dwarf': '#cf573c', 'orange dwarf': '#e8c170', 'yellow dwarf': '#d0da91', 'white dwarf': '#ebede9', 'blue giant': '#a4dddb', 'red giant': '#cf573c', 'binary pair': '#d0da91', 'pulsar': '#a4dddb' };
   function setPlanet(p) {
     if (!ok) return;
     const seed = p ? p.seed : null; if (seed === curSeed) return; curSeed = seed;
@@ -274,7 +273,7 @@ void main(){
     const L = window.Solarist.lookOf ? window.Solarist.lookOf(p) : p.look;
     const four = (L.pal || []).concat(L.pal || []).slice(0, 4);
     gl.uniform3fv(U.pc, four.flatMap(rgb)); gl.uniform3fv(U.lc, (L.land || [four[1], four[2]]).slice(0, 2).flatMap(rgb));
-    gl.uniform3fv(U.ringC, rgb(L.ringCol || '#a6859f'));
+    gl.uniform3fv(U.ringC, rgb(L.ringCol || '#819796'));
     gl.uniform1f(U.seed, (L.noise % 997) / 37); gl.uniform1f(U.tilt, L.tilt || 0);
     gl.uniform1f(U.fClouds, L.clouds ? 1 : 0); gl.uniform1f(U.fBands, L.bands ? 1 : 0); gl.uniform1f(U.fLava, L.lava ? 1 : 0); gl.uniform1f(U.fLocked, L.locked ? 1 : 0);
     const [ao, ac] = ATM(p.atm); gl.uniform1f(U.atmOn, ao); gl.uniform3fv(U.atmC, rgb(ac)); gl.uniform1f(U.neb, (p.seed % 3) === 0 ? 1 : 0);
@@ -323,7 +322,7 @@ void main(){
     const p = info.planet, sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running, still = reduceMotion.matches, t = now / 1000;
     // the planet's own sun, up and to the left where the light comes from
     if (p && !sil && p.type !== 'Rogue') {
-      const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#fcef8d';
+      const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#d0da91';
       const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
       // a dithered pixel glow around the sun: bigger for giants, a soft breathing pulse, a strong one for pulsars
       const big = /giant/.test(p.star) ? 1.5 : p.star === 'white dwarf' ? .75 : 1, pulse = still ? 1 : p.star === 'pulsar' ? (blink ? .35 : 1.1) : 1 + Math.sin(t * 1.3) * .08;
@@ -338,9 +337,9 @@ void main(){
       if (!blink) {
         const ray = Math.round((3 + (still ? 0 : Math.sin(t * 2.1) * 1)) * big); // little light spikes
         for (let i = 2; i <= 2 + ray; i++) { gs.globalAlpha = 1 - (i - 2) / (ray + 1) * .8; [[i, 0], [-i, 0], [0, i], [0, -i]].forEach(([dx, dy]) => dot(gx + dx, gy + dy, c)); }
-        gs.globalAlpha = 1; dot(gx - 1, gy - 1, '#fff6d8', 3); dot(gx, gy, '#ffffff');
+        gs.globalAlpha = 1; dot(gx - 1, gy - 1, '#ebede9', 3); dot(gx, gy, '#ebede9');
       }
-      if (p.star === 'binary pair') dot(sx + 6, sy + 3, '#ffb879', 2);
+      if (p.star === 'binary pair') dot(sx + 6, sy + 3, '#e8c170', 2);
     }
     // moons on tilted orbits; the far half of each orbit goes behind the planet
     if (p && !sil) {
@@ -349,17 +348,17 @@ void main(){
         const a = rad * (base + i * .16), b = a * .3, ang = (still ? 0 : t) * (.22 / (1 + i * .45)) + i * 2.1 + (p.seed % 628) / 100;
         const mx = cx + Math.cos(ang) * a, my = cy + Math.sin(ang) * b, behind = Math.sin(ang) < 0;
         if (behind && Math.hypot(mx - cx, my - cy) < rad) continue;
-        const sz = i === 0 ? 3 : 2; dot(mx - 1, my - 1, behind ? '#7b5480' : '#d9bdc8', sz); if (!behind && sz === 3) dot(mx + 1, my + 1, '#7b5480');
+        const sz = i === 0 ? 3 : 2; dot(mx - 1, my - 1, behind ? '#7a367b' : '#c7cfcc', sz); if (!behind && sz === 3) dot(mx + 1, my + 1, '#7a367b');
       }
     }
     // now and then a shooting star
     if (!still && now > shootAt && !shoot) { shoot = { x: Math.random() * sv.width * .8, y: Math.random() * sv.height * .35, at: now }; shootAt = now + 45000 + Math.random() * 75000; }
-    if (shoot) { const u = (now - shoot.at) / 900; if (u > 1) shoot = null; else { const hx = shoot.x + u * 70, hy = shoot.y + u * 26; for (let j = 0; j < 9; j++) dot(hx - j * 2.7, hy - j, j < 2 ? '#ffffff' : j < 5 ? '#a6859f' : '#4a3052'); } }
+    if (shoot) { const u = (now - shoot.at) / 900; if (u > 1) shoot = null; else { const hx = shoot.x + u * 70, hy = shoot.y + u * 26; for (let j = 0; j < 9; j++) dot(hx - j * 2.7, hy - j, j < 2 ? '#ebede9' : j < 5 ? '#819796' : '#402751'); } }
   }
   /* ---------- the post island: a floating rock next to the planet with one little isometric building per facility ---------- */
   const THEME_C = { // [top, left face, right face, accent]
-    food: ['#ffb879', '#cc425e', '#ea6262', '#fcef8d'], sci: ['#aee2ff', '#6d80fa', '#8db7ff', '#ffffff'], fun: ['#ffc3f2', '#d46eb3', '#ee8fcb', '#fcef8d'],
-    rest: ['#abdd64', '#5ba675', '#6bc96c', '#ffffff'], work: ['#a6859f', '#4a3052', '#7b5480', '#ffb879'], art: ['#d9bdc8', '#834dc4', '#8465ec', '#fcef8d'] };
+    food: ['#e8c170', '#cf573c', '#cf573c', '#d0da91'], sci: ['#a4dddb', '#4f8fba', '#73bed3', '#ebede9'], fun: ['#c7cfcc', '#c65197', '#df84a5', '#d0da91'],
+    rest: ['#a8ca58', '#75a743', '#a8ca58', '#ebede9'], work: ['#819796', '#402751', '#7a367b', '#e8c170'], art: ['#c7cfcc', '#a23e8c', '#4f8fba', '#d0da91'] };
   const hashK = k => { let h = 7; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
   function isoBox(bx, by, a, b, h, C, style, t) { // base centre (bx,by), footprint half-size a x b (2:1), height h
     for (let x = -a; x < a; x++) { // the two side faces, one column at a time
@@ -368,14 +367,14 @@ void main(){
       if (style % 4 === 0 && h > 4) { gs.fillStyle = C[3]; for (let y = 2; y < h - 1; y += 3) if ((x & 1) === 0 && Math.abs(x) > 1) gs.fillRect(bx + x, y0 + y, 1, 1); } // windows
       if (style % 4 === 1) { gs.fillStyle = C[3]; gs.fillRect(bx + x, y0 + 1, 1, 1); } // a stripe under the roof
     }
-    if (style % 4 === 2) { gs.fillStyle = '#1f102a'; gs.fillRect(bx + 1, by + b - 3, 1, 2); gs.fillRect(bx + 2, by + b - 3, 1, 2); } // a door
+    if (style % 4 === 2) { gs.fillStyle = '#241527'; gs.fillRect(bx + 1, by + b - 3, 1, 2); gs.fillRect(bx + 2, by + b - 3, 1, 2); } // a door
     for (let y = -b; y < b; y++) { const w = Math.round((b - Math.abs(y + .5)) * a / b); gs.fillStyle = C[0]; gs.fillRect(bx - w, by - h + y, w * 2, 1); } // the roof
     const ry = by - h - b; // roof features
     const f = (style >> 2) % 5;
     if (f === 0) { gs.fillStyle = C[3]; gs.fillRect(bx - 1, ry, 2, 2); gs.fillRect(bx - 2, ry + 1, 4, 1); } // dome
-    else if (f === 1) { gs.fillStyle = '#d9bdc8'; gs.fillRect(bx, ry - 3, 1, 4); gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#ea6262' : '#751756'; gs.fillRect(bx, ry - 4, 1, 1); } // antenna with a blinking tip
-    else if (f === 2) { gs.fillStyle = '#4a3052'; gs.fillRect(bx + 2, ry - 1, 2, 3); gs.fillStyle = '#a6859f'; const k = Math.floor(t * 3) % 3; gs.fillRect(bx + 2 + (k > 1 ? 1 : 0), ry - 3 - k, 1, 1); } // chimney and smoke
-    else if (f === 3) { gs.fillStyle = '#d9bdc8'; gs.fillRect(bx - 2, ry - 3, 1, 4); gs.fillStyle = C[3]; gs.fillRect(bx - 1, ry - 3, 2, 1); gs.fillRect(bx - 1, ry - 2, 1, 1); } // flag
+    else if (f === 1) { gs.fillStyle = '#c7cfcc'; gs.fillRect(bx, ry - 3, 1, 4); gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#cf573c' : '#752438'; gs.fillRect(bx, ry - 4, 1, 1); } // antenna with a blinking tip
+    else if (f === 2) { gs.fillStyle = '#402751'; gs.fillRect(bx + 2, ry - 1, 2, 3); gs.fillStyle = '#819796'; const k = Math.floor(t * 3) % 3; gs.fillRect(bx + 2 + (k > 1 ? 1 : 0), ry - 3 - k, 1, 1); } // chimney and smoke
+    else if (f === 3) { gs.fillStyle = '#c7cfcc'; gs.fillRect(bx - 2, ry - 3, 1, 4); gs.fillStyle = C[3]; gs.fillRect(bx - 1, ry - 3, 2, 1); gs.fillRect(bx - 1, ry - 2, 1, 1); } // flag
   }
   let islandAt = null; // where the island floats this frame (the ship docks next to it on breaks)
   function drawIsland(now, cx, cy, rad, r) {
@@ -396,16 +395,16 @@ void main(){
     for (let x = L[0]; x < R[0]; x++) {
       const u = x < Bt[0] ? (Bt[0] - x) / Math.max(1, Bt[0] - L[0]) : (x - Bt[0]) / Math.max(1, R[0] - Bt[0]);
       const d = Math.round(depth * Math.pow(Math.max(0, 1 - u), .7) + (hashK('r' + x) % 3)), top = Math.round(edge(x + .5)) - 1;
-      for (let y = 0; y < d; y++) { gs.fillStyle = y < 2 ? '#7b5480' : ((x + y) & 1) && y > d * .55 ? '#1f102a' : y > d * .8 ? '#390947' : '#4a3052'; gs.fillRect(x, top + y, 1, 1); }
+      for (let y = 0; y < d; y++) { gs.fillStyle = y < 2 ? '#7a367b' : ((x + y) & 1) && y > d * .55 ? '#241527' : y > d * .8 ? '#402751' : '#402751'; gs.fillRect(x, top + y, 1, 1); }
     }
     // the plate: one stone tile per cell
     for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const [tx, ty] = cell(i, j);
-      for (let y = -B; y < B; y++) { const w = Math.round((B - Math.abs(y + .5)) * A / B); gs.fillStyle = (i + j) & 1 ? '#a6859f' : '#9a7c95'; gs.fillRect(tx - w, ty + y, w * 2, 1); } }
-    if (building && (Math.floor(t * 2) & 1)) { gs.fillStyle = '#fcef8d'; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const [tx, ty] = cell(i, j); gs.fillRect(tx, ty, 1, 1); } }
+      for (let y = -B; y < B; y++) { const w = Math.round((B - Math.abs(y + .5)) * A / B); gs.fillStyle = (i + j) & 1 ? '#819796' : '#819796'; gs.fillRect(tx - w, ty + y, w * 2, 1); } }
+    if (building && (Math.floor(t * 2) & 1)) { gs.fillStyle = '#d0da91'; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const [tx, ty] = cell(i, j); gs.fillRect(tx, ty, 1, 1); } }
     if (!tp) { // just a Listening Post: an antenna on a small rock
-      const [tx, ty] = cell(0, 0); gs.fillStyle = '#d9bdc8'; gs.fillRect(tx, ty - 9, 1, 9); gs.fillRect(tx - 2, ty - 7, 5, 1); gs.fillRect(tx - 1, ty - 5, 3, 1);
-      gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#ea6262' : '#751756'; gs.fillRect(tx, ty - 10, 1, 1);
-      if (bj && bj.k === 'post' && (Math.floor(t * 3) & 1)) { gs.fillStyle = '#fcef8d'; gs.fillRect(tx - 2, ty - 11, 1, 1); gs.fillRect(tx + 2, ty - 8, 1, 1); }
+      const [tx, ty] = cell(0, 0); gs.fillStyle = '#c7cfcc'; gs.fillRect(tx, ty - 9, 1, 9); gs.fillRect(tx - 2, ty - 7, 5, 1); gs.fillRect(tx - 1, ty - 5, 3, 1);
+      gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#cf573c' : '#752438'; gs.fillRect(tx, ty - 10, 1, 1);
+      if (bj && bj.k === 'post' && (Math.floor(t * 3) & 1)) { gs.fillStyle = '#d0da91'; gs.fillRect(tx - 2, ty - 11, 1, 1); gs.fillRect(tx + 2, ty - 8, 1, 1); }
       return;
     }
     // buildings, back to front
@@ -413,7 +412,7 @@ void main(){
     if (adding) slots.push({ f: { k: bj.fac, lv: 1 }, i: fac.length % cols, j: Math.floor(fac.length / cols), wip: true });
     slots.sort((p, q) => (p.i + p.j) - (q.i + q.j) || p.i - q.i).forEach(({ f, i, j, wip }) => {
       const [bx, by] = cell(i, j), th = (window.Solarist.facTheme || {})[f.k] || 'work', C = THEME_C[th] || THEME_C.work, h = 4 + Math.min(9, Math.round((f.lv || 1) * .8)), style = hashK(f.k);
-      if (wip) { if (Math.floor(t * 2) & 1) { gs.fillStyle = '#fcef8d'; [[-6, 0], [6, 0], [0, 3], [0, -3]].forEach(([dx, dy]) => gs.fillRect(bx + dx, by + dy - 6, 1, 6)); gs.fillRect(bx - 6, by - 6, 13, 1); } return; } // scaffolding
+      if (wip) { if (Math.floor(t * 2) & 1) { gs.fillStyle = '#d0da91'; [[-6, 0], [6, 0], [0, 3], [0, -3]].forEach(([dx, dy]) => gs.fillRect(bx + dx, by + dy - 6, 1, 6)); gs.fillRect(bx - 6, by - 6, 13, 1); } return; } // scaffolding
       isoBox(bx, by + 1, 6, 3, h, C, style, t);
     });
     // shuttles hop between the island and the planet: busier posts, more traffic
@@ -422,22 +421,22 @@ void main(){
         const tx = cx + rad * (.35 + .12 * k), ty = cy - rad * (.15 - .18 * k), mx = (sx0 + tx) / 2, my = Math.min(sy0, ty) - 14 - k * 4;
         const x = (1 - e) * (1 - e) * sx0 + 2 * (1 - e) * e * mx + e * e * tx, y = (1 - e) * (1 - e) * sy0 + 2 * (1 - e) * e * my + e * e * ty;
         if (Math.hypot(x - cx, y - cy) < rad * .97 && e > .9) continue; // landing: it disappears into the atmosphere
-        const dir = u < .5 ? -1 : 1; gs.fillStyle = '#fcef8d'; gs.fillRect(Math.round(x), Math.round(y), 2, 1); gs.fillStyle = '#ffb879'; gs.fillRect(Math.round(x) - dir * 2 + (dir > 0 ? 0 : 1), Math.round(y), 1, 1); } }
+        const dir = u < .5 ? -1 : 1; gs.fillStyle = '#d0da91'; gs.fillRect(Math.round(x), Math.round(y), 2, 1); gs.fillStyle = '#e8c170'; gs.fillRect(Math.round(x) - dir * 2 + (dir > 0 ? 0 : 1), Math.round(y), 1, 1); } }
   }
   // what's going on around the world: outlaw ships, a Trade Station, a distress beacon
   function drawStatus(now, cx, cy, rad) {
     const pl = info.planet, t = now / 1000, still = reduceMotion.matches;
     if (pl && pl.outlaw && !pl.outlaw.cleared) for (let k = 0; k < 3; k++) { const a = (still ? 0 : t * .55) + k * 2.1, x = cx + Math.cos(a) * rad * 1.12, y = cy + Math.sin(a) * rad * .28;
       if (Math.sin(a) < 0 && Math.hypot(x - cx, y - cy) < rad) continue; const dir = -Math.sin(a) >= 0 ? 1 : -1;
-      gs.fillStyle = '#a32858'; gs.fillRect(Math.round(x) - 3, Math.round(y), 6, 2); gs.fillStyle = '#ea6262'; gs.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 1); gs.fillStyle = '#fcef8d'; gs.fillRect(Math.round(x) + (dir > 0 ? 3 : -4), Math.round(y), 1, 1); gs.fillStyle = '#390947'; gs.fillRect(Math.round(x) - 3, Math.round(y) + 2, 6, 1); }
+      gs.fillStyle = '#a53030'; gs.fillRect(Math.round(x) - 3, Math.round(y), 6, 2); gs.fillStyle = '#cf573c'; gs.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 1); gs.fillStyle = '#d0da91'; gs.fillRect(Math.round(x) + (dir > 0 ? 3 : -4), Math.round(y), 1, 1); gs.fillStyle = '#402751'; gs.fillRect(Math.round(x) - 3, Math.round(y) + 2, 6, 1); }
     if (info.trader != null && pl && pl.num === info.trader) { const x = Math.round(cx + rad * 1.02), y = Math.round(cy - rad * .7 + (still ? 0 : Math.sin(t * .9) * 1.2));
-      gs.fillStyle = '#4a3052'; gs.fillRect(x - 6, y - 2, 12, 5); gs.fillStyle = '#a6859f'; gs.fillRect(x - 5, y - 3, 10, 2); gs.fillRect(x - 1, y - 6, 2, 3);
-      gs.fillStyle = '#7b5480'; gs.fillRect(x - 8, y, 2, 2); gs.fillRect(x + 6, y, 2, 2);
-      for (let i = 0; i < 4; i++) { gs.fillStyle = (Math.floor(t * 2) + i) % 3 ? '#fcef8d' : '#ffb879'; gs.fillRect(x - 4 + i * 3, y, 1, 1); }
-      gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#abdd64' : '#5ba675'; gs.fillRect(x, y - 7, 1, 1); }
+      gs.fillStyle = '#402751'; gs.fillRect(x - 6, y - 2, 12, 5); gs.fillStyle = '#819796'; gs.fillRect(x - 5, y - 3, 10, 2); gs.fillRect(x - 1, y - 6, 2, 3);
+      gs.fillStyle = '#7a367b'; gs.fillRect(x - 8, y, 2, 2); gs.fillRect(x + 6, y, 2, 2);
+      for (let i = 0; i < 4; i++) { gs.fillStyle = (Math.floor(t * 2) + i) % 3 ? '#d0da91' : '#e8c170'; gs.fillRect(x - 4 + i * 3, y, 1, 1); }
+      gs.fillStyle = (Math.floor(t * 1.5) & 1) ? '#a8ca58' : '#75a743'; gs.fillRect(x, y - 7, 1, 1); }
     if (info.kind === 'distress' && info.running) { const x = Math.round(cx + rad * .85), y = Math.round(cy - rad * .85), on = Math.floor(t * 2) & 1;
-      gs.fillStyle = on ? '#ea6262' : '#751756'; gs.fillRect(x - 1, y - 1, 3, 3); gs.fillStyle = '#ffffff'; if (on) gs.fillRect(x, y, 1, 1);
-      if (!still) { const k = (t * .7) % 1, rr = 3 + k * 16; gs.fillStyle = '#ea6262'; gs.globalAlpha = 1 - k; for (let q = 0; q < 24; q++) { const a = q / 24 * Math.PI * 2; gs.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 1, 1); } gs.globalAlpha = 1; } }
+      gs.fillStyle = on ? '#cf573c' : '#752438'; gs.fillRect(x - 1, y - 1, 3, 3); gs.fillStyle = '#ebede9'; if (on) gs.fillRect(x, y, 1, 1);
+      if (!still) { const k = (t * .7) % 1, rr = 3 + k * 16; gs.fillStyle = '#cf573c'; gs.globalAlpha = 1 - k; for (let q = 0; q < 24; q++) { const a = q / 24 * Math.PI * 2; gs.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 1, 1); } gs.globalAlpha = 1; } }
   }
   // clicking the ship opens its interior (the game listens for this event)
   let shipBox = null; const shipTrail = [];
@@ -467,15 +466,15 @@ void main(){
       const ox = cx + Math.cos(a) * rx, oy = cy + Math.sin(a) * ry;
       x = Math.round(ox - img.width / 2); y = Math.round(oy - img.height / 2 + bob); flip = Math.sin(a) < 0; hide = flip && Math.hypot(ox - cx, oy - cy) < rad * .98;
       const tr = shipTrail; if (!tr.length || Math.hypot(tr[tr.length - 1][0] - ox, tr[tr.length - 1][1] - oy) > 3) { tr.push([ox, oy]); if (tr.length > 14) tr.shift(); }
-      tr.forEach(([qx, qy], i) => { if (qy < cy && Math.hypot(qx - cx, qy - cy) < rad) return; gs.globalAlpha = (i + 1) / tr.length * .55; gs.fillStyle = '#ffb879'; gs.fillRect(Math.round(qx), Math.round(qy), 1, 1); }); gs.globalAlpha = 1;
+      tr.forEach(([qx, qy], i) => { if (qy < cy && Math.hypot(qx - cx, qy - cy) < rad) return; gs.globalAlpha = (i + 1) / tr.length * .55; gs.fillStyle = '#e8c170'; gs.fillRect(Math.round(qx), Math.round(qy), 1, 1); }); gs.globalAlpha = 1;
     } else { shipTrail.length = 0; if (info.mode !== 'focus' && islandAt) { x = Math.round(islandAt.x - img.width - 3); y = Math.round(islandAt.y - img.height + 2 + bob); } }
     if (hide) { shipBox = null; return; }
-    if ((travel || orbit) && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#ffb879'; if (flip) { gs.fillRect(x + img.width, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x + img.width + f - 1, y + 4, 2, 1); } else { gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#fcef8d'; gs.fillRect(x - f - 1, y + 4, 2, 1); } }
+    if ((travel || orbit) && moving) { const f = 2 + Math.floor((t * 12) % 3); gs.fillStyle = '#e8c170'; if (flip) { gs.fillRect(x + img.width, y + 3, f, 3); gs.fillStyle = '#d0da91'; gs.fillRect(x + img.width + f - 1, y + 4, 2, 1); } else { gs.fillRect(x - f, y + 3, f, 3); gs.fillStyle = '#d0da91'; gs.fillRect(x - f - 1, y + 4, 2, 1); } }
     gs.imageSmoothingEnabled = false;
     if (flip) { gs.save(); gs.translate(x + img.width, y); gs.scale(-1, 1); gs.drawImage(img, 0, 0); gs.restore(); } else gs.drawImage(img, x, y);
     shipBox = { x: x * PX, y: y * PX, w: img.width * PX, h: img.height * PX };
     if (info.kind === 'shipbuild' && info.running) { // building a room: welding sparks on the hull
-      const fr = Math.floor(t * 8); for (let i = 0; i < 3; i++) { const h = Math.sin((fr + i * 7) * 12.9898) * 43758.5453, k = h - Math.floor(h); if (k < .45) continue; const sx = x + 3 + Math.floor(k * 13), sy = y + 1 + Math.floor((k * 7.3 % 1) * 7); gs.fillStyle = k > .8 ? '#ffffff' : '#fcef8d'; gs.fillRect(sx, sy, 1, 1); if (k > .7) { gs.fillStyle = '#ffb879'; gs.fillRect(sx + 1, sy - 1, 1, 1); } }
+      const fr = Math.floor(t * 8); for (let i = 0; i < 3; i++) { const h = Math.sin((fr + i * 7) * 12.9898) * 43758.5453, k = h - Math.floor(h); if (k < .45) continue; const sx = x + 3 + Math.floor(k * 13), sy = y + 1 + Math.floor((k * 7.3 % 1) * 7); gs.fillStyle = k > .8 ? '#ebede9' : '#d0da91'; gs.fillRect(sx, sy, 1, 1); if (k > .7) { gs.fillStyle = '#e8c170'; gs.fillRect(sx + 1, sy - 1, 1, 1); } }
     }
   }
   function typeName() { // the new world's name types itself out

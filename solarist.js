@@ -27,29 +27,29 @@
   const STARS = [['red dwarf', 34], ['orange dwarf', 22], ['yellow dwarf', 18], ['white dwarf', 6], ['blue giant', 5], ['red giant', 6], ['binary pair', 7], ['pulsar', 2]];
   // class: weight, temperature range (°C), palette (light -> dark), biomes, atmospheres, life chance, has a surface
   const TYPES = {
-    Rocky: { w: 14, t: [-80, 60], pal: ['#a6859f', '#7b5480', '#873555', '#4a3052'], bio: ['Rocky plains', 'Canyon mazes', 'Cratered highlands', 'Dust basins', 'Stone arches', 'Boulder fields'], atm: ['Thin nitrogen', 'Carbon dioxide', 'Almost none', 'Argon haze'], life: .15 },
-    Ocean: { w: 9, t: [2, 34], pal: ['#6d80fa', '#6d80fa', '#8465ec', '#4e187c'], land: ['#6bc96c', '#f2ae99'], bio: ['Endless ocean', 'Island chains', 'Reef shallows', 'Storm seas', 'Kelp-like forests', 'Floating ice rafts'], atm: ['Nitrogen and oxygen', 'Humid nitrogen', 'Thick water vapor'], life: .7 },
-    Jungle: { w: 7, t: [18, 48], pal: ['#abdd64', '#6bc96c', '#5ba675', '#4a3052'], bio: ['Dense jungle', 'Giant fungus forests', 'Swamp deltas', 'Vine canopies', 'Glowing moss valleys', 'Bamboo-like towers'], atm: ['Oxygen-rich', 'Humid nitrogen and oxygen', 'Spore-heavy air'], life: .92 },
-    Desert: { w: 10, t: [25, 95], pal: ['#ffb879', '#f2ae99', '#c97373', '#a6555f'], bio: ['Dune seas', 'Salt flats', 'Glass deserts', 'Mesa country', 'Dry riverbeds', 'Rust plains'], atm: ['Dry carbon dioxide', 'Thin nitrogen', 'Dusty nitrogen'], life: .25 },
-    Ice: { w: 11, t: [-220, -25], pal: ['#ffffff', '#aee2ff', '#8db7ff', '#6d80fa'], bio: ['Glacier fields', 'Frozen oceans', 'Ice caves', 'Snow plains', 'Cryovolcano fields', 'Blue ice cliffs'], atm: ['Thin nitrogen', 'Methane traces', 'Almost none'], life: .12 },
-    Lava: { w: 7, t: [350, 1500], pal: ['#ffb879', '#ea6262', '#611851', '#1f102a'], bio: ['Lava seas', 'Volcanic chains', 'Obsidian plains', 'Ash fields', 'Magma rivers', 'Basalt towers'], atm: ['Sulfur dioxide', 'Volcanic ash and CO₂', 'Almost none'], life: .02 },
-    'Gas giant': { w: 10, t: [-170, 900], pal: ['#f2ae99', '#c97373', '#a6555f', '#873555'], bio: ['Banded cloud belts', 'Endless storms', 'Ammonia skies', 'Hydrogen depths'], atm: ['Hydrogen and helium'], life: .04, noGround: true },
-    'Ice giant': { w: 6, t: [-225, -170], pal: ['#aee2ff', '#8db7ff', '#6d80fa', '#4e187c'], bio: ['Methane haze', 'Diamond rain layers', 'Deep water-ice mantle', 'Supersonic winds'], atm: ['Hydrogen, helium and methane'], life: .01, noGround: true },
-    Toxic: { w: 5, t: [60, 480], pal: ['#abdd64', '#6bc96c', '#5ba675', '#611851'], bio: ['Acid lakes', 'Sulfur fields', 'Yellow haze plains', 'Corroded canyons', 'Bubbling mud pits'], atm: ['Sulfuric acid clouds', 'Chlorine haze', 'Thick carbon dioxide'], life: .06 },
-    Crystal: { w: 3, t: [-120, 40], pal: ['#ffc3f2', '#ee8fcb', '#d46eb3', '#873e84'], bio: ['Crystal spires', 'Mirror plains', 'Prism caves', 'Singing quartz forests', 'Geode valleys'], atm: ['Thin neon', 'Almost none', 'Argon and nitrogen'], life: .1 },
-    'Tidally locked': { w: 5, t: [-140, 260], pal: ['#ffb879', '#c97373', '#4a3052', '#1f102a'], bio: ['Twilight band', 'Scorched dayside', 'Frozen nightside', 'Eternal sunset strip'], atm: ['Nitrogen', 'Thin carbon dioxide', 'Wind-whipped nitrogen'], life: .3, locked: true },
-    Garden: { w: 3, t: [6, 28], pal: ['#8db7ff', '#6d80fa', '#8465ec', '#4e187c'], land: ['#5ba675', '#6bc96c'], clouds: true, bio: ['Temperate forests', 'Rolling grasslands', 'River valleys', 'Flower meadows', 'Misty mountains', 'Calm lakes'], atm: ['Nitrogen and oxygen, breathable'], life: .97 },
-    Savanna: { w: 4, t: [15, 42], pal: ['#fcef8d', '#ffb879', '#abdd64', '#5ba675'], bio: ['Golden grasslands', 'Lone giant trees', 'Termite-mound fields', 'Seasonal watering holes', 'Red-rock outcrops', 'Dry riverbeds'], atm: ['Nitrogen and oxygen, dry', 'Warm nitrogen and oxygen'], life: .85 },
-    Tundra: { w: 5, t: [-40, 8], pal: ['#ffffff', '#d9bdc8', '#a6859f', '#5ba675'], bio: ['Frozen moss plains', 'Permafrost bogs', 'Rocky taiga', 'Snowy foothills', 'Frost-cracked flats', 'Ice-edged lakes'], atm: ['Cold nitrogen and oxygen', 'Thin, crisp nitrogen'], life: .45 },
-    Swamp: { w: 4, t: [12, 38], pal: ['#5ba675', '#4a3052', '#611851', '#390947'], land: ['#873555', '#5ba675'], bio: ['Mangrove-like mazes', 'Steaming bogs', 'Reed marshes', 'Floating plant mats', 'Muddy deltas', 'Fog-filled hollows'], atm: ['Humid, methane-scented air', 'Thick, wet nitrogen and oxygen'], life: .85 },
-    Fungal: { w: 3, t: [5, 30], pal: ['#ee8fcb', '#d46eb3', '#7b5480', '#390947'], bio: ['Giant mushroom forests', 'Spore meadows', 'Glowing mycelium caves', 'Puffball plains', 'Shelf-fungus cliffs'], atm: ['Spore-heavy nitrogen', 'Damp carbon dioxide and oxygen'], life: .95 },
-    Hycean: { w: 4, t: [-10, 60], pal: ['#aee2ff', '#6bc96c', '#6d80fa', '#4e187c'], clouds: true, bio: ['Warm global ocean', 'Hydrogen sky', 'Deep thermal vents', 'Glowing plankton seas'], atm: ['Thick hydrogen over a warm ocean'], life: .6 },
-    Iron: { w: 3, t: [-50, 300], pal: ['#d9bdc8', '#a6859f', '#7b5480', '#4a3052'], bio: ['Metal plains', 'Rust canyons', 'Magnetite dunes', 'Mirror-bright craters', 'Iron spire fields'], atm: ['Almost none', 'Thin argon'], life: .05 },
-    Carbon: { w: 2, t: [-80, 600], pal: ['#7b5480', '#4a3052', '#390947', '#1f102a'], sparkle: true, bio: ['Graphite plains', 'Diamond-studded cliffs', 'Tar lakes', 'Soot deserts', 'Carbide mountains'], atm: ['Carbon monoxide haze', 'Thick methane'], life: .05 },
-    Shattered: { w: 2, t: [100, 900], pal: ['#ea6262', '#cc425e', '#751756', '#1f102a'], bio: ['Broken crust plates', 'Glowing fault lines', 'Floating rock shards', 'Magma rifts'], atm: ['Almost none', 'Volcanic ash and CO₂'], life: .01 },
-    Dwarf: { w: 5, t: [-230, -60], pal: ['#d9bdc8', '#a6859f', '#7b5480', '#4a3052'], bio: ['Cratered plains', 'Frozen nitrogen fields', 'Dusty highlands', 'Tiny ice volcanoes'], atm: ['Almost none', 'Frozen solid'], life: .03 },
-    'Glass storm': { w: 2, t: [700, 1100], pal: ['#ffffff', '#aee2ff', '#8465ec', '#4e187c'], bio: ['Silicate cloud bands', 'Sideways glass rain', 'Supersonic winds', 'Molten silicate depths'], atm: ['Hydrogen with silicate clouds'], life: 0, noGround: true },
-    Rogue: { w: 2, t: [-235, -205], pal: ['#4a3052', '#390947', '#4e187c', '#1f102a'], bio: ['Eternal night', 'Frozen crust', 'Geothermal hot spots', 'Black ice plains'], atm: ['Frozen solid', 'Almost none'], life: .05, rogue: true },
+    Rocky: { w: 14, t: [-80, 60], pal: ['#819796', '#7a367b', '#752438', '#402751'], bio: ['Rocky plains', 'Canyon mazes', 'Cratered highlands', 'Dust basins', 'Stone arches', 'Boulder fields'], atm: ['Thin nitrogen', 'Carbon dioxide', 'Almost none', 'Argon haze'], life: .15 },
+    Ocean: { w: 9, t: [2, 34], pal: ['#4f8fba', '#4f8fba', '#4f8fba', '#402751'], land: ['#a8ca58', '#d7b594'], bio: ['Endless ocean', 'Island chains', 'Reef shallows', 'Storm seas', 'Kelp-like forests', 'Floating ice rafts'], atm: ['Nitrogen and oxygen', 'Humid nitrogen', 'Thick water vapor'], life: .7 },
+    Jungle: { w: 7, t: [18, 48], pal: ['#a8ca58', '#a8ca58', '#75a743', '#402751'], bio: ['Dense jungle', 'Giant fungus forests', 'Swamp deltas', 'Vine canopies', 'Glowing moss valleys', 'Bamboo-like towers'], atm: ['Oxygen-rich', 'Humid nitrogen and oxygen', 'Spore-heavy air'], life: .92 },
+    Desert: { w: 10, t: [25, 95], pal: ['#e8c170', '#d7b594', '#ad7757', '#a53030'], bio: ['Dune seas', 'Salt flats', 'Glass deserts', 'Mesa country', 'Dry riverbeds', 'Rust plains'], atm: ['Dry carbon dioxide', 'Thin nitrogen', 'Dusty nitrogen'], life: .25 },
+    Ice: { w: 11, t: [-220, -25], pal: ['#ebede9', '#a4dddb', '#73bed3', '#4f8fba'], bio: ['Glacier fields', 'Frozen oceans', 'Ice caves', 'Snow plains', 'Cryovolcano fields', 'Blue ice cliffs'], atm: ['Thin nitrogen', 'Methane traces', 'Almost none'], life: .12 },
+    Lava: { w: 7, t: [350, 1500], pal: ['#e8c170', '#cf573c', '#402751', '#241527'], bio: ['Lava seas', 'Volcanic chains', 'Obsidian plains', 'Ash fields', 'Magma rivers', 'Basalt towers'], atm: ['Sulfur dioxide', 'Volcanic ash and CO₂', 'Almost none'], life: .02 },
+    'Gas giant': { w: 10, t: [-170, 900], pal: ['#d7b594', '#ad7757', '#a53030', '#752438'], bio: ['Banded cloud belts', 'Endless storms', 'Ammonia skies', 'Hydrogen depths'], atm: ['Hydrogen and helium'], life: .04, noGround: true },
+    'Ice giant': { w: 6, t: [-225, -170], pal: ['#a4dddb', '#73bed3', '#4f8fba', '#402751'], bio: ['Methane haze', 'Diamond rain layers', 'Deep water-ice mantle', 'Supersonic winds'], atm: ['Hydrogen, helium and methane'], life: .01, noGround: true },
+    Toxic: { w: 5, t: [60, 480], pal: ['#a8ca58', '#a8ca58', '#75a743', '#402751'], bio: ['Acid lakes', 'Sulfur fields', 'Yellow haze plains', 'Corroded canyons', 'Bubbling mud pits'], atm: ['Sulfuric acid clouds', 'Chlorine haze', 'Thick carbon dioxide'], life: .06 },
+    Crystal: { w: 3, t: [-120, 40], pal: ['#c7cfcc', '#df84a5', '#c65197', '#7a367b'], bio: ['Crystal spires', 'Mirror plains', 'Prism caves', 'Singing quartz forests', 'Geode valleys'], atm: ['Thin neon', 'Almost none', 'Argon and nitrogen'], life: .1 },
+    'Tidally locked': { w: 5, t: [-140, 260], pal: ['#e8c170', '#ad7757', '#402751', '#241527'], bio: ['Twilight band', 'Scorched dayside', 'Frozen nightside', 'Eternal sunset strip'], atm: ['Nitrogen', 'Thin carbon dioxide', 'Wind-whipped nitrogen'], life: .3, locked: true },
+    Garden: { w: 3, t: [6, 28], pal: ['#73bed3', '#4f8fba', '#4f8fba', '#402751'], land: ['#75a743', '#a8ca58'], clouds: true, bio: ['Temperate forests', 'Rolling grasslands', 'River valleys', 'Flower meadows', 'Misty mountains', 'Calm lakes'], atm: ['Nitrogen and oxygen, breathable'], life: .97 },
+    Savanna: { w: 4, t: [15, 42], pal: ['#d0da91', '#e8c170', '#a8ca58', '#75a743'], bio: ['Golden grasslands', 'Lone giant trees', 'Termite-mound fields', 'Seasonal watering holes', 'Red-rock outcrops', 'Dry riverbeds'], atm: ['Nitrogen and oxygen, dry', 'Warm nitrogen and oxygen'], life: .85 },
+    Tundra: { w: 5, t: [-40, 8], pal: ['#ebede9', '#c7cfcc', '#819796', '#75a743'], bio: ['Frozen moss plains', 'Permafrost bogs', 'Rocky taiga', 'Snowy foothills', 'Frost-cracked flats', 'Ice-edged lakes'], atm: ['Cold nitrogen and oxygen', 'Thin, crisp nitrogen'], life: .45 },
+    Swamp: { w: 4, t: [12, 38], pal: ['#75a743', '#402751', '#402751', '#402751'], land: ['#752438', '#75a743'], bio: ['Mangrove-like mazes', 'Steaming bogs', 'Reed marshes', 'Floating plant mats', 'Muddy deltas', 'Fog-filled hollows'], atm: ['Humid, methane-scented air', 'Thick, wet nitrogen and oxygen'], life: .85 },
+    Fungal: { w: 3, t: [5, 30], pal: ['#df84a5', '#c65197', '#7a367b', '#402751'], bio: ['Giant mushroom forests', 'Spore meadows', 'Glowing mycelium caves', 'Puffball plains', 'Shelf-fungus cliffs'], atm: ['Spore-heavy nitrogen', 'Damp carbon dioxide and oxygen'], life: .95 },
+    Hycean: { w: 4, t: [-10, 60], pal: ['#a4dddb', '#a8ca58', '#4f8fba', '#402751'], clouds: true, bio: ['Warm global ocean', 'Hydrogen sky', 'Deep thermal vents', 'Glowing plankton seas'], atm: ['Thick hydrogen over a warm ocean'], life: .6 },
+    Iron: { w: 3, t: [-50, 300], pal: ['#c7cfcc', '#819796', '#7a367b', '#402751'], bio: ['Metal plains', 'Rust canyons', 'Magnetite dunes', 'Mirror-bright craters', 'Iron spire fields'], atm: ['Almost none', 'Thin argon'], life: .05 },
+    Carbon: { w: 2, t: [-80, 600], pal: ['#7a367b', '#402751', '#402751', '#241527'], sparkle: true, bio: ['Graphite plains', 'Diamond-studded cliffs', 'Tar lakes', 'Soot deserts', 'Carbide mountains'], atm: ['Carbon monoxide haze', 'Thick methane'], life: .05 },
+    Shattered: { w: 2, t: [100, 900], pal: ['#cf573c', '#cf573c', '#752438', '#241527'], bio: ['Broken crust plates', 'Glowing fault lines', 'Floating rock shards', 'Magma rifts'], atm: ['Almost none', 'Volcanic ash and CO₂'], life: .01 },
+    Dwarf: { w: 5, t: [-230, -60], pal: ['#c7cfcc', '#819796', '#7a367b', '#402751'], bio: ['Cratered plains', 'Frozen nitrogen fields', 'Dusty highlands', 'Tiny ice volcanoes'], atm: ['Almost none', 'Frozen solid'], life: .03 },
+    'Glass storm': { w: 2, t: [700, 1100], pal: ['#ebede9', '#a4dddb', '#4f8fba', '#402751'], bio: ['Silicate cloud bands', 'Sideways glass rain', 'Supersonic winds', 'Molten silicate depths'], atm: ['Hydrogen with silicate clouds'], life: 0, noGround: true },
+    Rogue: { w: 2, t: [-235, -205], pal: ['#402751', '#402751', '#402751', '#241527'], bio: ['Eternal night', 'Frozen crust', 'Geothermal hot spots', 'Black ice plains'], atm: ['Frozen solid', 'Almost none'], life: .05, rogue: true },
   };
   const LIFE = [['No signs of life', 0], ['Microbial traces', 1], ['Moss-like mats', 2], ['Plant-like life', 3], ['Swimming creatures', 4], ['Large animal herds', 5], ['Signs of intelligence', 6]];
   const WEATHER = {
@@ -175,7 +175,7 @@
     const planet = {
       v: 1, seed, num, lucky: !!lucky || undefined, type, rarity, name, code, star, temp, tempNight, gravity, day, year, moons, rings, dist, atm, life, lifeLvl, weather,
       biomes: b.slice(0, 2), res, odd, log: lines.join(' '),
-      look: { pv: 2, pal, land, clouds: !!T.clouds || (type === 'Ocean' && r() < .4), bands: !!T.noGround, locked: !!T.locked, lava: type === 'Lava' || type === 'Shattered', sparkle: !!T.sparkle || type === 'Crystal', crystal: type === 'Crystal', tilt: between(r, -0.35, 0.35), ringCol: pick(r, ['#d9bdc8', '#a6859f', '#ee8fcb', '#ffb879', '#8db7ff', '#c97373']), noise: Math.floor(r() * 1e9) },
+      look: { pv: 2, pal, land, clouds: !!T.clouds || (type === 'Ocean' && r() < .4), bands: !!T.noGround, locked: !!T.locked, lava: type === 'Lava' || type === 'Shattered', sparkle: !!T.sparkle || type === 'Crystal', crystal: type === 'Crystal', tilt: between(r, -0.35, 0.35), ringCol: pick(r, ['#c7cfcc', '#819796', '#df84a5', '#e8c170', '#73bed3', '#ad7757']), noise: Math.floor(r() * 1e9) },
     };
     planet.x = makeExtra(planet);
     return planet;
@@ -459,7 +459,7 @@
     Saucer: ['......dddddd......', '....ddhhhhhhdd....', '...dhhhccccchhd...', '.ddhhhhhhhhhhhhdd.', 'rhhhhhhhhhhhhhhhhr', '.ddssssssssssssdd.', '...ddssssssssdd...', '.....r..r..r......', '..................'],
     Manta: ['d.................', 'dsd...............', 'dhhsd.............', '.dhhhhhhhhhdd.....', 'rrhhhhhhhhhhcccdd.', '.dsssssssssdd.....', 'dsssd.............', 'dsd...............', 'd.................'],
   };
-  const HULL_COLORS = { Lilac: '#d9bdc8', White: '#ffffff', Sky: '#aee2ff', Peach: '#ffb879', Rose: '#ee8fcb', Lime: '#abdd64', Indigo: '#6d80fa', Crimson: '#ea6262' };
+  const HULL_COLORS = { Lilac: '#c7cfcc', White: '#ebede9', Sky: '#a4dddb', Peach: '#e8c170', Rose: '#df84a5', Lime: '#a8ca58', Indigo: '#4f8fba', Crimson: '#cf573c' };
   const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return snap([(n >> 16 & 255) * f, (n >> 8 & 255) * f, (n & 255) * f]); };
   const shipCache = new Map();
   function shipSprite(design, color, scale) { // returns a canvas with the ship drawn, palette-snapped
@@ -467,7 +467,7 @@
     const rows = SHIP_DESIGNS[design] || SHIP_DESIGNS.Scout, hull = HULL_COLORS[color] || HULL_COLORS.Lilac, sc = scale || 1;
     const cv = document.createElement('canvas'); cv.width = 18 * sc; cv.height = 9 * sc; const g = cv.getContext('2d');
     const rgbS = c => 'rgb(' + c.join(',') + ')';
-    const map = { h: hull, s: rgbS(shade(hull, .72)), d: rgbS(shade(hull, .45)), c: '#aee2ff', r: color === 'Crimson' ? '#ffb879' : '#ea6262' };
+    const map = { h: hull, s: rgbS(shade(hull, .72)), d: rgbS(shade(hull, .45)), c: '#a4dddb', r: color === 'Crimson' ? '#e8c170' : '#cf573c' };
     rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const k = row[i]; if (k !== '.') { g.fillStyle = map[k]; g.fillRect(i * sc, j * sc, sc, sc); } } });
     shipCache.set(key, cv); return cv;
   }
@@ -501,15 +501,15 @@
   let satUrl = null;
   function satSprite() {
     if (satUrl) return satUrl;
-    const rows = ['....r....', '....g....', 'bb.ggg.bb', 'bbbgwgbbb', 'bb.ggg.bb', '...g.g...'], col = { b: '#3a6ad8', g: '#c8c8c8', w: '#ffffff', r: '#ff3030' };
+    const rows = ['....r....', '....g....', 'bb.ggg.bb', 'bbbgwgbbb', 'bb.ggg.bb', '...g.g...'], col = { b: '#3c5e8b', g: '#c7cfcc', w: '#ebede9', r: '#cf573c' };
     const cv = document.createElement('canvas'); cv.width = 9; cv.height = 6; const x = cv.getContext('2d');
     rows.forEach((row, y) => [...row].forEach((c, i) => { if (col[c]) { x.fillStyle = col[c]; x.fillRect(i, y, 1, 1); } }));
     satUrl = cv.toDataURL(); return satUrl;
   }
 
   // the planet palette: every pixel of every portrait is snapped to one of these 32 colours
-  const PALETTE = ['#5ba675', '#6bc96c', '#abdd64', '#fcef8d', '#ffb879', '#ea6262', '#cc425e', '#a32858', '#751756', '#390947', '#611851', '#873555', '#a6555f', '#c97373', '#f2ae99', '#ffc3f2',
-    '#ee8fcb', '#d46eb3', '#873e84', '#1f102a', '#4a3052', '#7b5480', '#a6859f', '#d9bdc8', '#ffffff', '#aee2ff', '#8db7ff', '#6d80fa', '#8465ec', '#834dc4', '#7d2da0', '#4e187c'].map(h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; });
+  const PALETTE = ['#75a743', '#a8ca58', '#a8ca58', '#d0da91', '#e8c170', '#cf573c', '#cf573c', '#a53030', '#752438', '#402751', '#402751', '#752438', '#a53030', '#ad7757', '#d7b594', '#c7cfcc',
+    '#df84a5', '#c65197', '#7a367b', '#241527', '#402751', '#7a367b', '#819796', '#c7cfcc', '#ebede9', '#a4dddb', '#73bed3', '#4f8fba', '#4f8fba', '#a23e8c', '#7a367b', '#402751'].map(h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; });
   const snapCache = new Map();
   function snap(c) { // nearest palette colour (weighted RGB distance, close to how eyes see it)
     const r = Math.max(0, Math.min(255, c[0] | 0)), g = Math.max(0, Math.min(255, c[1] | 0)), b = Math.max(0, Math.min(255, c[2] | 0)), key = (r >> 2) << 12 | (g >> 2) << 6 | (b >> 2);
@@ -525,7 +525,7 @@
     if (L._nl) return L._nl;
     const T = TYPES[p.type]; let nl = null;
     try { const q = makePlanet(p.seed, p.num, p.lucky, 0); if (q.type === p.type) nl = Object.assign({}, L, { pal: q.look.pal, land: q.look.land, ringCol: q.look.ringCol }); } catch (e) { /* fall through */ }
-    if (!nl) nl = Object.assign({}, L, { pal: T.pal.slice(), land: T.land ? T.land.slice() : L.land, ringCol: '#a6859f' });
+    if (!nl) nl = Object.assign({}, L, { pal: T.pal.slice(), land: T.land ? T.land.slice() : L.land, ringCol: '#819796' });
     Object.defineProperty(L, '_nl', { value: nl, enumerable: false }); return nl;
   }
   function paint(p, size) {
@@ -1554,9 +1554,9 @@
     function closeReport() { report.hidden = true; }
     // ---------- Ship interior: click the ship to see a cutaway of its rooms, with your crew inside ----------
     const ROOM_SPOTS = ['bridge', 'quarters', 'galley', 'lab', 'workshop', 'deck', 'hold', 'medbay']; // 4 x 2 grid, back to front
-    const ROOM_C = { bridge: '#6d80fa', quarters: '#8465ec', galley: '#cc425e', lab: '#5ba675', workshop: '#873555', deck: '#390947', hold: '#a6555f', medbay: '#a6859f' };
+    const ROOM_C = { bridge: '#4f8fba', quarters: '#4f8fba', galley: '#cf573c', lab: '#75a743', workshop: '#752438', deck: '#402751', hold: '#a53030', medbay: '#819796' };
     const ROLE_ROOM = { Engineer: 'workshop', Cook: 'galley', Scientist: 'lab', Pilot: 'bridge', Scout: 'deck', Trader: 'hold', Medic: 'medbay', Storyteller: 'quarters' };
-    const ROLE_C = { Engineer: '#ffb879', Cook: '#ffffff', Scientist: '#aee2ff', Pilot: '#6d80fa', Scout: '#abdd64', Trader: '#fcef8d', Medic: '#ea6262', Storyteller: '#ee8fcb' };
+    const ROLE_C = { Engineer: '#e8c170', Cook: '#ebede9', Scientist: '#a4dddb', Pilot: '#4f8fba', Scout: '#a8ca58', Trader: '#d0da91', Medic: '#cf573c', Storyteller: '#df84a5' };
     const inCv = el('canvas', { class: 'sx-incv', width: 124, height: 84, role: 'img', 'aria-label': 'Cutaway of your ship' });
     const inTip = el('p', { class: 'sx-intip' }), inList = el('div', { class: 'sx-inlist' }), inTitle = el('h2', {});
     const interior = el('div', { class: 'sx-report sx-interior', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Inside your ship' },
@@ -1571,45 +1571,45 @@
       const g = inCv.getContext('2d'), t = now / 1000, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
       g.clearRect(0, 0, inCv.width, inCv.height);
       const px = (x, y, c, w, h) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w || 1, h || 1); };
-      const hull = HULL_COLORS[S.ship.color] || '#d9bdc8';
+      const hull = HULL_COLORS[S.ship.color] || '#c7cfcc';
       const diamond = (cx, cy, a, b, c) => { for (let y = -b; y < b; y++) { const w = Math.round((b - Math.abs(y + .5)) * a / b); px(cx - w, cy + y, c, w * 2, 1); } };
       // the hull under the deck: a thick plate in your hull color
       const corners = [inCell(0, 1), inCell(3, 1)], depth = 9;
       for (let x = inCell(0, 1)[0] - IA; x < inCell(3, 0)[0] + IA; x++) {
         const L = [inCell(0, 1)[0] - IA, inCell(0, 1)[1]], Bt = [inCell(3, 1)[0], inCell(3, 1)[1] + IB], R = [inCell(3, 0)[0] + IA, inCell(3, 0)[1]];
         const y = x < Bt[0] ? L[1] + (x - L[0]) * (Bt[1] - L[1]) / (Bt[0] - L[0]) : Bt[1] + (x - Bt[0]) * (R[1] - Bt[1]) / (R[0] - Bt[0]);
-        px(x, Math.round(y), x < Bt[0] ? '#4a3052' : '#7b5480', 1, depth); px(x, Math.round(y), hull, 1, 2);
-        if (x % 6 === 0) px(x, Math.round(y) + 4, '#fcef8d'); // little portholes
+        px(x, Math.round(y), x < Bt[0] ? '#402751' : '#7a367b', 1, depth); px(x, Math.round(y), hull, 1, 2);
+        if (x % 6 === 0) px(x, Math.round(y) + 4, '#d0da91'); // little portholes
       }
       void corners;
       ROOM_SPOTS.forEach((k, n) => {
         const i = n % 4, j = Math.floor(n / 4), [cx, cy] = inCell(i, j), lv = roomAt(k), built = lv > 0, hov = inHover === k;
-        diamond(cx, cy, IA - 1, IB - .5, built ? ROOM_C[k] : '#1f102a');
+        diamond(cx, cy, IA - 1, IB - .5, built ? ROOM_C[k] : '#241527');
         if (built) for (let y = -IB + 2; y < IB - 1; y += 2) for (let x = -IA + 4; x < IA - 3; x += 4) if (Math.abs(x) / IA + Math.abs(y) / IB < .8) px(cx + x + (y & 2), cy + y, 'rgba(0,0,0,.18)'); // floor tiles
         // low back walls along the two far edges
         // tall walls only on the hull's outer edges, low dividers between rooms (so you can see into every room)
         const whL = i === 0 ? (built ? 9 : 4) : 2, whR = j === 0 ? (built ? 9 : 4) : 2;
-        for (let x = -IA + 1; x < 0; x++) { const ey = cy + Math.round((-IA - x) * IB / IA); px(cx + x, ey - whL, built ? '#4a3052' : '#2b1a36', 1, whL); }
-        for (let x = 0; x < IA - 1; x++) { const ey = cy - IB + Math.round(x * IB / IA); px(cx + x, ey - whR, built ? '#7b5480' : '#2b1a36', 1, whR); }
-        if (!built) { px(cx - 1, cy - 1, '#4a3052', 3, 1); px(cx, cy - 2, '#4a3052', 1, 3); return; } // empty slot: a little +
+        for (let x = -IA + 1; x < 0; x++) { const ey = cy + Math.round((-IA - x) * IB / IA); px(cx + x, ey - whL, built ? '#402751' : '#1e1d39', 1, whL); }
+        for (let x = 0; x < IA - 1; x++) { const ey = cy - IB + Math.round(x * IB / IA); px(cx + x, ey - whR, built ? '#7a367b' : '#1e1d39', 1, whR); }
+        if (!built) { px(cx - 1, cy - 1, '#402751', 3, 1); px(cx, cy - 2, '#402751', 1, 3); return; } // empty slot: a little +
         // furniture
         const F = {
-          bridge: () => { px(cx - 6, cy - 4, '#1f102a', 12, 3); px(cx - 5, cy - 4, '#aee2ff', 4, 1); px(cx + 1, cy - 4, (Math.floor(t * 2) & 1) ? '#abdd64' : '#5ba675', 4, 1); px(cx - 1, cy + 1, '#a6859f', 3, 2); },
-          quarters: () => { for (let b = 0; b < Math.min(5, lv); b++) { const bx = cx - 10 + b * 4, by = cy - 2 + (b % 2) * 3; px(bx, by, '#d9bdc8', 3, 2); px(bx, by, '#8db7ff', 1, 2); } },
-          galley: () => { px(cx - 7, cy - 4, '#7b5480', 5, 3); px(cx - 7, cy - 4, '#ffb879', 5, 1); px(cx + 1, cy, '#a6859f', 6, 2); if (!still && Math.floor(t * 3) % 3) px(cx - 5, cy - 6 - Math.floor(t * 3) % 2, '#d9bdc8'); },
-          lab: () => { px(cx - 7, cy - 3, '#d9bdc8', 10, 2); px(cx - 6, cy - 5, '#abdd64', 1, 2); px(cx - 3, cy - 5, '#8db7ff', 1, 2); px(cx, cy - 5, '#ee8fcb', 1, 2); px(cx + 4, cy + 1, '#aee2ff', 3, 2); },
-          workshop: () => { px(cx - 7, cy - 3, '#a6555f', 9, 2); px(cx + 3, cy, '#ffb879', 3, 3); if (!still && (Math.floor(t * 6) % 4) === 0) { px(cx - 3, cy - 6, '#fcef8d'); px(cx - 1, cy - 5, '#ffffff'); } },
-          deck: () => { px(cx + 2, cy - 14, '#000000', 9, 5); [[3, -13], [7, -12], [5, -11], [9, -13]].forEach(([dx, dy]) => px(cx + dx, cy + dy, '#ffffff')); px(cx - 4, cy - 3, '#d9bdc8', 1, 4); px(cx - 5, cy - 4, '#d9bdc8', 4, 1); },
-          hold: () => { for (let b = 0; b < Math.min(6, lv + 1); b++) { const bx = cx - 9 + (b % 3) * 6, by = cy - 2 - Math.floor(b / 3) * 4 + (b % 3); px(bx, by, '#ffb879', 4, 3); px(bx, by, '#cc425e', 4, 1); } },
-          medbay: () => { px(cx - 6, cy - 2, '#ffffff', 7, 2); px(cx - 6, cy - 2, '#d9bdc8', 2, 2); px(cx + 6, cy - 11, '#ea6262', 3, 1); px(cx + 7, cy - 12, '#ea6262', 1, 3); },
+          bridge: () => { px(cx - 6, cy - 4, '#241527', 12, 3); px(cx - 5, cy - 4, '#a4dddb', 4, 1); px(cx + 1, cy - 4, (Math.floor(t * 2) & 1) ? '#a8ca58' : '#75a743', 4, 1); px(cx - 1, cy + 1, '#819796', 3, 2); },
+          quarters: () => { for (let b = 0; b < Math.min(5, lv); b++) { const bx = cx - 10 + b * 4, by = cy - 2 + (b % 2) * 3; px(bx, by, '#c7cfcc', 3, 2); px(bx, by, '#73bed3', 1, 2); } },
+          galley: () => { px(cx - 7, cy - 4, '#7a367b', 5, 3); px(cx - 7, cy - 4, '#e8c170', 5, 1); px(cx + 1, cy, '#819796', 6, 2); if (!still && Math.floor(t * 3) % 3) px(cx - 5, cy - 6 - Math.floor(t * 3) % 2, '#c7cfcc'); },
+          lab: () => { px(cx - 7, cy - 3, '#c7cfcc', 10, 2); px(cx - 6, cy - 5, '#a8ca58', 1, 2); px(cx - 3, cy - 5, '#73bed3', 1, 2); px(cx, cy - 5, '#df84a5', 1, 2); px(cx + 4, cy + 1, '#a4dddb', 3, 2); },
+          workshop: () => { px(cx - 7, cy - 3, '#a53030', 9, 2); px(cx + 3, cy, '#e8c170', 3, 3); if (!still && (Math.floor(t * 6) % 4) === 0) { px(cx - 3, cy - 6, '#d0da91'); px(cx - 1, cy - 5, '#ebede9'); } },
+          deck: () => { px(cx + 2, cy - 14, '#000000', 9, 5); [[3, -13], [7, -12], [5, -11], [9, -13]].forEach(([dx, dy]) => px(cx + dx, cy + dy, '#ebede9')); px(cx - 4, cy - 3, '#c7cfcc', 1, 4); px(cx - 5, cy - 4, '#c7cfcc', 4, 1); },
+          hold: () => { for (let b = 0; b < Math.min(6, lv + 1); b++) { const bx = cx - 9 + (b % 3) * 6, by = cy - 2 - Math.floor(b / 3) * 4 + (b % 3); px(bx, by, '#e8c170', 4, 3); px(bx, by, '#cf573c', 4, 1); } },
+          medbay: () => { px(cx - 6, cy - 2, '#ebede9', 7, 2); px(cx - 6, cy - 2, '#c7cfcc', 2, 2); px(cx + 6, cy - 11, '#cf573c', 3, 1); px(cx + 7, cy - 12, '#cf573c', 1, 3); },
         };
         F[k] && F[k]();
-        if (lv >= 2) for (let x = -4; x <= 4; x += 2) px(cx + x, cy + 3 + (Math.abs(x) % 4 ? 0 : 1), '#ee8fcb'); // a rug
-        if (lv >= 3) { px(cx - IA + 4, cy - 3, '#7b5480', 2, 2); px(cx - IA + 4, cy - 6, '#6bc96c', 2, 3); px(cx - IA + 3, cy - 5, '#5ba675'); } // a potted plant
-        if (lv >= 4) { px(cx + IA - 7, cy - IB - 6, '#fcef8d'); if (Math.floor(t * .7) % 5) px(cx + IA - 7, cy - IB - 5, 'rgba(252,239,141,.35)', 1, 2); } // a wall lamp
-        if (lv >= 5) { const a = IA - 1, b = IB - .5; for (let x = -a; x < a; x += 3) { const e = Math.round((a - Math.abs(x + .5)) * b / a); px(cx + x, cy + e - 1, '#fcef8d'); } } // gold trim
+        if (lv >= 2) for (let x = -4; x <= 4; x += 2) px(cx + x, cy + 3 + (Math.abs(x) % 4 ? 0 : 1), '#df84a5'); // a rug
+        if (lv >= 3) { px(cx - IA + 4, cy - 3, '#7a367b', 2, 2); px(cx - IA + 4, cy - 6, '#a8ca58', 2, 3); px(cx - IA + 3, cy - 5, '#75a743'); } // a potted plant
+        if (lv >= 4) { px(cx + IA - 7, cy - IB - 6, '#d0da91'); if (Math.floor(t * .7) % 5) px(cx + IA - 7, cy - IB - 5, 'rgba(252,239,141,.35)', 1, 2); } // a wall lamp
+        if (lv >= 5) { const a = IA - 1, b = IB - .5; for (let x = -a; x < a; x += 3) { const e = Math.round((a - Math.abs(x + .5)) * b / a); px(cx + x, cy + e - 1, '#d0da91'); } } // gold trim
         // crew: tiny people, swaying a little
-        if (hov) { const a = IA - 1, b = IB - .5; for (let x = -a; x < a; x++) { const e = Math.round((a - Math.abs(x + .5)) * b / a); px(cx + x, cy - e, '#fcef8d'); px(cx + x, cy + e - 1, '#fcef8d'); } }
+        if (hov) { const a = IA - 1, b = IB - .5; for (let x = -a; x < a; x++) { const e = Math.round((a - Math.abs(x + .5)) * b / a); px(cx + x, cy - e, '#d0da91'); px(cx + x, cy + e - 1, '#d0da91'); } }
       });
       // crew walk between rooms: mostly their own, sometimes visiting (for a snack, a chat, a look out the window)
       const dt = Math.min(.1, (now - (inLast || now)) / 1000); inLast = now;
@@ -1621,7 +1621,7 @@
         if (d > .5 && !still) { const sp = 7 * dt; w.x += (w.tx - w.x) / d * Math.min(sp, d); w.y += (w.ty - w.y) / d * Math.min(sp, d); }
         else if ((w.wait -= dt) <= 0) { const go = Math.random() < .6 ? home : built[Math.floor(Math.random() * built.length)]; [w.tx, w.ty] = spot(go); w.wait = 2 + Math.random() * 5; }
         const step = d > .5 && !still ? Math.floor(t * 6 + m) & 1 : 0, bx = Math.round(w.x), by = Math.round(w.y);
-        px(bx, by - 5 - step, '#ffc3f2', 2, 2); px(bx, by - 3 - step, ROLE_C[c.role] || '#d9bdc8', 2, 3); px(bx + (step ? 1 : 0), by, '#1f102a', 1, 1);
+        px(bx, by - 5 - step, '#c7cfcc', 2, 2); px(bx, by - 3 - step, ROLE_C[c.role] || '#c7cfcc', 2, 3); px(bx + (step ? 1 : 0), by, '#241527', 1, 1);
       });
       if (!interior.hidden) inRaf = requestAnimationFrame(drawInterior);
     }
@@ -2394,7 +2394,7 @@
 
     // ---------- star map: every world you've charted, placed by its distance from Earth, with your route ----------
     const mapView = { zoom: 1, x: 0, y: 0 }; let mapCv = null, mapPts = [], mapHover = null;
-    const RCOL = { Common: '#a6859f', Uncommon: '#6bc96c', Rare: '#aee2ff', Legendary: '#fcef8d' };
+    const RCOL = { Common: '#819796', Uncommon: '#a8ca58', Rare: '#a4dddb', Legendary: '#d0da91' };
     function mapPos(p) { // the same spot every time: direction from the seed, distance on a log scale
       const a = ((p.seed * 2654435761) >>> 0) / 4294967296 * Math.PI * 2, r = Math.log10(Math.max(6, p.dist)) / 4.45;
       return [Math.cos(a) * r, Math.sin(a) * r * .78];
@@ -2405,7 +2405,7 @@
         const tip = el('div', { class: 'sx-maptip', hidden: true });
         const zoomB = (label, f) => el('button', { type: 'button', class: 'btn', onclick: () => { if (f) mapView.zoom = Math.min(12, Math.max(.6, mapView.zoom * f)); else { mapView.zoom = 1; mapView.x = mapView.y = 0; } renderMap(); } }, label);
         const legend = el('div', { class: 'sx-maplegend' }, ...['Common', 'Uncommon', 'Rare', 'Legendary'].map(r => el('span', {}, el('i', { style: 'background:' + RCOL[r] }), r)),
-          el('span', {}, el('i', { class: 'sq' }), 'Post'), el('span', {}, el('i', { style: 'background:#ea6262' }), 'Outlaws'), el('span', {}, el('i', { class: 'ring' }), 'You are here'));
+          el('span', {}, el('i', { class: 'sq' }), 'Post'), el('span', {}, el('i', { style: 'background:#cf573c' }), 'Outlaws'), el('span', {}, el('i', { class: 'ring' }), 'You are here'));
         mapPane.replaceChildren(el('div', { class: 'sx-maptools' }, zoomB('+', 1.5), zoomB('−', 1 / 1.5), zoomB('Reset'), el('span', { class: 'sl-muted' }, 'Drag to move, scroll to zoom, point at a world to see it.')), el('div', { class: 'sx-mapwrap' }, mapCv, tip), legend, el('p', { class: 'sl-muted sx-mapnote' }));
         let drag = null;
         mapCv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, vx: mapView.x, vy: mapView.y, moved: false }; mapCv.setPointerCapture(e.pointerId); });
@@ -2433,20 +2433,20 @@
       const g = mapCv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
       const sc = Math.min(W, H / .8) * .46 * mapView.zoom, cx = W / 2 + mapView.x, cy = H / 2 + mapView.y;
       const P = p => { const [x, y] = mapPos(p); return [cx + x * sc, cy + y * sc]; };
-      g.strokeStyle = '#1f102a'; g.lineWidth = 1; g.fillStyle = '#4a3052'; g.font = '12px "Barlow C", sans-serif';
+      g.strokeStyle = '#241527'; g.lineWidth = 1; g.fillStyle = '#402751'; g.font = '12px "Barlow C", sans-serif';
       [1, 2, 3, 4].forEach(k => { const r = k / 4.45 * sc; g.beginPath(); g.ellipse(cx, cy, r, r * .78, 0, 0, Math.PI * 2); g.stroke(); g.fillText(Math.pow(10, k).toLocaleString() + ' ly', cx + r + 4, cy - 2); });
-      g.fillStyle = '#ffffff'; g.fillRect(cx - 2, cy - 2, 4, 4); g.fillStyle = '#7b5480'; g.fillText('Earth', cx + 6, cy + 14);
+      g.fillStyle = '#ebede9'; g.fillRect(cx - 2, cy - 2, 4, 4); g.fillStyle = '#7a367b'; g.fillText('Earth', cx + 6, cy + 14);
       const list = S.found.map(f => f.p);
-      g.strokeStyle = '#4a3052'; g.beginPath(); list.forEach((p, i) => { const [x, y] = P(p); if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.stroke();
+      g.strokeStyle = '#402751'; g.beginPath(); list.forEach((p, i) => { const [x, y] = P(p); if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.stroke();
       mapPts = [];
       list.forEach(p => {
         const [x, y] = P(p); mapPts.push({ x, y, p });
         const big = p.rarity === 'Legendary' ? 4 : p.rarity === 'Rare' ? 3 : 2.5;
-        g.fillStyle = held(p) ? '#ea6262' : RCOL[p.rarity] || '#a6859f';
-        if (p.post) { g.fillStyle = '#ffb879'; g.fillRect(x - big - 1, y - big - 1, (big + 1) * 2, (big + 1) * 2); if (p.post.tp) { g.strokeStyle = '#ffb879'; g.strokeRect(x - big - 4, y - big - 4, (big + 4) * 2, (big + 4) * 2); } }
+        g.fillStyle = held(p) ? '#cf573c' : RCOL[p.rarity] || '#819796';
+        if (p.post) { g.fillStyle = '#e8c170'; g.fillRect(x - big - 1, y - big - 1, (big + 1) * 2, (big + 1) * 2); if (p.post.tp) { g.strokeStyle = '#e8c170'; g.strokeRect(x - big - 4, y - big - 4, (big + 4) * 2, (big + 4) * 2); } }
         else { g.beginPath(); g.arc(x, y, big, 0, Math.PI * 2); g.fill(); }
-        if (S.at === p.num) { g.strokeStyle = '#6bc96c'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, big + 7, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1; }
-        if (mapView.zoom >= 2.5 || p.post || p.rarity === 'Legendary' || S.at === p.num) { g.fillStyle = '#a6859f'; g.fillText(nm(p), x + 8, y - 6); }
+        if (S.at === p.num) { g.strokeStyle = '#a8ca58'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, big + 7, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1; }
+        if (mapView.zoom >= 2.5 || p.post || p.rarity === 'Legendary' || S.at === p.num) { g.fillStyle = '#819796'; g.fillText(nm(p), x + 8, y - 6); }
       });
     }
     // ---------- achievements ----------
