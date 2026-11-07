@@ -14,7 +14,11 @@
     "plant/monstera" : {},
     "plant/bamboo" : {},
     "plant/rose": {},
-    "plant/herb" : {}
+    "plant/herb" : {},
+
+    "furn/chair" : {},
+    "furn/beanbag": {},
+    "furn/books" : {}
   },
   "custom": []
 }
