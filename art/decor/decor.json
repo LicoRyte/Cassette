@@ -12,7 +12,9 @@
     "plant/succ": {},
     "plant/snake": {},
     "plant/monstera" : {},
-    "plant/bamboo" : {}
+    "plant/bamboo" : {},
+    "plant/rose": {},
+    "plant/herb" : {}
   },
   "custom": []
 }
