@@ -18,7 +18,8 @@
 
     "furn/chair" : {},
     "furn/beanbag": {},
-    "furn/books" : {}
+    "furn/books" : {},
+    "furn/records" : {}
   },
   "custom": []
 }
