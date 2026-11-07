@@ -194,7 +194,7 @@ function draw() {
   if (S.mission === -4 && !expediting()) S.mission = 0;
   if (S.mission === -7 && !salvaging()) S.mission = 0;
   if (S.mission === -5 && !hunting()) S.mission = 0;
-  if (S.mission === -6 && !stHere()) S.mission = 0;
+  if (S.mission === -6 && !shifting()) S.mission = 0;
   const cm = curMission(), locked = running && mode === 'focus', canBuild = anyBuild();
   mission.classList.toggle('off', mode !== 'focus');
   mission.hidden = !!S.dr; drawDr();
@@ -210,7 +210,7 @@ function draw() {
     if (k === 'explore') { const o = heldP(); b.firstChild.textContent = o ? '⚔' : '🚀'; b.lastChild.textContent = o ? 'Fight' : S.coord ? 'Explore (lucky)' : 'Explore'; b.title = o ? 'Outlaws hold ' + nm(o) + ': fight them off with one study session before you can travel again' : MISSIONS[0][3]; b.classList.toggle('sl-fight', !!o); }
     if (k === 'campaign') { b.hidden = !chHere() || atDoor() || !!S.dr; }
     if (k === 'hunt') { b.hidden = !mwHere() || !!S.dr; }
-    if (k === 'shift') { b.hidden = !stHere(); }
+    if (k === 'shift') { b.hidden = !shiftsLeft(); }
     if (k === 'charge') b.title = MISSIONS.find(m => m[0] === 'charge')[3];
     if (k === 'build') { b.title = canBuild ? MISSIONS.find(m => m[0] === 'build')[3] : 'Nothing left to build'; const bj = building(); b.lastChild.textContent = bj ? 'Build: ' + (bj.k === 'room' ? ROOMS[bj.fac][1] : bj.k === 'post' ? 'Listening Post' : bj.k === 'upgrade' ? 'Travelers\' Post' : FAC[bj.fac][1]) : 'Build'; b.hidden = !bj && cm !== 'build'; }
   });

@@ -53,7 +53,7 @@ function setMission(m, num) {
   else if (m === 'campaign') { if (!chHere() || atDoor()) return; S.mission = -3; }
   else if (m === 'expedition') { if (!canExpedition(atP())) return; S.mission = -4; }
   else if (m === 'hunt') { if (!mwHere()) return; S.mission = -5; }
-  else if (m === 'shift') { if (!stHere()) return; S.mission = -6; }
+  else if (m === 'shift') { if (!shiftsLeft()) return; S.mission = -6; }
   else { if (building()) { S.mission = 1; } else { const o = buildOptions(), first = (o.Facilities[0] || o.Upgrades[0] || o['New Listening Posts'][0]); if (!first) return; S.mission = 1; S.job = { k: first.k, num: first.num, fac: first.fac }; } }
   save(); hint.textContent = ''; draw();
 }
