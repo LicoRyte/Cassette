@@ -32,7 +32,7 @@ Your progress is saved in this browser.
 
 ## Controls
 
-`1`-`5` pick the mission, `Space` starts or pauses, `H` hides the side panels, `←` `→` flip worlds in the Planetarium, `Esc` closes a page, the report or the ship view.
+`Space` starts or pauses, `H` hides the side panels, `←` `→` flip worlds in the Planetarium, `Esc` closes a page, the report or the ship view.
 
 ## What's in it
 

@@ -29,10 +29,12 @@ function crewView(group) { // who's aboard (hiring happens in the Crew tab on th
 }
 function shipView(group) { // the ship: walk-through cutaway with decorating, then the numbers
   const nameIn = el('input', { type: 'text', class: 'sl-find', value: S.ship.name, maxlength: 28, 'aria-label': 'Ship name' });
-  nameIn.addEventListener('change', () => { S.ship.name = nameIn.value.trim().slice(0, 28) || 'The Lantern'; save(); draw(); });
+  nameIn.addEventListener('change', () => { S.ship.name = nameIn.value.trim().slice(0, 28) || 'The Lantern'; S.ship.named = true; save(); draw(); });
+  const pilotIn = el('input', { type: 'text', class: 'sl-find', value: (S.pilot && S.pilot.name) || '', placeholder: 'Your name', maxlength: 28, 'aria-label': 'Your name' });
+  pilotIn.addEventListener('change', () => { S.pilot = { name: pilotIn.value.trim().slice(0, 28), asked: true }; save(); draw(); });
   const rooms = Object.entries(ROOMS).map(([k, [ic, name, what]]) => { const l = roomLv(k); return el('tr', {}, el('td', {}, ic + ' ' + name), el('td', {}, l ? 'Lv ' + l : '-'), el('td', {}, what)); });
   const mods = Object.entries(MODS).map(([k, [ic, name, eff, what]]) => el('tr', {}, el('td', {}, ic + ' ' + name), el('td', {}, 'Lv ' + lvl(k) + ' / ' + modMax(k)), el('td', {}, eff(lvl(k)) + ' ' + what)));
-  return [group('Inside the ' + S.ship.name.replace(/^The /, ''), ...interiorView()), group('Name', nameIn),
+  return [group('Inside the ' + S.ship.name.replace(/^The /, ''), ...interiorView()), group('Names', el('label', { class: 'sx-namerow' }, 'Ship ', nameIn), el('label', { class: 'sx-namerow' }, 'Captain ', pilotIn)),
     group('Rooms', el('table', { class: 'sl-rec sl-stats' }, el('tbody', {}, rooms))), group('Modules', el('table', { class: 'sl-rec sl-stats' }, el('tbody', {}, mods)))];
 }
 function hangarView() { // right side: hire and manage crew

@@ -58,7 +58,7 @@ function setMission(m, num) {
   save(); hint.textContent = ''; draw();
 }
 const MIS_ORDER = ['explore', 'expedition', 'investigate', 'salvage', 'hunt', 'charge', 'build', 'campaign', 'shift'];
-const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip], i) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, 'data-key': i + 1, role: 'radio', title: tip + ' (key ' + (i + 1) + ')', onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
+const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip]) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, role: 'radio', title: tip, onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
 const buildSel = el('select', { class: 'sl-build-sel', 'aria-label': 'World to build on' });
 buildSel.addEventListener('change', () => setJob(buildSel.value));
 const misNote = el('p', { class: 'sl-mis-note', 'aria-live': 'polite' });

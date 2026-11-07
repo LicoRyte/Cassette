@@ -109,7 +109,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sl-mis-l, .sl-build-sel { display: none !important; }
 .sl-mis-g { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
 .sl-mis { display: flex; align-items: baseline; gap: 7px; padding: 4px 14px 7px; background: none; border: 0; font: 600 19px var(--ui); color: var(--soft); cursor: pointer; box-shadow: inset 0 -2px 0 var(--line); }
-.sl-mis::before { content: attr(data-key); font-size: 14px; color: var(--dim); }
 .sl-mis-i { display: none; }
 .sl-mis:hover:not(:disabled) { color: var(--white); }
 .sl-mis.on { color: var(--white); box-shadow: inset 0 -2px 0 var(--green); } .sl-mis.on::before { color: var(--green); }
@@ -614,3 +613,20 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-next { color: var(--amber); }
 .sx-chipline { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 
+/* the title sequence */
+.sx-intro { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background: #000; opacity: 0; transition: opacity .6s; cursor: pointer; }
+.sx-intro.on { opacity: 1; }
+.sx-intro-in-w { width: min(640px, 100%); }
+.sx-intro-who { margin: 0 0 10px; font: 600 14px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
+.sx-intro-t { min-height: 3.2em; margin: 0; font: 26px/1.4 var(--text); color: var(--white); }
+.sx-intro-t.typing::after { content: '_'; color: var(--amber); }
+.sx-intro-tip { margin: 22px 0 0; font: 500 14px var(--ui); color: var(--mute); }
+.sx-intro-skip { position: absolute; top: 18px; right: 22px; }
+.sx-intro-ask { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; cursor: auto; }
+.sx-intro-in { flex: 1; min-width: 180px; padding: 8px 10px; background: none; border: 1px solid var(--dim); color: var(--white); font: 22px var(--text); }
+.sx-intro-in:focus { outline: none; border-color: var(--amber); }
+.sx-check { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+@media (prefers-reduced-motion: reduce) { .sx-intro { transition: none; } }
+
+.sx-namerow { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
+.sx-namerow .sl-find { flex: 1; }
