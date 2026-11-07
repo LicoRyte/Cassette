@@ -578,3 +578,6 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-dec:disabled { opacity: .45; cursor: default; }
 .sx-decrow { margin-top: 14px; } .sx-decrow h4 { margin: 0 0 4px; font: 600 15px var(--ui); color: var(--violet); letter-spacing: .04em; text-transform: uppercase; }
 .sx-decrow .sx-decs { margin-top: 4px; }
+
+/* page sub-tabs (Ship: Ship / Captain / Medals ...; Collection categories) stay at the top while the page scrolls */
+.sx-page .sl-pane > .sl-stabs, .sx-page .sl-wpage > .sl-stabs { position: sticky; top: 0; z-index: 4; margin: 0; padding: 10px 0 8px; background: #000; box-shadow: 0 1px 0 var(--line); }
