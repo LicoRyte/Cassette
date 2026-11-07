@@ -18,7 +18,7 @@
   "engineBonusPerLevel": 0.05,
   "_engineBonusPerLevel": "Engine module: session pay x (1 + this x (level - 1)).",
 
-  "fight": { "min": 120, "max": 175 },
+  "fight": { "min": 125, "max": 185 },
   "_fight": "Extra resources for driving outlaws off a world (random between min and max).",
 
   "fullCycle": { "base": 80, "perHullLevel": 15 },
@@ -27,13 +27,13 @@
   "bountyMultiplier": 1.5,
   "_bountyMultiplier": "Scales every bounty reward when the bounty is created.",
 
-  "encounter": { "chance": 0.3, "weights": { "meeting": 25, "postal": 22, "trade": 18, "outlaw": 15, "cassini": 12, "derelict": 5, "station": 12 } },
+  "encounter": { "chance": 0.35, "weights": { "meeting": 30, "postal": 22, "trade": 20, "outlaw": 15, "cassini": 15, "derelict": 10, "station": 15 } },
   "_encounter": "The arrival roll: every new world has this chance (0.3 = 3 in 10) of one visitor, and the weights pick which one (a world never gets two). meeting = a chance meeting that pays a little, trade = Trade Station, outlaw = an outlaw gang holds the world, derelict = a derelict ship to salvage, station = Interplanetary Station. postal = a Postal office with delivery jobs, cassini = a Cassini Federation Post with a Most Wanted poster.",
 
   "encounters": { "scale": 1, "rareWorldMultiplier": 1.5 },
   "_encounters": "Chance meetings: scale multiplies every meeting's own min-max pay, rareWorldMultiplier applies on Rare and Legendary worlds.",
 
-  "expedition": { "pay": 100, "boldPay": 0.6, "finale": 100, "findSafe": 0.45, "findBold": 0.8, "poiSellBonus": 0.07, "salvage": 100 },
+  "expedition": { "pay": 90, "boldPay": 0.6, "finale": 90, "findSafe": 0.45, "findBold": 0.8, "poiSellBonus": 0.07, "salvage": 100 },
   "investigate": { "min": 0.25, "max": 0.35, "pay": 120, "knowledge": 60 },
   "_investigate": "Investigate (worlds with an anomaly): each study session adds between min and max progress (0.25 = 25%). When it reaches 100%: pay resources, knowledge Knowledge points, a Codex entry and an Anomalies find.",
 
@@ -43,7 +43,7 @@
   "postal": { "offers": 4, "carry": 2, "consolation": 0.25 },
   "_postal": "Postal offices (an arrival visitor): how many jobs one offers, how many you can carry at once, and the share of pay given back once for a job that was cancelled when daily deliveries ended.",
 
-  "cassini": { "base": 0.08, "perTrip": 0.04, "cap": 0.4, "legPay": 60 },
+  "cassini": { "base": 0.08, "perTrip": 0.04, "cap": 0.4, "legPay": 65 },
   "_cassini": "Cassini Federation Posts hand out Most Wanted posters. While you carry one, each new world has base chance of a sighting, plus perTrip for every trip without one, up to cap. A sighting opens a 3-session Manhunt there: legPay resources for each of the first two parts, then the bounty (quests bossBase + bossPerCatch).",
 
   "_expedition": "Planet expeditions (3 parts per world). pay = resources per part (a risky part pays boldPay x that), finale = extra on the last part, findSafe / findBold = chance of a collectible on a safe / risky part (the finale always finds one), poiSellBonus = how much each Point of Interest adds to a world's sale price (0.08 = 8%), salvage = resources for salvaging a derelict.",
@@ -85,7 +85,7 @@
   "decorCost": { "t1": 150, "t2": 400, "t3": 900, "t4": 1800, "station": 2500 },
   "_decorCost": "Ship decorations by price tier (t1 cheapest .. t4 fanciest). station = price of a station-only decoration at an Interplanetary Station.",
 
-  "story": { "pay": 80, "chapter": 200, "ending": 1000 },
+  "story": { "pay": 100, "chapter": 300, "ending": 5000 },
   "_story": "The Meridian story: pay for each chapter part, a bonus for finishing a chapter, and the reward at the very end.",
 
 

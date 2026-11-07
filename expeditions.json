@@ -176,7 +176,7 @@
   "_poi": "Point of Interest names: a form (by part; 'gas' forms for cloud dives), an optional descriptor, and a made-up name built from 'name' parts. Names never repeat in one Logbook.",
   "poi": {
     "forms": {
-      "landing": ["Landing", "Basin", "Flats", "Shelf", "Plain", "Cove", "Hollow", "Field", "Terrace", "Bay", "Crater", "Hill"],
+      "landing": ["Landing", "Basin", "Flats", "Shelf", "Plain", "Cove", "Hollow", "Field", "Terrace", "Bay", "Crater", "Hill", "Plateau", "Stream", "Delta", "Spiked Lake"],
       "crossing": ["Pass", "Steps", "Crossing", "Trail", "Gap", "Ridge", "Hollow", "Ford", "Narrows", "Track"],
       "finale": ["Spire", "Grotto", "Crown", "Heart", "Sanctum", "Gate", "Throne", "Eye", "Vault", "Overlook"],
       "gas": ["Drift", "Current", "Layer", "Vortex", "Eye", "Deep", "Veil", "Updraft", "Shoal", "Reach"]
