@@ -21,7 +21,8 @@
     "furn/books" : {},
     "furn/records" : {},
     "furn/lava": {},
-    "furn/tank" : {}
+    "furn/tank" : {},
+    "furn/sofa" : {}
   },
   "custom": []
 }
