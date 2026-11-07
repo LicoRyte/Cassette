@@ -28,6 +28,8 @@ function drawCycle(pct) { // one segment per study session, a short tick per sho
   cycleBar.replaceChildren(...kids);
   cycleBar.classList.toggle('broken', !!S.fc.broken);
 }
+// the left side has tabs like the right: Here (the world you're at), Quests, the Meridian and Travel. The last one you picked is remembered.
+let leftTab = 'here'; try { leftTab = localStorage.getItem('solarist-ltab') || 'here'; } catch (e) { }
 function drawLeft() {
   const drInfo = !S.dr && !drAvail() ? el('p', { class: 'sl-muted' }, S.drDay === today() ? 'Today\'s run is done. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'A distress call comes in at the start of your next cycle.' : 'Finish a whole cycle without skipping (a Full Cycle) and a distress call comes in after the long break.') : null;
   const qs = S.bounties.map(b => el('div', { class: 'sx-q' }, el('span', {}, b.t, el('small', {}, b.k === 'sessions' ? (b.prog || 0) + ' of ' + b.v + ' done' : b.k === 'cycle' ? 'finish a whole cycle, nothing skipped' : 'on any Explore trip')), el('em', {}, '✦ ' + Math.round(b.reward * INCOME))));
@@ -47,7 +49,7 @@ function drawLeft() {
     S.dl.carry.length ? el('p', { class: 'sl-muted' }, 'A perfect match delivers itself when you arrive.') : null);
   const m = S.mw, mwSec = m ? sec('Most Wanted', el('p', { class: 'sx-q-h' }, '🎯 ' + m.name), el('p', { class: 'sl-muted' }, 'Of ' + m.gang + '. Wanted for: ' + m.crime + '. Bounty ✦ ' + Math.round(mwBounty() * INCOME) + '.'),
       m.sighted == null ? el('p', {}, '🔭 ' + Math.round(sightChance() * 100) + '% chance of a sighting on your next trip.' + (m.tip ? ' (Station tip-off included.)' : ''))
-        : mwHere() ? el('p', {}, '🎯 Sighted here! The Manhunt is under Here, above.')
+        : mwHere() ? el('p', {}, '🎯 Sighted here! The Manhunt is on the Here tab.')
         : el('div', {}, el('p', {}, '🎯 Sighted on ' + (byNum(m.sighted) ? nm(byNum(m.sighted).p) : 'a world you left') + '. The trail waits for you there.'), byNum(m.sighted) ? jumpBtn(byNum(m.sighted).p, 'sl-link') : null),
       el('div', { class: 'sx-row-l' }, armBtn('Hand back the poster', 'Sure?', csDrop, 'sx-mini')))
     : sec('Most Wanted', el('p', { class: 'sl-muted' }, 'No poster. Cassini Federation Posts turn up on new worlds now and then and hand them out. ' + (S.mwDone || 0) + ' caught so far.'));
@@ -57,14 +59,22 @@ function drawLeft() {
       : wkDone() ? el('div', { class: 'sx-claim' }, el('p', {}, 'All done! Pick your pay:'), el('div', { class: 'sx-row-l' },
         el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('dust') }, '✦ ' + Math.round(E.quests.contract * INCOME)), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('kp') }, E.quests.contractKnowledge + ' Knowledge'), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('item') }, 'A Rare find')))
         : el('p', { class: 'sl-muted' }, 'Finish all three this week (resets Monday).'));
-  leftCol.replaceChildren(
-    hereS, sec('Distress Run', drBox, drInfo), dlSec, mwSec, wkSec,
-    sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far')),
-    storySec(),
-    sec('Coordinator & Hyperdrive', el('p', {}, '⚡ Hyperdrive: ' + (S.hyper || 0) + ' of ' + Math.round(E.hyperdrive.max) + ' charges. A charge jumps you to any world you\'ve visited (Star map or Logbook). ', hyperB),
+  const travelS = sec('Coordinator & Hyperdrive', el('p', {}, '⚡ Hyperdrive: ' + (S.hyper || 0) + ' of ' + Math.round(E.hyperdrive.max) + ' charges. A charge jumps you to any world you\'ve visited (Star map or Logbook). ', hyperB),
       el('p', {}, S.coord ? '🧭 Coordinator charged. Next Explore, every chip counts double.' : '🧭 Coordinator empty. One study session of Charge doubles your chips for the next Explore.'),
       el('p', { class: 'sl-muted' }, chipsPut() + ' of ' + S.chips.own + ' chips placed' + (chipsPut() ? ': ' + CHIP_F.filter(f => S.chips.put[f[0]]).map(f => f[1] + ' ' + S.chips.put[f[0]]).join('  ') : '.')),
-      el('div', { class: 'sx-row-l' }, coordB, el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'coord'; drawRight(); } }, 'Open the panel'))));
+      el('div', { class: 'sx-row-l' }, coordB, el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'coord'; drawRight(); } }, 'Open the panel')));
+  // quests, with whatever needs you first: an open distress call or contract pay, a sighting, jobs you carry, then the rest
+  const wkReady = wkDone() && !S.wk.claimed, drNow = !!S.dr || drAvail(), sighted = !!S.mw && S.mw.sighted != null;
+  const quests = [[drNow ? 0 : 9, sec('Distress Run', drBox, drInfo)], [wkReady ? 0 : S.wk.claimed ? 8 : 4, wkSec], [sighted ? 1 : S.mw ? 3 : 7, mwSec],
+    [S.dl.carry.length ? 2 : 6, dlSec], [5, sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far'))]].sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  // a "!" on a tab when something there is waiting for you
+  const p = atP(), hereNew = !!p && (!!(p.postal && p.postal.offers.length && S.dl.carry.length < DLMAX()) || !!(p.cassini && !p.cassini.taken && !S.mw) || !!derelictHere() || !!mwHere() || atDoor());
+  const tabs = [['here', '📍 Here', hereNew], ['quests', 'Quests', drAvail() || wkReady || (sighted && !mwHere())], STD ? ['story', '📡 Meridian', signalOn() && !following()] : null, ['travel', '⚡ Travel', false]].filter(Boolean);
+  if (!tabs.some(t => t[0] === leftTab)) leftTab = 'here';
+  const lt = ([k, label, dot]) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(leftTab === k), onclick: () => { leftTab = k; try { localStorage.setItem('solarist-ltab', k); } catch (e) { } drawLeft(); leftCol.scrollTop = 0; } },
+    label, dot && leftTab !== k ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null);
+  const page = leftTab === 'quests' ? quests : leftTab === 'story' ? [storySec()] : leftTab === 'travel' ? [travelS] : [hereS];
+  leftCol.replaceChildren(el('div', { class: 'sx-rtabs', role: 'tablist', 'aria-label': 'Left panel' }, tabs.map(lt)), ...page);
 }
 // the briefing card: the world you're at, its visitor, and what you can do here
 function pathPick(cur, lock, leg, tip, set) {
@@ -73,7 +83,7 @@ function pathPick(cur, lock, leg, tip, set) {
 }
 function hereSec(lock, legBar) {
   const p = atP();
-  if (!p) return sec('📍 Here', el('p', { class: 'sl-muted' }, 'Deep space. Explore to find your first world.'));
+  if (!p) return sec(null, el('p', { class: 'sl-muted' }, 'Deep space. Explore to find your first world.'));
   const x = exOf(p), gas = gasWorld(p), out = [];
   out.push(el('p', { class: 'sx-q-h' }, el('button', { type: 'button', class: 'sl-link sx-here-n', onclick: () => { tab('log'); openWorld(p.num); } }, nm(p))),
     el('p', { class: 'sl-muted' }, p.type + ' · ' + p.rarity + (p.odd ? ' · ' + p.odd : '')));
@@ -131,7 +141,7 @@ function hereSec(lock, legBar) {
       pathPick(d.derelict.pick, lock, leg, bold => bold ? 'A rarer find, less ✦' : 'A sure find and ✦ ' + Math.round(EXP.salvage * INCOME), v => { d.derelict.pick = v; save(); drawLeft(); }),
       el('div', { class: 'sx-row-l' }, salvaging() ? el('span', { class: 'sl-muted' }, 'Salvaging next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('salvage') }, 'Salvage next session')));
   }
-  return sec('📍 Here', ...out);
+  return sec(null, ...out);
 }
 // the Meridian story on the left: where the signal is, or what's left
 function storySec() {
@@ -141,9 +151,9 @@ function storySec() {
   if (st.done) bits.push(el('p', {}, 'Complete. The light stays on the Star map, so you can go back whenever you like.'));
   else if (signalOn()) bits.push(el('p', {}, '📡 ' + signalText()), heldP() ? el('p', { class: 'sl-muted' }, 'Drive the outlaws off first.') : following() ? el('p', { class: 'sl-muted' }, 'Following the signal next session. ', el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('explore', 'random') }, 'Not now'))
     : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('explore', 'signal') }, 'Follow the Signal next session'));
-  else bits.push(el('p', {}, atDoor() ? '📡 Something is waiting for you here. See Here, above.' : '📡 Chapter ' + (st.ch + 1) + ' is here. See Here, above.'));
+  else bits.push(el('p', {}, atDoor() ? '📡 Something is waiting for you here. See the Here tab.' : '📡 Chapter ' + (st.ch + 1) + ' is here. See the Here tab.'));
   if (st.log.length) bits.push(el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { rightTab = 'tx'; txFilter = 'camp'; drawRight(); } }, 'Read the story so far'));
-  return sec('The Meridian', ...bits);
+  return sec(null, ...bits);
 }
 // the chapter part of the Here card: the next leg with its two choices, or the door
 function chapterBits(p, lock, legBar) {
