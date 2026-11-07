@@ -22,9 +22,13 @@
   function typeTick() {
     if (!soundOn || document.hidden) return;
     const c = ctx(); if (!c || c.state !== 'running') return;
-    const now = performance.now(); if (now - lastTick < 48) return; lastTick = now;
+
+    const now = performance.now(); if (now - lastTick < 60) return; lastTick = now;
+
     const t = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
-    o.type = 'square'; o.frequency.value = 820 + Math.random() * 260;
+//820 + Math.random() * 260;
+    o.type = 'square'; o.frequency.value = 200 + Math.random() * 200;
+
     f.type = 'lowpass'; f.frequency.value = 2400;
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.035, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + .035);
     o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + .04);
