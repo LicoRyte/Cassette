@@ -20,7 +20,8 @@
     "furn/beanbag": {},
     "furn/books" : {},
     "furn/records" : {},
-    "furn/lava": {}
+    "furn/lava": {},
+    "furn/tank" : {}
   },
   "custom": []
 }
