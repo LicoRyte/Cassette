@@ -176,7 +176,7 @@
   "_poi": "Point of Interest names: a form (by part; 'gas' forms for cloud dives), an optional descriptor, and a made-up name built from 'name' parts. Names never repeat in one Logbook.",
   "poi": {
     "forms": {
-      "landing": ["Landing", "Basin", "Flats", "Shelf", "Plain", "Cove", "Hollow", "Field", "Terrace", "Bay"],
+      "landing": ["Landing", "Basin", "Flats", "Shelf", "Plain", "Cove", "Hollow", "Field", "Terrace", "Bay", "Crater", "Hill"],
       "crossing": ["Pass", "Steps", "Crossing", "Trail", "Gap", "Ridge", "Hollow", "Ford", "Narrows", "Track"],
       "finale": ["Spire", "Grotto", "Crown", "Heart", "Sanctum", "Gate", "Throne", "Eye", "Vault", "Overlook"],
       "gas": ["Drift", "Current", "Layer", "Vortex", "Eye", "Deep", "Veil", "Updraft", "Shoal", "Reach"]
@@ -420,7 +420,11 @@
 
   "_cassini": "Cassini Federation Post: possible criminals on the posters.",
   "cassini": {
-    "first": ["Vex", "Marlo", "Ingrid", "Duke", "Sable", "Kaz", "Odessa", "Rook", "Juno", "Brask", "Tamsin", "Gideon", "Wren-of-Nine", "Pell Slick", "Orla", "Jasper"],
+    "first": ["Vex", "Marlo", "Ingrid", "Duke", "Sable", "Kaz", "Odessa", "Rook", 
+    "Juno", "Brask", "Tamsin", "Gideon", "Wren-of-Nine", "Pell Slick", "Orla", "Jasper",
+    "Lico", "Kelsey", "Marceline", "Temurin", "Glen", "Niko", "Kris", "Susie", "Wyriss",
+    "Three-0", "Monochrome", "Lyre", "Iceloplay", "Mr. Bread", "Ralsei", "Helios", "Carter",
+    "Quiver"],
     "nick": [
       "Rustjaw",
       "the Comet",
@@ -437,7 +441,26 @@
       "Spoons",
       "the Ledger",
       "Sixpence",
-      "Cold Coffee"
+      "Cold Coffee",
+      "Hardsteel",
+      "Ironheart",
+      "Coldheart",
+      "Ravager",
+      "D Monkey",
+      "Aerodancer",
+      "Snow",
+      "Relico",
+      "Calico",
+      "Inkvine",
+      "Deadringer",
+      "of Nowhere",
+      "the Great",
+      "the Rogue Solarist",
+      "the Cat Tamer",
+      "the Discord Mod",
+      "the Ecstatic",
+      "the Prophet",
+      "Hardfist"
     ],
     "crimes": [
       "stole a whole moon's worth of fuel",
@@ -445,9 +468,19 @@
       "sold the same space station to five different buyers",
       "ran off with a museum's best telescope",
       "smuggled a herd of sky-goats past customs",
+      "stole an Interplanetary Coordinator",
+      "jammed a satellite",
+      "built a rogue Travelers' Post",
+      "Intercept Cassini Federation communication unit",
+      "accidentally caused in catastrophe station meltdown",
+      "commit taxes fraud",
+      "has a copies of Half-Life 3",
+      "leaked GTA 10 gameplay",
+      "bribed the officer",
       "hijacked a cruise liner and kept the buffet",
       "forged a thousand Guild licenses",
-      "stole the Comet Racing League's trophy"
+      "stole the Comet Racing League's trophy",
+      "Nearly caused an Interplanetary warfare"
     ]
   }
 }
