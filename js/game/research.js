@@ -68,11 +68,12 @@ function doResearch(id) {
   hint.textContent = 'Research complete: ' + node[1] + '. ' + t;
   save(); draw();
 }
-const evChance = l => Math.min(.3, (1 / 15 + (l - 1) * .005) * (hasT('shp3') ? 1.5 : 1));
+const modFrac = (k, l) => ((l == null ? lvl(k) : l) - 1) / Math.max(1, modMax(k) - 1); // 0 at level 1, 1 at the module's max level
+const evChance = l => Math.min(.3, (1 / 15 + .12 * modFrac('comms', l)) * (hasT('shp3') ? 1.5 : 1));
 const MODS = {
   engine: ['🚀', 'Engine', l => '+' + Math.round((l - 1) * E.engineBonusPerLevel * 100) + '%', 'resources from every session'],
-  scanner: ['📡', 'Scanner', l => '+' + Math.min(20, l - 1) + '%', 'chance of an anomaly on new worlds'],
-  lab: ['🧪', 'Lab', l => Math.min(50, (l - 1) * 4) + '%', 'chance of a bonus transmission from the tuned post'],
+  scanner: ['📡', 'Scanner', l => '+' + Math.round(20 * modFrac('scanner', l) * 10) / 10 + '%', 'chance of an anomaly on new worlds'],
+  lab: ['🧪', 'Lab', l => Math.round(50 * modFrac('lab', l)) + '%', 'chance of a bonus transmission from the tuned post'],
   comms: ['📻', 'Comms', l => '1 in ' + Math.round(1 / evChance(l)), 'sessions has a deep-space event'],
   hull: ['🛡', 'Hull', l => '+' + Math.round((E.fullCycle.base + (l - 1) * E.fullCycle.perHullLevel) * E.incomeMultiplier) + ' ✦', 'for every Full Cycle'],
 };

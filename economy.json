@@ -1,4 +1,5 @@
 {
+  "_longGame": "Prices are tuned so that owning everything (every module and room level, every decoration, every chip, a fully built Travelers' Post) takes about 1,250 study hours, with half of it bought in the first ~190 hours.",
   "_balance": "Balanced so every mission pays about the same per study session as Explore (about 60-90 on top of the base session pay), with rarer or harder ones up to about 2-3x, and passive income (posts, crew, deliveries) smaller than one Explore trip. Meant for a long game.",
   "_help": "Solarist economy. Every resource income and price in the game. Edit the numbers, save, reload the page. Delete a line (or the whole file) to fall back to the built-in default. Keys starting with _ are notes and are ignored.",
 
@@ -9,20 +10,20 @@
     "perStudyMinute": 1.4,
     "minimum": 6,
     "eventBonus": 20,
-    "rarityBonus": { "Common": 0, "Uncommon": 15, "Rare": 40, "Legendary": 110 },
-    "_note": "Each finished study session pays perStudyMinute x session length (at least minimum), plus eventBonus if a deep-space event happened, plus rarityBonus for the world found on an Explore trip."
+    "rarityBonus": { "Common": 20, "Uncommon": 40, "Rare": 80, "Legendary": 200 },
+    "_note": "Each finished study session pays perStudyMinute x session length (at least minimum), plus eventBonus if a deep-space event happened, plus rarityBonus for the world found on an Explore trip (this is what makes Explore worth it on its own)."
   },
 
   "researchCost": 2.25,
   "_researchCost": "Every research's Knowledge-point price is its base cost x this (rounded to 5). 1 = the original prices.",
 
-  "engineBonusPerLevel": 0.05,
+  "engineBonusPerLevel": 0.025,
   "_engineBonusPerLevel": "Engine module: session pay x (1 + this x (level - 1)).",
 
   "fight": { "min": 80, "max": 130 },
   "_fight": "Extra resources for driving outlaws off a world (random between min and max).",
 
-  "fullCycle": { "base": 80, "perHullLevel": 8 },
+  "fullCycle": { "base": 80, "perHullLevel": 4 },
   "_fullCycle": "Paid when a Full Cycle (no skipping) ends: base + perHullLevel x (Hull level - 1).",
 
   "bountyMultiplier": 1.25,
@@ -34,8 +35,8 @@
   "encounters": { "scale": 1.3, "rareWorldMultiplier": 1.5 },
   "_encounters": "Chance meetings: scale multiplies every meeting's own min-max pay, rareWorldMultiplier applies on Rare and Legendary worlds.",
 
-  "expedition": { "pay": 35, "boldPay": 0.6, "finale": 60, "findSafe": 0.45, "findBold": 0.8, "poiSellBonus": 0.07, "salvage": 120 },
-  "investigate": { "min": 0.25, "max": 0.35, "pay": 200, "knowledge": 60 },
+  "expedition": { "pay": 60, "boldPay": 0.6, "finale": 80, "findSafe": 0.45, "findBold": 0.8, "poiSellBonus": 0.07, "salvage": 120 },
+  "investigate": { "min": 0.25, "max": 0.35, "pay": 250, "knowledge": 60 },
   "_investigate": "Investigate (worlds with an anomaly): each study session adds between min and max progress (0.25 = 25%). When it reaches 100%: pay resources, knowledge Knowledge points, a Codex entry and an Anomalies find.",
 
   "hyperdrive": { "max": 3, "nodeRefund": 150 },
@@ -49,21 +50,21 @@
 
   "_expedition": "Planet expeditions (3 parts per world). pay = resources per part (a risky part pays boldPay x that), finale = extra on the last part, findSafe / findBold = chance of a collectible on a safe / risky part (the finale always finds one), poiSellBonus = how much each Point of Interest adds to a world's sale price (0.08 = 8%), salvage = resources for salvaging a derelict.",
 
-  "trade": { "perFacilityLevel": 1, "cap": 40 },
+  "trade": { "perFacilityLevel": 5, "cap": 200 },
   "_trade": "Travelers' Posts pay perFacilityLevel per facility level (all posts together) every study session, up to cap.",
 
   "sell": {
-    "rarity": { "Common": 15, "Uncommon": 25, "Rare": 65, "Legendary": 180 },
-    "perHabitabilityPercent": 0.33,
-    "earthLike": 20,
+    "rarity": { "Common": 8, "Uncommon": 12, "Rare": 30, "Legendary": 90 },
+    "perHabitabilityPercent": 0.15,
+    "earthLike": 10,
     "earthLikeAt": 80,
-    "perLifeLevel": 5,
-    "anomaly": 20,
-    "rings": 7,
-    "perMoon": 1.3,
-    "moonCap": 13,
-    "perRecord": 26,
-    "_note": "Selling a world: the sum of everything that applies to it. earthLike is added at earthLikeAt% habitability or more."
+    "perLifeLevel": 2,
+    "anomaly": 10,
+    "rings": 4,
+    "perMoon": 0.6,
+    "moonCap": 6,
+    "perRecord": 12,
+    "_note": "Selling a world is a small tidy-up payment for clearing your Logbook, not a way to earn: the sum of everything that applies to it. earthLike is added at earthLikeAt% habitability or more."
   },
 
   "distressRun": { "base": 550, "random": 130, "bonusMin": 70, "bonusMax": 130 },
@@ -72,21 +73,21 @@
   "tradeStation": { "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
   "_tradeStation": "Trade Stations (how often: see encounter): what its collectibles cost (each varies by up to 15%), and the share of that price it pays for your spares (before incomeMultiplier).",
 
-  "moduleCost": { "base": 70, "growth": 1.2, "maxLevel": { "engine": 25, "scanner": 21, "lab": 14, "comms": 25, "hull": 25 } },
-  "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1). maxLevel is each module's top level (past it the effect would stop growing anyway).",
+  "moduleCost": { "base": 200, "growth": 1.065, "maxLevel": { "engine": 45, "scanner": 41, "lab": 20, "comms": 45, "hull": 45 } },
+  "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1). maxLevel is each module's top level. A module's full effect is the same whatever its maxLevel: more levels just means smaller steps.",
 
-  "roomCost": { "base": 160, "growth": 1.6, "maxLevel": 5 },
-  "_roomCost": "Upgrading a ship room to level L costs base x growth ^ (L - 1). The first level is built with a study session instead.",
+  "roomCost": { "base": 400, "growth": 1.27, "maxLevel": 10 },
+  "_roomCost": "Upgrading a ship room to level L costs base x growth ^ (L - 1). The first level is built with a study session instead. A room's full effect is the same whatever maxLevel is: more levels just means smaller steps.",
 
-  "crewCost": { "base": 200, "perCrew": 75 },
+  "crewCost": { "base": 200, "perCrew": 60 },
   "_crewCost": "Hiring costs base + perCrew x crew already aboard.",
 
   "shipStyleCost": { "color": 300, "design": 800 },
   "_shipStyleCost": "Buying a hull paint color (once; switching between owned ones is free). design is only used to refund old ship designs.",
-  "decorCost": { "t1": 150, "t2": 400, "t3": 900, "t4": 1800, "station": 2500 },
+  "decorCost": { "t1": 200, "t2": 520, "t3": 1170, "t4": 2340, "station": 3500 },
   "_decorCost": "Ship decorations by price tier (t1 cheapest .. t4 fanciest). station = price of a station-only decoration at an Interplanetary Station.",
 
-  "story": { "pay": 60, "chapter": 200, "ending": 5000 },
+  "story": { "pay": 65, "chapter": 300, "ending": 10000 },
   "_story": "The Meridian story: pay for each chapter part, a bonus for finishing a chapter, and the reward at the very end.",
 
 
@@ -99,7 +100,7 @@
   "station": { "discount": 0.2, "sellBonus": 0.25, "charge": 600, "satellite": 1500, "contract": 300, "intel": 400, "chipDiscount": 0.25, "steel": 1000, "design": 2500, "veteran": 2500, "shift": 120, "maxShifts": 3 },
   "_station": "Interplanetary Station (how often: see encounter): the upgrade discount and sell bonus while you stay at its world, its shop prices, and maxShifts = how many shifts you can work per station.",
 
-  "coordChips": { "start": 5, "base": 1200, "growth": 1.025, "max": 45 },
+  "coordChips": { "start": 5, "base": 1000, "growth": 1.045, "max": 45 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
 
   "facilitySlots": { "base": 5, "atTown": 1, "max": 10, "buyBase": 1500, "buyGrowth": 1.8 },

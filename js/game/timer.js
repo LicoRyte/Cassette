@@ -104,7 +104,7 @@ function finish(quiet) {
       hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (see Here, on the left).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + ' Now a ' + MODES[mode].toLowerCase() + '.';
     } else {
       const amp = chipAmp(), lucky = !!S.coord && !(ev && ev.got); if (lucky) S.coord = false;
-      const p = nudgedPlanet(lucky, Math.min(.2, (lvl('scanner') - 1) * .01), amp);
+      const p = nudgedPlanet(lucky, .2 * modFrac('scanner'), amp);
       const visit = rollArrival(p, amp), outlaws = visit === 'outlaw'; p.visit = visit || 'none'; // one roll: at most one visitor per world
       if (outlaws) { const pk = a => a[Math.floor(Math.random() * a.length)]; p.outlaw = { gang: 'the ' + pk(GANG_A) + ' ' + pk(GANG_B), at: Date.now() }; S.outlaw = p.num; }
       S.found.push({ at: Date.now(), p }); S.at = p.num; mwSight(p); dlArrive(p);

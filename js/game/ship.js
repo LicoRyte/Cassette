@@ -3,18 +3,26 @@
 
 // ---------- your ship: rooms (built with a study session, upgraded with resources), crew, and its look ----------
 const ROOMS = {
-  quarters: ['🛏', 'Crew Quarters', 'Two bunks per level, so you can recruit crew'],
-  galley: ['🍳', 'Galley', 'Good food: +5% resources from every session per level'],
-  lab: ['🧪', 'Science Lab', '+4 Knowledge from every session per level'],
-  workshop: ['🔧', 'Workshop', 'Ship module upgrades cost 5% less per level'],
-  deck: ['🔭', 'Observation Deck', 'Arrival encounters 2 percentage points more likely per level'],
-  hold: ['📦', 'Cargo Hold', 'Trade Stations stock one more item per level, and pay 5% more for spares'],
-  medbay: ['🩹', 'Med Bay', 'Distress Runs pay 5% more per level'],
+  quarters: ['🛏', 'Crew Quarters', 'Bunks for your crew: more with every level, 10 at the top'],
+  galley: ['🍳', 'Galley', 'Good food: more resources from every session, up to +25%'],
+  lab: ['🧪', 'Science Lab', 'Knowledge from every session, up to +20'],
+  workshop: ['🔧', 'Workshop', 'Ship module upgrades cost less, up to 25% off'],
+  deck: ['🔭', 'Observation Deck', 'Chance meetings on new worlds more likely, up to +10 points'],
+  hold: ['📦', 'Cargo Hold', 'Trade Stations stock more items (up to 5 more) and pay more for spares (up to +25%)'],
+  medbay: ['🩹', 'Med Bay', 'Distress Runs pay more, up to +25%'],
 };
 if (!S.rooms) S.rooms = {}; if (!S.crew) S.crew = []; if (!S.ship) S.ship = { name: 'The Lantern', color: 'Lilac', colors: ['Lilac'] };
 const roomLv = k => S.rooms[k] || 0, ROOM_MAX = Math.max(1, Math.round(E.roomCost.maxLevel));
+if (!S.rw4) { // more levels with smaller steps: convert levels bought before, so nothing gets weaker
+  const ups = Object.keys(S.mods || {}).length + Object.keys(S.rooms || {}).length;
+  Object.keys(S.mods || {}).forEach(k => { const mx = Math.round((E.moduleCost.maxLevel || {})[k] || 30); S.mods[k] = Math.min(mx, 2 * S.mods[k] - 1); });
+  Object.keys(S.rooms || {}).forEach(k => { if (S.rooms[k]) S.rooms[k] = Math.min(ROOM_MAX, 2 * S.rooms[k]); });
+  if (ups) S.events.push({ ic: '🛠', title: 'Ship upgrades have more levels now', t: 'Modules and rooms have about twice as many levels, each a smaller step, so there is always a next upgrade within reach. Your levels were converted: everything is exactly as strong as before.', at: Date.now() });
+  S.rw4 = 1;
+}
+const roomPow = k => roomLv(k) * 5 / ROOM_MAX; // a room's strength: 5 at its max level, whatever the max is
 const roomCost = lv => Math.round(E.roomCost.base * Math.pow(E.roomCost.growth, lv - 1) * stDisc()); // lv = level you upgrade to
-const bunks = () => roomLv('quarters') * 2;
+const bunks = () => Math.round(roomPow('quarters') * 2);
 function upgradeRoom(k) { const lv = roomLv(k), c = roomCost(lv + 1); if (!lv || lv >= ROOM_MAX || S.dust < c) return; S.dust -= c; S.rooms[k] = lv + 1; shopXP(12); save(); draw(); }
 const ROLES = {
   Engineer: ['🔧', '+6 resources every session', ['{n} rewired the coffee machine. It now makes tea, which is worse.', '{n} spent the session inside an engine panel and came out humming.', '{n} found one loose bolt in the reactor housing and kept it as a lucky charm.', '{n} tuned the thrusters by ear. Nobody knows how.', "{n} labelled every wire in the ship. The labels say things like \"probably fine\".", "{n} fixed the squeaky hatch. The silence is eerie now.", "{n} built a tiny robot out of spare parts. It follows them around.", "{n} took apart the toaster to see how it worked. It now has three settings: off, on, and \"why\".", "{n} spent the whole session under the floor plates. Occasionally, a wrench appeared.", "{n} gave the engines a pep talk. Fuel efficiency went up 2%.", "{n} replaced a fuse with a paperclip \"temporarily\". It has been six weeks.", "{n} found a mystery button on the bridge. They are not allowed to press it.", "{n} oiled every hinge on the ship. It now opens doors with a whisper.", "{n} built a shelf. It holds one wrench. It is perfect.", "{n} got stuck in a maintenance tunnel and decided to fix it while they were there.", "{n} gave the reactor a name. It's \"Big Steve\".", "{n} upgraded the doorbell. It now plays the seven-note song.", "{n} made a spare part out of a spoon. The spoon is happier now.", "{n} spent the session listening to the hull with a stethoscope.", "{n} rewired the cabin lights to dim at bedtime. Sleep quality: up.", "{n} adjusted the gravity a tiny bit. Everyone's jumping a little higher.", "{n} found a family of bolts hiding in the vents. Reunited them with their nuts.", "{n} made a fan out of a broken drone. It now cools the galley."]],
@@ -52,7 +60,7 @@ function shipActivity(reps) { // what the crew got up to this session, with thei
 function buyStyle(kind, v) { if (focusLock()) return; const cost = E.shipStyleCost.color, list = S.ship.colors;
   if (!list.includes(v)) { if (S.dust < cost) return; S.dust -= cost; list.push(v); shopXP(10); }
   S.ship.color = v; save(); draw(); }
-const modCost = k => Math.round(E.moduleCost.base * Math.pow(E.moduleCost.growth, lvl(k) - 1) * (1 - .05 * roomLv('workshop')) * stDisc());
+const modCost = k => Math.round(E.moduleCost.base * Math.pow(E.moduleCost.growth, lvl(k) - 1) * (1 - .05 * roomPow('workshop')) * stDisc());
 const facCost = lv => Math.round(E.facilityCost.base * Math.pow(E.facilityCost.growth, lv - 2) * (hasT('eco3') ? .85 : 1) * stDisc()); // lv = the level you're upgrading to
 const FAC_MAX = Math.max(1, Math.round(E.facilityCost.maxLevel));
 const INCOME = E.incomeMultiplier; // every stardust payout is multiplied by this (apps/solarist-economy.json)

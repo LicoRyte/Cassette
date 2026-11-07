@@ -52,7 +52,7 @@ function drLeg(reps) { // one study session of the run; the last one pays out
     reps.unshift({ ev: { battle: true, ic: '🆘', title: title + ' · Act ' + roman(d.n), t: beats[bi] } });
     return 'Act ' + roman(d.n) + ' of the Distress Run done. ' + (d.need - d.n) + (d.need - d.n === 1 ? ' act' : ' acts') + ' to go.';
   }
-  const dust = Math.round((E.distressRun.base + Math.random() * E.distressRun.random) * (1 + .05 * roomLv('medbay') + Math.min(.3, .1 * crewN('Medic')))); S.dust += dust; S.dustTotal += dust;
+  const dust = Math.round((E.distressRun.base + Math.random() * E.distressRun.random) * (1 + .05 * roomPow('medbay') + Math.min(.3, .1 * crewN('Medic')))); S.dust += dust; S.dustTotal += dust;
   const bonus = [];
   const opts = ['dust', 'item', 'event'].concat(S.coord ? [] : ['coord']), pick = opts[Math.floor(Math.random() * opts.length)];
   if (pick === 'dust') { const b = Math.round(E.distressRun.bonusMin + Math.random() * Math.max(0, E.distressRun.bonusMax - E.distressRun.bonusMin)); S.dust += b; S.dustTotal += b; bonus.push('a bonus of ✦ ' + b + ' from a grateful passenger'); }

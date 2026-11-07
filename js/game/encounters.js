@@ -9,7 +9,7 @@ const FIGHT = ['{G} put up a fight, but the crew drove them off the {b}.', 'A lo
 const ENC_BUILT = { meeting: 1, postal: 1, trade: 1, outlaw: 1, cassini: 1, derelict: 1, station: 1 }; // a weight left out of this list stays quiet
 function rollArrival(p, amp) {
   const EN = E.encounter, W = EN.weights, tot = Object.values(W).reduce((a, n) => a + n, 0) || 1;
-  const bonus = { meeting: chipP('lantern', amp) + (hasT('nav1') ? .05 : 0) + .02 * roomLv('deck') + .03 * crewN('Scout'), outlaw: chipP('siren', amp) - chipP('hush', amp), trade: chipP('market', amp) };
+  const bonus = { meeting: chipP('lantern', amp) + (hasT('nav1') ? .05 : 0) + .02 * roomPow('deck') + .03 * crewN('Scout'), outlaw: chipP('siren', amp) - chipP('hush', amp), trade: chipP('market', amp) };
   const ch = {};
   Object.keys(W).forEach(k => { if (!ENC_BUILT[k]) return; const base = EN.chance * W[k] / tot * (k === 'trade' && hasT('nav3') ? 2 : 1); ch[k] = Math.max(0, base + (bonus[k] || 0)); });
   if (p.type === 'Rogue') ch.outlaw = 0; // nobody to hold a world with no sun

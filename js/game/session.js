@@ -5,7 +5,7 @@
 function sessionEnd(reps, p, ev) {
   const notes = [];
   let earned = Math.max(E.session.minimum, Math.round(S.set.focus * E.session.perStudyMinute)) + (p ? RAR_BONUS[p.rarity] || 0 : 0) + (ev ? E.session.eventBonus : 0);
-  earned *= (1 + (lvl('engine') - 1) * E.engineBonusPerLevel) * (hasT('shp1') ? 1.1 : 1) * (1 + .05 * roomLv('galley'));
+  earned *= (1 + (lvl('engine') - 1) * E.engineBonusPerLevel) * (hasT('shp1') ? 1.1 : 1) * (1 + .05 * roomPow('galley'));
   notes.push('✦ +' + addDust(earned) + ' resources');
   if (traderNew) { notes.push('🏪 ' + traderNew.name + ' is docked at ' + nm(p) + '. Visit it under Trade on the right before you travel on.'); traderNew = null; }
   if (encGot) { notes.push(encGot.ic + ' +' + encGot.dust + ' resources (' + encGot.title.replace(/!$/, '') + ')'); encGot = null; }
@@ -13,7 +13,7 @@ function sessionEnd(reps, p, ev) {
   if (p) { checkRecords(p, notes); checkBounties({ planet: p }, notes); }
   checkBounties({ session: true }, notes);
   growPosts(notes);
-  shipActivity(reps); if (roomLv('lab')) award(0, 4 * roomLv('lab'));
+  shipActivity(reps); if (roomLv('lab')) award(0, Math.round(4 * roomPow('lab')));
   if (!S.rec.dayN || S.todayN > S.rec.dayN.v) { if (S.rec.dayN && S.todayN > S.rec.dayN.v) notes.push('🏆 New record! Most sessions in a day: ' + S.todayN); S.rec.dayN = { v: S.todayN, date: Date.now() }; }
   reps.forEach(({ rep }) => { if (rep) award(0, KN_REP[rep.k] || 10); }); // everything heard teaches you something
   if (ev && !ev.battle) award(10, 15);

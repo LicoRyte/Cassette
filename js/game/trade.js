@@ -9,7 +9,7 @@ const buyDisc = () => 1 - Math.min(.3, .1 * crewN('Trader'));
 function loseItem(id) { const it = S.items[id]; if (!it) return; it.n -= 1; if (it.n <= 0) delete S.items[id]; }
 function makeTrader(p) {
   const stock = [], seen = new Set();
-  for (let k = 0; k < 16 && stock.length < 4 + roomLv('hold'); k++) { const it = rollItem(p, true, 'trade'); if (seen.has(it.id)) continue; seen.add(it.id); stock.push({ id: it.id, price: Math.round(TPRICE(it.rar) * (.85 + Math.random() * .3) * buyDisc()) }); }
+  for (let k = 0; k < 16 && stock.length < 4 + Math.floor(roomPow('hold')); k++) { const it = rollItem(p, true, 'trade'); if (seen.has(it.id)) continue; seen.add(it.id); stock.push({ id: it.id, price: Math.round(TPRICE(it.rar) * (.85 + Math.random() * .3) * buyDisc()) }); }
   const owned = Object.keys(S.items).filter(k => itemName(k) !== '???').sort((a, b) => S.items[b].n - S.items[a].n), wants = [];
   owned.slice(0, 6).sort(() => Math.random() - .5).slice(0, 2).forEach(want => {
     const r = parseId(want).r, up = ITEM_RARS[Math.min(3, ITEM_RARS.indexOf(r) + (Math.random() < .35 ? 1 : 0))];
@@ -21,5 +21,5 @@ function makeTrader(p) {
 function tradeLog(t) { pushEv({ ic: '🏪', title: S.trader.name, t, at: Date.now() }); }
 function traderBuy(i) { const o = S.trader.stock[i]; if (!o || S.dust < o.price) return; S.dust -= o.price; const nw = gainItem({ id: o.id }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(5, 0); S.trader.stock.splice(i, 1); S.cnt.bought = (S.cnt.bought || 0) + 1; tradeLog('Bought ' + itemName(o.id) + ' for ✦ ' + o.price + '.'); shopXP(0); save(); draw(); }
 function traderSwap(i) { const w = S.trader.wants[i]; if (!w || !S.items[w.want]) return; loseItem(w.want); const nw = gainItem({ id: w.give }, byNum(S.trader.num) && byNum(S.trader.num).p); if (nw) award(0, 12); award(8, 0); S.trader.wants.splice(i, 1); S.cnt.swaps = (S.cnt.swaps || 0) + 1; tradeLog('Swapped ' + itemName(w.want) + ' for ' + itemName(w.give) + '.'); shopXP(0); save(); draw(); }
-const spareP = id => Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME * (1 + .05 * roomLv('hold')) * (hasT('eco4') ? 1.25 : 1) * stSell());
+const spareP = id => Math.round(TPRICE(parseId(id).r) * E.tradeStation.sellRatio * INCOME * (1 + .05 * roomPow('hold')) * (hasT('eco4') ? 1.25 : 1) * stSell());
 function traderSell(id) { const it = S.items[id]; if (!it || it.n < 2) return; const v = spareP(id); loseItem(id); S.dust += v; S.dustTotal += v; S.cnt.spares = (S.cnt.spares || 0) + 1; save(); draw(); }
