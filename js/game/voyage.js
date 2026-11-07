@@ -1,4 +1,4 @@
-/* Solarist: Where the ship is, survey and campaign mission state, and the collectibles you own. */
+/* Solarist: Where the ship is, save defaults, and the collectibles you own. */
 'use strict';
 
 // where the ship is right now: the last world you reached. Its expedition runs from here.
@@ -14,11 +14,6 @@ if (!S.cnt) { // lifetime counters for the Stats page, seeded from what's alread
   S.found.forEach(({ p }) => { S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; if (p.lucky) S.cnt.lucky++; if (p.outlaw) S.cnt.outlaws++; if (p.enc) S.cnt.enc++; });
 }
 const atP = () => { const f = S.at && byNum(S.at); return f ? f.p : null; };
-if (!S.camp) S.camp = { n: 0 };
-if (!Array.isArray(S.camp.at)) S.camp.at = [];
-{ const base = (S.found[0] && S.found[0].at) || 1; for (let i = 0; i < S.camp.n; i++) if (!S.camp.at[i]) S.camp.at[i] = base + i; }
-const campDone = () => !CAMP || S.camp.n >= CAMP.logs.length;
-const campaigning = () => S.mission === -3 && !campDone() && !S.dr;
 // the old material × object collection becomes the same number of new items, of the same rarity
 const OLD_FORM_R = { Shard: 'Common', Nugget: 'Common', Coin: 'Common', Marble: 'Common', Dice: 'Common', Ring: 'Uncommon', Gear: 'Uncommon', Key: 'Uncommon', Bell: 'Uncommon', Arrowhead: 'Uncommon', Lens: 'Rare', Locket: 'Rare', Compass: 'Rare', Figurine: 'Rare', Idol: 'Legendary', 'Music Box': 'Legendary' };
 Object.keys(S.items).filter(k => k.includes('|')).forEach(k => {

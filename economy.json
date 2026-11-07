@@ -44,9 +44,9 @@
   "_postal": "Postal offices (an arrival visitor): how many jobs one offers, how many you can carry at once, and the share of pay given back once for a job that was cancelled when daily deliveries ended.",
 
   "cassini": { "base": 0.08, "perTrip": 0.04, "cap": 0.4, "legPay": 60 },
-  "_cassini": "Cassini Federation Posts hand out Most Wanted posters. While you carry one, each new world has base chance of a sighting, plus perTrip for every trip without one, up to cap. A sighting opens a 3-session Manhunt there: legPay resources for each of the first two legs, then the bounty (quests bossBase + bossPerCatch).",
+  "_cassini": "Cassini Federation Posts hand out Most Wanted posters. While you carry one, each new world has base chance of a sighting, plus perTrip for every trip without one, up to cap. A sighting opens a 3-session Manhunt there: legPay resources for each of the first two parts, then the bounty (quests bossBase + bossPerCatch).",
 
-  "_expedition": "Planet expeditions (3 legs per world). pay = resources per leg (a risky leg pays boldPay x that), finale = extra on the last leg, findSafe / findBold = chance of a collectible on a safe / risky leg (the finale always finds one), poiSellBonus = how much each Point of Interest adds to a world's sale price (0.08 = 8%), salvage = resources for salvaging a derelict.",
+  "_expedition": "Planet expeditions (3 parts per world). pay = resources per part (a risky part pays boldPay x that), finale = extra on the last part, findSafe / findBold = chance of a collectible on a safe / risky part (the finale always finds one), poiSellBonus = how much each Point of Interest adds to a world's sale price (0.08 = 8%), salvage = resources for salvaging a derelict.",
 
   "trade": { "perFacilityLevel": 2, "cap": 100 },
   "_trade": "Travelers' Posts pay perFacilityLevel per facility level (all posts together) every study session, up to cap.",
@@ -85,9 +85,9 @@
   "decorCost": { "t1": 150, "t2": 400, "t3": 900, "t4": 1800, "station": 2500 },
   "_decorCost": "Ship decorations by price tier (t1 cheapest .. t4 fanciest). station = price of a station-only decoration at an Interplanetary Station.",
 
-  "campaign": { "base": 30, "perLog": 0.7 },
+  "story": { "pay": 80, "chapter": 200, "ending": 1000 },
+  "_story": "The Meridian story: pay for each chapter part, a bonus for finishing a chapter, and the reward at the very end.",
 
-  "_campaign": "Each Meridian log pays base + perLog x the log's number.",
 
   "levels": { "base": 40, "perLevel": 4, "perLevelSquared": 0.2 },
   "_levels": "Captain and Knowledge Levels: going from level L to L+1 needs base + perLevel x L + perLevelSquared x L x L points. Bigger perLevelSquared = steeper late game. The old curve was base 40, perLevel 6, perLevelSquared 0.",

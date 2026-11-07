@@ -6,7 +6,7 @@ function scenePlanet(kind) {
   const b = building();
   return kind === 'build' ? (b.p || atP()) : kind === 'fight' ? heldP() : kind === 'distress' || (kind === 'campaign' && running) ? null : kind === 'explore' && running ? null : atP();
 }
-const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : campaigning() ? 'campaign' : expediting() || salvaging() ? 'discover' : hunting() ? 'fight' : shifting() ? 'view' : building() ? (building().k === 'room' ? 'shipbuild' : 'build') : charging() ? 'charge' : heldP() ? 'fight' : 'explore';
+const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : following() ? 'campaign' : chaptering() || expediting() || investigating() || salvaging() ? 'discover' : hunting() ? 'fight' : shifting() ? 'view' : building() ? (building().k === 'room' ? 'shipbuild' : 'build') : charging() ? 'charge' : heldP() ? 'fight' : 'explore';
 function drawName() {
   if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
   const kind = sceneKind(), p = scenePlanet(kind);
@@ -60,11 +60,7 @@ function drawLeft() {
   leftCol.replaceChildren(
     hereS, sec('Distress Run', drBox, drInfo), dlSec, mwSec, wkSec,
     sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far')),
-    CAMP ? sec(CAMP.title || 'Campaign', el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round(S.camp.n / CAMP.logs.length * 100) + '%' })),
-      el('p', {}, campDone() ? 'Complete. All ' + CAMP.logs.length + ' logs recovered.' : 'Log ' + S.camp.n + ' of ' + CAMP.logs.length + (S.camp.n ? '. ' + actOf(S.camp.n) : '. A trail of old log beacons left by the lost survey ship Meridian.')),
-      campDone() ? null : campaigning() ? el('p', { class: 'sl-muted' }, 'Following the trail next session. ', el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Stop'))
-        : el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || !!S.dr || null, onclick: () => setMission('campaign') }, S.camp.n ? 'Continue next session' : 'Start the campaign next session'),
-      S.camp.n ? el('div', {}, el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { rightTab = 'tx'; txFilter = 'camp'; drawRight(); } }, 'Read the logs')) : null) : null,
+    storySec(),
     sec('Coordinator & Hyperdrive', el('p', {}, '⚡ Hyperdrive: ' + (S.hyper || 0) + ' of ' + Math.round(E.hyperdrive.max) + ' charges. A charge jumps you to any world you\'ve visited (Star map or Logbook). ', hyperB),
       el('p', {}, S.coord ? '🧭 Coordinator charged. Next Explore, every chip counts double.' : '🧭 Coordinator empty. One study session of Charge doubles your chips for the next Explore.'),
       el('p', { class: 'sl-muted' }, chipsPut() + ' of ' + S.chips.own + ' chips placed' + (chipsPut() ? ': ' + CHIP_F.filter(f => S.chips.put[f[0]]).map(f => f[1] + ' ' + S.chips.put[f[0]]).join('  ') : '.')),
@@ -100,6 +96,8 @@ function hereSec(lock, legBar) {
     out.push(el('p', { class: 'sx-visit' }, '🚓 A Cassini Federation Post has a poster: ', el('b', {}, c.name), ' of ' + c.gang + ', who ' + c.crime + '. Bounty ✦ ' + Math.round(mwBounty() * INCOME) + '.'),
       S.mw ? el('p', { class: 'sl-muted' }, 'You already carry a poster (' + S.mw.name + '). Hand it back to take this one.') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => csTake(p) }, 'Take the poster'));
   }
+  // a Meridian chapter on this world
+  if (p.story && STD) out.push(...chapterBits(p, lock, legBar));
   // the expedition
   const head = (gas ? '🎈 Cloud dive' : '🗺 Expedition');
   if (exDone(p)) out.push(el('p', { class: 'sx-explored' }, '✓ Fully explored · ' + x.poi.length + ' Points of Interest'));
@@ -134,4 +132,37 @@ function hereSec(lock, legBar) {
       el('div', { class: 'sx-row-l' }, salvaging() ? el('span', { class: 'sl-muted' }, 'Salvaging next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('salvage') }, 'Salvage next session')));
   }
   return sec('📍 Here', ...out);
+}
+// the Meridian story on the left: where the signal is, or what's left
+function storySec() {
+  if (!STD) return null;
+  const lock = running && mode === 'focus', st = S.story, bits = [];
+  bits.push(el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round((st.done ? ST_N : st.ch) / ST_N * 100) + '%' })), el('p', { class: 'sl-muted' }, (st.done ? ST_N : st.ch) + ' of ' + ST_N + ' chapters'));
+  if (st.done) bits.push(el('p', {}, 'Complete. The light stays on the Star map, so you can go back whenever you like.'));
+  else if (signalOn()) bits.push(el('p', {}, '📡 ' + signalText()), heldP() ? el('p', { class: 'sl-muted' }, 'Drive the outlaws off first.') : following() ? el('p', { class: 'sl-muted' }, 'Following the signal next session. ', el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('explore', 'random') }, 'Not now'))
+    : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('explore', 'signal') }, 'Follow the Signal next session'));
+  else bits.push(el('p', {}, atDoor() ? '📡 Something is waiting for you here. See Here, above.' : '📡 Chapter ' + (st.ch + 1) + ' is here. See Here, above.'));
+  if (st.log.length) bits.push(el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { rightTab = 'tx'; txFilter = 'camp'; drawRight(); } }, 'Read the story so far'));
+  return sec('The Meridian', ...bits);
+}
+// the chapter part of the Here card: the next leg with its two choices, or the door
+function chapterBits(p, lock, legBar) {
+  const c = STD.chapters[p.story.ch], out = [el('p', { class: 'sx-q-h sx-q-sub' }, '📡 Chapter ' + (p.story.ch + 1) + ': ' + c.name)];
+  if (p.story.ch !== S.story.ch || S.story.done) { out.push(el('p', { class: 'sl-muted' }, 'You finished this chapter. Its parts are in the story log.')); return out; }
+  const st = p.story, leg = c.legs[st.step];
+  out.push(legBar(st.step, st.step, ST_LEGS, k => String(k + 1)), el('p', { class: 'sx-q-sub' }, el('b', {}, leg.title)), ...leg.text.map(t => el('p', { class: 'sx-story' }, t)));
+  if (!atDoor()) {
+    out.push(pathPick(st.pick, lock, [null, leg.a, leg.b], () => 'Changes the words, not the story', v => { st.pick = v; save(); drawLeft(); }),
+      el('div', { class: 'sx-row-l' }, chaptering() ? el('span', { class: 'sl-muted' }, 'Next session follows the chapter. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('campaign') }, 'Follow the chapter next session')));
+    return out;
+  }
+  if (!S.story.solved) { // the door: a text field, no penalty for wrong answers
+    const inp = el('input', { type: 'text', class: 'sx-door-in', 'aria-label': 'Your answer', autocomplete: 'off', spellcheck: 'false', disabled: lock || null });
+    const go = () => doorTry(inp.value);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    out.push(el('div', { class: 'sx-door' }, inp, el('button', { type: 'button', class: 'btn', disabled: lock || null, onclick: go }, 'Try')), doorMsg ? el('p', { class: 'sx-door-msg' }, doorMsg) : null);
+    return out;
+  }
+  out.push(...leg.success.map(t => el('p', { class: 'sx-story' }, t)), el('div', { class: 'sx-paths' }, [leg.a, leg.b].map((o, i) => el('button', { type: 'button', disabled: lock || null, onclick: () => storyEnd(i) }, el('b', {}, o[0])))));
+  return out;
 }

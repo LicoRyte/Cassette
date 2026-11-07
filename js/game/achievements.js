@@ -68,9 +68,9 @@ SQ('lotto', '🎟', 'Feeling Lucky', 'Find a space lottery ticket stuck to the h
 SQ('film', '🎥', 'Background Extra', 'Wander into a film shoot', () => seen('Film Crew on Location!') >= 1);
 SQ('night', '🦉', 'Night Owl', 'Finish a study session between midnight and 4 AM', () => (S.cnt.night || 0) >= 1);
 SQ('early', '🐓', 'Early Bird', 'Finish a study session between 4 and 7 AM', () => (S.cnt.early || 0) >= 1);
-SQ('binge', '📼', 'Binge Watcher', 'Recover 5 Meridian logs in one day', () => !!S.cnt.campDay && S.cnt.campDay.best >= 5);
-SQ('bold', '🎲', 'Fortune Favors the Bold', 'Take the risky path on every leg of an expedition', () => (S.cnt.allBold || 0) >= 1);
-SQ('safe', '🐢', 'Slow and Steady', 'Take the safe path on every leg of an expedition', () => (S.cnt.allSafe || 0) >= 1);
+SQ('binge', '📼', 'Binge Watcher', 'Follow 5 Meridian chapter parts in one day', () => !!S.cnt.campDay && S.cnt.campDay.best >= 5);
+SQ('bold', '🎲', 'Fortune Favors the Bold', 'Take the risky path on every part of an expedition', () => (S.cnt.allBold || 0) >= 1);
+SQ('safe', '🐢', 'Slow and Steady', 'Take the safe path on every part of an expedition', () => (S.cnt.allSafe || 0) >= 1);
 SQ('broke', '💸', 'Big Spender', 'Spend every last resource (have exactly 0)', () => S.dust === 0 && S.dustTotal > 0);
 SQ('hoard', '🐉', 'Dragon\'s Hoard', 'Hold 10,000 resources at once', () => S.dust >= 10000);
 SQ('sale', '🧹', 'Spring Cleaning', 'Sell 10 or more worlds in one go', () => (S.cnt.bigSale || 0) >= 1);
@@ -200,7 +200,7 @@ const hasCat = c => Object.keys(S.items).some(k => parseId(k).c === c && itemNam
 const STAR_MEDAL = { 'red dwarf': 'Crimson Shadows', 'orange dwarf': 'Endless Afternoon', 'yellow dwarf': 'Almost Home', 'white dwarf': 'Cold Light', 'blue giant': 'Blue Sky', 'red giant': 'Swollen Sun', 'binary pair': 'Double Shadows', 'pulsar': 'Cosmic Clock' };
 STARS.forEach(([st]) => A('Stars', 'star-' + st.replace(' ', '-'), '☀', STAR_MEDAL[st] || st, 'Discover a world around a ' + st, () => S.found.some(f => f.p.star === st), 'nav4'));
 A('Stars', 'star-all', '🌌', 'Every Kind of Light', 'Discover a world around every kind of star', () => STARS.every(([st]) => S.found.some(f => f.p.star === st)), 'nav4');
-A('Knowledge', 'story', '📖', 'The Whole Story', 'Read every Ship Log and all ' + (CAMP ? CAMP.logs.length : 100) + ' Meridian logs', () => campDone() && Object.keys(SHIP_LOGS).every(k => S.slog[k]), 'arc5');
+A('Knowledge', 'story', '📖', 'The Whole Story', 'Read every Ship Log and finish the Meridian story', () => !!STD && S.story.done && Object.keys(SHIP_LOGS).every(k => S.slog[k]), 'arc5');
 A('Collection', 'legit', '🌟', 'Legendary Curator', 'Own 10 Legendary collectibles', () => Object.keys(S.items).filter(k => parseId(k).r === 'Legendary' && itemName(k) !== '???').length >= 10);
 tiers('Collection', 'trade', '🏪', [[1, 'Window Shopper'], [10, 'Haggler']], () => (S.cnt.bought || 0) + (S.cnt.swaps || 0), n => 'Buy or swap ' + n + ' item' + (n === 1 ? '' : 's') + ' at Trade Stations');
 tiers('Ship', 'room', '🛠', [[1, 'Home Improvement'], [7, 'Fully Fitted']], () => Object.keys(S.rooms).length, n => 'Build ' + n + ' room' + (n === 1 ? '' : 's') + ' on your ship');
@@ -214,5 +214,5 @@ tiers('Ship', 'mods', '⚙', [[10, 'Tinkerer'], [30, 'Overclocked'], [60, 'Ship 
 tiers('Knowledge', 'tech', '🔬', [[1, 'Eureka'], [6, 'Lab Coat'], [12, 'Department Head'], [RES_ALL.length, 'Everything Researched']], () => Object.keys(S.tech).length, n => 'Finish ' + n + ' research' + (n === 1 ? '' : 'es'));
 tiers('Knowledge', 'cap', '⭐', [[10, 'Ensign'], [25, 'Seasoned'], [50, 'Veteran'], [100, 'Star Legend']], () => lvInfo(S.xp).L, n => 'Reach Captain Level ' + n);
 tiers('Knowledge', 'kn', '📚', [[10, 'Bookworm'], [25, 'Well Read'], [50, 'Sage of the Stars'], [100, 'Keeper of the Cosmos']], () => lvInfo(S.kn).L, n => 'Reach Knowledge Level ' + n);
-tiers('Knowledge', 'camp', '📼', [[1, 'The First Log'], [20, 'The Signal'], [40, 'The Long Way'], [60, 'The Quiet Zone'], [80, 'Echoes'], [100, 'The Light Is On']], () => S.camp.n, n => n === 1 ? 'Recover the first Meridian log' : 'Recover ' + n + ' Meridian logs');
+tiers('Knowledge', 'camp', '📡', [[1, 'The First Log'], [3, 'The Signal'], [6, 'The Long Way'], [9, 'The Quiet Zone'], [12, 'Echoes'], [15, 'The Light Is On']], () => S.story.done ? ST_N : S.story.ch, n => n === 1 ? 'Finish the first Meridian chapter' : 'Finish ' + n + ' Meridian chapters');
 tiers('Knowledge', 'dust', '✦', [[1000, 'Pocket Money'], [10000, 'Well Funded'], [100000, 'Rich Beyond Measure']], () => S.dustTotal, n => 'Earn ' + n.toLocaleString() + ' resources in total');

@@ -1,0 +1,1444 @@
+{
+ "_warning": "SPOILERS. This is the whole Meridian story, written for the game. Reading it spoils the story and its puzzle.",
+ "_help": "Fifteen chapters, one story planet each, reached only by Follow the Signal. Each chapter has five legs: text (paragraphs), then choice a and b as [label, outcome]. The last leg of the last chapter is the door: its answer is checked against a hash in js/game/story.js, and success is what happens next. Copy names and notebook lines exactly: they carry the puzzle.",
+ "firstSignal": "A faint Guild-band beacon is blinking at the very edge of your charts. Nobody has answered it in years. Follow the Signal to find out who left it.",
+ "wrong": "The door stays quiet.",
+ "hints": [
+  [
+   3,
+   "Wren numbered everything she learned."
+  ],
+  [
+   6,
+   "Read the names of the worlds you walked, in order."
+  ],
+  [
+   9,
+   "Put her pages in order. Take what she learned first."
+  ]
+ ],
+ "chapters": [
+  {
+   "name": "Willowmere",
+   "type": "Garden",
+   "star": "yellow dwarf",
+   "extra": "no rings",
+   "colors": "soft green and gold, white clouds",
+   "desc": "A gentle green world with long grass that moves like water. The first place the Meridian crew ever made camp.",
+   "odd": "willow trees that lean toward whoever is speaking",
+   "legs": [
+    {
+     "title": "The faint beacon",
+     "text": [
+      "A Guild-band beacon, almost out of power, blinks from a meadow. Its tag reads MERIDIAN, CAMP ONE. The grass around it has been flattened in a circle, as if people sat here for a long time."
+     ],
+     "a": [
+      "Land beside the beacon",
+      "You set down gently. The beacon gives one last happy blink and goes dark."
+     ],
+     "b": [
+      "Land at the treeline and walk",
+      "The walk is long and warm. The willows lean in to listen as you pass."
+     ]
+    },
+    {
+     "title": "Five mugs",
+     "text": [
+      "Under a willow: a folding table, five tin mugs, and a deck of cards with one missing. A recorder is taped under the table. Captain Ada Merrow's voice: \"Day one. We made it. Tomas says the grass is suspicious. Noor says the grass is lunch. Nobody is listening to me, which means everyone is happy.\""
+     ],
+     "a": [
+      "Play the recording again",
+      "You listen twice. There is laughter behind her voice, four other people, close together."
+     ],
+     "b": [
+      "Look for the missing card",
+      "It is wedged in a willow root: the two of hearts. Someone wrote \"MINE - T.O.\" on it."
+     ]
+    },
+    {
+     "title": "The garden",
+     "text": [
+      "Rows of vegetables, gone wild but still growing. A wooden sign: \"NOOR'S GARDEN. PICK ONLY WHAT YOU WILL EAT. EAT EVERYTHING YOU PICK.\" A second note in different handwriting: \"Pell has been warned about the tomatoes.\""
+     ],
+     "a": [
+      "Pick a tomato",
+      "It is the best tomato you have ever eaten. You feel slightly guilty."
+     ],
+     "b": [
+      "Leave the garden be",
+      "You water it from your canteen instead. It seems like what Noor would want."
+     ]
+    },
+    {
+     "title": "Wren's tree",
+     "text": [
+      "A young willow with names carved low on the trunk, at different heights: ADA, TOMAS, PELL, NOOR. The fifth name, WREN, is carved much higher, as if she climbed up to do it. Beside it: \"so I'd have to grow into it.\""
+     ],
+     "a": [
+      "Climb up to read it closely",
+      "From up here you can see the whole valley. You understand why she climbed."
+     ],
+     "b": [
+      "Trace the names from the ground",
+      "The bark is smooth where hands have touched it many times."
+     ]
+    },
+    {
+     "title": "The first entry",
+     "text": [
+      "In a sealed case by the beacon, the Meridian's first log: \"We are five people on a small ship, and we have decided to follow the light at the edge of the map. We don't know what it is. That's rather the point.\" Under it, a fresh coordinate, pointing outward."
+     ],
+     "a": [
+      "Copy the coordinate by hand",
+      "You write it in the margin of your own log, the old-fashioned way."
+     ],
+     "b": [
+      "Let the ship read it",
+      "The navigation computer locks on with a soft chime."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#d0da91",
+     "#e8c170",
+     "#a8ca58",
+     "#75a743"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": true
+   },
+   "signal": "A second Meridian beacon answers from far away. Follow the Signal to reach Rosalind."
+  },
+  {
+   "name": "Rosalind",
+   "type": "Savanna",
+   "star": "orange dwarf",
+   "extra": "thin rings",
+   "colors": "amber grass, red earth, violet evening sky",
+   "desc": "Endless golden plains under a slow orange sun. Herds of gentle six-legged grazers move across it like weather.",
+   "odd": "a ring of flat stones that stays warm long after sunset",
+   "legs": [
+    {
+     "title": "The long table",
+     "text": [
+      "Someone dragged a whole table out into the grass. Dishes, long empty, sit in a neat row. A menu is pinned down with a rock: \"Noor's Feast. Course one: whatever Pell didn't eat already.\""
+     ],
+     "a": [
+      "Sit at the table",
+      "You take the fifth chair. It wobbles. You suspect it always did."
+     ],
+     "b": [
+      "Read the whole menu",
+      "Seven courses. The last one just says \"dessert (secret).\""
+     ]
+    },
+    {
+     "title": "Noor's recording",
+     "text": [
+      "\"I cook because it's the only time everyone is in one room. Tomas stops joking. Ada stops planning. Pell stops humming. Wren stops asking. For about four minutes. Then Wren asks why bread rises, and we're off again.\""
+     ],
+     "a": [
+      "Listen to the end",
+      "She laughs at the end of the recording. It sounds like she didn't expect to."
+     ],
+     "b": [
+      "Save it to your own log",
+      "You keep it. It feels like the kind of thing worth keeping."
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "A page torn from a notebook, held flat under the warm stones.",
+      "\"Wren's notebook, page 3. Word of the day: Albedo. It means how much light a thing gives back. Snow gives back almost all of it. Charcoal gives back almost none. Noor says people have albedo too. I think she's right. I think Tomas gives back more than he knows.\""
+     ],
+     "a": [
+      "Fold the page carefully",
+      "You put it somewhere safe. It is clearly from a set."
+     ],
+     "b": [
+      "Read it again under the stones' glow",
+      "In the warm light the handwriting looks young and very sure of itself."
+     ]
+    },
+    {
+     "title": "The grazers",
+     "text": [
+      "A herd wanders close, curious. One has a faded ribbon around its neck. A note tied to it: \"This is Gerald. Gerald is a friend. Do not let Pell name any more animals. - A.M.\""
+     ],
+     "a": [
+      "Greet Gerald",
+      "Gerald sniffs your helmet and seems satisfied."
+     ],
+     "b": [
+      "Keep your distance",
+      "The herd moves on, slow and peaceful. Gerald looks back once."
+     ]
+    },
+    {
+     "title": "Pell's song",
+     "text": [
+      "At the edge of the plain, a speaker wired to a solar panel still plays, very softly, a man singing badly and happily over an engine hum. A log plays after: \"Pell here. We're leaving tomorrow. The Lantern moved again. Wren is so excited she can't eat. Noor is pretending not to be worried. Next stop is cold.\""
+     ],
+     "a": [
+      "Let the song finish",
+      "It finishes on a note that is almost right."
+     ],
+     "b": [
+      "Turn it off gently",
+      "You leave the panel connected. Someone might want to hear it later."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#e8c170",
+     "#d7b594",
+     "#ad7757",
+     "#7a367b"
+    ],
+    "ringCol": "#d7b594",
+    "rings": true,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "A colder signal. Follow the Signal to reach Eskel."
+  },
+  {
+   "name": "Eskel",
+   "type": "Ice",
+   "star": "white dwarf",
+   "extra": "no rings",
+   "colors": "pale blue and white, a silver sky",
+   "desc": "A world of ice plains and slow blue glaciers under a tiny bright star. Quiet enough to hear your own heartbeat.",
+   "odd": "ice caves that hum when the wind passes over them",
+   "legs": [
+    {
+     "title": "The quiet camp",
+     "text": [
+      "This camp is smaller and neater than the others. No table, no cards. Just five sleeping mats in a row, and a heater that ran for a long time."
+     ],
+     "a": [
+      "Check the heater's log",
+      "It ran for nineteen days. Much longer than they needed."
+     ],
+     "b": [
+      "Walk the camp edge",
+      "Footprints go out and back many times, always the same path, always one person."
+     ]
+    },
+    {
+     "title": "Tomas",
+     "text": [
+      "A recording, very quiet: \"Tomas. Engineering log, I guess. Everything works. The ship's fine. I'm the thing that's not running right. Some days are just grey. I didn't want to tell them. They're having such a good time.\""
+     ],
+     "a": [
+      "Listen again, slowly",
+      "His voice is tired but kind. You can hear him trying to be okay."
+     ],
+     "b": [
+      "Sit with it a moment",
+      "You don't play the next one right away. It feels right to wait."
+     ]
+    },
+    {
+     "title": "The footprints",
+     "text": [
+      "You follow the single trail to an ice cave. Inside, the walls hum. Five sets of footprints come in, not one. They sat in a circle on the ice. A thermos lid, a blanket, a deck of cards."
+     ],
+     "a": [
+      "Sit where they sat",
+      "The hum of the cave is low and steady, like company."
+     ],
+     "b": [
+      "Pick up the cards",
+      "The two of hearts is missing again. Of course it is."
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "A page frozen into the cave wall, readable through clear ice.",
+      "\"Wren's notebook, page 6. Word of the day: Empathy. Feeling what someone else feels, from the inside. Noor taught me it's not the same as fixing. You don't fix Tomas. You sit with him. So we all came out to the cave and sat. Nobody said anything for an hour. Then he laughed at Pell's socks, and we all knew it was okay to go back.\""
+     ],
+     "a": [
+      "Melt it free carefully",
+      "The page comes loose, a little damp, still readable."
+     ],
+     "b": [
+      "Photograph it and leave it",
+      "It belongs to the cave now. You take the picture instead."
+     ]
+    },
+    {
+     "title": "Nineteen days",
+     "text": [
+      "A last log from Tomas, steadier: \"Nineteen days. They waited nineteen days and never once said hurry up. I'm not fixed. I don't think that's how it works. But I'm not alone in it, and that turns out to matter more. Engines are warm. Let's go.\""
+     ],
+     "a": [
+      "Turn up your own heater a little",
+      "It seems right, somehow."
+     ],
+     "b": [
+      "Leave a note by the mats",
+      "You write: \"Glad you kept going.\" You don't know who it's for."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#ebede9",
+     "#c7cfcc",
+     "#a4dddb",
+     "#73bed3"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "A signal from a world that never sees night. Follow the Signal to reach Nightjar."
+  },
+  {
+   "name": "Nightjar",
+   "type": "Tidally locked",
+   "star": "red dwarf",
+   "extra": "no rings",
+   "colors": "one side gold and scorched, one side deep blue and frozen, a thin band of dusk between",
+   "desc": "One half of Nightjar always faces its sun; the other never sees it. Everything that lives here lives in the narrow ring of twilight between.",
+   "odd": "a sunset that never ends",
+   "legs": [
+    {
+     "title": "The twilight line",
+     "text": [
+      "The Meridian camped right on the line between day and night. One tent flap faces the sun, the other faces the stars. A sign: \"WREN'S OBSERVATORY. KNOCK BEFORE ASKING QUESTIONS (SHE WILL ASK MORE).\""
+     ],
+     "a": [
+      "Step to the day side",
+      "Warm red light on your face, a sun that will never set."
+     ],
+     "b": [
+      "Step to the night side",
+      "Cold, clear stars. You turn around and the sunset is still there."
+     ]
+    },
+    {
+     "title": "Pell teaches",
+     "text": [
+      "A recording, Pell's slow voice: \"Wren asked me why the sunset here is red. I used to teach for thirty years and I still had to think about it. Light comes in different lengths, kiddo. The short blue ones get scattered away first. The long red ones make it all the way to you. Some things just travel further.\""
+     ],
+     "a": [
+      "Watch the sunset while it plays",
+      "The light is exactly as red as he says."
+     ],
+     "b": [
+      "Play Wren's reply",
+      "You hear a pencil scribbling, then: \"Say that again, slower.\""
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "Pinned inside the tent, the very first page, the corners soft from handling.",
+      "\"Wren's notebook, page 1. Word of the day: Wavelength. The distance from one wave to the next. Red light has a long one and travels far. Pell says people are on wavelengths too, and the trick is not to make everyone match yours. I'm starting this notebook today. One thing I learned, every day, for as long as we're out here.\""
+     ],
+     "a": [
+      "Read it twice",
+      "Page one. The beginning of something."
+     ],
+     "b": [
+      "Look for the other pages",
+      "Only this one is here. The rest must be scattered along their route."
+     ]
+    },
+    {
+     "title": "Frost garden",
+     "text": [
+      "On the night side, Noor planted frost flowers in a line of ice cups, each labelled with a crew name. They bloom only in the dark. Yours, by chance, is the empty sixth cup."
+     ],
+     "a": [
+      "Wait for the flowers to open",
+      "They open slowly, pale blue, all six."
+     ],
+     "b": [
+      "Read the labels",
+      "ADA. TOMAS. WREN. PELL. NOOR. And the sixth, unlabelled. Someone left room."
+     ]
+    },
+    {
+     "title": "Ada's first letter",
+     "text": [
+      "A sealed envelope marked \"not sent\": \"Dear whoever. I don't know who I'm writing to. Maybe my mother. Maybe whoever finds this. We are happy, which scares me, because I'm the one who has to keep it that way. The Lantern is brighter here. Tomorrow we follow it into the salt.\""
+     ],
+     "a": [
+      "Keep the letter sealed",
+      "You don't open what she didn't send. You read only the envelope."
+     ],
+     "b": [
+      "Read it and reseal it",
+      "You fold it back exactly as it was."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#e8c170",
+     "#cf573c",
+     "#4f8fba",
+     "#402751"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "A dry, whistling signal. Follow the Signal to reach Saltwhistle."
+  },
+  {
+   "name": "Saltwhistle",
+   "type": "Desert",
+   "star": "yellow dwarf",
+   "extra": "no rings",
+   "colors": "white salt flats, a hard blue sky",
+   "desc": "Salt flats so white they hurt to look at, crossed by wind that whistles through the crystal ridges. Hot by day, freezing by night.",
+   "odd": "salt pillars that whistle a different note each",
+   "legs": [
+    {
+     "title": "Two camps",
+     "text": [
+      "Strange: there are two camps here, a few hundred metres apart. Three tents in one, two in the other. A line drawn in the salt between them."
+     ],
+     "a": [
+      "Visit the three-tent camp",
+      "Ada, Pell, Noor. Neat, quiet, a map spread on a crate."
+     ],
+     "b": [
+      "Visit the two-tent camp",
+      "Tomas and Wren. Messy, notes everywhere, a half-built antenna."
+     ]
+    },
+    {
+     "title": "The argument",
+     "text": [
+      "A recording someone left running by accident. Voices raised. Wren: \"It's RIGHT there, we can't just turn back.\" Ada: \"We don't have the fuel to be right.\" Tomas: \"Then we make it work.\" Ada: \"I'm not losing anyone to a light in the sky.\" Silence. A door slams."
+     ],
+     "a": [
+      "Listen to the end",
+      "After the slam, a long silence. Then Noor, quietly: \"Everyone sleep. Nobody decides anything tired.\""
+     ],
+     "b": [
+      "Stop the recording",
+      "Some arguments aren't yours to hear twice."
+     ]
+    },
+    {
+     "title": "Ada alone",
+     "text": [
+      "A recording from much later that night, just Ada: \"I said the worst thing a captain can say. I made it sound like I care about the ship more than them. I don't. I'm scared. That's all it was. I'm just scared, and I'm supposed to be the one who isn't.\""
+     ],
+     "a": [
+      "Sit with her words a while",
+      "The salt pillars whistle around you, a slow chord."
+     ],
+     "b": [
+      "Look at her map",
+      "The fuel sums are written over and over, crossed out, redone."
+     ]
+    },
+    {
+     "title": "The line in the salt",
+     "text": [
+      "At dawn the line between the camps has footprints across it, going both ways, many times. In the middle, someone wrote in the salt with a finger: \"SORRY.\" Underneath, four more words in four handwritings: \"me too\", \"me too\", \"same\", \"breakfast?\""
+     ],
+     "a": [
+      "Smile at that",
+      "You do. You can't help it."
+     ],
+     "b": [
+      "Photograph it before the wind takes it",
+      "The picture comes out bright and a little crooked."
+     ]
+    },
+    {
+     "title": "The compromise",
+     "text": [
+      "Pell's log: \"We found the fuel. Tomas rebuilt the injectors so we burn less, and Wren worked out a slingshot route around the next moon. Ada checked the sums six times and said yes. We're going on, together, carefully. That's the deal.\""
+     ],
+     "a": [
+      "Check their slingshot route",
+      "Clever. Risky. Exactly as clever as it needed to be."
+     ],
+     "b": [
+      "Leave the salt line as it is",
+      "Let the wind decide when it's gone."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#ebede9",
+     "#c7cfcc",
+     "#d7b594",
+     "#819796"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "A signal from somewhere deep and blue. Follow the Signal to reach Nerissa."
+  },
+  {
+   "name": "Nerissa",
+   "type": "Ocean",
+   "star": "orange dwarf",
+   "extra": "no rings",
+   "colors": "deep teal seas, scattered white islands",
+   "desc": "A planet that is almost all warm, shallow ocean, dotted with tiny islands of white sand. The water glows faintly at night.",
+   "odd": "an island that drifts slowly across the sea",
+   "legs": [
+    {
+     "title": "The drifting island",
+     "text": [
+      "The Meridian camped on the drifting island. It has moved a long way since. You find it by its old landing marks and a beach towel flapping on a stick like a flag."
+     ],
+     "a": [
+      "Land on the island",
+      "It moves under your feet, very gently, like a slow boat."
+     ],
+     "b": [
+      "Hover and look first",
+      "From above, the island leaves a faint trail across the glowing water."
+     ]
+    },
+    {
+     "title": "Swimming lessons",
+     "text": [
+      "Noor's log, laughing: \"Wren can't swim. She can explain buoyancy in four languages but she sinks like a spanner. Pell is teaching her. Pell, who swims like an angry dog. It is the best thing I've ever seen.\""
+     ],
+     "a": [
+      "Look for the swimming spot",
+      "A shallow lagoon, a rope tied between two posts, and a lot of splashing marks in the sand."
+     ],
+     "b": [
+      "Play the next clip",
+      "Wren, triumphant and coughing: \"I'm FLOATING. Nobody let go. Who let go?\""
+     ]
+    },
+    {
+     "title": "Night swim",
+     "text": [
+      "At night the sea glows wherever something moves. Tomas recorded: \"First time in weeks I wanted to be awake. Lay on my back in the glowing water and looked up. Felt very small. In a good way. In the best way, actually.\""
+     ],
+     "a": [
+      "Wade in yourself",
+      "The water lights up around your boots, soft blue."
+     ],
+     "b": [
+      "Just watch the glow",
+      "Small fish draw bright lines in the dark like handwriting."
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "In a sealed jar, half buried in the sand at the waterline.",
+      "\"Wren's notebook, page 5. Word of the day: Nebula. A cloud of gas and dust where stars are born. Lying in the glowing water tonight I thought it looked like one. Tomas said we're all made of stuff from old stars anyway, so we're basically leftovers. Then he said leftovers are the best part. Noor agreed. She would.\""
+     ],
+     "a": [
+      "Open the jar carefully",
+      "The page is dry and perfect. Somebody sealed it well."
+     ],
+     "b": [
+      "Read it through the glass first",
+      "You read it twice before opening. It feels like a letter."
+     ]
+    },
+    {
+     "title": "Leaving the island",
+     "text": [
+      "The last log here, Ada: \"We stayed longer than we planned. I didn't stop it. I think I'm learning that the plan isn't the point. Everyone's laughing again. The Lantern has moved toward a dead world, and I don't like it. We go anyway.\""
+     ],
+     "a": [
+      "Leave the towel-flag where it is",
+      "Somebody might come looking. Let it wave."
+     ],
+     "b": [
+      "Fold the towel and take it",
+      "You keep it on your ship. It smells like salt and sunscreen."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#a4dddb",
+     "#73bed3",
+     "#4f8fba",
+     "#402751"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": true
+   },
+   "signal": "A faint, sad signal from a quiet world. Follow the Signal to reach Oriel."
+  },
+  {
+   "name": "Oriel",
+   "type": "Rocky",
+   "star": "red giant",
+   "extra": "no rings",
+   "colors": "grey stone, dusty rose sky",
+   "desc": "A colony world, abandoned a hundred years ago. Empty streets, open doors, and a huge, tired red sun that fills a quarter of the sky.",
+   "odd": "a town square where the wind always blows toward the same bench",
+   "legs": [
+    {
+     "title": "The empty town",
+     "text": [
+      "Houses with their doors open, swings that still move in the wind. The Meridian crew walked here in a single line. Their footprints in the dust never split up."
+     ],
+     "a": [
+      "Follow their line exactly",
+      "You step where they stepped. It feels like walking with them."
+     ],
+     "b": [
+      "Look into the houses",
+      "Tables set, beds made. The colonists left carefully, not in a hurry."
+     ]
+    },
+    {
+     "title": "Noor's brother",
+     "text": [
+      "A recording, Noor, very quiet: \"My brother would have loved this place. He liked empty buildings. Said you could hear what people used to laugh about. He was nineteen. I keep cooking for six by mistake. Nobody's said anything. They just eat the extra.\""
+     ],
+     "a": [
+      "Play it once more",
+      "The second time you notice the others in the background, very quiet, staying close."
+     ],
+     "b": [
+      "Stop and stand still a moment",
+      "The wind moves the swings. You let it."
+     ]
+    },
+    {
+     "title": "The bench",
+     "text": [
+      "In the square, the wind always blows toward one bench. On it, five small stones in a row and a sixth, slightly apart. A note: \"For Sami. We'll carry him a bit further. - N.\""
+     ],
+     "a": [
+      "Add a stone of your own",
+      "You find a smooth one and place it beside the sixth. Now it isn't alone."
+     ],
+     "b": [
+      "Leave the bench untouched",
+      "It's already exactly right."
+     ]
+    },
+    {
+     "title": "Everyone's turn",
+     "text": [
+      "The crew each recorded one thing they missed. Pell: \"My students.\" Tomas: \"My dad's terrible jokes.\" Ada: \"My mother's kitchen.\" Wren: \"Nothing yet. Is that bad?\" Noor: \"No, love. It means you're right where you should be.\""
+     ],
+     "a": [
+      "Think of your own answer",
+      "You don't say it out loud. You don't need to."
+     ],
+     "b": [
+      "Play Wren's line again",
+      "\"Is that bad?\" She sounds so young."
+     ]
+    },
+    {
+     "title": "Moving on",
+     "text": [
+      "Ada's log: \"We stayed three days. Nobody suggested leaving until Noor did. She said grief is just love with nowhere to go, so she's going to take it with her and keep feeding people. Then she made pancakes. I love this crew more than I know how to say.\""
+     ],
+     "a": [
+      "Close the colony gate behind you",
+      "The hinges squeal once. It feels respectful."
+     ],
+     "b": [
+      "Leave the gate open",
+      "The colonists left it open. So did the Meridian."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#c7cfcc",
+     "#df84a5",
+     "#819796",
+     "#402751"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "A hot, bright signal, full of sparks. Follow the Signal to reach Tinderfall."
+  },
+  {
+   "name": "Tinderfall",
+   "type": "Lava",
+   "star": "orange dwarf",
+   "extra": "two small moons",
+   "colors": "black rock, glowing orange rivers",
+   "desc": "A young world still cooling, with rivers of slow lava and black glass beaches. Two small moons pull its molten seas back and forth.",
+   "odd": "a lava river that rises and falls twice a day",
+   "legs": [
+    {
+     "title": "The workshop",
+     "text": [
+      "The Meridian built a workshop out of scrap on a black glass plateau. Tools hang neatly. A sign: \"TOMAS'S WORKSHOP. YES, IT'S ORGANIZED. YES, REALLY.\""
+     ],
+     "a": [
+      "Walk the workbenches",
+      "Every tool has a painted outline. Every outline has a tool in it."
+     ],
+     "b": [
+      "Check the scrap pile",
+      "Half-finished things: a fan, a music box, a tiny cart with no wheels."
+     ]
+    },
+    {
+     "title": "Small wins",
+     "text": [
+      "Tomas's log, brighter than before: \"Noor told me to keep a list of small wins. Today: fixed the coffee maker. Got up before Pell. Made Wren laugh so hard she snorted. That's three. Some days it's one. One counts.\""
+     ],
+     "a": [
+      "Find the list",
+      "Pinned to the wall: dozens of small wins, some just \"got up\", some \"flew us through the asteroid field!!\""
+     ],
+     "b": [
+      "Play the next log",
+      "\"Win four: started building something for the crew. It's a secret.\""
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "Clipped to Tomas's workbench, slightly scorched at one corner.",
+      "\"Wren's notebook, page 8. Word of the day: Tide. The rise and fall of a sea, pulled by moons. Here even the lava has tides. Tomas says his grey days are like tides too. They come back, but they also go out again. You don't have to fight the sea. You just have to know it will turn.\""
+     ],
+     "a": [
+      "Unclip the page",
+      "Warm to the touch from the lava light."
+     ],
+     "b": [
+      "Watch the lava river rise",
+      "It rises slowly, exactly as Wren said, then begins to fall."
+     ]
+    },
+    {
+     "title": "The secret project",
+     "text": [
+      "Under a sheet: five matching music boxes, each with a tiny engraved name. Tomas's note: \"Each one plays the song Pell sings when he flies. Badly. Accurately badly. Took me eleven days.\""
+     ],
+     "a": [
+      "Wind one up",
+      "It plays, slightly off-key, exactly like Pell. You laugh out loud."
+     ],
+     "b": [
+      "Read the engraving",
+      "ADA, NOOR, PELL, WREN... and TOMAS. He made one for himself too. Good."
+     ]
+    },
+    {
+     "title": "Gift day",
+     "text": [
+      "Pell's log: \"Tomas gave us music boxes. Noor cried. Ada pretended not to. Wren took hers apart to see how it works and put it back together perfectly. I'm told it plays my song. I have never sounded better.\""
+     ],
+     "a": [
+      "Leave the workshop tidy",
+      "You hang a wrench back in its outline."
+     ],
+     "b": [
+      "Take one small win for yourself",
+      "You write one on his list: \"Came all this way.\""
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#e8c170",
+     "#cf573c",
+     "#402751",
+     "#241527"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": 2,
+    "clouds": false
+   },
+   "signal": "A bright, double-sunned signal. Follow the Signal to reach Elara."
+  },
+  {
+   "name": "Elara",
+   "type": "Garden",
+   "star": "binary pair",
+   "extra": "wide pale rings",
+   "colors": "lush green, two suns, one gold and one white",
+   "desc": "A soft green world under two suns, with double shadows and two sunsets every evening. Flowers here open twice a day.",
+   "odd": "flowers that bloom at each of the two sunsets",
+   "legs": [
+    {
+     "title": "Bunting",
+     "text": [
+      "Strings of homemade flags flutter between two trees, faded by two suns. A painted banner: \"HAPPY BIRTHDAY WREN (YOU ARE STILL THE YOUNGEST, SORRY).\""
+     ],
+     "a": [
+      "Count the flags",
+      "Thirty. The number is painted on the last one."
+     ],
+     "b": [
+      "Look for the cake",
+      "A large flat stone, scorched in a ring. It was apparently a very ambitious cake."
+     ]
+    },
+    {
+     "title": "The party",
+     "text": [
+      "A recording, loud and messy: five people singing badly, Pell louder than everyone, Noor laughing so hard she can't finish the line, Tomas shouting \"MAKE A WISH.\" Wren: \"I wish we never stop.\""
+     ],
+     "a": [
+      "Play it again",
+      "It's even better the second time."
+     ],
+     "b": [
+      "Turn it down and listen to the quiet after",
+      "After the song, just breathing and the wind. Five people very happy at once."
+     ]
+    },
+    {
+     "title": "Gifts",
+     "text": [
+      "On a blanket: a telescope lens (Pell), a cookbook written by hand (Noor), a toolkit sized for small hands (Tomas), and a blank star chart with \"for the ones you find\" written on it (Ada)."
+     ],
+     "a": [
+      "Open the cookbook",
+      "The first recipe is \"Wren's birthday cake (do not let Pell near the oven).\""
+     ],
+     "b": [
+      "Look through the lens",
+      "Two suns setting, perfectly sharp, one after the other."
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "Tucked into the blank star chart.",
+      "\"Wren's notebook, page 2. Word of the day: Humility. Knowing how much you don't know, and being glad about it. I used to think being smart meant having the answers. Pell says it means loving the questions. Today I'm thirty, and I know less than ever. It's the best feeling in the world.\""
+     ],
+     "a": [
+      "Read it under the second sunset",
+      "The flowers open around you as the white sun goes down."
+     ],
+     "b": [
+      "Tuck it back in the chart",
+      "You take the chart with you, carefully. It's meant to be filled in."
+     ]
+    },
+    {
+     "title": "Two sunsets",
+     "text": [
+      "Ada's unsent letter: \"Dear whoever. Today we watched two sunsets in a row and nobody wanted to talk about the Lantern. I think this is what we were looking for, honestly. Not the light. This. I'll still follow it tomorrow. I just wanted to write down that I already found something.\""
+     ],
+     "a": [
+      "Stay for the second sunset",
+      "The two shadows of your ship stretch long across the flowers."
+     ],
+     "b": [
+      "Take down one flag to keep",
+      "You choose the one that says thirty."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#d0da91",
+     "#a8ca58",
+     "#75a743",
+     "#402751"
+    ],
+    "ringCol": "#ebede9",
+    "rings": true,
+    "moons": null,
+    "clouds": true
+   },
+   "signal": "A signal that glitters like broken glass. Follow the Signal to reach Brightglass."
+  },
+  {
+   "name": "Brightglass",
+   "type": "Crystal",
+   "star": "blue giant",
+   "extra": "bright rings",
+   "colors": "clear crystal plains, an electric blue sky",
+   "desc": "A world of glass-clear crystal fields that catch the blue giant's light and throw it everywhere. Walking here is like walking inside a prism.",
+   "odd": "a crystal field that reflects a sky that isn't there",
+   "legs": [
+    {
+     "title": "Rainbow plains",
+     "text": [
+      "Light splits into colors at every step. The Meridian marked a path with little flags so they wouldn't get lost in the reflections. The flags lead toward the horizon, perfectly straight."
+     ],
+     "a": [
+      "Follow the flags",
+      "The path is careful and patient. Someone measured every step."
+     ],
+     "b": [
+      "Wander off the path",
+      "The reflections shift around you. You understand why they needed flags."
+     ]
+    },
+    {
+     "title": "The glimpse",
+     "text": [
+      "Wren's log, breathless: \"We SAW it. The Lantern. Not on a screen. In the crystal, reflected, just for a second. It's not a star. It's not a ship. It moved like it was looking back at us. Pell sat down in the crystal and didn't say anything for a long time.\""
+     ],
+     "a": [
+      "Stand where she stood",
+      "You look into the crystal. Just your own reflection, and the blue sky."
+     ],
+     "b": [
+      "Play Pell's log next",
+      "\"Thirty years teaching kids about the universe. First time it ever looked back.\""
+     ]
+    },
+    {
+     "title": "What it might be",
+     "text": [
+      "Five guesses, scratched into a crystal slab. Ada: \"a door.\" Tomas: \"a really big lightbulb.\" Noor: \"someone else's campfire.\" Pell: \"a question.\" Wren: \"I don't want to guess yet. I want to find out.\""
+     ],
+     "a": [
+      "Scratch your own guess",
+      "You think about it, then leave the slab as it is. Theirs are better."
+     ],
+     "b": [
+      "Read them out loud",
+      "Your voice echoes across the crystal, a little strange."
+     ]
+    },
+    {
+     "title": "The sky that isn't there",
+     "text": [
+      "In one field the crystal reflects a sky with different stars, ones no chart has. Tomas measured it all night: \"Doesn't match anything. Not our sky. Not any sky we know. Either the crystal's lying, or it's showing us somewhere else.\""
+     ],
+     "a": [
+      "Photograph the reflected stars",
+      "Your camera captures them perfectly. Your star charts do not recognise one."
+     ],
+     "b": [
+      "Just look",
+      "You lie on the crystal and stare at a sky that doesn't exist. It's beautiful."
+     ]
+    },
+    {
+     "title": "Decision",
+     "text": [
+      "Ada's log: \"We could go home now. We've seen it. That would be a good story. I asked everyone. Nobody wanted to go home. Not out of stubbornness. Out of curiosity. That's the only reason good enough. We follow it.\""
+     ],
+     "a": [
+      "Pull up one of their path flags",
+      "You keep it. A small red flag on a wire."
+     ],
+     "b": [
+      "Leave the path for whoever's next",
+      "Someone might need it. You did."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#ebede9",
+     "#a4dddb",
+     "#73bed3",
+     "#4f8fba"
+    ],
+    "ringCol": "#a4dddb",
+    "rings": true,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "An ancient signal, older than the Guild. Follow the Signal to reach Oldhallow."
+  },
+  {
+   "name": "Oldhallow",
+   "type": "Rocky",
+   "star": "red dwarf",
+   "extra": "no rings",
+   "colors": "mossy green stone, a dim red sky",
+   "desc": "A quiet world of huge stone ruins under a dim red sun, older than any known civilisation. Moss covers everything like a blanket.",
+   "odd": "carved stairways that lead up into empty sky",
+   "legs": [
+    {
+     "title": "The ruins",
+     "text": [
+      "Enormous stone halls, worn smooth by time. Nobody knows who built them. The Meridian set up camp in the biggest hall, under a carved ceiling covered in symbols."
+     ],
+     "a": [
+      "Look up at the ceiling",
+      "The symbols spiral inward toward one central mark: a small circle of light."
+     ],
+     "b": [
+      "Check their campfire",
+      "Cold, but carefully built inside a ring of the old stones."
+     ]
+    },
+    {
+     "title": "Others came before",
+     "text": [
+      "Ada's log, quiet: \"The ceiling. It's the Lantern. Somebody carved it here, thousands of years ago. They followed it too. We're not the first. Maybe nobody is ever the first.\""
+     ],
+     "a": [
+      "Trace the carved spiral with your light",
+      "It ends at the circle, and beside it, a small carved figure looking up."
+     ],
+     "b": [
+      "Find more carvings",
+      "On the walls: travellers, boats, ships, all heading the same way."
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "Pressed under a mossy stone, the moss grown slightly over one corner.",
+      "\"Wren's notebook, page 4. Word of the day: Tardigrade. A tiny animal that can survive almost anything: freezing, boiling, even space. It just curls up and waits until things get better. Found some in the moss here. Tomas said he's basically one. I said we all are. Then Noor hugged both of us at once, which was a lot.\""
+     ],
+     "a": [
+      "Look at the moss closely",
+      "Under your lens, tiny round creatures paddle slowly through a water droplet."
+     ],
+     "b": [
+      "Lift the page out gently",
+      "The moss lets go easily, like it was keeping it safe for you."
+     ]
+    },
+    {
+     "title": "Stairs to nowhere",
+     "text": [
+      "A carved staircase climbs into the open sky and stops. At the top, five sets of boot prints in the moss, and a message scratched into the last step: \"WE CLIMBED IT ANYWAY.\""
+     ],
+     "a": [
+      "Climb it too",
+      "At the top there's nothing but sky and the whole ruin below. It's worth it."
+     ],
+     "b": [
+      "Read the message from the bottom",
+      "From down here the stairs look like they go on forever."
+     ]
+    },
+    {
+     "title": "Pell's lesson",
+     "text": [
+      "Pell's log: \"Wren asked if it bothers me, not being the first. No. Every teacher I ever had was someone who came first so I didn't have to start from nothing. Now it's our turn to leave something behind for the next lot. So we're leaving this log. Hello, next lot.\""
+     ],
+     "a": [
+      "Say hello back",
+      "You do, out loud, to an empty hall. It echoes kindly."
+     ],
+     "b": [
+      "Leave something of your own",
+      "You place a small marker beside their campfire ring."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#a8ca58",
+     "#75a743",
+     "#819796",
+     "#402751"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "A dark, quiet signal. Follow the Signal to reach Obsidia."
+  },
+  {
+   "name": "Obsidia",
+   "type": "Carbon",
+   "star": "red dwarf",
+   "extra": "no rings",
+   "colors": "black glass and graphite, a starry sky even at noon",
+   "desc": "A dark world of black glass and graphite plains, where the sky is so clear you can see stars at midday. It's very quiet.",
+   "odd": "black glass hills that reflect the stars so perfectly you can't tell which is up",
+   "legs": [
+    {
+     "title": "The dark camp",
+     "text": [
+      "A small, careful camp. Each crew member set up a lamp outside their tent. The lamps are long dead, but someone painted each one a color: gold, green, blue, red, white."
+     ],
+     "a": [
+      "Light the lamps again",
+      "You replace a battery in each. Five small colors in the dark."
+     ],
+     "b": [
+      "Look at the stars instead",
+      "Stars above, stars reflected below. You float between them."
+     ]
+    },
+    {
+     "title": "Ada's last letter",
+     "text": [
+      "An envelope, addressed for once: \"To whoever follows us.\" Inside: \"If you are reading this, you came a long way to find five people you never met. Thank you. That's a strange kind of love, and I recognise it, because it's the same kind that brought us here.\""
+     ],
+     "a": [
+      "Read the rest",
+      "\"Don't worry about us too much. Whatever happened, we chose it together.\""
+     ],
+     "b": [
+      "Hold the envelope a while first",
+      "It's the first letter she actually addressed."
+     ]
+    },
+    {
+     "title": "Wren asks",
+     "text": [
+      "Wren's log: \"I asked Ada if she's still scared. She said yes, every day. I asked why she keeps going. She said being scared and being curious feel almost the same in your stomach, and she decided to listen to the second one. I wrote that down twice.\""
+     ],
+     "a": [
+      "Play it again",
+      "You find yourself nodding."
+     ],
+     "b": [
+      "Look for her notebook",
+      "Not here. Only her voice this time."
+     ]
+    },
+    {
+     "title": "Five lamps",
+     "text": [
+      "Noor recorded the crew one night, one sentence each, about the trip so far. Tomas: \"I'm still here, and I'm glad.\" Pell: \"I learned more this year than in thirty.\" Wren: \"Everything is interesting if you look long enough.\" Ada: \"I'm proud of us.\" Noor: \"Nobody's ever been this well fed in deep space.\""
+     ],
+     "a": [
+      "Listen with the lamps lit",
+      "The colors flicker as if they're listening too."
+     ],
+     "b": [
+      "Add your own sentence to the recorder",
+      "You say one. It's not for anyone. It's just true."
+     ]
+    },
+    {
+     "title": "Unpacking",
+     "text": [
+      "The crew left things here, deliberately: Ada's unsent letters, tied in a bundle. A note: \"We're travelling light from here. We don't need them anymore. We said it all to each other instead.\""
+     ],
+     "a": [
+      "Leave the bundle where it is",
+      "Some letters are meant to stay unsent."
+     ],
+     "b": [
+      "Take them, carefully, unread",
+      "You'll carry them for her. Somebody should."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#819796",
+     "#7a367b",
+     "#402751",
+     "#241527"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "A signal from deep inside a storm of gas. Follow the Signal to reach Kestrel Reach."
+  },
+  {
+   "name": "Kestrel Reach",
+   "type": "Gas giant",
+   "star": "yellow dwarf",
+   "extra": "huge golden rings",
+   "colors": "cream and copper storm bands, one small grey moon",
+   "desc": "A vast striped giant with rings wide enough to sail through. The Meridian camped on its little grey moon, under a sky that is mostly planet.",
+   "odd": "a storm shaped like an open eye that has watched the moon for centuries",
+   "legs": [
+    {
+     "title": "The moon camp",
+     "text": [
+      "The last proper camp. Everything is packed except five chairs facing the giant planet, and a sixth chair, folded, leaning against a rock."
+     ],
+     "a": [
+      "Unfold the sixth chair",
+      "You sit. The giant fills the whole sky in front of you."
+     ],
+     "b": [
+      "Look at the five chairs",
+      "Each has a blanket folded on it, neatly, like they meant to come back."
+     ]
+    },
+    {
+     "title": "Getting ready",
+     "text": [
+      "Noor's log: \"Everyone's quiet tonight. Not sad. Just full. Wren's checking instruments she checked an hour ago. Pell is singing under his breath. Tomas packed my spices for me without asking. Ada keeps looking at all of us like she's trying to remember us.\""
+     ],
+     "a": [
+      "Play it again",
+      "The second time you notice the music boxes playing softly in the background."
+     ],
+     "b": [
+      "Look up at the storm",
+      "The great storm-eye turns slowly, watching."
+     ]
+    },
+    {
+     "title": "Wren's notebook",
+     "text": [
+      "In a small box on the sixth chair, wrapped in a cloth.",
+      "\"Wren's notebook, page 7. Word of the day: Xenolith. A piece of rock that formed somewhere else and got carried inside another rock. Found one in a meteorite here. A little stranger, travelling inside something bigger, safe. Noor said that's what we are now, carried along together. I think that's the nicest thing anyone has said about a rock.\""
+     ],
+     "a": [
+      "Turn the meteorite over",
+      "The pale fragment inside glints, a stranger safe in the dark stone."
+     ],
+     "b": [
+      "Read it under the ring-light",
+      "The golden rings light the page from the side."
+     ]
+    },
+    {
+     "title": "Pell's knees",
+     "text": [
+      "Pell's log: \"The kids are worried I'm too old for what's next. Maybe. My knees certainly think so. But I've spent my whole life telling young people to go and see. I'm not going to stand at the door and wave. I'm going through it with them.\""
+     ],
+     "a": [
+      "Smile at that",
+      "You can hear him grinning as he says it."
+     ],
+     "b": [
+      "Look for his music box",
+      "Gone. All five are gone. They took them along."
+     ]
+    },
+    {
+     "title": "The last calm night",
+     "text": [
+      "Ada's log: \"The Lantern has stopped moving. It's waiting, near a broken world one jump away. Tomorrow we find out. Whatever it is, I want it on record: these were the best days of my life, and I spent them with the best people I've ever known.\""
+     ],
+     "a": [
+      "Fold the sixth chair back up",
+      "You lean it against the rock, the way they left it."
+     ],
+     "b": [
+      "Take the sixth chair with you",
+      "It was always for whoever came next. That's you."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#ebede9",
+     "#d7b594",
+     "#ad7757",
+     "#752438"
+    ],
+    "ringCol": "#e8c170",
+    "rings": true,
+    "moons": 1,
+    "clouds": false
+   },
+   "signal": "The Meridian's own ship beacon, very close. Follow the Signal to reach Halcyon Drift."
+  },
+  {
+   "name": "Halcyon Drift",
+   "type": "Shattered",
+   "star": "white dwarf",
+   "extra": "a ring of floating fragments",
+   "colors": "broken grey rock, silver light, drifting islands of stone",
+   "desc": "A world broken into floating pieces that drift slowly around each other in silver light. Silent, strange, and peaceful.",
+   "odd": "fragments that drift back together for a moment, then apart again",
+   "legs": [
+    {
+     "title": "The Meridian",
+     "text": [
+      "There she is. The Meridian, docked against a drifting fragment, lights still on, hatch open. Not damaged. Not wrecked. Just empty."
+     ],
+     "a": [
+      "Approach slowly",
+      "Her running lights blink a lazy, friendly rhythm, the same as the first beacon."
+     ],
+     "b": [
+      "Call out on the radio",
+      "Only your own voice comes back. The ship's speakers are on, waiting."
+     ]
+    },
+    {
+     "title": "Inside",
+     "text": [
+      "The galley table is set for five. The kettle is cold. The deck of cards sits squared up in the middle, and when you look, the two of hearts is back in it, finally."
+     ],
+     "a": [
+      "Count the cards",
+      "Fifty-two. Complete for the first time."
+     ],
+     "b": [
+      "Look around the galley",
+      "Noor's spice rack is empty. They took the spices too."
+     ]
+    },
+    {
+     "title": "The bridge",
+     "text": [
+      "Everything switched off carefully, except one screen, playing a loop: the crew, all five, standing in front of the open hatch, waving at the camera. Behind them, outside, a soft light that doesn't look like any star."
+     ],
+     "a": [
+      "Watch the loop several times",
+      "Each time you notice something new: Tomas's hand on Pell's shoulder, Wren mid-laugh, Ada looking back."
+     ],
+     "b": [
+      "Freeze the frame",
+      "Five people and a light, everyone smiling."
+     ]
+    },
+    {
+     "title": "The ship's log",
+     "text": [
+      "The final entry, all five voices passing the recorder round. Tomas: \"Ship's in perfect shape. Better than I found her.\" Noor: \"There's soup in the cooler for whoever finds her.\" Pell: \"Mind the left pull.\" Wren: \"Don't be sad. We're not lost. We know exactly where we're going. We just don't know what it is.\" Ada: \"End of log.\""
+     ],
+     "a": [
+      "Play it to the end",
+      "After \"end of log\" there are three seconds of five people laughing, then silence."
+     ],
+     "b": [
+      "Check the cooler",
+      "There is soup. Of course there is."
+     ]
+    },
+    {
+     "title": "The light outside",
+     "text": [
+      "Through the open hatch, far off between the drifting fragments, a faint soft light. It is not moving. It feels, absurdly, like it's waiting for you."
+     ],
+     "a": [
+      "Close the Meridian's hatch",
+      "You leave her safe and closed, lights on, ready for whoever's next."
+     ],
+     "b": [
+      "Leave the hatch open",
+      "They left it open. You do the same."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#ebede9",
+     "#c7cfcc",
+     "#819796",
+     "#402751"
+    ],
+    "ringCol": "#c7cfcc",
+    "rings": true,
+    "moons": null,
+    "clouds": false
+   },
+   "signal": "No beacon this time. Just the light. Follow the Signal to reach The Threshold."
+  },
+  {
+   "name": "The Threshold",
+   "type": "Dwarf",
+   "star": "no star (lit by the Lantern)",
+   "extra": "no rings",
+   "colors": "smooth pale stone, a soft gold glow from nowhere",
+   "desc": "A tiny world that orbits nothing at all, lit by a gentle gold light that seems to come from everywhere. It is completely quiet.",
+   "odd": "a doorway standing alone on the plain, with nothing on either side",
+   "legs": [
+    {
+     "title": "Five sets of footprints",
+     "text": [
+      "In the pale dust, five pairs of footprints walk side by side toward the horizon. They never stray, never stop, never split up."
+     ],
+     "a": [
+      "Walk beside them",
+      "You make a sixth line of footprints next to theirs."
+     ],
+     "b": [
+      "Walk in their steps",
+      "You take Wren's, the smallest. Her stride is long and eager."
+     ]
+    },
+    {
+     "title": "The music boxes",
+     "text": [
+      "Halfway, five music boxes sit in a small circle on a flat stone, all wound, all silent. When you come close, they start to play, together, slightly out of time, Pell's song."
+     ],
+     "a": [
+      "Listen until they wind down",
+      "They stop one by one. The last one is Pell's."
+     ],
+     "b": [
+      "Wind them up again",
+      "They play once more. It sounds like company."
+     ]
+    },
+    {
+     "title": "Their last notes",
+     "text": [
+      "At the base of the doorway, five folded notes under a stone. Ada: \"Be brave by being curious.\" Tomas: \"Small wins count.\" Noor: \"Feed people.\" Pell: \"Keep learning. Then teach it.\" Wren's note is a single folded page with nothing on it except: \"You already know my question.\""
+     ],
+     "a": [
+      "Read them twice",
+      "You put them back under the stone exactly as they were."
+     ],
+     "b": [
+      "Keep Wren's blank page",
+      "It's not blank to her. It might not be to you."
+     ]
+    },
+    {
+     "title": "The doorway",
+     "text": [
+      "The doorway stands alone on the plain. Through it you can see more plain, more sky, nothing different. Carved across the top: \"For whoever follows.\" Below it, a row of eight empty slots, and above the slots, scratched by a small eager hand: \"Wren's question.\""
+     ],
+     "a": [
+      "Run your hand over the slots",
+      "Each one is the size of a single letter."
+     ],
+     "b": [
+      "Step back and look at the whole door",
+      "It is exactly the size of five people walking side by side."
+     ]
+    },
+    {
+     "title": "The answer",
+     "text": [],
+     "success": [
+      "The slots fill one by one with soft gold light. The doorway hums, very quietly, the way the ice caves on Eskel did. Through it, now, you see a different sky: the stars from the crystal on Brightglass. And very faintly, far away, five lights walking together, and one of them, the smallest, turning back to wave.",
+      "Then five voices, the last recording, all at once and laughing: \"Hello, next lot.\"",
+      "Ada, alone, softly: \"We never found out what it was. We decided that was the point. Go and live. Go and learn. Stay curious. And when you're ready, ask her question, every day, for the rest of your life.\"",
+      "The door goes quiet again, but stays lit. The Meridian story is complete. The light on the Star map stays, so you can come back and stand here whenever you like."
+     ],
+     "a": [
+      "Wave back",
+      "You wave until the five lights are gone. Then a little longer."
+     ],
+     "b": [
+      "Sit down by the door a while",
+      "You unfold the sixth chair, if you brought it, and just sit."
+     ]
+    }
+   ],
+   "look": {
+    "pal": [
+     "#ebede9",
+     "#e8c170",
+     "#d7b594",
+     "#ad7757"
+    ],
+    "ringCol": null,
+    "rings": false,
+    "moons": 0,
+    "clouds": false
+   },
+   "signal": null
+  }
+ ]
+}

@@ -54,6 +54,7 @@ function renderMap() {
     g.fillStyle = held(p) ? '#cf573c' : RCOL[p.rarity] || '#819796';
     if (p.post) { g.fillStyle = '#e8c170'; g.fillRect(x - big - 1, y - big - 1, (big + 1) * 2, (big + 1) * 2); if (p.post.tp) { g.strokeStyle = '#e8c170'; g.strokeRect(x - big - 4, y - big - 4, (big + 4) * 2, (big + 4) * 2); } }
     else { g.beginPath(); g.arc(x, y, big, 0, Math.PI * 2); g.fill(); }
+    if (p.story) { g.strokeStyle = '#e8c170'; g.globalAlpha = S.story.done && p.story.ch === ST_N - 1 ? 1 : .55; g.beginPath(); g.arc(x, y, big + 4, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; } // the Meridian's worlds keep a light
     if (S.at === p.num) { g.strokeStyle = '#a8ca58'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, big + 7, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1; }
     if (mapView.zoom >= 2.5 || p.post || p.rarity === 'Legendary' || S.at === p.num) { g.fillStyle = '#819796'; g.fillText(nm(p), x + 8, y - 6); }
   });

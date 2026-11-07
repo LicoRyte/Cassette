@@ -525,7 +525,7 @@ void main(){
   /* ---------- start the game ---------- */
   const optJson = f => fetch(f, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null); // optional files; bad JSON falls back to the defaults
   optJson('music.json').then(j => music.lists(j));
-  Promise.all([optJson('economy.json'), optJson('items.json'), optJson('campaign.json')]).then(([econ, items, camp]) => {
+  Promise.all([optJson('economy.json'), optJson('items.json')]).then(([econ, items]) => {
     root.replaceChildren();
     return window.Solarist.mount(root, { // a promise: if a game file fails, the catch below shows the error message
       tada: () => play('granted'),
@@ -534,6 +534,6 @@ void main(){
       title: t => { document.title = t; },
       scene,
       settings: appSettings,
-    }, econ, items, camp);
+    }, econ, items);
   }).catch(e => { console.error('Solarist failed to start:', e); root.innerHTML = '<p class="boot">Solarist couldn\'t start. Reload the page to try again.</p>'; });
 })();

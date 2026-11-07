@@ -4,9 +4,8 @@
 const KEY = 'lico-solarist', OLD_KEY = 'lico-archivist'; // where the save lives in this browser
 const MODES = { focus: 'Study', short: 'Short break', long: 'Long break' };
 // what shell.js passed to Solarist.mount (see js/boot.js)
-const { root, econ, items, camp } = SOLARIST_MOUNT, hooks = SOLARIST_MOUNT.hooks || {};
+const { root, econ, items } = SOLARIST_MOUNT, hooks = SOLARIST_MOUNT.hooks || {};
 
-const CAMP = camp && Array.isArray(camp.logs) && camp.logs.length ? camp : null;
 applyItems(items);
 const E = mergeEcon(ECON, econ);
 const el = (tag, attrs, ...kids) => {

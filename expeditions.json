@@ -1,7 +1,7 @@
 {
-  "_help": "Planet expeditions, investigations and manhunts: the text for the 3 legs (landing, crossing, finale), Point of Interest names and derelict salvage. Edit freely and reload. Each leg is [scene, [safe choice, result], [risky choice, result]]. Placeholders: {p} = the world's name, {biome} = one of its biomes (lowercase), {weather} = its weather, {odd} = its oddity, {ship} = a derelict's name. Choices only change the wording and the odds of a find, never break anything.",
+  "_help": "Planet expeditions, investigations and manhunts: the text for the 3 parts (landing, crossing, finale), Point of Interest names and derelict salvage. Edit freely and reload. Each part is [scene, [safe choice, result], [risky choice, result]]. Placeholders: {p} = the world's name, {biome} = one of its biomes (lowercase), {weather} = its weather, {odd} = its oddity, {ship} = a derelict's name. Choices only change the wording and the odds of a find, never break anything.",
 
-  "_landing": "Leg 1, picked by planet type. Gas giant, Ice giant and Glass storm are cloud dives (there is no ground). 'any' is used for a type with no list.",
+  "_landing": "Part 1, picked by planet type. Gas giant, Ice giant and Glass storm are cloud dives (there is no ground). 'any' is used for a type with no list.",
   "landing": {
     "Rocky": [
       ["The shuttle sets down on a plain of cracked grey stone. Dust hangs in the air long after the engines stop.", ["Wait for the dust to settle", "Ten quiet minutes, then a clear view of the whole plain."], ["Step out straight away", "Your boots leave the first prints this rock has ever had."]],
@@ -123,7 +123,7 @@
     ]
   },
 
-  "_crossing": "Leg 2, built from the world's biomes and weather. 'gas' is used for worlds with no ground.",
+  "_crossing": "Part 2, built from the world's biomes and weather. 'gas' is used for worlds with no ground.",
   "crossing": {
     "ground": [
       ["The crew sets off across the {biome}. The weather today: {weather}.", ["Follow the easiest route", "Slow and steady across the {biome}. Nobody twisted an ankle."], ["Take the shortcut", "The shortcut is rough, but it cuts straight through the heart of the {biome}."]],
@@ -143,7 +143,7 @@
     ]
   },
 
-  "_finale": "Leg 3. Worlds with an oddity use 'odd' ({odd} is the oddity). The rest use their rarity. Gas worlds use 'gas' for the rarity finale.",
+  "_finale": "Part 3. Worlds with an oddity use 'odd' ({odd} is the oddity). The rest use their rarity. Gas worlds use 'gas' for the rarity finale.",
   "finale": {
     "odd": [
       ["At last: {odd}. The crew stops and stares.", ["Measure it carefully", "Every number checked twice. The Guild will love this report."], ["Get as close as you dare", "Closer than anyone has ever been. Your hands are still shaking."]],
@@ -156,15 +156,15 @@
       ["A sheltered spot with a good view: the perfect place to plant the survey marker.", ["Plant the marker and head back", "Marked, logged, done. A good day's work."], ["Look around a bit longer", "Behind a boulder: something the scans missed."]]
     ],
     "Uncommon": [
-      ["The final leg ends at a place the scans flagged as 'unusual'. It is.", ["Study it from the edge", "Careful notes, careful pictures."], ["Walk into the middle of it", "Unusual turns out to mean beautiful."]],
+      ["The final part of the trip ends at a place the scans flagged as 'unusual'. It is.", ["Study it from the edge", "Careful notes, careful pictures."], ["Walk into the middle of it", "Unusual turns out to mean beautiful."]],
       ["A hidden valley, completely different from everything around it.", ["Map the edges", "The edges are as interesting as the middle."], ["Walk the length of it", "At the far end, something nobody expected."]]
     ],
     "Rare": [
-      ["The last leg brings you to the place that made this world rare. The scans didn't do it justice.", ["Document everything", "Every detail recorded. Scientists will argue about this for years."], ["Go see it with your own eyes", "No scan could have shown you this."]],
+      ["The last part of the trip brings you to the place that made this world rare. The scans didn't do it justice.", ["Document everything", "Every detail recorded. Scientists will argue about this for years."], ["Go see it with your own eyes", "No scan could have shown you this."]],
       ["Here it is: the reason the Guild will remember this world.", ["Take careful samples", "Neat, labeled, perfect samples."], ["Explore every corner", "In the last corner, the best surprise of the trip."]]
     ],
     "Legendary": [
-      ["The final leg ends somewhere that feels older than anything. The crew speaks in whispers.", ["Leave it exactly as you found it", "You take only pictures. It feels right."], ["Step inside", "Inside, it feels like the world is holding its breath."]],
+      ["The final part of the trip ends somewhere that feels older than anything. The crew speaks in whispers.", ["Leave it exactly as you found it", "You take only pictures. It feels right."], ["Step inside", "Inside, it feels like the world is holding its breath."]],
       ["This is the place people will tell stories about. You're the first to see it.", ["Stand back and record it all", "The recording will be famous. You were there."], ["Walk to the very center", "At the center, everything goes quiet, and something glints."]]
     ],
     "gas": [
@@ -173,7 +173,7 @@
     ]
   },
 
-  "_poi": "Point of Interest names: a form (by leg; 'gas' forms for cloud dives), an optional descriptor, and a made-up name built from 'name' parts. Names never repeat in one Logbook.",
+  "_poi": "Point of Interest names: a form (by part; 'gas' forms for cloud dives), an optional descriptor, and a made-up name built from 'name' parts. Names never repeat in one Logbook.",
   "poi": {
     "forms": {
       "landing": ["Landing", "Basin", "Flats", "Shelf", "Plain", "Cove", "Hollow", "Field", "Terrace", "Bay"],
@@ -399,7 +399,7 @@
     }
   },
 
-  "_manhunt": "Manhunt legs: [track, close in, capture], one list per leg. {b} = the criminal, {g} = their gang, {p} = the world, {biome} = one of its biomes.",
+  "_manhunt": "Manhunt parts: [track, close in, capture], one list per part. {b} = the criminal, {g} = their gang, {p} = the world, {biome} = one of its biomes.",
   "manhunt": [
     [
       ["Somebody on {p} saw {b} buy supplies and head into the {biome}.", ["Follow the supply trail", "Crates, wrappers and one lost boot. The trail is warm."], ["Ask the locals", "Everyone has a story about {b}. Two of them are true, and they point the same way."]],

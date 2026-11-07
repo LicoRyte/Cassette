@@ -43,6 +43,7 @@ if (!S.rw2hd) {
   S.rw2hd = 1;
 }
 function sellBlock(p) { // why a world can't be sold, or null
+  if (p.story) return 'it is part of the Meridian story';
   if (p.post) return 'it has a post';
   if (held(p)) return 'outlaws hold it';
   if (S.mw && S.mw.sighted === p.num) return 'your Most Wanted was sighted here';

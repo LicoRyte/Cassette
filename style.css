@@ -599,3 +599,11 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-pois ul { margin: 0; padding-left: 18px; }
 .sx-pois li { margin: 3px 0; }
 .sx-pois li small { color: var(--mute); }
+
+/* the Meridian story: chapter text, the door */
+.sx-story { font-family: var(--text); font-size: 15px; color: var(--ink); }
+.sx-story-pick { color: var(--soft); }
+.sx-signal { color: #e8c170; }
+.sx-door { display: flex; gap: 6px; margin: 8px 0; }
+.sx-door-in { flex: 1; min-width: 0; padding: 5px 8px; background: none; border: 1px solid var(--dim); color: var(--white); font: 600 17px var(--ui); letter-spacing: .12em; text-transform: lowercase; }
+.sx-door-msg { color: var(--soft); font-style: italic; }

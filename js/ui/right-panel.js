@@ -7,12 +7,10 @@ let rightTab = 'up';
 const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Medals']];
 let txFilter = 'all';
 const evCat = e => e.c || (/^Research/.test(e.title || '') ? 'res' : /^Achievement/.test(e.title || '') ? 'ach' : /^Ship activity|joined the crew|left the crew|^New room/.test(e.title || '') ? 'ship' : /^Distress/.test(e.title || '') ? 'quest' : 'ev');
-const whoOf = lg => (CAMP && CAMP.crew && CAMP.crew[lg.who]) || lg.who;
 function txFeed() {
   const feed = [];
   posts().forEach(f => f.p.post.reports.forEach(r => feed.push(Object.assign(repItem(f.p, r), { c: 'post' }))));
   S.events.forEach(e => feed.push({ at: e.at, k: 'ev', icon: e.ic, title: e.title, t: e.t, extra: e.got, c: evCat(e) }));
-  if (CAMP) for (let i = 0; i < S.camp.n && CAMP.logs[i]; i++) feed.push({ at: S.camp.at[i] || 0, k: 'ev', icon: '📼', title: 'Meridian log ' + (i + 1) + ' · ' + whoOf(CAMP.logs[i]), t: CAMP.logs[i].t, c: 'camp' });
   Object.keys(S.slog).forEach(k => { const L = SHIP_LOGS[k]; if (L) feed.push({ at: S.slog[k], k: 'ev', icon: '🗄', title: L[0], t: slogText(L[1]), c: 'arc' }); });
   return feed.sort((a, b) => b.at - a.at);
 }
@@ -29,14 +27,16 @@ function shipLogsView() { // Ship Logs read like a book: grouped by the research
     el('p', { class: 'sl-muted' }, locked.map(([n, b]) => n + ' (' + b + ')').join(' · '))));
   return out;
 }
-function meridianView() { // the campaign, oldest first, by act
-  if (!CAMP) return [el('p', { class: 'sl-muted' }, 'The campaign file (campaign.json) could not be loaded.')];
-  if (!S.camp.n) return [el('p', { class: 'sl-muted' }, 'No Meridian logs yet. Start the campaign from the left side.')];
-  const out = [], per = Math.ceil(CAMP.logs.length / (CAMP.acts || [1]).length);
-  for (let a = 0; a * per < S.camp.n; a++) {
-    const logs = CAMP.logs.slice(a * per, Math.min(S.camp.n, (a + 1) * per));
-    out.push(el('div', { class: 'sx-sec' }, el('h3', {}, (CAMP.acts || [])[a] || 'Logs'), ...logs.map((lg, i) => campLog(lg, a * per + i + 1))));
-  }
+function meridianView() { // the Meridian story so far, chapter by chapter, like a book
+  if (!STD) return [el('p', { class: 'sl-muted' }, 'The story file (story.json) could not be loaded.')];
+  if (!S.story.log.length) return [el('p', { class: 'sl-muted' }, 'Nothing yet. When a signal is waiting, pick Follow the Signal on Explore.')];
+  const out = [];
+  STD.chapters.forEach((c, ch) => { const legs = S.story.log.filter(l => l.ch === ch); if (!legs.length) return;
+    out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Chapter ' + (ch + 1) + ': ' + c.name), ...legs.map(l => {
+      const leg = c.legs[l.leg];
+      if (leg.success) return el('div', { class: 'sl-trans-i sx-camp' }, el('div', { class: 'sx-camp-h' }, el('span', {}, leg.title)), ...leg.success.map(t => el('p', {}, t)), el('p', { class: 'sx-story-pick' }, el('b', {}, leg[l.pick][0] + ': '), leg[l.pick][1]));
+      return storyBlock(ch, l.leg, l.pick); })));
+  });
   return out;
 }
 const txUnread = () => txFeed().filter(it => it.at > (S.txSeen || 0)).length;

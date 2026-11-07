@@ -73,9 +73,9 @@ function poiList(p) {
     x.poi.length ? el('ul', {}, x.poi.map(o => el('li', {}, el('b', {}, o.name), el('small', {}, ' ' + EX_PARTS[o.leg] + ' · ' + o.note)))) : el('p', { class: 'sl-muted' }, 'None charted yet. Run an expedition here to find some.'));
 }
 const exMeter = p => { const n = exOf(p).step, odd = !!p.odd && !p.story, inv = invOf(p).done;
-  return el('span', { class: 'sx-exm', title: 'Explored: ' + n + ' of ' + EX_LEN + ' expedition legs' + (odd ? (inv ? ', anomaly solved' : ', anomaly not solved yet') : ''), 'aria-label': 'Explored ' + n + ' of ' + EX_LEN + (odd ? (inv ? ', anomaly solved' : ', anomaly unsolved') : '') },
+  return el('span', { class: 'sx-exm', title: 'Explored: ' + n + ' of ' + EX_LEN + ' expedition parts' + (odd ? (inv ? ', anomaly solved' : ', anomaly not solved yet') : ''), 'aria-label': 'Explored ' + n + ' of ' + EX_LEN + (odd ? (inv ? ', anomaly solved' : ', anomaly unsolved') : '') },
     Array.from({ length: EX_LEN }, (_, k) => el('i', { class: k < n ? 'on' : '' })), odd ? el('i', { class: 'inv' + (inv ? ' on' : '') }) : null); };
-const HEAD = { outlaw: '🏴 Outlaw-held world · ', freed: '⚔ World liberated · ', new: '★ New world discovered · ', log: 'World ', lucky: '🧭 Coordinator-guided discovery · ', built: '🗼 Listening Post built · ', upgraded: '🏘 Travelers\' Post opened · ', opened: '🏗 New facility · ', last: 'Last discovery · ' };
+const HEAD = { story: '📡 A Meridian world · ', outlaw: '🏴 Outlaw-held world · ', freed: '⚔ World liberated · ', new: '★ New world discovered · ', log: 'World ', lucky: '🧭 Coordinator-guided discovery · ', built: '🗼 Listening Post built · ', upgraded: '🏘 Travelers\' Post opened · ', opened: '🏗 New facility · ', last: 'Last discovery · ' };
 function planetCard(p, kind) {
   const tuned = S.tuned === p.num && !!p.post;
   const pic = el('div', { class: 'sl-picwrap' }, el('img', { class: 'sl-pic', src: paint(p, 64), alt: 'Pixel portrait of ' + nm(p), width: 128, height: 128 }),
@@ -84,7 +84,7 @@ function planetCard(p, kind) {
   return [
     el('div', { class: 'sl-card-h' }, el('span', {}, (HEAD[kind] || '') + pad(p.num)), el('span', { class: 'sl-rar sl-r-' + p.rarity.toLowerCase() }, p.rarity)),
     el('div', { class: 'sl-pl' }, pic,
-      el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), held(p) ? el('span', { class: 'sl-tag sl-tag-bad', title: 'Held by ' + p.outlaw.gang }, '🏴 Outlaws') : null, S.mw && S.mw.sighted === p.num ? el('span', { class: 'sl-tag sl-tag-bad', title: S.mw.name + ' was sighted here' }, '🎯 Sighted') : null, invOf(p).done ? el('span', { class: 'sl-tag', title: 'Its anomaly is in your Codex' }, '🔬 Solved') : null, p.outlaw && p.outlaw.cleared ? el('span', { class: 'sl-tag', title: 'You drove out ' + p.outlaw.gang }, '⚔ Liberated') : null, p.lucky ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Found by following the Interplanetary Coordinator' }, '🧭 Coordinated') : null, p.nudged && p.nudged.length ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Steered by your Coordinator chips' }, '🎛 Steered') : null, exDone(p) ? el('span', { class: 'sl-tag', title: 'Every leg of its expedition is done' }, '✓ Explored') : null, tuned ? el('span', { class: 'sl-tag' }, '📡 Tuned') : p.post ? el('span', { class: 'sl-tag off' }, p.post.tp ? '🏘 Travelers\' Post' : '🗼 Post') : null),
+      el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), held(p) ? el('span', { class: 'sl-tag sl-tag-bad', title: 'Held by ' + p.outlaw.gang }, '🏴 Outlaws') : null, S.mw && S.mw.sighted === p.num ? el('span', { class: 'sl-tag sl-tag-bad', title: S.mw.name + ' was sighted here' }, '🎯 Sighted') : null, invOf(p).done ? el('span', { class: 'sl-tag', title: 'Its anomaly is in your Codex' }, '🔬 Solved') : null, p.outlaw && p.outlaw.cleared ? el('span', { class: 'sl-tag', title: 'You drove out ' + p.outlaw.gang }, '⚔ Liberated') : null, p.lucky ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Found by following the Interplanetary Coordinator' }, '🧭 Coordinated') : null, p.nudged && p.nudged.length ? el('span', { class: 'sl-tag sl-tag-coord', title: 'Steered by your Coordinator chips' }, '🎛 Steered') : null, exDone(p) ? el('span', { class: 'sl-tag', title: 'Every part of its expedition is done' }, '✓ Explored') : null, p.story ? el('span', { class: 'sl-tag sl-tag-coord', title: 'A world from the Meridian story' }, '📡 Meridian') : null, tuned ? el('span', { class: 'sl-tag' }, '📡 Tuned') : p.post ? el('span', { class: 'sl-tag off' }, p.post.tp ? '🏘 Travelers\' Post' : '🗼 Post') : null),
         el('div', { class: 'sl-code' }, p.code + ' · ' + p.type + ' · ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable'), el('p', {}, logText(p)))),
     el('details', { class: 'sl-more' }, el('summary', {}, 'Survey data'), facts(p)),
     poiList(p),
@@ -97,7 +97,7 @@ function showCard(p, kind) {
   const e = p && p.enc && (kind === 'new' || kind === 'lucky') ? p.enc : null;
   encBox.hidden = !e; encBox.replaceChildren(...(e ? [el('div', { class: 'sl-enc-h' }, '- ' + e.ic + ' ' + e.title + ' -'), el('p', {}, e.t), el('p', { class: 'sl-enc-got' }, 'You gain ✦ ' + e.dust + ' resources')] : []));
   if (!p) { card.hidden = true; card.replaceChildren(); return; }
-  card.hidden = false; card.className = 'sl-card' + (kind === 'new' || kind === 'built' || kind === 'lucky' || kind === 'upgraded' || kind === 'opened' || kind === 'freed' ? ' new' : kind === 'outlaw' ? ' new sl-held' : '');
+  card.hidden = false; card.className = 'sl-card' + (kind === 'new' || kind === 'story' || kind === 'built' || kind === 'lucky' || kind === 'upgraded' || kind === 'opened' || kind === 'freed' ? ' new' : kind === 'outlaw' ? ' new sl-held' : '');
   card.replaceChildren(...planetCard(p, kind));
   // in the report, Survey data opens as a panel to the right instead of growing the report downward
   reportSide.hidden = true; reportSide.replaceChildren();
@@ -127,19 +127,18 @@ function sessionReports() { // what the satellite hears at the end of a study se
   if (others.length) { const o = others[Math.floor(Math.random() * others.length)]; const fr = o.post.tp.fac.length && Math.random() < .6 ? facReport(o) : null; out.push({ p: o, rep: fr || transmit(o), passive: true }); }
   return out;
 }
-const KIND_LABEL = { talk: 'Conversation', action: 'Ship recorder', thought: 'Private diary' };
-function actOf(n) { const per = Math.ceil(CAMP.logs.length / (CAMP.acts || [1]).length); return (CAMP.acts || [])[Math.floor((n - 1) / per)] || ''; }
-function campLog(lg, n, got) { // one recovered Meridian log
-  const who = (CAMP.crew && CAMP.crew[lg.who]) || lg.who;
-  return el('div', { class: 'sl-trans-i sx-camp sx-camp-' + (lg.kind || 'talk') },
-    el('div', { class: 'sx-camp-h' }, el('span', {}, (CAMP.title || 'Campaign') + ', log ' + n + ' of ' + CAMP.logs.length), el('small', {}, actOf(n))),
-    el('div', { class: 'sx-camp-who' }, who, el('small', {}, KIND_LABEL[lg.kind] || '')),
-    el('p', {}, lg.t), got ? el('p', { class: 'sl-ev-got' }, '+' + got + ' ✦ for recovering the log') : null);
+// one finished Meridian leg, as shown in the session report and the story log
+function storyBlock(ch, legI, pick, got, signal) {
+  const c = STD.chapters[ch], leg = c.legs[legI], o = leg[pick] || leg.a;
+  return el('div', { class: 'sl-trans-i sx-camp' },
+    el('div', { class: 'sx-camp-h' }, el('span', {}, 'Chapter ' + (ch + 1) + ': ' + c.name), el('small', {}, 'Part ' + (legI + 1) + ' · ' + leg.title)),
+    ...leg.text.map(t => el('p', {}, t)), el('p', { class: 'sx-story-pick' }, el('b', {}, o[0] + ': '), o[1]),
+    got ? el('p', { class: 'sl-ev-got' }, got) : null, signal ? el('p', { class: 'sx-signal' }, '📡 ' + signal) : null);
 }
 function showTrans(list) {
   if (!list || !list.length) { trans.hidden = true; trans.replaceChildren(); return; }
   trans.hidden = false;
-  trans.replaceChildren(...list.map(({ p, rep, passive, ev, notes, camp: lg, n: ln, got: lgot }) => lg ? campLog(lg, ln, lgot) : notes ? el('div', { class: 'sl-trans-i sl-notes' }, notes.map(t => el('p', {}, t))) : ev ? el('div', { class: 'sl-trans-i sl-event' },
+  trans.replaceChildren(...list.map(({ p, rep, passive, ev, notes, story: sy }) => sy ? storyBlock(sy.ch, sy.leg, sy.pick, sy.got, sy.signal) : notes ? el('div', { class: 'sl-trans-i sl-notes' }, notes.map(t => el('p', {}, t))) : ev ? el('div', { class: 'sl-trans-i sl-event' },
       el('div', { class: 'sl-trans-h' }, el('span', { class: 'sl-ev-i' }, ev.ic), (ev.battle ? ' ' : ' Deep-space event: ') + ev.title), el('p', {}, ev.t), ev.got ? el('p', { class: 'sl-ev-got' }, ev.got) : null)
     : el('div', { class: 'sl-trans-i' },
     el('div', { class: 'sl-trans-h' }, el('img', { src: satSprite(), alt: '' }), (passive ? ' Overheard from ' : ' Transmission from ') + nm(p) + ' · Day ' + rep.day), el('p', {}, rep.t))));

@@ -4,7 +4,7 @@
 'use strict';
 
 const EXD = SOLARIST_MOUNT.expd && SOLARIST_MOUNT.expd.landing ? SOLARIST_MOUNT.expd : null;
-const EX_PLAIN = ['The crew sets out to explore.', ['Play it safe', 'A careful, steady leg.'], ['Take a risk', 'A bolder route, and a better view.']];
+const EX_PLAIN = ['The crew sets out to explore.', ['Play it safe', 'A careful, steady part.'], ['Take a risk', 'A bolder route, and a better view.']];
 const EX_LEN = 3, EX_PARTS = ['Landing', 'Crossing', 'Finale'];
 const EXP = E.expedition;
 const gasWorld = p => !!(TYPES[p.type] || {}).noGround;
@@ -60,7 +60,7 @@ function exLegDone(reps) {
   const gotTxt = '📍 ' + poi.name + ' · +' + dust + ' ✦' + (got.length ? ' · 🎒 ' + got.map((it, i) => it.name + ' (' + it.rar + (fresh[i] ? ', new!' : '') + ')').join(', ') : '');
   reps.unshift({ ev: { battle: true, ic, title: head, t: leg[0] + ' ' + opt[1], got: gotTxt } });
   pushEv({ c: 'quest', ic, title: head, t: leg[0] + ' (' + opt[0] + ') ' + opt[1], got: gotTxt, at: Date.now() });
-  return fin ? ic + ' ' + nm(p) + ' is fully explored! You charted ' + x.poi.length + ' Points of Interest.' : '📍 Charted ' + poi.name + '. ' + (EX_LEN - x.step) + ' leg' + (EX_LEN - x.step === 1 ? '' : 's') + ' to go.';
+  return fin ? ic + ' ' + nm(p) + ' is fully explored! You charted ' + x.poi.length + ' Points of Interest.' : '📍 Charted ' + poi.name + '. ' + (EX_LEN - x.step) + ' part' + (EX_LEN - x.step === 1 ? '' : 's') + ' to go.';
 }
 
 // ---------- Derelict ship: a rare arrival encounter. One session of salvage, one find. ----------
@@ -90,7 +90,7 @@ function salvageDone(reps) {
 if (!S.rw1) {
   if (S.exp) {
     const legs = S.exp.step || 0, pay = legs ? addDust(EXP.pay * legs) : 0;
-    pushEv({ c: 'quest', ic: '🗺', title: 'Expeditions belong to worlds now', t: 'Every world has its own expedition, three study sessions long, and each leg charts a Point of Interest. Discover is gone: its finds, Knowledge and pay come from expeditions now. Your daily expedition was closed' + (legs ? ' and its ' + legs + ' finished leg' + (legs === 1 ? ' was' : 's were') + ' paid out.' : '.'), got: pay ? '+' + pay + ' ✦' : null, at: Date.now() });
+    pushEv({ c: 'quest', ic: '🗺', title: 'Expeditions belong to worlds now', t: 'Every world has its own expedition, three study sessions long, and each part charts a Point of Interest. Discover is gone: its finds, Knowledge and pay come from expeditions now. Your daily expedition was closed' + (legs ? ' and its ' + legs + ' finished part' + (legs === 1 ? ' was' : 's were') + ' paid out.' : '.'), got: pay ? '+' + pay + ' ✦' : null, at: Date.now() });
     S.exp = null;
   }
   if (S.mission === -2 || S.mission === -4) S.mission = 0;

@@ -37,7 +37,7 @@ const report = el('div', { class: 'sx-report', hidden: true, role: 'dialog', 'ar
   el('div', { class: 'sx-report-row' }, el('div', { class: 'sx-report-in' }, el('h2', {}, 'Session report'), encBox, trans, card, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeReport() }, 'Continue'))), reportSide));
 report.addEventListener('click', e => { if (e.target === report) closeReport(); });
 let typeT = 0;
-function typeOut() { // campaign logs and transmissions print like an old ship terminal; a click on the report finishes them
+function typeOut() { // Meridian legs and transmissions print like an old ship terminal; a click on the report finishes them
   clearInterval(typeT);
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const ps = [...trans.querySelectorAll('.sx-camp p:not(.sl-ev-got), .sl-trans-i:not(.sl-notes):not(.sl-event) > p')].filter(p => p.textContent.length > 0);

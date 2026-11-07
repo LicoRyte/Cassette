@@ -16,14 +16,14 @@ if (S.kp == null) S.kp = S.kn || 0;
 const hasT = id => !!S.tech[id];
 // Research: [id, name, base cost, what it does, what it unlocks]. Costs are base x researchCost from economy.json.
 const RESEARCH = [
-  ['Survey', [['scan1', 'Deep Scanners', 40, 'Expedition legs find a collectible more often (+15 percentage points).'], ['scan2', 'Xenobiology', 150, 'Living worlds give twice as many specimens, and every expedition leg teaches +10 Knowledge.'], ['scan3', 'Archaeology', 320, 'Artifacts and relics turn up far more often, and one expedition leg in three digs up rarer things.'],
-    ['scan4', 'Core Sampling', 560, 'Expedition legs teach +15 more Knowledge, and one in five brings back an extra collectible.', { logs: ['s1'] }]]],
+  ['Survey', [['scan1', 'Deep Scanners', 40, 'Expedition parts find a collectible more often (+15 percentage points).'], ['scan2', 'Xenobiology', 150, 'Living worlds give twice as many specimens, and every expedition part teaches +10 Knowledge.'], ['scan3', 'Archaeology', 320, 'Artifacts and relics turn up far more often, and one expedition part in three digs up rarer things.'],
+    ['scan4', 'Core Sampling', 560, 'Expedition parts teach +15 more Knowledge, and one in five brings back an extra collectible.', { logs: ['s1'] }]]],
   ['Navigation', [['nav1', 'Star Charting', 40, 'Chance meetings on new worlds happen more often (+5 percentage points).'], ['nav2', 'Coordinator Tuning', 180, 'Charging the Interplanetary Coordinator also pays 40 resources.'], ['nav3', 'Signal Triangulation', 320, 'Trade Stations show up twice as often.'],
     ['nav4', 'Stellar Cartography', 600, 'Reveals the Star medals: find a world around every kind of star.', { logs: ['n1'] }]]],
   ['Economy', [['eco1', 'Guild Contacts', 50, 'The Cartographers\' Guild pays 15% more for worlds you sell.'], ['eco2', 'Trade Routes', 200, 'Travelers\' Posts pay 50% more trade, and the trade cap goes up by 40.'], ['eco3', 'Master Builders', 400, 'Facility upgrades cost 15% less.'],
     ['eco4', 'Collector\'s License', 580, 'Trade Stations pay 25% more for your spares.', { logs: ['e1'] }]]],
   ['Ship', [['shp1', 'Efficient Engines', 50, 'Every study session pays 10% more resources.'], ['shp2', 'Reinforced Hull', 220, 'Driving out outlaws pays 50% more.'], ['shp3', 'Long-Range Comms', 350, 'Deep-space events happen 50% more often.'],
-    ['shp4', 'Black Box Decoder', 640, 'Every Meridian log pays 25% more resources.', { logs: ['k1'] }]]],
+    ['shp4', 'Black Box Decoder', 640, 'Every Meridian chapter part pays 25% more resources.', { logs: ['k1'] }]]],
   ['Xenology', [['xen1', 'Signal Recording', 80, 'Your antennas start catching old broadcasts on every expedition.', { cat: 'sig', logs: ['x1'] }], ['xen2', 'Paleontology', 240, 'Expeditions can dig up the remains of ancient life, especially on living worlds.', { cat: 'fos', logs: ['x2'] }],
     ['xen3', 'Numismatics', 400, 'Traders, outlaws and grateful strangers start carrying old money.', { cat: 'coin', logs: ['x3'] }], ['xen4', 'Anomaly Containment', 700, 'Strange worlds give up their strangest things.', { cat: 'ano', logs: ['x4'] }]]],
   ['Archives', [['arc1', 'Guild Records', 60, 'Open the Cartographers\' Guild archive.', { logs: ['g1', 'g2'] }], ['arc2', 'Outlaw Dossiers', 180, 'What the Guild knows about the gangs.', { logs: ['o1', 'o2'] }], ['arc3', 'Coordinator Schematics', 320, 'What is actually inside the lucky box.', { logs: ['c1', 'c2'] }],

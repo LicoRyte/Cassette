@@ -41,14 +41,12 @@ function finish(quiet) {
       if (hooks.show) hooks.show();
       toBreak();
       hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
-    } else if (campaigning()) {
-      const n = S.camp.n, log = CAMP.logs[n]; S.camp.n++; { const cd = S.cnt.campDay = S.cnt.campDay || { d: '', n: 0, best: 0 }; if (cd.d !== today()) { cd.d = today(); cd.n = 0; } cd.n++; cd.best = Math.max(cd.best, cd.n); }
-      const got = addDust((E.campaign.base + E.campaign.perLog * n) * (hasT('shp4') ? 1.25 : 1)); S.camp.at[n] = Date.now(); award(15, 20);
-      reps.unshift({ camp: log, n: n + 1, got });
+    } else if (chaptering()) {
+      const msg = chLegDone(reps);
       if (!quiet && hooks.tada) hooks.tada();
       if (hooks.show) hooks.show();
       showCard(null); toBreak();
-      hint.textContent = (campDone() ? 'That was the last log. The campaign is complete.' : 'Log ' + (n + 1) + ' of ' + CAMP.logs.length + ' recovered.') + ' Now a ' + MODES[mode].toLowerCase() + '.';
+      hint.textContent = msg + ' Now a ' + MODES[mode].toLowerCase() + '.';
     } else if (expediting() || investigating() || salvaging() || hunting() || shifting()) {
       const msg = expediting() ? exLegDone(reps) : investigating() ? invDone(reps) : salvaging() ? salvageDone(reps) : hunting() ? mwLeg(reps) : stShift(reps);
       if (!quiet && hooks.tada) hooks.tada();
@@ -97,6 +95,13 @@ function finish(quiet) {
       showCard(o, 'freed'); reps.unshift({ ev: { battle: true, ic: '⚔', title: 'Victory on ' + nm(o), t: story + ' Found ' + loot + '.', got: '+' + extra + ' ✦ bounty from the outlaws' } });
       toBreak();
       hint.textContent = nm(o) + ' is free! Explore is open again. Now a ' + MODES[mode].toLowerCase() + '.';
+    } else if (following()) { // Follow the Signal: the next Meridian world (no visitors there)
+      const { p, fresh } = followSignal(); chipsReturn();
+      if (!quiet && hooks.tada) hooks.tada();
+      if (hooks.show) hooks.show();
+      showCard(p, fresh ? 'story' : 'log'); foundP = fresh ? p : null;
+      toBreak();
+      hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (see Here, on the left).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + ' Now a ' + MODES[mode].toLowerCase() + '.';
     } else {
       const amp = chipAmp(), lucky = !!S.coord && !(ev && ev.got); if (lucky) S.coord = false;
       const p = nudgedPlanet(lucky, Math.min(.2, (lvl('scanner') - 1) * .01), amp);
@@ -165,7 +170,7 @@ function drawClock() {
     hooks.scene({ mode, kind: pv ? 'view' : kind, pv: !!pv, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null, trader: !pv && S.trader ? S.trader.num : null, station: S.station ? S.station.num : null });
     if (pv) { const tm = pvBar.querySelector('.sx-pv-time'); if (tm) tm.textContent = running ? '⏱ ' + fmt(r) + (mode === 'focus' ? ' left to study' : ' of break left') : ''; }
   }
-  if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : campaigning() ? 'Following the trail' : expediting() ? 'Exploring' : investigating() ? 'Investigating' : salvaging() ? 'Salvaging' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
+  if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : chaptering() ? 'The Meridian' : following() ? 'Following the signal' : expediting() ? 'Exploring' : investigating() ? 'Investigating' : salvaging() ? 'Salvaging' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
 }
 // while a study session runs, everything that isn't pure data is put away (back at the break)
 let wasLocked = false, rightPrev = 'up';
@@ -178,13 +183,14 @@ function draw() {
   drawClock(); drawLv();
   root.dataset.mode = mode;
   modeBtns.forEach(b => { const on = b.dataset.m === mode; b.classList.toggle('on', on); b.disabled = running && !on; });
-  startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (S.dr ? (S.dr.n ? 'Continue the Run' : 'Start the Run') : campaigning() ? 'Follow the trail' : expediting() ? (exOf(atP()).step ? 'Continue' : 'Set out') : investigating() ? 'Investigate' : salvaging() ? 'Salvage' : hunting() ? 'Start the hunt' : shifting() ? 'Start the shift' : building() ? (building().k === 'upgrade' ? 'Upgrade' : 'Build') : charging() ? 'Charge' : heldP() ? 'Fight' : 'Launch') : 'Start break');
-  if (!hint.textContent) hint.textContent = mode === 'focus' ? (S.dr ? '🆘 ' + DISTRESS[S.dr.sc][2] + ' Finish this study session to keep going.' : expediting() ? (gasWorld(atP()) ? '🎈 ' : '🗺 ') + 'Finish this session for the ' + EX_PARTS[exOf(atP()).step].toLowerCase() + ' leg of the expedition on ' + nm(atP()) + ' (' + (exOf(atP()).step + 1) + ' of ' + EX_LEN + '). It charts a Point of Interest.' : investigating() ? '🔬 Finish this session to study ' + atP().odd + ' (' + Math.round(invOf(atP()).pct * 100) + '% so far).' : salvaging() ? '🛸 Finish this session to salvage ' + atP().derelict.ship + '.' : hunting() ? '🎯 Finish this session: Manhunt for ' + S.mw.name + ', ' + MH_PARTS[S.mw.hunt.step].toLowerCase() + ' (' + (S.mw.hunt.step + 1) + ' of 3).' : campaigning() ? 'Finish this session to reach the Meridian\'s next log beacon (log ' + (S.camp.n + 1) + ' of ' + CAMP.logs.length + ').' : building() ? 'Finish this session: ' + jobText(building()).replace(/^./, c => c.toLowerCase()) + '.' : charging() ? (S.chargeKind === 'hyper' ? '⚡ Finish this session to add a hyperdrive charge (' + (S.hyper || 0) + ' of ' + Math.round(E.hyperdrive.max) + ' now). No new world this time.' : 'Finish this session to charge the Interplanetary Coordinator. No new world this time, but the next one will be a good one.') : heldP() ? '🏴 ' + heldP().outlaw.gang.replace(/^the/, 'The') + ' hold ' + nm(heldP()) + '. Finish this study session to drive them out. (Build and Charge still work.)' : S.coord ? '🧭 The Coordinator is charged: this trip has much better odds.' : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
+  startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (S.dr ? (S.dr.n ? 'Continue the Run' : 'Start the Run') : chaptering() ? 'Continue the chapter' : following() ? 'Follow the Signal' : expediting() ? (exOf(atP()).step ? 'Continue' : 'Set out') : investigating() ? 'Investigate' : salvaging() ? 'Salvage' : hunting() ? 'Start the hunt' : shifting() ? 'Start the shift' : building() ? (building().k === 'upgrade' ? 'Upgrade' : 'Build') : charging() ? 'Charge' : heldP() ? 'Fight' : 'Launch') : 'Start break');
+  if (!hint.textContent) hint.textContent = mode === 'focus' ? (S.dr ? '🆘 ' + DISTRESS[S.dr.sc][2] + ' Finish this study session to keep going.' : expediting() ? (gasWorld(atP()) ? '🎈 ' : '🗺 ') + 'Finish this session for the ' + EX_PARTS[exOf(atP()).step].toLowerCase() + ' part of the expedition on ' + nm(atP()) + ' (' + (exOf(atP()).step + 1) + ' of ' + EX_LEN + '). It charts a Point of Interest.' : investigating() ? '🔬 Finish this session to study ' + atP().odd + ' (' + Math.round(invOf(atP()).pct * 100) + '% so far).' : salvaging() ? '🛸 Finish this session to salvage ' + atP().derelict.ship + '.' : hunting() ? '🎯 Finish this session: Manhunt for ' + S.mw.name + ', ' + MH_PARTS[S.mw.hunt.step].toLowerCase() + ' (' + (S.mw.hunt.step + 1) + ' of 3).' : chaptering() ? '📡 Finish this session for chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1) + ' of ' + ST_LEGS + ' on ' + nm(atP()) + '.' : following() ? '📡 ' + signalText() : building() ? 'Finish this session: ' + jobText(building()).replace(/^./, c => c.toLowerCase()) + '.' : charging() ? (S.chargeKind === 'hyper' ? '⚡ Finish this session to add a hyperdrive charge (' + (S.hyper || 0) + ' of ' + Math.round(E.hyperdrive.max) + ' now). No new world this time.' : 'Finish this session to charge the Interplanetary Coordinator. No new world this time, but the next one will be a good one.') : heldP() ? '🏴 ' + heldP().outlaw.gang.replace(/^the/, 'The') + ' hold ' + nm(heldP()) + '. Finish this study session to drive them out. (Build and Charge still work.)' : S.coord ? '🧭 The Coordinator is charged: this trip has much better odds.' : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
   if (S.mission > 0 && !building()) { S.mission = 0; S.job = null; }
   if (S.mission === -1 && !charging()) S.mission = 0;
   if (S.mission === -8 && !investigating()) S.mission = 0;
   if (S.mission === -2) S.mission = 0; // Discover is gone
-  if (S.mission === -3 && campDone()) S.mission = 0;
+  if (S.mission === -3 && !chaptering()) S.mission = 0;
+  if (S.exploreKind === 'signal' && !signalOn()) S.exploreKind = 'random';
   if (S.mission === -4 && !expediting()) S.mission = 0;
   if (S.mission === -7 && !salvaging()) S.mission = 0;
   if (S.mission === -5 && !hunting()) S.mission = 0;
@@ -202,7 +208,7 @@ function draw() {
     if (k === 'investigate') b.hidden = !canInvestigate(atP()) || !!S.dr;
     if (k === 'charge') b.hidden = !canCharge('coord') && !canCharge('hyper') && !on;
     if (k === 'explore') { const o = heldP(); b.firstChild.textContent = o ? '⚔' : '🚀'; b.lastChild.textContent = o ? 'Fight' : S.coord ? 'Explore (lucky)' : 'Explore'; b.title = o ? 'Outlaws hold ' + nm(o) + ': fight them off with one study session before you can travel again' : MISSIONS[0][3]; b.classList.toggle('sl-fight', !!o); }
-    if (k === 'campaign') { b.hidden = !campaigning(); }
+    if (k === 'campaign') { b.hidden = !chHere() || atDoor() || !!S.dr; }
     if (k === 'hunt') { b.hidden = !mwHere() || !!S.dr; }
     if (k === 'shift') { b.hidden = !stHere(); }
     if (k === 'charge') b.title = MISSIONS.find(m => m[0] === 'charge')[3];
@@ -212,6 +218,8 @@ function draw() {
   misNote.textContent = mode === 'focus' && !S.dr ? misGives(cm) : '';
   if (cm === 'build') { fillBuildSel(buildSel); buildSel.value = jobKey(building()); }
   chargeSel.hidden = cm !== 'charge'; chargeSel.disabled = locked;
+  exploreSel.hidden = cm !== 'explore' || !signalOn() || !!heldP() || !!S.dr; exploreSel.disabled = locked;
+  if (!exploreSel.hidden) fillExploreSel();
   if (cm === 'charge') fillChargeSel();
   const round = mode === 'focus' ? S.cycle % S.set.every + 1 : (S.cycle % S.set.every || S.set.every);
   const stars = S.fc.broken ? '' : ' ' + '★'.repeat(Math.min(S.set.every, S.fc.n)) + '☆'.repeat(Math.max(0, S.set.every - S.fc.n));
