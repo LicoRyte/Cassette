@@ -1,0 +1,453 @@
+{
+  "_help": "Planet expeditions, investigations and manhunts: the text for the 3 legs (landing, crossing, finale), Point of Interest names and derelict salvage. Edit freely and reload. Each leg is [scene, [safe choice, result], [risky choice, result]]. Placeholders: {p} = the world's name, {biome} = one of its biomes (lowercase), {weather} = its weather, {odd} = its oddity, {ship} = a derelict's name. Choices only change the wording and the odds of a find, never break anything.",
+
+  "_landing": "Leg 1, picked by planet type. Gas giant, Ice giant and Glass storm are cloud dives (there is no ground). 'any' is used for a type with no list.",
+  "landing": {
+    "Rocky": [
+      ["The shuttle sets down on a plain of cracked grey stone. Dust hangs in the air long after the engines stop.", ["Wait for the dust to settle", "Ten quiet minutes, then a clear view of the whole plain."], ["Step out straight away", "Your boots leave the first prints this rock has ever had."]],
+      ["A boulder field, every stone the size of a house. There is just one gap big enough to land in.", ["Circle until you are sure", "Three passes, one gentle touchdown. Nobody spilled their tea."], ["Drop into the gap", "A tight squeeze and a loud thump, but you're down, and closer to everything."]],
+      ["A canyon floor, deep in shadow. The walls above glow orange where the light hits them.", ["Land on the rim and rope down", "Slow and safe. The view from the rim was worth it."], ["Fly down into the canyon", "The walls rush past. The pilot will talk about this for weeks."]]
+    ],
+    "Ocean": [
+      ["Nothing but water from horizon to horizon. The shuttle settles onto the waves like a duck.", ["Drop the sea anchor", "The shuttle bobs gently in place. Fish come up to look at it."], ["Drift with the current", "The current carries you somewhere nobody has charted yet."]],
+      ["A tiny island, barely bigger than the shuttle, pokes out of a calm sea.", ["Land on the island", "A dry, careful landing. You claim the island by planting a spoon in it."], ["Splash down beside it and swim over", "Wet, cold and very refreshing. The crew raced each other to the beach."]],
+      ["The sea is perfectly flat, like a mirror. The sky and the water look exactly the same.", ["Trust the instruments", "The altimeter talks you down. A soft, boring, perfect splashdown."], ["Fly by eye", "For a dizzy second up and down swap places. Then: splash."]]
+    ],
+    "Jungle": [
+      ["Trees taller than towers, and not one clearing in sight. The canopy sways below the shuttle.", ["Find a riverbank to land on", "A muddy but solid landing by slow brown water."], ["Lower the crew on cables into the canopy", "You hang between giant leaves, and the jungle goes quiet to look at you."]],
+      ["A clearing, freshly made. Something big pushed these trees over, and not long ago.", ["Land at the edge, ready to leave", "Engines warm, eyes open. Nothing big comes back. Probably fine."], ["Land in the middle and look around", "Footprints the size of bathtubs, and they lead somewhere."]],
+      ["Mist so thick the shuttle's lights turn it white. Somewhere below, birds are shrieking.", ["Hover until the mist lifts", "By noon the mist burns off, and the jungle is suddenly, loudly green."], ["Land blind on the radar", "You touch down on a fallen trunk as wide as a road."]]
+    ],
+    "Desert": [
+      ["Dunes in every direction, rippled like a frozen sea. The sand is the color of old gold.", ["Land on the hard flats", "The flats are baked solid. A clean, dusty landing."], ["Land on the tallest dune", "The shuttle slides a little, then stops. From up here you can see forever."]],
+      ["A dry riverbed winds across the sand. Whatever water made it is long gone.", ["Follow it on foot from the shuttle", "A long, hot walk down the old river, past stones polished smooth."], ["Land right in the riverbed", "The riverbed is full of things the water left behind."]],
+      ["The wind is picking up. The horizon is turning brown.", ["Land in the lee of a rock", "The rock takes the wind for you. The sand hisses past outside."], ["Race the storm down", "You land with the storm on your heels, then watch it roll over the shuttle."]]
+    ],
+    "Ice": [
+      ["A sheet of white ice with no landmarks at all. The shuttle's shadow is the only dark thing for miles.", ["Drill a test hole first", "The ice is a kilometre thick. Safe to land. Very safe."], ["Set down on the shiny patch", "It's glare ice. The shuttle skates a long way before it stops."]],
+      ["Blue glaciers pour down from the mountains, cracked into towers and bridges.", ["Land below the glacier", "A safe spot on the gravel, with the ice groaning politely overhead."], ["Land on top of the glacier", "Up among the ice towers, everything glows blue."]],
+      ["Snow is falling, slow and heavy, and the landing lights turn every flake gold.", ["Wait for the snow to stop", "It stops at dawn. Everything is soft and silent."], ["Land in the snowfall", "You touch down in a cloud of powder and the crew starts a snowball fight."]]
+    ],
+    "Lava": [
+      ["Black rock, still warm, crossed by glowing orange cracks. The shuttle's shield ticks as it heats.", ["Land on the oldest, coolest rock", "Hard and black and safe. The heat shimmers a polite distance away."], ["Land close to a lava river", "The glow lights up the whole cabin. The engineer is sweating, and not only from the heat."]],
+      ["A field of hardened lava, twisted into ropes and frozen waves.", ["Pick a flat spot and take your time", "Gentle and slow. The rock crunches like toast."], ["Land on the ridge for the view", "From the ridge you can see three volcanoes, all of them busy."]],
+      ["The ground is coming up through a curtain of ash.", ["Hold position until it thins", "The ash settles and the black plain shines with glass."], ["Push through on instruments", "Ash scrapes the windows, then suddenly clears over a glowing valley."]]
+    ],
+    "Gas giant": [
+      ["There is no ground here, just cloud. The shuttle noses down into the top layer of cream-colored haze.", ["Dive slowly, layer by layer", "Each layer is a different color. The gauges tick steadily."], ["Drop straight through", "Your stomach stays three layers up. The rest of you arrives fast."]],
+      ["A cloud-dive begins at the edge of a storm band. Wind tugs at the hull.", ["Ride the calm edge", "The calm edge carries you down like an elevator."], ["Dive into the band", "The storm throws the shuttle around, then spits it out somewhere deep."]],
+      ["The upper clouds glow faintly. Lightning flickers somewhere far below.", ["Dive between the flashes", "Careful timing. The lightning stays where you can see it."], ["Dive toward the lightning", "Every flash lights up cliffs of cloud bigger than continents."]]
+    ],
+    "Ice giant": [
+      ["A cloud-dive into blue haze. The cold reaches through the hull like fingers.", ["Dive slowly with the heaters on full", "Warm inside, blue outside. A gentle descent."], ["Dive fast while the heaters keep up", "Frost spreads across the window, then the haze opens below you."]],
+      ["Methane clouds drift past in long blue ribbons.", ["Follow a ribbon down", "The ribbon spirals gently into the deep."], ["Cut straight across them", "You punch through ribbon after ribbon, each one a different shade of blue."]],
+      ["The winds up here are faster than sound. The shuttle shudders.", ["Turn with the wind", "You stop fighting it and the ride goes quiet and smooth."], ["Hold your heading", "A loud, rattling minute, and then you're through into calm air."]]
+    ],
+    "Glass storm": [
+      ["A cloud-dive into a sky full of glass. Tiny shards rattle off the hull like rain.", ["Raise the shields and dive slowly", "The shields hum. The glass rain sounds almost pretty from inside."], ["Dive between the gusts", "Fast and tricky. The glass glitters like a snow globe around you."]],
+      ["The upper clouds are silver and they glow with heat.", ["Stay high a while and cool down", "The hull cools, the crew relaxes, then down you go."], ["Dive into the heat", "The cabin gets very warm and very bright."]],
+      ["Sideways rain, made of melted glass, streaks past the windows.", ["Turn into the rain", "Head on, the shards slide off the nose. Slow but smooth."], ["Dive under it", "You slip beneath the rain band into a strange, still layer."]]
+    ],
+    "Toxic": [
+      ["Green-yellow fog rolls across the ground. The sensors call it 'please do not breathe this'.", ["Seal the suits twice", "Double seals, slow steps, and everyone is fine."], ["Land and get moving fast", "Quick and careful. The fog swirls behind you like it's curious."]],
+      ["Pools of bubbling liquid steam in a broken landscape. Everything smells like rotten eggs, even through the filters.", ["Land on high, dry rock", "Above the fumes. The air sensors stop beeping."], ["Land beside the pools", "The pools bubble in rainbow colors. Lovely, from a safe distance."]],
+      ["Acid rain is falling, very lightly.", ["Wait under the shuttle's wing", "The rain stops, the ground hisses and dries."], ["Walk out in the rain", "Your suit sizzles faintly. It was built for this. Mostly."]]
+    ],
+    "Crystal": [
+      ["Fields of clear crystal, taller than trees. The landing lights bounce everywhere at once.", ["Land on a dull patch", "No reflections, no glare, no fuss."], ["Land among the crystals", "Rainbows dance across the cabin as you settle in."]],
+      ["The ground rings like a bell when the shuttle touches it.", ["Shut the engines off gently", "The ringing fades slowly, like a song finishing."], ["Stamp to hear it again", "The whole valley chimes back at you."]],
+      ["Crystal spires catch the light and throw it in every direction. It's hard to judge distance.", ["Use the radar, not your eyes", "The radar sees through the glare. A neat landing."], ["Trust your eyes", "You land a little further away than you meant to, but somewhere beautiful."]]
+    ],
+    "Tidally locked": [
+      ["One side of this world is always day, the other always night. You land in the twilight band between them.", ["Land on the dusk side", "Long shadows, cool air, a sunset that never moves."], ["Land on the day side edge", "The sun hangs fixed in the sky. It will never set here."]],
+      ["Halfway between fire and ice, the ground is a strip of cracked, gentle stone.", ["Stay in the middle of the strip", "Not too hot, not too cold. Just right."], ["Land near the night side", "Stars overhead, and behind you, a sun that never sets."]],
+      ["The wind always blows the same way here, from the hot side to the cold one.", ["Land facing into the wind", "Steady and calm. The wind hums over the hull."], ["Land with the wind behind you", "The shuttle glides further than planned, into the long dusk."]]
+    ],
+    "Garden": [
+      ["Soft green hills, small lakes, puffy white clouds. It looks like a picture on a biscuit tin.", ["Land in a meadow", "The grass is soft and smells like summer."], ["Land by the lake", "The water is clear enough to count the stones on the bottom."]],
+      ["A valley full of flowers in colors that don't have names yet.", ["Land at the edge so you don't squash any", "Gentle and polite. The flowers seem to approve."], ["Land in the middle of it", "Petals swirl up around the shuttle like confetti."]],
+      ["Warm rain is falling on gentle green hills.", ["Wait for the sun", "The sun comes out and the whole valley steams and sparkles."], ["Land in the rain", "The crew steps out with their faces turned up."]]
+    ],
+    "Savanna": [
+      ["Golden grass to the horizon, with lonely flat-topped trees here and there.", ["Land under a tree", "Shade, a breeze, and a view of the whole plain."], ["Land in the open grass", "The grass hisses in the wind all around the shuttle."]],
+      ["A herd of something large is grazing in the distance. They look up as you come in.", ["Land far away from them", "Quiet and respectful. They go back to eating."], ["Land closer to see them", "They are huge and gentle, and very interested in the shuttle."]],
+      ["A dry season wind is pushing the grass flat in long waves.", ["Land facing the wind", "A firm, steady landing."], ["Ride the gusts down", "A bouncy landing, and a lot of grass seeds in everybody's hair."]]
+    ],
+    "Tundra": [
+      ["A flat, frozen plain of moss and stones. The wind never quite stops.", ["Land on the gravel", "Firm ground, cold air, very clean light."], ["Land on the moss", "The moss is springy and the shuttle sinks a little. It's comfy."]],
+      ["Low hills, patches of old snow, and small brave flowers poking through.", ["Land in a sheltered hollow", "Out of the wind. It's almost warm."], ["Land on a hilltop", "Wind everywhere, and a view of a hundred little lakes."]],
+      ["The sun is very low and the shadows are very long. It's barely afternoon.", ["Land before the light goes", "A quick, careful touchdown in golden light."], ["Fly on to the far ridge", "You land at the ridge in a sunset that lasts an hour."]]
+    ],
+    "Swamp": [
+      ["Warm water, tangled roots, and a smell like a very old sandwich.", ["Land on a floating mat of reeds", "It holds. It squelches, but it holds."], ["Land in the shallow water", "The shuttle settles into warm mud up to its knees."]],
+      ["Mist hangs over black water. Something splashes, then goes quiet.", ["Land on the biggest tree root", "A strange landing pad, but a sturdy one."], ["Land where the splash was", "Ripples, bubbles, and then two big eyes. They blink and sink away."]],
+      ["Glowing insects drift over the water like floating lanterns.", ["Land without disturbing them", "They circle the shuttle and settle on the wings."], ["Fly through the swarm", "For a moment you're inside a cloud of tiny lights."]]
+    ],
+    "Fungal": [
+      ["Mushrooms the size of houses, in red, white and purple. The air is thick with spores.", ["Land on bare rock", "A clean landing. The filters hum against the spores."], ["Land on a giant cap", "It wobbles like jelly, then holds firm."]],
+      ["The ground is soft and spongy, and it glows faintly blue wherever you step.", ["Lay down landing mats", "The mats keep the shuttle steady on the soft ground."], ["Land straight on it", "The shuttle sinks a little and the whole field lights up around it."]],
+      ["Puffballs as big as cars burst softly as the shuttle's wind hits them.", ["Come in slowly to spare them", "Only two pop. The crew counts it as a win."], ["Come in fast", "A huge cloud of spores billows up, glittering in the light."]]
+    ],
+    "Hycean": [
+      ["A deep, warm ocean under a thick hydrogen sky. The water steams gently.", ["Float on the surface", "The shuttle rocks in warm, slow waves."], ["Dive just under the surface", "Below the waves the water glows a soft green."]],
+      ["Clumps of floating weed, big as islands, drift across the sea.", ["Land on a weed island", "It's springy and wet and holds you up just fine."], ["Land in the open water beside one", "The weed island turns slowly around you."]],
+      ["The sky is hazy and the sea is very calm. Everything is warm and damp.", ["Splash down gently", "A soft landing in water warm as a bath."], ["Skim the waves before you land", "A long white wake trails behind you across the sea."]]
+    ],
+    "Iron": [
+      ["The ground is rusty red and very hard. The compass spins in lazy circles.", ["Land on instruments only", "Steady and slow. The compass gives up, the radar doesn't."], ["Land on the shiny metal ridge", "Your boots clank on solid iron."]],
+      ["Metal cliffs rise out of red dust, streaked with rust like old paint.", ["Land well away from the cliffs", "Safe and quiet, with the cliffs glowing in the distance."], ["Land at the foot of the cliffs", "Up close the cliffs ring when the wind blows."]],
+      ["Magnetic storms make the shuttle's screens flicker.", ["Wait for the storm to pass", "The screens steady. The crew had a nap."], ["Land in the flicker", "A bumpy landing, and every metal spoon on board points north."]]
+    ],
+    "Carbon": [
+      ["A dark plain of graphite and black glass. The sky is full of stars even in daytime.", ["Land on the flat graphite", "A smooth, quiet landing. The ground is slippery like pencil lead."], ["Land on the glassy patch", "The stars reflect in the ground. It feels like landing in space."]],
+      ["Tar pits bubble slowly among black hills.", ["Land on the hill", "High, dry and safe from the tar."], ["Land near the pits", "The tar smells like a road on a hot day."]],
+      ["Something glitters in the dark ground: diamonds, small and everywhere.", ["Land carefully on bare rock", "The diamonds sparkle all around, out of reach of the shuttle feet."], ["Land right on the glitter", "Diamonds crunch under the landing gear. Nobody tells the Guild."]]
+    ],
+    "Shattered": [
+      ["This world is broken into floating pieces. You pick the biggest one and come in slowly.", ["Land on the biggest fragment", "Solid, safe, and it barely wobbles."], ["Land on a small, spinning one", "The stars wheel around overhead as the rock turns."]],
+      ["Rocks the size of cities drift past each other in silence.", ["Wait for a gap and slip through", "Patience. The gap opens and you glide in."], ["Thread between them", "Close calls on both sides, and a landing on a rock no map has."]],
+      ["Gravity is weak and odd here. Dust floats upward from the ground.", ["Land with anchors out", "The anchors bite and the shuttle stays put."], ["Let the shuttle drift down", "It takes ten minutes to land. Everyone floats a little on the way out."]]
+    ],
+    "Dwarf": [
+      ["A tiny world. You can see the curve of the horizon from the landing spot.", ["Land on the flat side", "A gentle bump. You could walk around this world in a week."], ["Land on the highest point", "From up here you can almost see the other side."]],
+      ["Gravity is so low here that the shuttle barely weighs anything.", ["Land with the engines on low", "A feather landing. It didn't even raise dust."], ["Cut the engines and drift down", "It takes a long time, but it's the gentlest landing ever made."]],
+      ["Grey dust and small craters, and a big world hanging huge in the sky above.", ["Land in the oldest crater", "Quiet, flat and full of soft dust."], ["Land on a crater rim", "The big world fills half the sky. The crew just stares."]]
+    ],
+    "Rogue": [
+      ["This world has no sun. You land by the shuttle's floodlights alone.", ["Land slowly, lights on full", "A careful landing in a small circle of light."], ["Land in the dark and look up", "You turn the lights off. The stars are brighter than you have ever seen them."]],
+      ["Frozen ground in total darkness. The only warmth comes from deep underground.", ["Land on the warm patch", "The ground here is just above freezing. It feels like a hug."], ["Land on the far ice", "Cold and black and perfectly still."]],
+      ["A thin frost covers everything. It sparkles in the floodlights like sugar.", ["Land on solid rock", "Steady and safe."], ["Land on the frost", "The frost crunches like snow under the landing gear."]]
+    ],
+    "any": [
+      ["The shuttle drops through thin cloud toward an unknown surface.", ["Land where the scans say it's safe", "A careful, by-the-book landing."], ["Land where it looks most interesting", "A bumpier landing, and a much better view."]]
+    ]
+  },
+
+  "_crossing": "Leg 2, built from the world's biomes and weather. 'gas' is used for worlds with no ground.",
+  "crossing": {
+    "ground": [
+      ["The crew sets off across the {biome}. The weather today: {weather}.", ["Follow the easiest route", "Slow and steady across the {biome}. Nobody twisted an ankle."], ["Take the shortcut", "The shortcut is rough, but it cuts straight through the heart of the {biome}."]],
+      ["Drones scout ahead over the {biome}, but {weather} keeps cutting their signal.", ["Wait for the signal to come back", "The drones reconnect and map a safe path."], ["Go on without them", "You walk blind for an hour and come out somewhere new."]],
+      ["The {biome} stretches ahead further than anyone expected.", ["Set up a camp halfway", "A night under strange skies, and an early start."], ["Push on through the night", "You arrive at dawn, tired and very proud."]],
+      ["Halfway across the {biome}, the path splits in two.", ["Take the wider path", "The wider path is easy going all the way."], ["Take the narrow one", "The narrow path squeezes between rocks and opens onto a hidden spot."]],
+      ["{weather} rolls in over the {biome} just as you set off.", ["Shelter and wait", "It passes. The {biome} looks freshly washed."], ["Keep walking through it", "Hard going, but you see the {biome} in a way nobody else has."]],
+      ["A rover takes the crew across the {biome}. It makes a worrying rattle.", ["Drive slowly and nurse it", "The rattle stays a rattle. You make it across."], ["Floor it", "The rattle becomes a bang, but you get there first."]],
+      ["Strange tracks cross the {biome}. Something lives out here.", ["Give the tracks a wide berth", "Whatever made them stays out of sight."], ["Follow the tracks", "They lead to a spot that was clearly someone's favorite place."]],
+      ["The {biome} is quiet. Very quiet. Only {weather} breaks the silence.", ["Walk quietly and listen", "You hear things you never would have noticed."], ["Sing a walking song", "Badly, loudly, all together. The {biome} doesn't complain."]]
+    ],
+    "gas": [
+      ["Deeper in, the shuttle drifts through the {biome}. Outside: {weather}.", ["Hold a steady depth", "The {biome} slides past, calm and enormous."], ["Ride an updraft", "The updraft throws you through layer after layer of the {biome}."]],
+      ["A current runs through the {biome} like a river in the sky.", ["Float alongside it", "The current carries the shuttle gently along."], ["Jump into it", "It whips you round half the planet in an hour."]],
+      ["The pressure rises. The hull creaks as you sink into the {biome}.", ["Stay at a safe depth", "The creaking stops. The view is still amazing."], ["Go a little deeper", "Deeper and darker, until something huge looms in the haze."]],
+      ["{weather} flickers through the {biome} around you.", ["Wait it out", "It passes, and the clouds part like curtains."], ["Fly through it", "A wild minute, and then calm, glowing air."]]
+    ]
+  },
+
+  "_finale": "Leg 3. Worlds with an oddity use 'odd' ({odd} is the oddity). The rest use their rarity. Gas worlds use 'gas' for the rarity finale.",
+  "finale": {
+    "odd": [
+      ["At last: {odd}. The crew stops and stares.", ["Measure it carefully", "Every number checked twice. The Guild will love this report."], ["Get as close as you dare", "Closer than anyone has ever been. Your hands are still shaking."]],
+      ["You find it on the third ridge: {odd}. It's even stranger up close.", ["Photograph it from a distance", "Perfect pictures, and nobody had to touch anything."], ["Walk right up to it", "Up close you notice things the pictures would never show."]],
+      ["The scanners lead the crew to {odd}, just as the light starts to fade.", ["Camp nearby and wait for morning", "In the morning light it looks completely different."], ["Explore it now, in the dusk", "In the half-light it almost seems to move."]],
+      ["Nobody talks on the last stretch. Ahead is {odd}.", ["Take it all in quietly", "You stand there for a long time. Some things don't need words."], ["Climb for a better view", "From up high the whole thing makes sense, and then it doesn't again."]]
+    ],
+    "Common": [
+      ["The last stretch ends at a quiet overlook above the whole landscape.", ["Sit and rest", "A cup of tea with a view nobody else has seen."], ["Climb the last ridge", "From the top, the whole world spreads out below."]],
+      ["A sheltered spot with a good view: the perfect place to plant the survey marker.", ["Plant the marker and head back", "Marked, logged, done. A good day's work."], ["Look around a bit longer", "Behind a boulder: something the scans missed."]]
+    ],
+    "Uncommon": [
+      ["The final leg ends at a place the scans flagged as 'unusual'. It is.", ["Study it from the edge", "Careful notes, careful pictures."], ["Walk into the middle of it", "Unusual turns out to mean beautiful."]],
+      ["A hidden valley, completely different from everything around it.", ["Map the edges", "The edges are as interesting as the middle."], ["Walk the length of it", "At the far end, something nobody expected."]]
+    ],
+    "Rare": [
+      ["The last leg brings you to the place that made this world rare. The scans didn't do it justice.", ["Document everything", "Every detail recorded. Scientists will argue about this for years."], ["Go see it with your own eyes", "No scan could have shown you this."]],
+      ["Here it is: the reason the Guild will remember this world.", ["Take careful samples", "Neat, labeled, perfect samples."], ["Explore every corner", "In the last corner, the best surprise of the trip."]]
+    ],
+    "Legendary": [
+      ["The final leg ends somewhere that feels older than anything. The crew speaks in whispers.", ["Leave it exactly as you found it", "You take only pictures. It feels right."], ["Step inside", "Inside, it feels like the world is holding its breath."]],
+      ["This is the place people will tell stories about. You're the first to see it.", ["Stand back and record it all", "The recording will be famous. You were there."], ["Walk to the very center", "At the center, everything goes quiet, and something glints."]]
+    ],
+    "gas": [
+      ["Deep in the clouds, the shuttle reaches the calm heart of the storm system.", ["Hover in the calm", "Silence, and walls of cloud rising on every side."], ["Dive to the bottom of the calm", "At the bottom, the clouds glow from below."]],
+      ["The deepest layer the shuttle can reach. Pressure gauges in the red.", ["Turn back at the limit", "Safe, with readings no one has ever taken."], ["Hold on one minute more", "One more minute, and a sight worth every creak of the hull."]]
+    ]
+  },
+
+  "_poi": "Point of Interest names: a form (by leg; 'gas' forms for cloud dives), an optional descriptor, and a made-up name built from 'name' parts. Names never repeat in one Logbook.",
+  "poi": {
+    "forms": {
+      "landing": ["Landing", "Basin", "Flats", "Shelf", "Plain", "Cove", "Hollow", "Field", "Terrace", "Bay"],
+      "crossing": ["Pass", "Steps", "Crossing", "Trail", "Gap", "Ridge", "Hollow", "Ford", "Narrows", "Track"],
+      "finale": ["Spire", "Grotto", "Crown", "Heart", "Sanctum", "Gate", "Throne", "Eye", "Vault", "Overlook"],
+      "gas": ["Drift", "Current", "Layer", "Vortex", "Eye", "Deep", "Veil", "Updraft", "Shoal", "Reach"]
+    },
+    "descriptors": [
+      "Glass",
+      "Whispering",
+      "Sunken",
+      "Silver",
+      "Quiet",
+      "Broken",
+      "Golden",
+      "Hidden",
+      "Burning",
+      "Frozen",
+      "Singing",
+      "Crooked",
+      "Shining",
+      "Hollow",
+      "Long",
+      "Lonely",
+      "Shimmering",
+      "Restless",
+      "Velvet",
+      "Iron",
+      "Copper",
+      "Misty",
+      "Starlit",
+      "Drowned",
+      "Gentle",
+      "Wandering",
+      "Crimson",
+      "Pale",
+      "Echoing",
+      "Forgotten"
+    ],
+    "nameStart": [
+      "Kes",
+      "Ul",
+      "Va",
+      "Mor",
+      "Thal",
+      "Ser",
+      "Bri",
+      "Oro",
+      "Ves",
+      "Ilm",
+      "Dar",
+      "Nim",
+      "Cal",
+      "Ash",
+      "Ty",
+      "Fen",
+      "Lor",
+      "Zan",
+      "Eri",
+      "Hal",
+      "Quel",
+      "Sa",
+      "Rhe",
+      "Ond"
+    ],
+    "nameEnd": ["ra", "mo", "dun", "vane", "is", "eth", "ora", "wyn", "ak", "ell", "ari", "oth", "ine", "us", "en", "ira", "ock", "and", "esh", "ul"]
+  },
+
+  "_derelict": "Derelict ship encounter: a 1-session salvage. ships = possible names ({ship} in the scenes).",
+  "derelict": {
+    "ships": [
+      "the freighter Patient Dawn",
+      "the survey ship Long Question",
+      "the tug Little Bertha",
+      "the liner Silver Comet",
+      "the ore hauler Big Maud",
+      "the courier Swift Reply",
+      "the yacht Golden Afternoon",
+      "the science vessel Curious Fox",
+      "the tanker Slow Goodbye",
+      "the mail ship Ninth Delivery"
+    ],
+    "legs": [
+      ["{ship} drifts in a slow tumble, lights dark, hatch half open.", ["Match its spin and dock carefully", "A long, careful dance, then a soft clunk. You're in."], ["Cut in through the cargo bay", "Quick and noisy. The cargo bay is still half full."]],
+      ["{ship} is wedged in a ring of ice, frozen in place for who knows how long.", ["Thaw a way in with the heaters", "Slow, warm and safe. The ice drips away from the airlock."], ["Blast through the ice", "Ice everywhere, but the hatch is right there."]],
+      ["{ship} is perfectly intact, as if the crew just stepped out for a moment.", ["Search it room by room", "Everything is neat and labeled. Somebody loved this ship."], ["Head straight for the captain's cabin", "The captain kept the good stuff close."]],
+      ["{ship} is broken in two, both halves drifting slowly apart.", ["Salvage the safe half", "The safe half gives up its secrets without a fight."], ["Jump across to the other half", "A leap across empty space, and a cabin nobody has opened in years."]]
+    ]
+  },
+
+  "_investigate": "Investigate: progress lines shown after each session ({odd} = the oddity), and the codex: one explanation per oddity, matched by its exact text (see planet-data.js ODD). An oddity with no entry gets a general explanation.",
+  "investigate": {
+    "steps": [
+      "The science team set up instruments around {odd} and took a long first look.",
+      "Samples from {odd} went into the lab. Two machines disagreed about them, which is always a good sign.",
+      "The team mapped {odd} from every side and checked it against everything in the database.",
+      "Someone stayed up all night watching {odd}. They saw something important just before dawn.",
+      "The crew argued about {odd} over dinner. The best idea came from the cook.",
+      "Drones flew slow passes over {odd} and brought back thousands of measurements."
+    ],
+    "fallback": "The team worked it out: it's a rare but natural process, the kind that only happens when a planet's rock, weather and history all line up just so.",
+    "codex": {
+      "a perfectly round lake": "A meteorite hit soft, wet ground at exactly the right angle, and the crater filled from below. The circle is so perfect because the rock underneath is the same in every direction.",
+      "ruins of an ancient structure": "The walls are older than any known people. The stones were cut with tools nobody has found, then fitted without mortar. Whoever built them planned for it to last, and it did.",
+      "a second, tiny star in its sky": "The tiny star is a brown dwarf, too small to shine properly, caught in a wide orbit. It glows a dull red, like an ember that never quite went out.",
+      "rings that glow at night": "The ring dust is full of minerals that soak up light all day and give it back slowly in the dark. The rings are, quite literally, glow-in-the-dark.",
+      "a mountain taller than Olympus Mons": "With weak gravity and no plate movement, one volcano kept erupting in the same spot for a billion years. Nothing pushed it down, so it just kept growing.",
+      "a canyon that circles the whole planet": "Long ago the planet's crust cooled and shrank like the skin of a drying apple. It split along its waist, and the crack never closed.",
+      "a moon that orbits backwards": "The moon wasn't born here. It was a passing rock that got captured going the wrong way, and it has been driving against the traffic ever since.",
+      "a magnetic field strong enough to scramble the compass": "The core is spinning unusually fast and is very rich in iron. Compasses don't break here; they just get very, very confused.",
+      "a repeating radio pulse from the surface": "A crystal deposit is squeezed by the planet's tides every few seconds, and squeezed crystals give off tiny electric pulses. It's a natural radio station playing one note forever.",
+      "giant crystal arches": "Mineral-rich water once flowed over sand dunes and grew crystals along their curves. The sand blew away. The crystal shapes of the dunes stayed.",
+      "a crater shaped like a heart": "Two meteorites struck side by side, a split second apart, and their craters merged. The heart shape is a coincidence. The crew decided not to believe that.",
+      "a storm that has not moved in centuries": "The storm sits on top of a huge mountain range deep below the clouds. The mountains hold it in place like a stone in a stream.",
+      "a lake that glows at night": "The water is full of tiny living things that glow when they are disturbed. Every ripple, fish or falling leaf lights them up.",
+      "floating rock islands": "The rocks are full of a magnetic mineral, and the planet's field pushes against them. They float like magnets held apart, a little higher every year.",
+      "a geyser taller than any mountain": "Low gravity, thin air and a huge pocket of boiling water underground. When it goes, nothing pulls the water back down for a very long time.",
+      "a perfectly straight canyon": "A crack in the crust followed a weak line in the rock that runs straight as a ruler. Rivers then carved along the crack for millions of years.",
+      "spiral-shaped dunes": "The wind here turns in a slow circle every day, following the sun. The dunes simply follow the wind, and the wind goes round and round.",
+      "mirror-smooth salt plains that reflect the stars": "An ancient sea dried out and left a layer of salt so flat that a thin sheet of rainwater turns it into a mirror the size of a country.",
+      "trees of pure crystal": "Hot, mineral-heavy water rose through the roots of ancient trees and slowly replaced every cell with crystal. The forest died, but it kept its shape.",
+      "a waterfall that falls upward in the wind": "The cliff faces into a constant, powerful wind. The water does fall, but the wind is stronger and throws it back up as spray.",
+      "a desert that sings when the wind changes": "The sand grains are all the same size and very dry. When the wind slides them down a dune, they rub together and hum a low, steady note.",
+      "a valley where it always rains, and only there": "Warm, wet air from the sea is pushed up the valley walls every day and cools into rain. The air that leaves the valley is completely dry.",
+      "a forest of stone trees": "A volcano buried a forest in ash. Water carried minerals through the wood for millions of years, and the trees turned slowly into stone.",
+      "a sea that freezes every night and melts every morning": "The sea is very shallow and very salty, and the nights here are sharply cold. It is always right on the edge of freezing, and falls over each evening.",
+      "a crater lake shaped like a perfect star": "A meteorite hit rock that was already cracked in five directions. The impact opened the cracks like petals, and water filled them in.",
+      "a volcano made of ice": "Instead of lava, this volcano erupts slushy water and ammonia from a hidden ocean below. It freezes as it flows, building a mountain of ice.",
+      "rivers that run in a circle": "The land tilts gently in a ring around a high central plateau. Water flows downhill all the way round and ends up where it started.",
+      "sand that glows when you step on it": "The grains are coated in a mineral that lights up under pressure. A footstep cracks the coating just enough to make it shine.",
+      "a mountain with a hole straight through it": "Wind carrying sand blasted the same narrow ridge for ages until it wore all the way through. The hole is still growing, very slowly.",
+      "clouds that form the same shape every afternoon": "The same hills heat up in the same way every afternoon, pushing warm air up in the same pattern. The clouds just copy the hills below.",
+      "an island that drifts across the ocean": "The island is a thick mat of plant roots and pumice stone, light enough to float. Currents push it on a slow tour of the sea.",
+      "a canyon that echoes for a full minute": "The walls are smooth, curved and perfectly parallel. Sound bounces between them back and forth, losing very little each time.",
+      "a field of hexagonal stone columns": "Thick lava cooled slowly and shrank evenly as it hardened. Shrinking rock cracks into six-sided columns, the most efficient shape for the job.",
+      "a moon that eclipses the sun every single day": "The moon's orbit lines up exactly with the path of the sun across the sky. Every day, for a few minutes, it slides right across it.",
+      "a shadow on the ground with nothing to cast it": "The shadow is a patch of dark mineral that soaks up almost all light. It happens to be shaped like a shadow. The crew still doesn't like walking on it.",
+      "pink snow on the highest peaks": "Tiny algae live in the snow up high. They make a red pigment to protect themselves from strong sunlight, and turn the snow pink.",
+      "a hot spring that bubbles in rhythm": "Underground, water fills a chamber, boils, and pushes out through a narrow pipe in pulses. The rhythm is set by the size of the chamber, like a heartbeat.",
+      "a lake of liquid glass": "Extreme heat from the planet's interior keeps a pool of melted sand liquid at the surface. It flows like honey and glows faintly orange.",
+      "a glacier the color of rust": "The ice carries fine iron dust from the mountains. Where the ice melts at the surface, the iron meets the air and rusts.",
+      "a single tree taller than a skyscraper": "Low gravity and a wet, stable climate let one very lucky tree keep growing for thousands of years. Nothing ever stopped it.",
+      "lightning that only strikes one hill": "The hill sits on top of a huge iron deposit. It's the easiest path to the ground for every storm for miles around.",
+      "a ring of standing stones nobody put there": "Frost lifted these boulders out of the ground over thousands of years and pushed them outward into a ring. Probably. Nobody is fully sure.",
+      "a beach of black pearls": "Shellfish in the warm shallows coat grains of volcanic sand in layers of dark shell. When they die, the pearls wash up by the million.",
+      "fog that flows uphill": "The valley floor is warmer than the slopes at night. The warm, damp air rises and drags the fog up the hillside with it.",
+      "a plain covered in perfectly round boulders": "These rocks grew from the inside out, layer by layer, around a tiny seed of shell or bone, long ago in an ancient seabed.",
+      "a tide that comes in once a year": "The planet's moons and sun only line up once a year. The rest of the time their pulls cancel out, and the sea barely moves.",
+      "a sunrise in the west": "The planet spins backwards compared to most worlds. Its sun rises in the west and sets in the east, and nobody here thinks that is strange.",
+      "a cliff that hums at sunset": "As the rock cools at sunset, it shrinks and creaks. The cliff is so big and so evenly made that the creaks join into one long hum.",
+      "a meteor crater with a second, smaller crater exactly in the middle": "Big impacts often bounce the ground back up into a central peak. Here, a second, smaller rock later hit that peak. The odds are tiny, but space is big.",
+      "stars visible in the middle of the day": "The air is so thin and clean that it barely scatters sunlight. Without a bright blue sky in the way, the stars are always there.",
+      "a beach where the waves come in sideways": "A long underwater ridge bends the waves before they reach the shore, so they roll along the beach instead of toward it.",
+      "a lake that tastes like lemonade (do not drink it)": "The water is full of dissolved acids and natural sugars from local plants. It tastes like lemonade. It would also dissolve your teeth.",
+      "a valley full of floating pebbles": "The pebbles are pumice, full of tiny gas bubbles. In this thick, heavy air they're just light enough to drift on gentle updrafts.",
+      "a mountain shaped like a sleeping cat": "Wind and ice wore down soft rock and left harder rock behind, in a shape that looks exactly like a curled-up cat. Science calls this a coincidence. The crew calls it Mittens.",
+      "a forest that only grows in perfect circles": "Each circle is one plant spreading outward from the middle, the old center dying as the edge grows. Seen from above, it looks like rings on water.",
+      "cliffs that ring like bells in the wind": "The cliffs are thin sheets of hard, glassy rock. When the wind hits them they vibrate like the strings of a giant instrument.",
+      "an ocean with a whirlpool the size of a country": "Two strong tides meet over a deep underwater basin and turn against each other. The water has been spinning there for as long as there has been water.",
+      "a moon close enough to see its craters with your eyes": "The moon is slowly spiraling inward. One day, in a hundred million years or so, it will come too close and break into a ring.",
+      "a cave full of glow-worms that spell out patterns": "The worms gather where the air is dampest and the food falls thickest. The 'patterns' follow the cracks in the cave roof. They really do look like writing, though.",
+      "a sand dune taller than the clouds": "Strong winds from three directions meet here and pile the sand up instead of spreading it out. The clouds are just very low.",
+      "a geyser that erupts every 7 minutes exactly": "The underground chamber fills at a steady rate from one spring. It always takes the same seven minutes to fill, heat and blow.",
+      "a crystal tower that splits sunlight into rainbows over the whole valley": "One enormous clear crystal grew straight up out of a mineral spring. It works just like a prism, only the size of a building.",
+      "a river of mercury-bright water": "The river carries fine flakes of silvery mica. In sunlight the flakes line up with the current and turn the whole river into a mirror.",
+      "a field where the grass grows downward from the cliffs": "The plants hang from the cliff and grow toward the light that reflects off the bright sea below, not toward the sky.",
+      "a sky with three moons that line up every evening": "The three moons orbit in a simple rhythm: one goes round twice while another goes round once. They meet up in the same spot every evening.",
+      "a canyon with its own weather": "The canyon is so deep that the air at the bottom is much warmer and wetter than at the top. It makes its own clouds, and sometimes its own rain.",
+      "a giant stone arch, perfectly smooth": "Flowing water carved the arch, then wind full of fine dust polished it for millions of years, like sandpaper that never stops.",
+      "a frozen ocean with fish visible under the ice": "The ice is crystal clear because it froze slowly from very pure water. Under it, the ocean stays liquid, warmed from below, and very much alive.",
+      "a ring of volcanoes around a calm blue lake": "A giant volcano collapsed into its own empty magma chamber. Smaller volcanoes grew around the edge of the hole, and rain filled the middle.",
+      "petrified lightning sticking out of the sand": "When lightning strikes sand, it melts it into a glass tube in the exact shape of the bolt. The wind later blew the sand away and left the glass standing.",
+      "a mountain range that looks like the edge of a saw": "Layers of hard and soft rock were tipped on their side. The soft layers wore away and left the hard ones standing as teeth.",
+      "an island shaped exactly like a question mark": "A curved volcanic ridge with a small separate cone at the end. The ocean filled in everything else. The shape is a coincidence. The crew is not convinced.",
+      "fields of bubbles that never pop": "Microbes here coat every bubble in a thin, sticky film. The film is strong enough to hold the bubble together for weeks.",
+      "trees with leaves like silver coins": "The leaves are coated in a waxy, reflective layer that bounces away the fierce sunlight. Each round leaf is a tiny mirror.",
+      "a cave that breathes in and out with the tide": "The cave connects to the sea through a long tunnel. When the tide comes in, it pushes air out; when the tide goes out, the cave breathes in.",
+      "a single cloud that never moves": "Wind blowing over a high peak makes a standing wave in the air. The cloud forms at the top of the wave and stays put, even in strong wind.",
+      "a hill covered in what look like enormous footprints": "Ice once sat on the hill in blocks, pressing hollows into the soft ground before it melted. They really do look like footprints, though.",
+      "a waterfall with no visible source": "The water comes from deep underground and leaves the cliff through hidden cracks. It looks as if it starts in midair.",
+      "a lake with a perfect reflection, even in wind": "A thin layer of oil from a local plant coats the surface and calms every ripple before it can start. The lake is always glassy.",
+      "a meadow of glowing blue flowers that close when you watch": "The flowers close when shadows fall on them, to protect their pollen from grazing animals. A person watching from close by casts exactly that kind of shadow.",
+      "a ring of mushrooms the size of houses": "One single underground fungus spreads outward in a circle and pushes up mushrooms only at its growing edge. This one is very old and very big.",
+      "a lake that is perfectly warm all year": "Hot springs feed the lake from below at exactly the rate it loses heat to the air. It has been bath-temperature for thousands of years.",
+      "a hill that hums when it rains": "Raindrops hit thin, hollow rock shelves in the hill. Together the thousands of tiny drums make one low, steady hum.",
+      "a beach of perfectly round green sand": "The sand is a green mineral broken out of volcanic rock and rolled round and smooth by waves for ages.",
+      "an iceberg that never melts in a warm sea": "The iceberg is mostly frozen ammonia and salt crusts that melt far slower than water ice, and it's fed by cold water rising from below.",
+      "a crater full of flowers": "The crater floor traps rainwater and warmth, and the rocky walls keep out the wind. It's the most comfortable place on the planet to be a flower.",
+      "a moon that glows faintly on its own": "The moon's surface is radioactive just enough to make certain minerals glow, very softly. It is perfectly safe to look at. From here.",
+      "a desert with a single palm tree in the middle": "There's one deep spring under that exact spot, just enough water for one tree. The tree has been there longer than anyone can tell.",
+      "stone bridges that formed on their own": "Rivers wore tunnels through soft rock under harder layers. The tunnels' roofs collapsed in places and left bridges behind.",
+      "a cloud shaped like a ship, always following the real one": "The ship's engines leave a trail of warm, damp air that condenses into a cloud. It keeps the ship's shape because it's made by the ship.",
+      "a valley where everything echoes twice": "The valley has two walls at different distances. Every sound bounces off the near one first, then the far one.",
+      "hot springs in seven different colors": "Each pool is a different temperature, and different-colored microbes live at each one. Together they make a rainbow.",
+      "a mountain that is slowly growing taller": "Two plates of crust are pushing into each other underneath. The mountain grows a finger's width a year. It's in no hurry.",
+      "a sea that glows red at dusk": "At dusk, tiny red-pigmented creatures rise to the surface to feed. Seen against the low sun, the whole sea turns red.",
+      "caves that sparkle like a night sky": "The cave walls are studded with tiny crystals. Any light at all bounces off thousands of them at once.",
+      "a field of giant glowing crystals": "The crystals grew in a hot, mineral-rich cave that later opened to the sky. They glow from trace minerals that shine after sunlight.",
+      "a lake that freezes into perfect hexagons": "As the lake freezes, it shrinks and cracks along the most even lines it can, which makes hexagons, like a honeycomb.",
+      "a waterfall that flows in a spiral": "The river spins before it reaches the edge, twisted by a curved channel above. It keeps spinning all the way down.",
+      "a valley that is always foggy at noon": "The valley floor is a cold lake. When the noon sun warms the air above it, the damp air meets the cold water and fog forms.",
+      "a mountain with a frozen lake on top": "The peak is an old volcano with a crater at the top. Snow melts into it in summer and freezes again in winter, and never drains.",
+      "a beach where the sand squeaks": "The grains are very round, very clean and very much the same size. When they rub together under your feet, they squeak.",
+      "an ocean that changes color with the tide": "When the tide goes out, it uncovers dark seaweed fields that change the color of the shallow water. When it comes back, the color changes back.",
+      "a canyon full of floating dust that sparkles": "Warm air rises steadily out of the canyon all day and holds fine mica dust up in the light, where it sparkles.",
+      "a forest of giant ferns": "Ferns that would be small elsewhere grow enormous here in the warm, wet, low-gravity air. It looks like Earth did a very long time ago.",
+      "cliffs striped like candy": "Each stripe is a layer of rock laid down at a different time, colored by different minerals: red iron, white chalk, green copper.",
+      "a volcano that puffs perfect smoke rings": "Gas escapes through a smooth, round vent in quick bursts. Each burst rolls over the vent's rim and curls into a ring.",
+      "a lake with an island, with a lake, with an island": "An old crater filled with water, a volcano rose in the middle, its own crater filled, and a small cone rose inside that. Nature, repeating itself.",
+      "a river that splits into a hundred streams": "The river reaches a flat plain and slows down, dropping its sand. The sand blocks its path, so it splits again and again.",
+      "a plain covered in tiny purple flowers": "After a rare rain, seeds that have waited years in the dry ground all bloom at once, then go back to sleep.",
+      "rocks that roll slowly uphill": "In winter, thin ice forms under the rocks. Wind pushes the rocks along on the ice, uphill and down, leaving long tracks behind.",
+      "a desert with sand dunes in every color": "Each dune is made from a different kind of rock, worn down by the wind: red iron, black basalt, white quartz, yellow sulfur.",
+      "a bay where the water glows green at night": "Tiny glowing creatures gather in the warm, quiet bay. Every wave makes them flash green.",
+      "a cave with a constant warm breeze": "Warm air from deep underground rises through cracks and leaves through the cave's mouth. The planet is, gently, breathing out.",
+      "a giant crater full of clouds": "The crater is so deep that cool, damp air sinks into it and stays there, forming a lake of cloud that rarely leaves.",
+      "an archipelago shaped like a constellation": "The islands are the peaks of a line of old volcanoes. They happen to match a pattern of stars back home. The Guild has asked people to stop naming them after zodiac signs.",
+      "a single huge flower blooming in the desert": "The plant stores water underground for decades, then puts everything into one enormous flower. It blooms once and then waits again.",
+      "fields of tall grass that sing in the wind": "The grass stems are hollow and open at the top, like tiny flutes. The wind plays all of them at once.",
+      "icicles taller than towers": "Water drips very slowly from a huge overhanging cliff in air that never warms above freezing. The icicles have been growing for centuries.",
+      "a sky with a faint ring stretching across it": "The planet has a very faint ring of fine dust. You can only see it from the ground, as a thin silver arc across the sky.",
+      "a lake that steams in the morning": "The lake keeps the warmth of the day longer than the air does. On cold mornings the warm water meets cold air, and the lake steams."
+    }
+  },
+
+  "_manhunt": "Manhunt legs: [track, close in, capture], one list per leg. {b} = the criminal, {g} = their gang, {p} = the world, {biome} = one of its biomes.",
+  "manhunt": [
+    [
+      ["Somebody on {p} saw {b} buy supplies and head into the {biome}.", ["Follow the supply trail", "Crates, wrappers and one lost boot. The trail is warm."], ["Ask the locals", "Everyone has a story about {b}. Two of them are true, and they point the same way."]],
+      ["{b}'s ship was spotted landing in the {biome}. Its engines are still warm.", ["Track it from the air", "Slow, careful passes. You find the landing marks."], ["Land and follow on foot", "You find the hideout's back door. It's open."]],
+      ["A message from {g} was intercepted near {p}. It mentions the {biome}.", ["Decode it carefully", "The code was bad. The meeting point is clear now."], ["Fake a reply", "{g} answered your fake message. Now you know exactly where they'll be."]]
+    ],
+    [
+      ["{b} knows you're close. Lights go out all over the {biome}.", ["Wait for them to move", "Patience wins. {b} gets restless first and gives away the hiding spot."], ["Go in after them", "A dark, tense chase. You're one step behind, and closing."]],
+      ["{g} set traps all over the {biome} to slow you down.", ["Disarm each one", "Slow, careful work. Not one trap went off."], ["Go around them all", "A long detour that ends right behind {b}'s camp."]],
+      ["{b} is moving camp every few hours across the {biome}.", ["Predict where they'll go next", "You guessed right. The next camp is empty and waiting for you."], ["Keep up the chase", "Exhausting, but {b} is running out of places to go."]]
+    ],
+    [
+      ["{b} is cornered at last, deep in the {biome}.", ["Talk them down", "A long, quiet talk. {b} hands over their weapon and sits down. \"Fine.\""], ["Close in fast", "A short scramble, a lot of dust, and {b} in cuffs."]],
+      ["{b} tries one last escape, running for the ship.", ["Disable their ship first", "Their engines cough and die. {b} gives up with a sigh."], ["Race them to it", "You get there first, by a nose. {b} is very annoyed."]],
+      ["{b} offers you a deal: half the loot to let them go.", ["Refuse politely", "{b} shrugs. \"Worth a try.\" They walk to the brig on their own."], ["Pretend to accept", "{b} relaxes for one second. That second was all you needed."]]
+    ]
+  ],
+
+  "_cassini": "Cassini Federation Post: possible criminals on the posters.",
+  "cassini": {
+    "first": ["Vex", "Marlo", "Ingrid", "Duke", "Sable", "Kaz", "Odessa", "Rook", "Juno", "Brask", "Tamsin", "Gideon", "Wren-of-Nine", "Pell Slick", "Orla", "Jasper"],
+    "nick": [
+      "Rustjaw",
+      "the Comet",
+      "Two-Suns",
+      "Old Smoke",
+      "Glass Eye",
+      "the Quiet",
+      "Mother Static",
+      "Ninefingers",
+      "the Last Laugh",
+      "Halfmoon",
+      "Velvet",
+      "Crowbar",
+      "Spoons",
+      "the Ledger",
+      "Sixpence",
+      "Cold Coffee"
+    ],
+    "crimes": [
+      "stole a whole moon's worth of fuel",
+      "robbed three mail ships in one week",
+      "sold the same space station to five different buyers",
+      "ran off with a museum's best telescope",
+      "smuggled a herd of sky-goats past customs",
+      "hijacked a cruise liner and kept the buffet",
+      "forged a thousand Guild licenses",
+      "stole the Comet Racing League's trophy"
+    ]
+  }
+}

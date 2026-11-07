@@ -27,8 +27,26 @@
   "bountyMultiplier": 1.5,
   "_bountyMultiplier": "Scales every bounty reward when the bounty is created.",
 
-  "encounters": { "chance": 0.1, "scale": 1, "rareWorldMultiplier": 1.5 },
-  "_encounters": "Arrival encounters on new worlds: chance per Explore trip (0.1 = 1 in 10), scale multiplies every encounter's own min-max range, rareWorldMultiplier applies on Rare and Legendary worlds.",
+  "encounter": { "chance": 0.3, "weights": { "meeting": 25, "postal": 22, "trade": 18, "outlaw": 15, "cassini": 12, "derelict": 5, "station": 12 } },
+  "_encounter": "The arrival roll: every new world has this chance (0.3 = 3 in 10) of one visitor, and the weights pick which one (a world never gets two). meeting = a chance meeting that pays a little, trade = Trade Station, outlaw = an outlaw gang holds the world, derelict = a derelict ship to salvage, station = Interplanetary Station. postal = a Postal office with delivery jobs, cassini = a Cassini Federation Post with a Most Wanted poster.",
+
+  "encounters": { "scale": 1, "rareWorldMultiplier": 1.5 },
+  "_encounters": "Chance meetings: scale multiplies every meeting's own min-max pay, rareWorldMultiplier applies on Rare and Legendary worlds.",
+
+  "expedition": { "pay": 150, "boldPay": 0.6, "finale": 100, "findSafe": 0.45, "findBold": 0.8, "poiSellBonus": 0.08, "salvage": 120 },
+  "investigate": { "min": 0.25, "max": 0.35, "pay": 120, "knowledge": 60 },
+  "_investigate": "Investigate (worlds with an anomaly): each study session adds between min and max progress (0.25 = 25%). When it reaches 100%: pay resources, knowledge Knowledge points, a Codex entry and an Anomalies find.",
+
+  "hyperdrive": { "max": 3, "nodeRefund": 150 },
+  "_hyperdrive": "Hyperdrive charges: the most you can hold (one study session of Charge makes one; one jump to any visited world uses one). nodeRefund = resources paid back once for each old Hyperdrive Node.",
+
+  "postal": { "offers": 3, "carry": 2, "consolation": 0.25 },
+  "_postal": "Postal offices (an arrival visitor): how many jobs one offers, how many you can carry at once, and the share of pay given back once for a job that was cancelled when daily deliveries ended.",
+
+  "cassini": { "base": 0.08, "perTrip": 0.04, "cap": 0.4, "legPay": 60 },
+  "_cassini": "Cassini Federation Posts hand out Most Wanted posters. While you carry one, each new world has base chance of a sighting, plus perTrip for every trip without one, up to cap. A sighting opens a 3-session Manhunt there: legPay resources for each of the first two legs, then the bounty (quests bossBase + bossPerCatch).",
+
+  "_expedition": "Planet expeditions (3 legs per world). pay = resources per leg (a risky leg pays boldPay x that), finale = extra on the last leg, findSafe / findBold = chance of a collectible on a safe / risky leg (the finale always finds one), poiSellBonus = how much each Point of Interest adds to a world's sale price (0.08 = 8%), salvage = resources for salvaging a derelict.",
 
   "trade": { "perFacilityLevel": 2, "cap": 100 },
   "_trade": "Travelers' Posts pay perFacilityLevel per facility level (all posts together) every study session, up to cap.",
@@ -50,8 +68,8 @@
   "distressRun": { "base": 600, "random": 150, "bonusMin": 100, "bonusMax": 200 },
   "_distressRun": "Daily Distress Run payout: base + 0..random (not affected by incomeMultiplier). bonusMin-bonusMax is the extra-resources random bonus.",
 
-  "tradeStation": { "chance": 0.12, "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
-  "_tradeStation": "Trade Stations: chance one is docked at a new world, what its collectibles cost (each varies by up to 15%), and the share of that price it pays for your spares (before incomeMultiplier).",
+  "tradeStation": { "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
+  "_tradeStation": "Trade Stations (how often: see encounter): what its collectibles cost (each varies by up to 15%), and the share of that price it pays for your spares (before incomeMultiplier).",
 
   "moduleCost": { "base": 70, "growth": 1.2, "maxLevel": { "engine": 25, "scanner": 21, "lab": 14, "comms": 25, "hull": 25 } },
   "_moduleCost": "Ship module upgrade price: base x growth ^ (current level - 1). maxLevel is each module's top level (past it the effect would stop growing anyway).",
@@ -69,8 +87,6 @@
 
   "campaign": { "base": 30, "perLog": 0.7 },
 
-  "survey": { "pay": 20 },
-  "_survey": "Resources for a Discover (survey) session, on top of the normal session pay. Its real reward is collectibles and Knowledge.",
   "_campaign": "Each Meridian log pays base + perLog x the log's number.",
 
   "levels": { "base": 40, "perLevel": 4, "perLevelSquared": 0.2 },
@@ -79,8 +95,8 @@
   "ratingRanks": [0, 400, 1500, 4000, 9000, 18000, 32000, 55000, 90000, 140000, 220000],
   "_ratingRanks": "Rating needed for each rank, in order: Stowaway, Deckhand, Drifter, Wayfarer, Surveyor, Pathfinder, Voyager, Star Captain, Trailblazer, Living Legend, Myth of the Void. The old values were 0, 300, 1000, 2500, 5000, 9000, 15000, 25000, 40000, 65000, 100000.",
 
-  "station": { "chance": 0.0375, "discount": 0.2, "sellBonus": 0.25, "charge": 600, "satellite": 1500, "contract": 300, "intel": 400, "chipDiscount": 0.25, "steel": 1000, "design": 2500, "veteran": 2500, "shift": 220 },
-  "_station": "Interplanetary Station: chance per Explore trip (it replaces other arrival encounters), the upgrade discount and sell bonus while you stay at its world, and its shop prices.",
+  "station": { "discount": 0.2, "sellBonus": 0.25, "charge": 600, "satellite": 1500, "contract": 300, "intel": 400, "chipDiscount": 0.25, "steel": 1000, "design": 2500, "veteran": 2500, "shift": 220 },
+  "_station": "Interplanetary Station (how often: see encounter): the upgrade discount and sell bonus while you stay at its world, and its shop prices.",
 
   "coordChips": { "start": 5, "base": 1200, "growth": 1.025, "max": 45 },
   "_coordChips": "Coordinator Panel chips: how many you start with, the price of the first one you buy (each next one costs growth x more), and the most you can own.",
@@ -88,8 +104,8 @@
   "facilitySlots": { "base": 5, "atTown": 1, "max": 10, "buyBase": 1500, "buyGrowth": 1.8 },
   "_facilitySlots": "How many facilities fit at one Travelers' Post, plus extra slots once it grows into a Town (1,000 settlers). You can buy more land up to max slots: the first costs buyBase, each next one buyGrowth x more.",
 
-  "quests": { "delivery": 55, "deliveryViaJump": 0.7, "expedition": 350, "expeditionSafe": 50, "expeditionBold": 20, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
-  "_quests": "deliveryViaJump: pay multiplier when you drop a delivery off at a world you jumped to with a Hyperdrive Node. delivery: the base pay of an Interstellar Delivery (a job that fits 1 world in N pays about N^0.9 times this, up to 45x). Expedition: the final payout, a safe leg's pay, and a bold leg's pay when it finds no collectible. Guild contract: the resource and Knowledge-point choices. Most Wanted: base payout plus bossPerCatch for every boss caught before.",
+  "quests": { "delivery": 55, "deliveryViaJump": 0.7, "contract": 900, "contractKnowledge": 250, "bossBase": 700, "bossPerCatch": 150 },
+  "_quests": "deliveryViaJump: pay multiplier when you drop a delivery off at a world you jumped to with the hyperdrive. delivery: the base pay of an Interstellar Delivery (a job that fits 1 world in N pays about N^0.9 times this, up to 45x). Guild contract: the resource and Knowledge-point choices. Most Wanted: base payout plus bossPerCatch for every boss caught before.",
 
   "facilityCost": { "base": 47.5, "growth": 1.6, "maxLevel": 10 },
   "_facilityCost": "Facility upgrade price to reach level L: base x growth ^ (L - 2). maxLevel is the highest level."

@@ -105,7 +105,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-cap { order: 3; margin-top: 6px; font-size: 15px; color: var(--mute); }
 .sl-bar { display: none; }
 
-.sl-missions { display: flex; justify-content: center; margin-top: 16px; }
+.sl-missions { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
 .sl-mis-l, .sl-build-sel { display: none !important; }
 .sl-mis-g { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
 .sl-mis { display: flex; align-items: baseline; gap: 7px; padding: 4px 14px 7px; background: none; border: 0; font: 600 19px var(--ui); color: var(--soft); cursor: pointer; box-shadow: inset 0 -2px 0 var(--line); }
@@ -581,3 +581,21 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 
 /* page sub-tabs (Ship: Ship / Captain / Medals ...; Collection categories) stay at the top while the page scrolls */
 .sx-page .sl-pane > .sl-stabs, .sx-page .sl-wpage > .sl-stabs { position: sticky; top: 0; z-index: 4; margin: 0; padding: 10px 0 8px; background: #000; box-shadow: 0 1px 0 var(--line); }
+
+/* exploration: the Here card, the explored meter, Points of Interest, the mission note */
+.sl-mis-note { flex-basis: 100%; margin: 6px 0 0; font: 500 14px var(--ui); color: var(--mute); text-align: center; min-height: 1.2em; }
+.sx-q-sub { font-size: 16px !important; margin-top: 8px !important; }
+.sx-visit { color: var(--soft); }
+.sx-explored { color: var(--soft); font: 600 15px var(--ui); }
+.sx-here-n { font: inherit; color: inherit; text-decoration: none; }
+.sx-exm { display: inline-flex; gap: 3px; vertical-align: middle; }
+.sx-exm i { width: 9px; height: 4px; background: var(--line); }
+.sx-exm i.on { background: var(--soft); }
+.sx-exm i.inv { width: 4px; margin-left: 2px; }
+.sx-exm i.inv.on { background: #a4dddb; }
+.sl-tile .sx-exm { margin-top: 3px; }
+.sx-pois { margin: 10px 0; }
+.sx-pois-h { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.sx-pois ul { margin: 0; padding-left: 18px; }
+.sx-pois li { margin: 3px 0; }
+.sx-pois li small { color: var(--mute); }

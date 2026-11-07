@@ -14,7 +14,7 @@
 const GAME_FILES = [
   // rules and saved state
   'js/game/core.js', 'js/game/build.js', 'js/game/voyage.js', 'js/game/encounters.js', 'js/game/research.js', 'js/game/ship.js',
-  'js/game/levels.js', 'js/game/distress.js', 'js/game/quests.js', 'js/game/delivery.js', 'js/game/station.js', 'js/game/rating.js',
+  'js/game/levels.js', 'js/game/distress.js', 'js/game/quests.js', 'js/game/expedition.js', 'js/game/investigate.js', 'js/game/manhunt.js', 'js/game/delivery.js', 'js/game/station.js', 'js/game/rating.js',
   'js/game/coordinator.js', 'js/game/worlds.js', 'js/game/trade.js', 'js/game/session.js',
   // the screen (the timer and medals sit between them because they use screen parts made above them)
   'js/ui/controls.js', 'js/ui/hud.js', 'js/ui/ship-interior.js', 'js/ui/layout.js', 'js/ui/main-screen.js', 'js/ui/right-panel.js',
@@ -24,15 +24,18 @@ const GAME_FILES = [
   'js/game/start.js',
 ];
 
-let SOLARIST_MOUNT = null; // { root, hooks, econ, items, camp }, read by js/game/core.js
+let SOLARIST_MOUNT = null; // { root, hooks, econ, items, camp, expd }, read by js/game/core.js and js/game/expedition.js
 
 window.Solarist = {
   makePlanet, makeExtra, paint, lookOf, facTheme: FAC_THEME,
   // root: the element to draw into. hooks: sounds and the planet scene from js/shell.js. econ, items, camp: the JSON files.
   mount(root, hooks, econ, items, camp) {
-    SOLARIST_MOUNT = { root, hooks, econ, items, camp };
+    SOLARIST_MOUNT = { root, hooks, econ, items, camp, expd: null };
     const get = f => fetch(f, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('Could not load ' + f); return r.text(); });
-    return Promise.all(GAME_FILES.map(get)).then(codes => {
+    // expeditions.json: expedition text and Point of Interest names (optional: bad or missing JSON falls back to plain text)
+    const expd = fetch('expeditions.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
+    return Promise.all([expd, ...GAME_FILES.map(get)]).then(([x, ...codes]) => {
+      SOLARIST_MOUNT.expd = x;
       // run each file as its own script, back to back, so nothing else can happen in between
       let failed = null;
       const onError = e => { if (!failed) failed = e.error || new Error(e.message); };

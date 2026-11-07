@@ -4,7 +4,7 @@
 // the right side has two tabs: Upgrades (what resources buy) and Transmissions (everything your posts and the ship heard)
 let rightTab = 'up';
 // every kind of log in one place: post transmissions, the ship's log, Meridian logs, Ship Logs from research, medals
-const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['res', 'Research'], ['ach', 'Medals']];
+const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Medals']];
 let txFilter = 'all';
 const evCat = e => e.c || (/^Research/.test(e.title || '') ? 'res' : /^Achievement/.test(e.title || '') ? 'ach' : /^Ship activity|joined the crew|left the crew|^New room/.test(e.title || '') ? 'ship' : /^Distress/.test(e.title || '') ? 'quest' : 'ev');
 const whoOf = lg => (CAMP && CAMP.crew && CAMP.crew[lg.who]) || lg.who;

@@ -18,7 +18,7 @@ function sessionEnd(reps, p, ev) {
   reps.forEach(({ rep }) => { if (rep) award(0, KN_REP[rep.k] || 10); }); // everything heard teaches you something
   if (ev && !ev.battle) award(10, 15);
   if (p) award(0, 10); // the new world's survey log
-  mwSpawn(); notes.push(...qNotes); qNotes = []; wkCheck();
+  notes.push(...qNotes); qNotes = []; wkCheck();
   checkAch(); const rt1 = rating(), rk0 = rankOf(rt0), rk1 = rankOf(rt1);
   notes.push('◆ +' + (rt1 - rt0).toLocaleString() + ' Rating (' + rt1.toLocaleString() + ')' + (rk1 > rk0 ? '. New rank: ' + RANKS[rk1][1] + '!' : ''));
   flushXP(notes);

@@ -6,14 +6,13 @@ function scenePlanet(kind) {
   const b = building();
   return kind === 'build' ? (b.p || atP()) : kind === 'fight' ? heldP() : kind === 'distress' || (kind === 'campaign' && running) ? null : kind === 'explore' && running ? null : atP();
 }
-const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : campaigning() || expediting() ? 'campaign' : hunting() ? 'fight' : shifting() ? 'view' : building() ? (building().k === 'room' ? 'shipbuild' : 'build') : charging() ? 'charge' : discovering() ? 'discover' : heldP() ? 'fight' : 'explore';
+const sceneKind = () => mode !== 'focus' ? 'break' : S.dr ? 'distress' : campaigning() ? 'campaign' : expediting() || salvaging() ? 'discover' : hunting() ? 'fight' : shifting() ? 'view' : building() ? (building().k === 'room' ? 'shipbuild' : 'build') : charging() ? 'charge' : heldP() ? 'fight' : 'explore';
 function drawName() {
   if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
   const kind = sceneKind(), p = scenePlanet(kind);
   nameBox.disabled = !p;
   nameBox.replaceChildren(...(p ? [el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable' + (held(p) ? ', held by outlaws' : ''))]
     : hunting() && mode === 'focus' ? [el('b', {}, S.mw.name), el('span', {}, 'Most Wanted hunt, Act ' + roman(S.mw.act + 1) + ' of II')]
-    : expediting() && mode === 'focus' && !p ? [el('b', {}, EXPED[S.exp.id][1]), el('span', {}, 'Expedition, leg ' + (S.exp.step + 1) + ' of ' + EXP_LEN)]
     : kind === 'distress' ? [el('b', {}, DISTRESS[S.dr.sc][1]), el('span', {}, 'Distress Run, Act ' + roman(S.dr.n + 1) + ' of ' + roman(S.dr.need))]
       : [el('b', {}, 'Uncharted world'), el('span', {}, S.coord ? 'Following the Coordinator' : 'Somewhere ahead')]));
   nameBox.onclick = p ? () => { tab('log'); openWorld(p.num); } : null;
@@ -32,40 +31,26 @@ function drawCycle(pct) { // one segment per study session, a short tick per sho
 function drawLeft() {
   const drInfo = !S.dr && !drAvail() ? el('p', { class: 'sl-muted' }, S.drDay === today() ? 'Today\'s run is done. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'A distress call comes in at the start of your next cycle.' : 'Finish a whole cycle without skipping (a Full Cycle) and a distress call comes in after the long break.') : null;
   const qs = S.bounties.map(b => el('div', { class: 'sx-q' }, el('span', {}, b.t, el('small', {}, b.k === 'sessions' ? (b.prog || 0) + ' of ' + b.v + ' done' : b.k === 'cycle' ? 'finish a whole cycle, nothing skipped' : 'on any Explore trip')), el('em', {}, '✦ ' + Math.round(b.reward * INCOME))));
-  const coordB = !S.coord && !S.dr ? el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || charging() || null, onclick: () => setMission('charge') }, charging() ? 'Charging next session' : 'Charge it next session') : null;
+  const coordB = !S.coord && !S.dr ? el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || (charging() && S.chargeKind !== 'hyper') || null, onclick: () => setMission('charge', 'coord') }, charging() && S.chargeKind !== 'hyper' ? 'Charging next session' : 'Charge it next session') : null;
+  const hyperB = canCharge('hyper') && !S.dr ? el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || (charging() && S.chargeKind === 'hyper') || null, onclick: () => setMission('charge', 'hyper') }, charging() && S.chargeKind === 'hyper' ? 'Charging next session' : 'Charge one next session') : null;
   const lock = running && mode === 'focus';
   const legBar = (n, now, total, label) => el('div', { class: 'sl-dr-legs sx-legs' }, Array.from({ length: total }, (_, k) => el('span', { class: k < n ? 'done' : k === now ? 'now' : '' }, label(k))));
-  let expSec;
-  if (S.exp) {
-    const [ic, title, , legs] = EXPED[S.exp.id], st = S.exp.step, lg = legs[st];
-    expSec = sec('Expedition', el('p', { class: 'sx-q-h' }, ic + ' ' + title), legBar(st, st, EXP_LEN, k => k < EXP_LEN - 1 ? String(k + 1) : '★'),
-      lg ? el('p', {}, lg[0]) : el('p', {}, 'The last leg. One more session to finish and collect.'),
-      lg ? el('div', { class: 'sx-paths', role: 'radiogroup', 'aria-label': 'Path' }, [1, 2].map(o => el('button', { type: 'button', role: 'radio', 'aria-checked': String(S.exp.pick === o - 1), disabled: lock || null, onclick: () => { S.exp.pick = o - 1; save(); drawLeft(); } },
-        el('b', {}, lg[o][0]), el('small', {}, o === 1 ? 'Safe: ✦ ' + Math.round(E.quests.expeditionSafe * INCOME) : 'Bold: maybe a collectible')))) : null,
-      el('div', { class: 'sx-row-l' }, expediting() ? el('span', { class: 'sl-muted' }, 'Next session continues it. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('expedition') }, 'Continue next session'),
-        expediting() ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Pause it') : null, armBtn('Abandon', 'Sure?', expAbandon, 'sx-mini')));
-  } else if (expAvail()) {
-    const [ic, title, intro] = EXPED[expOffer()];
-    expSec = sec('Expedition', el('p', { class: 'sx-q-h' }, ic + ' ' + title), el('p', {}, intro),
-      el('p', { class: 'sl-muted' }, EXP_LEN + ' study sessions, any time you like. Pays ✦ ' + Math.round(E.quests.expedition * INCOME) + ' and a Rare or better find.'),
-      el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: expStart }, 'Start the expedition'));
-  } else expSec = sec('Expedition', el('p', { class: 'sl-muted' }, 'Back from the last one. A new expedition offer comes tomorrow. ' + (S.expDone || 0) + ' completed so far.'));
+  const hereS = hereSec(lock, legBar);
   dlCheck();
-  const dlRow = r => el('li', {}, DREQ[r.k][1](r.v)), here = atP(), dA = S.dl.active;
-  const dlSec = dA ? sec('Interstellar Delivery', el('p', { class: 'sx-q-h' }, '📦 ' + dName(dA)), el('p', { class: 'sl-muted' }, dA.client + ' wants ' + dA.cargo + ' taken to a world with:'),
-      el('ul', { class: 'sx-reqs' }, dA.reqs.map(r => el('li', { class: here && here.num !== dA.from && dMet(here, r) ? 'ok' : '' }, DREQ[r.k][1](r.v)))),
-      el('p', { class: 'sl-muted' }, 'Pays ✦ ' + Math.round(dA.pay * INCOME) + ' on a perfect match (it delivers itself when you arrive at one).'),
-      el('div', { class: 'sx-row-l' }, here && here.num !== dA.from ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => dlDeliver(here) }, 'Deliver at ' + nm(here) + ' now (' + Math.round(dlScore(here) * 100) + '% match, ✦ ' + Math.round(dlPayAt(here) * INCOME) + (viaJump(here) ? ', −' + Math.round((1 - E.quests.deliveryViaJump) * 100) + '% jumped here' : '') + ')') : el('span', { class: 'sl-muted' }, 'Travel somewhere new to deliver. '),
-        armBtn('Abandon', 'Sure?', dlAbandon, 'sx-mini')))
-    : sec('Interstellar Delivery', S.dl.offers.length ? el('p', { class: 'sl-muted' }, 'Pick one job. ' + S.dl.offers.length + ' left today.') : el('p', { class: 'sl-muted' }, 'No more jobs today. New ones come tomorrow. ' + S.dl.done + ' delivered so far.'),
-      ...S.dl.offers.map((d, i) => el('div', { class: 'sx-offer' }, el('div', { class: 'sx-q' }, el('span', {}, '📦 ' + dName(d), el('small', {}, d.cargo)), el('em', {}, '✦ ' + Math.round(d.pay * INCOME))),
-        el('ul', { class: 'sx-reqs' }, d.reqs.map(dlRow)), el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => dlAccept(i) }, 'Take this job'))));
-  const m = S.mw, mwSec = m ? sec('Most Wanted', el('p', { class: 'sx-q-h' }, '🎯 ' + m.name), el('p', { class: 'sl-muted' }, 'Boss of ' + m.gang + '.'),
-      legBar(m.clues, m.clues, m.need, () => '🔎'),
-      mwReady() ? (hunting() ? el('p', { class: 'sl-muted' }, m.act ? 'Act II next session. ' : 'The hunt starts next session (two sessions). ', el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Not yet'))
-        : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('hunt') }, m.act ? 'Finish the hunt next session' : 'Hunt them down next session'))
-        : el('p', { class: 'sl-muted' }, 'Clues ' + m.clues + ' of ' + m.need + '. Explore, survey and fight outlaws to find more.'))
-    : sec('Most Wanted', el('p', { class: 'sl-muted' }, 'No poster yet. Drive out ' + Math.max(1, mwAt() - (S.fights || 0)) + ' more outlaw gang' + (mwAt() - (S.fights || 0) === 1 ? '' : 's') + ' and the Guild names a boss to hunt. ' + (S.mwDone || 0) + ' caught so far.'));
+  // carried delivery jobs (taken from Postal offices) and the Most Wanted poster (from a Cassini Federation Post)
+  const here = atP(), dlSec = sec('Deliveries ' + S.dl.carry.length + '/' + DLMAX(), ...(S.dl.carry.length ? S.dl.carry.map(d => el('div', { class: 'sx-offer' },
+      el('div', { class: 'sx-q' }, el('span', {}, '📦 ' + dName(d), el('small', {}, d.client + ': ' + d.cargo)), el('em', {}, '✦ ' + Math.round(d.pay * INCOME))),
+      el('ul', { class: 'sx-reqs' }, d.reqs.map(r => el('li', { class: here && here.num !== d.from && dMet(here, r) ? 'ok' : '' }, DREQ[r.k][1](r.v)))),
+      el('div', { class: 'sx-row-l' }, here && here.num !== d.from ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => dlDeliver(here, d) }, 'Deliver at ' + nm(here) + ' now (' + Math.round(dlScore(here, d) * 100) + '% match, ✦ ' + Math.round(dlPayAt(here, d) * INCOME) + (viaJump(here) ? ', −' + Math.round((1 - E.quests.deliveryViaJump) * 100) + '% jumped here' : '') + ')') : el('span', { class: 'sl-muted' }, 'Travel somewhere new to deliver. '),
+        armBtn('Drop', 'Sure?', () => dlAbandon(d), 'sx-mini'))))
+    : [el('p', { class: 'sl-muted' }, 'No jobs in your hold. Postal offices turn up on new worlds now and then. ' + S.dl.done + ' delivered so far.')]),
+    S.dl.carry.length ? el('p', { class: 'sl-muted' }, 'A perfect match delivers itself when you arrive.') : null);
+  const m = S.mw, mwSec = m ? sec('Most Wanted', el('p', { class: 'sx-q-h' }, '🎯 ' + m.name), el('p', { class: 'sl-muted' }, 'Of ' + m.gang + '. Wanted for: ' + m.crime + '. Bounty ✦ ' + Math.round(mwBounty() * INCOME) + '.'),
+      m.sighted == null ? el('p', {}, '🔭 ' + Math.round(sightChance() * 100) + '% chance of a sighting on your next trip.' + (m.tip ? ' (Station tip-off included.)' : ''))
+        : mwHere() ? el('p', {}, '🎯 Sighted here! The Manhunt is under Here, above.')
+        : el('div', {}, el('p', {}, '🎯 Sighted on ' + (byNum(m.sighted) ? nm(byNum(m.sighted).p) : 'a world you left') + '. The trail waits for you there.'), byNum(m.sighted) ? jumpBtn(byNum(m.sighted).p, 'sl-link') : null),
+      el('div', { class: 'sx-row-l' }, armBtn('Hand back the poster', 'Sure?', csDrop, 'sx-mini')))
+    : sec('Most Wanted', el('p', { class: 'sl-muted' }, 'No poster. Cassini Federation Posts turn up on new worlds now and then and hand them out. ' + (S.mwDone || 0) + ' caught so far.'));
   wkCheck();
   const wk = S.wk, wkSec = sec('Guild Contract', ...wk.goals.map(g => { const pr = wkProg(g); return el('div', { class: 'sx-q' + (pr >= g.n ? ' done' : '') }, el('span', {}, WK_GOALS[g.k][0].replace('{n}', g.n)), el('em', {}, pr >= g.n ? '✓' : pr + ' / ' + g.n)); }),
     wk.claimed ? el('p', { class: 'sl-muted' }, 'Paid out. A new contract comes on Monday.')
@@ -73,14 +58,80 @@ function drawLeft() {
         el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('dust') }, '✦ ' + Math.round(E.quests.contract * INCOME)), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('kp') }, E.quests.contractKnowledge + ' Knowledge'), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('item') }, 'A Rare find')))
         : el('p', { class: 'sl-muted' }, 'Finish all three this week (resets Monday).'));
   leftCol.replaceChildren(
-    sec('Distress Run', drBox, drInfo), expSec, dlSec, mwSec, wkSec,
+    hereS, sec('Distress Run', drBox, drInfo), dlSec, mwSec, wkSec,
     sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far')),
     CAMP ? sec(CAMP.title || 'Campaign', el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round(S.camp.n / CAMP.logs.length * 100) + '%' })),
       el('p', {}, campDone() ? 'Complete. All ' + CAMP.logs.length + ' logs recovered.' : 'Log ' + S.camp.n + ' of ' + CAMP.logs.length + (S.camp.n ? '. ' + actOf(S.camp.n) : '. A trail of old log beacons left by the lost survey ship Meridian.')),
       campDone() ? null : campaigning() ? el('p', { class: 'sl-muted' }, 'Following the trail next session. ', el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Stop'))
         : el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || !!S.dr || null, onclick: () => setMission('campaign') }, S.camp.n ? 'Continue next session' : 'Start the campaign next session'),
       S.camp.n ? el('div', {}, el('button', { type: 'button', class: 'sl-link sx-readlogs', onclick: () => { rightTab = 'tx'; txFilter = 'camp'; drawRight(); } }, 'Read the logs')) : null) : null,
-    sec('Interplanetary Coordinator', el('p', {}, S.coord ? 'Charged. Next Explore, every chip counts double.' : 'Empty. One study session of Charge doubles your chips for the next Explore.'),
+    sec('Coordinator & Hyperdrive', el('p', {}, '⚡ Hyperdrive: ' + (S.hyper || 0) + ' of ' + Math.round(E.hyperdrive.max) + ' charges. A charge jumps you to any world you\'ve visited (Star map or Logbook). ', hyperB),
+      el('p', {}, S.coord ? '🧭 Coordinator charged. Next Explore, every chip counts double.' : '🧭 Coordinator empty. One study session of Charge doubles your chips for the next Explore.'),
       el('p', { class: 'sl-muted' }, chipsPut() + ' of ' + S.chips.own + ' chips placed' + (chipsPut() ? ': ' + CHIP_F.filter(f => S.chips.put[f[0]]).map(f => f[1] + ' ' + S.chips.put[f[0]]).join('  ') : '.')),
       el('div', { class: 'sx-row-l' }, coordB, el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'coord'; drawRight(); } }, 'Open the panel'))));
+}
+// the briefing card: the world you're at, its visitor, and what you can do here
+function pathPick(cur, lock, leg, tip, set) {
+  return el('div', { class: 'sx-paths', role: 'radiogroup', 'aria-label': 'Path' }, [1, 2].map(o => el('button', { type: 'button', role: 'radio', 'aria-checked': String(cur === o - 1), disabled: lock || null, onclick: () => set(o - 1) },
+    el('b', {}, leg[o][0]), el('small', {}, tip(o === 2)))));
+}
+function hereSec(lock, legBar) {
+  const p = atP();
+  if (!p) return sec('📍 Here', el('p', { class: 'sl-muted' }, 'Deep space. Explore to find your first world.'));
+  const x = exOf(p), gas = gasWorld(p), out = [];
+  out.push(el('p', { class: 'sx-q-h' }, el('button', { type: 'button', class: 'sl-link sx-here-n', onclick: () => { tab('log'); openWorld(p.num); } }, nm(p))),
+    el('p', { class: 'sl-muted' }, p.type + ' · ' + p.rarity + (p.odd ? ' · ' + p.odd : '')));
+  // the visitor, if there is one
+  const visit = [];
+  if (held(p)) visit.push('🏴 ' + p.outlaw.gang.replace(/^the/, 'The') + ' hold this world. Explore turns into Fight until you drive them out.');
+  if (stationAt(p)) visit.push(el('span', {}, '🛰 ' + S.station.name + ' is in orbit. ', el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'station'; drawRight(); } }, 'Visit the station')));
+  if (S.trader && S.trader.num === p.num) visit.push(el('span', {}, '🏪 ' + S.trader.name + ' is docked here. ', el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'trade'; drawRight(); } }, 'Trade')));
+  if (p.enc) visit.push(p.enc.ic + ' ' + p.enc.title.replace(/!$/, '') + ' (paid ✦ ' + p.enc.dust + ')');
+  if (!visit.length && p.visit === 'none' && !p.postal && !p.cassini) visit.push('No visitors here. Just you and the world.');
+  visit.forEach(v => out.push(el('p', { class: 'sx-visit' }, v)));
+  if (p.postal && p.postal.offers.length) {
+    const full = S.dl.carry.length >= DLMAX();
+    out.push(el('p', { class: 'sx-visit' }, '📮 ' + p.postal.name + ' has ' + p.postal.offers.length + ' job' + (p.postal.offers.length === 1 ? '' : 's') + (full ? '. Your hold is full (' + DLMAX() + ').' : '. You can carry ' + DLMAX() + ' at a time.')),
+      ...p.postal.offers.map((d, i) => el('div', { class: 'sx-offer' }, el('div', { class: 'sx-q' }, el('span', {}, '📦 ' + dName(d), el('small', {}, d.cargo)), el('em', {}, '✦ ' + Math.round(d.pay * INCOME))),
+        el('ul', { class: 'sx-reqs' }, d.reqs.map(r => el('li', {}, DREQ[r.k][1](r.v)))), el('button', { type: 'button', class: 'sl-link', disabled: lock || full || null, onclick: () => dlTake(p, i) }, 'Take this job'))));
+  }
+  if (p.cassini && !p.cassini.taken) {
+    const c = p.cassini;
+    out.push(el('p', { class: 'sx-visit' }, '🚓 A Cassini Federation Post has a poster: ', el('b', {}, c.name), ' of ' + c.gang + ', who ' + c.crime + '. Bounty ✦ ' + Math.round(mwBounty() * INCOME) + '.'),
+      S.mw ? el('p', { class: 'sl-muted' }, 'You already carry a poster (' + S.mw.name + '). Hand it back to take this one.') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => csTake(p) }, 'Take the poster'));
+  }
+  // the expedition
+  const head = (gas ? '🎈 Cloud dive' : '🗺 Expedition');
+  if (exDone(p)) out.push(el('p', { class: 'sx-explored' }, '✓ Fully explored · ' + x.poi.length + ' Points of Interest'));
+  else if (canExpedition(p)) {
+    const leg = exLeg(p, x.step);
+    out.push(el('p', { class: 'sx-q-h sx-q-sub' }, head + ' · ' + EX_PARTS[x.step]), legBar(x.step, x.step, EX_LEN, k => EX_PARTS[k]), el('p', {}, leg[0]),
+      pathPick(x.pick, lock, leg, bold => exPathTip(x.step, bold), v => { (p.ex = p.ex || { step: 0, pick: 0, poi: [] }).pick = v; save(); drawLeft(); }),
+      el('div', { class: 'sx-row-l' }, expediting() ? el('span', { class: 'sl-muted' }, 'Next session ' + (x.step ? 'continues it' : 'sets out') + '. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('expedition') }, x.step ? 'Continue next session' : 'Set out next session'),
+        expediting() ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Not now') : null));
+  }
+  if (x.poi.length && !exDone(p)) out.push(el('p', { class: 'sl-muted' }, 'Charted: ' + x.poi.map(o => o.name).join(', ') + '.'));
+  // the anomaly
+  if (p.odd && !p.story) {
+    const v = invOf(p);
+    if (v.done) out.push(el('p', { class: 'sx-explored' }, '🔬 Anomaly solved. ', el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'tx'; txFilter = 'codex'; drawRight(); } }, 'Read it in the Codex')));
+    else if (canInvestigate(p)) out.push(el('p', { class: 'sx-q-h sx-q-sub' }, '🔬 Anomaly: ' + capFirst(p.odd)), el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round(v.pct * 100) + '%' })),
+      el('div', { class: 'sx-row-l' }, investigating() ? el('span', { class: 'sl-muted' }, Math.round(v.pct * 100) + '% studied. Investigating next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('investigate') }, (v.pct ? 'Keep investigating (' + Math.round(v.pct * 100) + '%)' : 'Investigate it') + ' next session')));
+  }
+  // the Manhunt, if your Most Wanted was sighted here
+  if (mwHere()) {
+    const x = S.mw.hunt, leg = mwLegText(x.step);
+    out.push(el('p', { class: 'sx-q-h sx-q-sub' }, '🎯 Manhunt: ' + S.mw.name), legBar(x.step, x.step, 3, k => MH_PARTS[k]), el('p', {}, leg[0]),
+      pathPick(x.pick, lock, leg, bold => x.step === 2 ? (bold ? 'Same bounty, the bold way' : 'Same bounty, the careful way') : '✦ ' + Math.round(CS.legPay * INCOME), v => { x.pick = v; save(); drawLeft(); }),
+      el('div', { class: 'sx-row-l' }, hunting() ? el('span', { class: 'sl-muted' }, 'Hunting next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('hunt') }, x.step ? 'Continue the Manhunt next session' : 'Start the Manhunt next session')));
+  }
+  // a derelict to salvage
+  const d = derelictHere();
+  if (d) {
+    const leg = derelictLeg(d);
+    out.push(el('p', { class: 'sx-q-h sx-q-sub' }, '🛸 Derelict: ' + d.derelict.ship), el('p', {}, leg[0]),
+      pathPick(d.derelict.pick, lock, leg, bold => bold ? 'A rarer find, less ✦' : 'A sure find and ✦ ' + Math.round(EXP.salvage * INCOME), v => { d.derelict.pick = v; save(); drawLeft(); }),
+      el('div', { class: 'sx-row-l' }, salvaging() ? el('span', { class: 'sl-muted' }, 'Salvaging next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || !!S.dr || null, onclick: () => setMission('salvage') }, 'Salvage next session')));
+  }
+  return sec('📍 Here', ...out);
 }

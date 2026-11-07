@@ -28,7 +28,7 @@ function drawMap() {
           el('small', {}, x.hab + '% habitable, ' + hp.dist.toLocaleString() + ' light-years from Earth' + (hp.post ? (hp.post.tp ? '. Travelers\' Post' : '. Listening Post') : '') + (held(hp) ? '. Held by outlaws' : '') + (S.at === hp.num ? '. You are here' : '')), el('p', {}, first))); } }
       tip.hidden = !hit; if (hit) { tip.style.left = Math.max(8, Math.min(r.width - 340, mx + 16)) + 'px'; tip.style.top = Math.max(8, Math.min(r.height - 150, my + 12)) + 'px'; }
     });
-    mapCv.addEventListener('pointerup', () => { drag = null; });
+    mapCv.addEventListener('pointerup', () => { const click = drag && !drag.moved; drag = null; if (click && mapHover) { tab('log'); openWorld(mapHover.num); } }); // click a world: open its page (and its jump button)
     mapCv.addEventListener('pointerleave', () => { tip.hidden = true; mapHover = null; });
     mapCv.addEventListener('wheel', e => { e.preventDefault(); mapView.zoom = Math.min(12, Math.max(.6, mapView.zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); renderMap(); }, { passive: false });
     addEventListener('resize', () => { if (!mapPane.hidden) renderMap(); });

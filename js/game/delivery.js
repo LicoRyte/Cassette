@@ -40,20 +40,25 @@ function makeDelivery() {
   }
   return { reqs: [{ k: 'hab', v: 40 }, { k: 'moons', v: 1 }], chance: .2, pay: Math.round(E.quests.delivery * 2.4), cargo: pk1(CARGO), client: pk1(CLIENT) };
 }
-function dlCheck() { // three offers a day
-  if (!S.dl) S.dl = { day: '', offers: [], active: null, done: 0 };
-  if (S.dl.day !== today()) { S.dl.day = today(); S.dl.offers = Array.from({ length: 3 }, makeDelivery); }
+// Postal: an arrival visitor with E.postal.offers jobs. You carry up to E.postal.carry at a time; jobs stay until delivered or dropped.
+const POSTAL_NAMES = ['Interstellar Postal Service, Branch 9', 'The Comet Mail Co-op', 'Starlight Parcel Depot', 'The Last Mailbox', 'Guild Courier Office', 'Rocket Post', 'The Slow Boat Post Office', 'Moonmail Sorting Hub'];
+function dlCheck() { // the carried-jobs list (older saves had daily offers instead)
+  if (!S.dl || !Array.isArray(S.dl.carry)) S.dl = { carry: [], done: (S.dl && S.dl.done) || 0 };
 }
-const dlScore = p => { const d = S.dl.active; if (!d || !p) return 0; const c = d.reqs.reduce((a, r) => a + dClose(p, r), 0) / d.reqs.length; return d.reqs.every(r => dMet(p, r)) ? 1 : c; };
-const viaJump = p => !!p && S.jumped === p.num && S.at === p.num; // dropped off at a world you teleported to: pays less, so a node network can't farm deliveries
-const dlPayAt = p => { const sc = dlScore(p), base = sc >= 1 ? S.dl.active.pay : Math.max(Math.round(S.dl.active.pay * .1), Math.round(S.dl.active.pay * sc * sc * .8)); return Math.round(base * (viaJump(p) ? E.quests.deliveryViaJump : 1)); };
-function dlAccept(i) { if (focusLock() || S.dl.active) return; const d = S.dl.offers.splice(i, 1)[0]; if (!d) return; d.from = S.at; d.at = Date.now(); S.dl.active = d;
-  pushEv({ c: 'quest', ic: '📦', title: 'Delivery accepted: ' + dName(d), t: d.client + ' wants ' + d.cargo + ' taken to a world with: ' + d.reqs.map(r => DREQ[r.k][1](r.v)).join(', ') + '.', at: Date.now() }); save(); draw(); }
-function dlAbandon() { const d = S.dl.active; if (!d) return; pushEv({ c: 'quest', ic: '📦', title: 'Delivery abandoned: ' + dName(d), t: 'The ' + d.cargo + ' went back to the depot.', at: Date.now() }); S.dl.active = null; save(); draw(); }
-function dlDeliver(p, auto) {
-  const d = S.dl.active; if (!d || !p || p.num === d.from) return null;
-  const sc = dlScore(p), full = sc >= 1, pay = addDust(dlPayAt(p));
-  award(full ? 60 : 25, full ? 30 : 10); S.dl.done++; S.dl.active = null;
+const DLMAX = () => Math.round(E.postal.carry);
+function makePostal(p) { p.postal = { name: pk1(POSTAL_NAMES), offers: Array.from({ length: Math.round(E.postal.offers) }, makeDelivery) }; S.cnt.postals = (S.cnt.postals || 0) + 1; }
+const dlScore = (p, d) => { if (!d || !p) return 0; const c = d.reqs.reduce((a, r) => a + dClose(p, r), 0) / d.reqs.length; return d.reqs.every(r => dMet(p, r)) ? 1 : c; };
+const viaJump = p => !!p && S.jumped === p.num && S.at === p.num; // dropped off at a world you jumped to: pays less, so hyperdrive can't farm deliveries
+const dlPayAt = (p, d) => { const sc = dlScore(p, d), base = sc >= 1 ? d.pay : Math.max(Math.round(d.pay * .1), Math.round(d.pay * sc * sc * .8)); return Math.round(base * (viaJump(p) ? E.quests.deliveryViaJump : 1)); };
+function dlTake(p, i) { // take a job from the Postal office at this world
+  if (focusLock() || !p.postal || S.dl.carry.length >= DLMAX()) return;
+  const d = p.postal.offers.splice(i, 1)[0]; if (!d) return; d.from = p.num; d.at = Date.now(); S.dl.carry.push(d);
+  pushEv({ c: 'quest', ic: '📦', title: 'Delivery taken: ' + dName(d), t: d.client + ' wants ' + d.cargo + ' taken to a world with: ' + d.reqs.map(r => DREQ[r.k][1](r.v)).join(', ') + '.', at: Date.now() }); save(); draw(); }
+function dlAbandon(d) { const i = S.dl.carry.indexOf(d); if (i < 0) return; pushEv({ c: 'quest', ic: '📦', title: 'Delivery dropped: ' + dName(d), t: 'The ' + d.cargo + ' went back to the depot.', at: Date.now() }); S.dl.carry.splice(i, 1); save(); draw(); }
+function dlDeliver(p, d, auto) {
+  if (!d || !p || p.num === d.from || !S.dl.carry.includes(d)) return null;
+  const sc = dlScore(p, d), full = sc >= 1, pay = addDust(dlPayAt(p, d));
+  award(full ? 60 : 25, full ? 30 : 10); S.dl.done++; S.dl.carry.splice(S.dl.carry.indexOf(d), 1);
   if (full) { S.cnt.dlPerfect = (S.cnt.dlPerfect || 0) + 1; (S.cnt.cargo = S.cnt.cargo || {})[d.cargo] = (S.cnt.cargo[d.cargo] || 0) + 1; } else if (sc < .5) S.cnt.dlClose = (S.cnt.dlClose || 0) + 1;
   let extra = ''; if (full && d.chance < .05) { const it = rareFind(p, 'gift'), nw = gainItem(it, p); if (nw) award(0, 12); extra = ' They threw in a tip: ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ').'; }
   const t = (full ? 'Delivered ' + d.cargo + ' to ' + nm(p) + '. ' + d.client + ' is delighted.' : 'Dropped ' + d.cargo + ' off early at ' + nm(p) + ' (' + Math.round(sc * 100) + '% of what they asked for). ' + d.client + ' paid, grumbling.') + extra;
@@ -61,5 +66,13 @@ function dlDeliver(p, auto) {
   if (auto) qNotes.push('📦 ' + t + ' +' + pay + ' ✦'); else hint.textContent = '📦 ' + t + ' +' + pay + ' ✦';
   save(); if (!auto) draw(); return pay;
 }
-function dlArrive(p) { if (S.dl && S.dl.active && p && p.num !== S.dl.active.from && dlScore(p) >= 1) dlDeliver(p, true); } // a perfect match delivers by itself
+function dlArrive(p) { if (!S.dl || !p) return; S.dl.carry.slice().forEach(d => { if (p.num !== d.from && dlScore(p, d) >= 1) dlDeliver(p, d, true); }); } // a perfect match delivers by itself
+// ---------- once: daily delivery offers become Postal jobs; an active job is cancelled with a small payback ----------
+if (!S.rw2dl) {
+  const old = S.dl, act = old && !Array.isArray(old.carry) ? old.active : null;
+  S.dl = { carry: [], done: (old && old.done) || 0 };
+  if (act) { const back = addDust(act.pay * E.postal.consolation);
+    pushEv({ c: 'quest', ic: '📮', title: 'Deliveries come from Postal offices now', t: 'Jobs no longer arrive every day: you pick them up from Postal offices you meet on new worlds, and carry up to ' + DLMAX() + ' at a time. Your job (' + dName(act) + ') was cancelled and partly paid.', got: '+' + back + ' ✦', at: Date.now() }); }
+  S.rw2dl = 1;
+}
 dlCheck();

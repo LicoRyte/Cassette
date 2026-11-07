@@ -2,11 +2,23 @@
 'use strict';
 
 // Outlaws: some new worlds are held by a gang. While one is, Explore turns into Fight: one study session drives them out.
-const OUTLAW_CHANCE = 1 / 8;
 const GANG_A = ['Rust', 'Void', 'Red Comet', 'Dust', 'Iron', 'Grinning', 'Black Sun', 'Scrap', 'Howling', 'Neon'], GANG_B = ['Jackals', 'Raiders', 'Vultures', 'Syndicate', 'Rats', 'Wolves', 'Pirates', 'Crows', 'Gang', 'Marauders'];
 const FIGHT = ['{G} put up a fight, but the crew drove them off the {b}.', 'A long standoff over the {b}. {G} blinked first and fled.', '{G} tried an ambush in the {b}. It did not go well for them.', 'After a tense chase through the {b}, {g} gave up and jumped away.', '{G} surrendered once the ship\'s floodlights hit their camp in the {b}.', "{G} tried to bluff their way out over the {b}. The crew called the bluff.", "{G} hid in the {b} and waited. The crew waited longer.", "The crew cut {g}'s fuel line in the {b}. They had to walk home.", "{G} threw everything they had at the ship over the {b}. It wasn't enough.", "A short, loud fight over the {b}. Then a long, quiet retreat from {g}.", "{G} ran out of ammunition before the crew ran out of patience.", "{G} tried to outrun the ship through the {b}. They tripped over a rock.", "{G} set up a trap in the {b}. The crew stepped around it.", "The crew lit up the {b} like a stage, and {g} lost their nerve.", "{G} called for backup. Backup didn't come.", "A tense game of hide-and-seek in the {b}. The crew won. {G} went home.", "{G} gave up as soon as the ship's cook started yelling.", "{G} tried to sneak up on the ship in the {b}. They sneezed.", "{G} made a stand in the {b} and lost it fast.", "The crew offered {g} a deal: leave now, keep your ship. They took it."];
-// Arrival encounters: about 1 trip in 10, something near the new world pays out a little stardust. {p} = the world's name.
-const ENC_CHANCE = E.encounters.chance;
+// The arrival roll: one roll per new world (economy.json "encounter"). chance = the chance of any visitor; the weights pick which one,
+// so a world never gets two. Coordinator chips and perks add straight to one visitor's chance.
+const ENC_BUILT = { meeting: 1, postal: 1, trade: 1, outlaw: 1, cassini: 1, derelict: 1, station: 1 }; // a weight left out of this list stays quiet
+function rollArrival(p, amp) {
+  const EN = E.encounter, W = EN.weights, tot = Object.values(W).reduce((a, n) => a + n, 0) || 1;
+  const bonus = { meeting: chipP('lantern', amp) + (hasT('nav1') ? .05 : 0) + .02 * roomLv('deck') + .03 * crewN('Scout'), outlaw: chipP('siren', amp) - chipP('hush', amp), trade: chipP('market', amp) };
+  const ch = {};
+  Object.keys(W).forEach(k => { if (!ENC_BUILT[k]) return; const base = EN.chance * W[k] / tot * (k === 'trade' && hasT('nav3') ? 2 : 1); ch[k] = Math.max(0, base + (bonus[k] || 0)); });
+  if (p.type === 'Rogue') ch.outlaw = 0; // nobody to hold a world with no sun
+  const sum = Object.values(ch).reduce((a, n) => a + n, 0);
+  if (Math.random() >= Math.min(.9, sum)) return null; // most worlds are quiet
+  let x = Math.random() * sum; for (const k of Object.keys(ch)) { x -= ch[k]; if (x < 0) return k; }
+  return null;
+}
+// Chance meetings: something near the new world pays out a little stardust. {p} = the world's name.
 const ENCOUNTERS = [
   ['🔬', 'Intergalactic Research Station Nearby!', 'You settled near an Intergalactic Research Station, reported your findings on {p} and traded a few spare parts.', 40, 90],
   ['🐫', 'Trading Caravan Passing By!', 'A long caravan of cargo haulers drifted past {p}. You swapped star charts for a crate of supplies.', 30, 70],

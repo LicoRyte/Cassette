@@ -14,8 +14,8 @@ function buildView() {
   const all = S.found.slice().reverse().map(f => f.p);
   if (!all.length) buildNum = 0;
   if (buildNum == null || (buildNum !== 0 && !byNum(buildNum))) { const a = atP(); buildNum = (a && !held(a) ? a : posts().length ? posts()[posts().length - 1].p : all[0]).num; }
-  const label = p => nm(p) + (S.at === p.num ? ' (here)' : '') + (p.post ? (p.post.tp ? ', Travelers\' Post' : ', Listening Post') : '') + (p.node ? ', Node' : '') + (held(p) ? ', outlaws' : '');
-  const withPost = all.filter(p => p.post || p.node), without = all.filter(p => !p.post && !p.node);
+  const label = p => nm(p) + (S.at === p.num ? ' (here)' : '') + (p.post ? (p.post.tp ? ', Travelers\' Post' : ', Listening Post') : '') + (held(p) ? ', outlaws' : '');
+  const withPost = all.filter(p => p.post), without = all.filter(p => !p.post);
   const pick = el('select', { class: 'sx-wpick', 'aria-label': 'World to build on' },
     el('option', { value: 0, selected: buildNum === 0 || null }, 'Your ship: ' + S.ship.name),
     withPost.length ? el('optgroup', { label: 'Your posts' }, withPost.map(p => el('option', { value: p.num, selected: p.num === buildNum || null }, label(p)))) : null,
@@ -40,8 +40,7 @@ function buildView() {
     if (p.post) rows.push(el('div', { class: 'sx-row sx-postact' },
       S.tuned === p.num ? el('button', { type: 'button', class: 'btn', onclick: () => { S.tuned = 0; save(); draw(); } }, 'Untune satellite') : el('button', { type: 'button', class: 'btn', title: 'The tuned post reports every study session', onclick: () => { S.tuned = p.num; save(); draw(); } }, 'Tune satellite here'),
       el('button', { type: 'button', class: 'btn', onclick: () => rename(p) }, 'Rename world')));
-    rows.push(p.node ? up('Hyperdrive Node', S.at === p.num ? 'Installed. You are here.' : 'Installed. Jump back any time.', jumpBtn(p, 'btn sx-buy') || el('span', { class: 'sx-done' }, 'Built'), 'built')
-      : stationAt(p) ? up('Hyperdrive Node', 'Not while an Interplanetary Station is parked here.', null, 'locked') : up('Hyperdrive Node', 'Lets the ship jump back here from anywhere. One study session.', queue('node:' + p.num + ':')));
+    if (S.at !== p.num) rows.push(up('Hyperdrive', 'Jump here with a hyperdrive charge (' + (S.hyper || 0) + ' left). Charge more with the Charge mission.', jumpBtn(p, 'btn sx-buy')));
     out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Post'), ...rows));
     // step 3: facilities
     if (p.post && p.post.tp) {

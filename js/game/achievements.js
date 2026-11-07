@@ -30,7 +30,7 @@ tiers('Posts', 'city', '🏙', [[1, 'City Lights']], () => posts().filter(f => f
 tiers('Adventure', 'bty', '🎯', [[1, 'Bounty Hunter'], [10, 'Contract Work'], [50, 'Professional'], [100, 'Most Wanted List']], () => S.bDone, n => 'Complete ' + n + ' bount' + (n === 1 ? 'y' : 'ies'));
 tiers('Adventure', 'fight', '⚔', [[1, 'Sheriff'], [10, 'Outlaw Bane'], [50, 'Peacekeeper']], () => S.fights || 0, n => 'Drive out ' + n + ' outlaw gang' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'dr', '🆘', [[1, 'First Responder'], [10, 'Search and Rescue'], [30, 'Guardian']], () => S.drN || 0, n => 'Complete ' + n + ' Distress Run' + (n === 1 ? '' : 's'));
-tiers('Adventure', 'exp', '🗺', [[1, 'Into the Unknown'], [10, 'Seasoned Explorer'], [30, 'Mapmaker of Legend']], () => S.expDone || 0, n => 'Finish ' + n + ' expedition' + (n === 1 ? '' : 's'));
+tiers('Adventure', 'exp', '🗺', [[1, 'Into the Unknown'], [10, 'Seasoned Explorer'], [30, 'Mapmaker of Legend']], () => S.expDone || 0, n => 'Fully explore ' + n + ' world' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'wk', '📜', [[1, 'Guild Member'], [10, 'Guild Favorite'], [26, 'Half a Year of Contracts']], () => S.cnt.wk || 0, n => 'Get paid for ' + n + ' Guild contract' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'mw', '🎯', [[1, 'Wanted: Caught'], [5, 'Bounty Legend'], [15, 'The Last Sheriff']], () => S.mwDone || 0, n => 'Catch ' + n + ' Most Wanted boss' + (n === 1 ? '' : 'es'));
 tiers('Worlds', 'chip', '🎛', [[10, 'Fine Tuner'], [25, 'Control Freak'], [60, 'Master of Chance']], () => S.chips.own, n => 'Own ' + n + ' Coordinator chips');
@@ -69,7 +69,7 @@ SQ('film', '🎥', 'Background Extra', 'Wander into a film shoot', () => seen('F
 SQ('night', '🦉', 'Night Owl', 'Finish a study session between midnight and 4 AM', () => (S.cnt.night || 0) >= 1);
 SQ('early', '🐓', 'Early Bird', 'Finish a study session between 4 and 7 AM', () => (S.cnt.early || 0) >= 1);
 SQ('binge', '📼', 'Binge Watcher', 'Recover 5 Meridian logs in one day', () => !!S.cnt.campDay && S.cnt.campDay.best >= 5);
-SQ('bold', '🎲', 'Fortune Favors the Bold', 'Take the bold path on every leg of an expedition', () => (S.cnt.allBold || 0) >= 1);
+SQ('bold', '🎲', 'Fortune Favors the Bold', 'Take the risky path on every leg of an expedition', () => (S.cnt.allBold || 0) >= 1);
 SQ('safe', '🐢', 'Slow and Steady', 'Take the safe path on every leg of an expedition', () => (S.cnt.allSafe || 0) >= 1);
 SQ('broke', '💸', 'Big Spender', 'Spend every last resource (have exactly 0)', () => S.dust === 0 && S.dustTotal > 0);
 SQ('hoard', '🐉', 'Dragon\'s Hoard', 'Hold 10,000 resources at once', () => S.dust >= 10000);
@@ -99,8 +99,8 @@ SQ('dinermax', '🧑‍🍳', 'Diner Supremacy', 'Get a Diner to the max level',
 SQ('mall', '🛍', 'No Vacancy', 'Fill every facility slot at a post', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= facSlots(x.p)));
 SQ('theme', '🎪', 'Theme Park', 'Give a post a theme by building its facilities around one idea', () => posts().some(x => x.p.post.tp && !!postTheme(x.p)));
 SQ('city10', '🌆', 'Skyline', 'Have a Travelers\' Post with 10 facilities', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= 10));
-tiers('Worlds', 'node', '⚡', [[1, 'Shortcut'], [5, 'Network Engineer'], [15, 'Hyperlane Architect']], () => nodes().length, n => 'Install ' + n + ' Hyperdrive Node' + (n === 1 ? '' : 's'));
-SQ('jumpy', '🐇', 'Jumpy', 'Jump through Hyperdrive Nodes 25 times', () => (S.cnt.jumps || 0) >= 25);
+tiers('Worlds', 'node', '⚡', [[1, 'Shortcut'], [5, 'Network Engineer'], [15, 'Hyperlane Architect']], () => Math.max(S.cnt.jumps || 0, S.cnt.nodes || 0), n => 'Make ' + n + ' hyperdrive jump' + (n === 1 ? '' : 's'));
+SQ('jumpy', '🐇', 'Jumpy', 'Make 25 hyperdrive jumps', () => (S.cnt.jumps || 0) >= 25);
 SQ('named', '🪧', 'Grand Opening', 'Give a Travelers\' Post its own name', () => posts().some(x => x.p.post.tp && !!x.p.post.tp.name));
 SQ('cooks', '🍳', 'Too Many Cooks', 'Have 3 Cooks aboard at once', () => crewN('Cook') >= 3);
 SQ('house', '🎭', 'Full House', 'Have one of every crew role aboard', () => Object.keys(ROLES).every(r => crewN(r) > 0));
@@ -176,7 +176,8 @@ SQ('brochure', '📝', 'Glossy Brochure', 'Write a description for a Travelers\'
 SQ('planner', '🏗', 'Urban Planner', 'Buy all the extra land at one post', () => tps().some(p => (p.post.tp.extra || 0) >= slotBuyMax()));
 SQ('wrecking', '🧹', 'Wrecking Ball', 'Tear down 3 facilities', () => (S.cnt.torn || 0) >= 3);
 SQ('stargaze', '🔭', 'Stargazer', 'Open the Planetarium 10 times', () => (S.cnt.pv || 0) >= 10);
-SQ('hyperlane', '🌀', 'Hyperlane Tourist', 'Have Hyperdrive Nodes on worlds of 5 different classes', () => new Set(nodes().map(f => f.p.type)).size >= 5);
+SQ('hyperlane', '🌀', 'Hyperlane Tourist', 'Jump to worlds of 5 different classes', () => Object.keys(S.cnt.jumpTypes || {}).length >= 5);
+tiers('Knowledge', 'inv', '🔬', [[1, 'Curious'], [10, 'Anomaly Hunter'], [40, 'Keeper of the Codex']], () => S.cnt.inv || 0, n => 'Solve ' + n + ' anomal' + (n === 1 ? 'y' : 'ies'));
 SQ('station', '🛰', 'Big City in Space', 'Find an Interplanetary Station', () => (S.cnt.stations || 0) >= 1);
 SQ('shopper', '🛍', 'Last-Minute Shopper', 'Buy 5 things at Interplanetary Stations', () => (S.cnt.stBuys || 0) >= 5);
 SQ('shift', '🛠', 'Odd Jobs', 'Work 3 shifts at Interplanetary Stations', () => (S.cnt.shifts || 0) >= 3);
@@ -190,7 +191,7 @@ SQ('cat', '🐈', 'Cat Courier', 'Perfectly deliver a very patient cat', () => c
 tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
 tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
-tiers('Adventure', 'srv', '🔍', [[1, 'Surveyor'], [25, 'Field Researcher'], [100, 'Planetary Scientist']], () => S.surveys || 0, n => 'Survey ' + n + ' world' + (n === 1 ? '' : 's'));
+tiers('Adventure', 'srv', '📍', [[1, 'Surveyor'], [25, 'Field Researcher'], [100, 'Planetary Scientist']], () => (S.surveys || 0) + (S.cnt.poi || 0), n => 'Chart ' + n + ' Point' + (n === 1 ? '' : 's') + ' of Interest');
 tiers('Collection', 'itm', '🎒', [[10, 'Pack Rat'], [50, 'Curator'], [100, 'Museum Wing'], [200, 'Grand Museum']], () => itemCount(), n => 'Own ' + n + ' different collectibles');
 A('Collection', 'itmall', '🏛', 'The Complete Collection', 'Own every collectible in the universe', () => itemCount() >= ITEM_ALL);
 CATS.forEach(([c, name, , need]) => A('Collection', 'cat-' + c, '📚', 'All the ' + name, 'Own every item in ' + name, () => catTotal(c) > 0 && ITEM_RARS.every(r => catList(c, r).every((_, i) => S.items[itemId(c, r, i)])), need === 'shop' ? undefined : need));

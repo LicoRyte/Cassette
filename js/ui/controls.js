@@ -12,14 +12,15 @@ const screen = el('div', { class: 'sl-screen sunken', 'aria-live': 'off' }, el('
 let dotN = 0, dotT = 0;
 function headline() {
   if (shifting() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready for a shift at ' + S.station.name) : 'Working a shift at ' + S.station.name;
-  if (expediting() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Expedition: leg ' + (S.exp.step + 1) + ' of ' + EXP_LEN) : 'On the expedition';
-  if (hunting() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to hunt ' + S.mw.name) : 'Hunting ' + S.mw.name;
+  if (expediting() && mode === 'focus') { const a = atP(), w = gasWorld(a) ? 'Cloud dive' : 'Expedition'; return !running ? (left > 0 && left < length(mode) ? 'Holding position' : w + ': ' + EX_PARTS[exOf(a).step].toLowerCase() + ' on ' + nm(a)) : (gasWorld(a) ? 'Diving into the clouds of ' : 'Exploring ') + nm(a); }
+  if (salvaging() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to salvage') : 'Salvaging ' + atP().derelict.ship;
+  if (investigating() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to investigate') : 'Studying ' + atP().odd;
+  if (hunting() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Manhunt: ' + MH_PARTS[S.mw.hunt.step].toLowerCase()) : 'Hunting ' + S.mw.name;
   if (campaigning() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to follow the trail') : 'Following the Meridian\'s trail';
   if (S.dr && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Distress Run: Act ' + roman(S.dr.n + 1)) : 'Answering the distress call';
-  const b = building(), c = charging(), d = !b && !c && discovering() && atP(), o = !b && !c && !d && heldP();
-  if (d) return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to survey') : 'Surveying ' + nm(d) + ' for collectibles';
+  const b = building(), c = charging(), o = !b && !c && heldP();
   if (!running) return left > 0 && left < length(mode) ? 'Holding position' : mode === 'focus' ? (b ? (b.k === 'upgrade' ? 'Ready to upgrade' : 'Ready to build') : c ? 'Ready to charge' : o ? 'Outlaws ahead' : S.coord ? 'Ready for a lucky launch' : 'Ready for launch') : 'Docked. Take a breather';
-  return mode === 'focus' ? (b ? jobText(b) : c ? 'Recharging Interplanetary Coordinator' : o ? 'Fighting ' + o.outlaw.gang + ' on ' + nm(o) : S.coord ? 'Following the Coordinator to a promising world' : 'Traveling to an uncharted world') : 'Preparing equipment for the next mission';
+  return mode === 'focus' ? (b ? jobText(b) : c ? (S.chargeKind === 'hyper' ? 'Charging the hyperdrive' : 'Recharging Interplanetary Coordinator') : o ? 'Fighting ' + o.outlaw.gang + ' on ' + nm(o) : S.coord ? 'Following the Coordinator to a promising world' : 'Traveling to an uncharted world') : 'Preparing equipment for the next mission';
 }
 function drawDots() { const n = running ? dotN % 4 : 0; dots.replaceChildren(...[0, 1, 2].map(i => el('i', { class: i < n ? '' : 'off' }, '.'))); }
 const barFill = el('div', { class: 'sl-fill' });
@@ -40,25 +41,49 @@ const settings = el('details', { class: 'sl-set' }, el('summary', {}, 'Settings'
     el('label', {}, 'Long break every ', sel('every', [2, 3, 4, 5, 6]), ' study sessions')));
 // what the next study session is for: travel to a new world, or build a Listening Post on one you've found
 // the mission: what this study session is for. Exactly one is pressed.
-const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['discover', '🔍', 'Discover', 'Survey the world you\'re at for collectibles'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '🧭', 'Charge', 'Charge the Interplanetary Coordinator: your chips count double on the next Explore, and it steers toward better worlds'], ['campaign', '📼', 'Campaign', 'Follow the Meridian\'s trail to their next log'], ['expedition', '🗺', 'Expedition', 'Take the next leg of your expedition'], ['hunt', '🎯', 'Hunt', 'Track down the Most Wanted (two sessions)'], ['shift', '🛠', 'Shift', 'Work a shift at the Interplanetary Station']];
-const curMission = () => S.mission > 0 ? 'build' : S.mission === -1 ? 'charge' : S.mission === -2 ? 'discover' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : S.mission === -5 ? 'hunt' : S.mission === -6 ? 'shift' : 'explore';
+const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['expedition', '🗺', 'Expedition', 'Explore the world you\'re at: three legs, each charts a Point of Interest'], ['investigate', '🔬', 'Investigate', 'Study the anomaly here: three or four sessions, then its answer goes in the Codex'], ['salvage', '🛸', 'Salvage', 'Salvage the derelict ship drifting here (one session, one find)'], ['build', '🗼', 'Build', 'Build a Listening Post, upgrade one to a Travelers\' Post, or add a facility'], ['charge', '⚡', 'Charge', 'Charge the Interplanetary Coordinator (your next Explore is steered) or the hyperdrive (jump to any world you\'ve visited)'], ['campaign', '📼', 'Campaign', 'Follow the Meridian\'s trail to their next log'], ['hunt', '🎯', 'Manhunt', 'Catch the Most Wanted who was sighted here (three sessions)'], ['shift', '🛠', 'Shift', 'Work a shift at the Interplanetary Station']];
+const curMission = () => S.mission > 0 ? 'build' : S.mission === -1 ? 'charge' : S.mission === -7 ? 'salvage' : S.mission === -8 ? 'investigate' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : S.mission === -5 ? 'hunt' : S.mission === -6 ? 'shift' : 'explore';
 function setMission(m, num) {
   if (running && mode === 'focus') return;
   if (m === 'explore') S.mission = 0;
-  else if (m === 'charge') { if (S.coord) return; S.mission = -1; }
-  else if (m === 'discover') { const a = atP(); if (!a || held(a)) return; S.mission = -2; }
+  else if (m === 'charge') { const k = num === 'coord' || num === 'hyper' ? num : canCharge(S.chargeKind || 'coord') ? (S.chargeKind || 'coord') : canCharge('coord') ? 'coord' : 'hyper'; if (!canCharge(k)) return; S.chargeKind = k; S.mission = -1; }
+  else if (m === 'investigate') { if (!canInvestigate(atP())) return; S.mission = -8; }
+  else if (m === 'salvage') { if (!derelictHere()) return; S.mission = -7; }
   else if (m === 'campaign') { if (campDone()) return; S.mission = -3; }
-  else if (m === 'expedition') { if (!S.exp) return; S.mission = -4; }
-  else if (m === 'hunt') { if (!mwReady()) return; S.mission = -5; }
+  else if (m === 'expedition') { if (!canExpedition(atP())) return; S.mission = -4; }
+  else if (m === 'hunt') { if (!mwHere()) return; S.mission = -5; }
   else if (m === 'shift') { if (!stHere()) return; S.mission = -6; }
   else { if (building()) { S.mission = 1; } else { const o = buildOptions(), first = (o.Facilities[0] || o.Upgrades[0] || o['New Listening Posts'][0]); if (!first) return; S.mission = 1; S.job = { k: first.k, num: first.num, fac: first.fac }; } }
   save(); hint.textContent = ''; draw();
 }
-const MIS_ORDER = ['explore', 'discover', 'charge', 'build', 'campaign', 'expedition', 'hunt', 'shift'];
+const MIS_ORDER = ['explore', 'expedition', 'investigate', 'salvage', 'hunt', 'charge', 'build', 'campaign', 'shift'];
 const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip], i) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, 'data-key': i + 1, role: 'radio', title: tip + ' (key ' + (i + 1) + ')', onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
 const buildSel = el('select', { class: 'sl-build-sel', 'aria-label': 'World to build on' });
 buildSel.addEventListener('change', () => setJob(buildSel.value));
-const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), buildSel);
+const misNote = el('p', { class: 'sl-mis-note', 'aria-live': 'polite' });
+// Charge picks what to charge: the Coordinator or the hyperdrive
+const chargeSel = el('select', { class: 'sl-build-sel', 'aria-label': 'What to charge' });
+chargeSel.addEventListener('change', () => setMission('charge', chargeSel.value));
+function fillChargeSel() {
+  const hmax = Math.round(E.hyperdrive.max);
+  chargeSel.replaceChildren(el('option', { value: 'coord', disabled: !canCharge('coord') || null }, '🧭 Coordinator' + (S.coord ? ' (charged)' : '')), el('option', { value: 'hyper', disabled: !canCharge('hyper') || null }, '⚡ Hyperdrive (' + (S.hyper || 0) + ' of ' + hmax + ')'));
+  chargeSel.value = S.chargeKind === 'hyper' ? 'hyper' : 'coord';
+}
+const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), buildSel, chargeSel, misNote);
+// one line under the mission buttons: what the chosen mission gives
+function misGives(k) {
+  const a = atP();
+  if (k === 'explore') return heldP() ? '⚔ Drive the outlaws off ' + nm(heldP()) + ': bounty and loot.' : '🚀 A new world' + (S.coord ? ', with the Coordinator steering' : '') + '. About 3 in 10 have a visitor.';
+  if (k === 'expedition' && a) return (gasWorld(a) ? '🎈 Cloud dive ' : '🗺 Expedition ') + (exOf(a).step + 1) + '/' + EX_LEN + ': charts a Point of Interest, pays ✦ and maybe a collectible' + (exOf(a).step === EX_LEN - 1 ? ' (certain on the finale)' : '') + '.';
+  if (k === 'salvage') return '🛸 One session: a sure find from the derelict, plus ✦.';
+  if (k === 'investigate' && a) return '🔬 ' + Math.round(invOf(a).pct * 100) + '% studied: about a third more each session, then a Codex entry, Knowledge and an Anomalies find.';
+  if (k === 'charge') return S.chargeKind === 'hyper' ? '⚡ One hyperdrive charge: jump to any world you\'ve visited.' : '🧭 No new world this time, but the next one is steered and your chips count double.';
+  if (k === 'build') { const b = building(); return b ? '🏗 ' + jobText(b) + '.' : ''; }
+  if (k === 'campaign') return '📼 The next Meridian log.';
+  if (k === 'hunt' && S.mw && S.mw.hunt) return '🎯 Manhunt ' + (S.mw.hunt.step + 1) + '/3: ' + MH_PARTS[S.mw.hunt.step].toLowerCase() + (S.mw.hunt.step === 2 ? '. The bounty is ✦ ' + Math.round(mwBounty() * INCOME) + '.' : '.');
+  if (k === 'shift') return '🛠 Work a shift at the station for ✦.';
+  return '';
+}
 const lvStrip = el('div', { class: 'sl-lv', title: 'Captain Level (XP) and Knowledge Level. Details on Ship → Captain.' });
 function lvBar(k, ic, list, full) {
   const i = lvInfo(S[k]), pct = i.need ? Math.round(i.into / i.need * 100) : 100, t = titleOf(list, i.L);

@@ -18,18 +18,16 @@ function building() {
   if (S.job.k === 'room') return ROOMS[S.job.fac] && !roomLv(S.job.fac) ? { k: 'room', fac: S.job.fac, p: null, num: 0 } : null;
   const j = S.job, f = byNum(j.num); if (!f) return null; const p = f.p;
   if (j.k === 'post' && !p.post && !stationAt(p)) return { k: 'post', p };
-  if (j.k === 'node' && !p.node && !held(p) && !stationAt(p)) return { k: 'node', p };
   if (j.k === 'upgrade' && p.post && !p.post.tp) return { k: 'upgrade', p };
   if (j.k === 'add' && p.post && p.post.tp && FAC[j.fac] && !hasFac(p, j.fac) && slotFree(p)) return { k: 'add', p, fac: j.fac };
   return null;
 }
-const jobText = j => j.k === 'room' ? 'Building the ' + ROOMS[j.fac][1] + ' on your ship' : j.k === 'node' ? 'Installing a Hyperdrive Node on ' + nm(j.p) : j.k === 'post' ? 'Building a Listening Post on ' + nm(j.p) : j.k === 'upgrade' ? 'Upgrading ' + nm(j.p) + ' to a Travelers\' Post' : 'Building a ' + FAC[j.fac][1] + ' at ' + nm(j.p);
+const jobText = j => j.k === 'room' ? 'Building the ' + ROOMS[j.fac][1] + ' on your ship' : j.k === 'post' ? 'Building a Listening Post on ' + nm(j.p) : j.k === 'upgrade' ? 'Upgrading ' + nm(j.p) + ' to a Travelers\' Post' : 'Building a ' + FAC[j.fac][1] + ' at ' + nm(j.p);
 const jobKey = j => j.k + ':' + (j.p ? j.p.num : j.num) + ':' + (j.fac || '');
 function buildOptions() { // every job you could do next, grouped
-  const out = { Facilities: [], Upgrades: [], 'New Listening Posts': [], 'Hyperdrive Nodes': [] };
+  const out = { Facilities: [], Upgrades: [], 'New Listening Posts': [] };
   S.found.slice().reverse().forEach(({ p }) => {
     if (held(p)) return;
-    if (!p.node && !stationAt(p)) out['Hyperdrive Nodes'].push({ k: 'node', num: p.num, label: 'Hyperdrive Node on ' + nm(p) + ' (' + pad(p.num) + ')' });
     if (!p.post) { if (!stationAt(p)) out['New Listening Posts'].push({ k: 'post', num: p.num, label: '🗼 Listening Post on ' + nm(p) + ' (' + pad(p.num) + ')' }); }
     else if (!p.post.tp) out.Upgrades.push({ k: 'upgrade', num: p.num, label: '🏘 Upgrade ' + nm(p) + ' to a Travelers\' Post' });
     else if (slotFree(p)) Object.keys(FAC).filter(k => !hasFac(p, k)).forEach(k => out.Facilities.push({ k: 'add', num: p.num, fac: k, label: FAC[k][0] + ' ' + FAC[k][1] + ' at ' + nm(p) }));
@@ -42,5 +40,8 @@ function fillBuildSel(selEl, skip) {
   selEl.replaceChildren(...Object.entries(o).filter(([g, a]) => a.length && g !== skip).map(([g, a]) => el('optgroup', { label: g }, a.slice(0, 300).map(j => el('option', { value: j.k + ':' + j.num + ':' + (j.fac || '') }, j.label)))));
 }
 function setJob(key) { const [k, n, fac] = key.split(':'); S.mission = 1; S.job = { k, num: +n, fac: fac || undefined }; save(); hint.textContent = ''; draw(); }
-// Interplanetary Coordinator: spend one study session charging it, and your next trip is a lucky one (one charge, no stacking)
-const charging = () => S.mission === -1 && !S.coord;
+// Charge: one study session charges the Interplanetary Coordinator (your next trip is a lucky one, one charge, no stacking)
+// or adds a hyperdrive charge (jump to any world you've visited; up to E.hyperdrive.max). S.chargeKind says which.
+const hyperFull = () => (S.hyper || 0) >= Math.round(E.hyperdrive.max);
+const canCharge = k => k === 'hyper' ? !hyperFull() : !S.coord;
+const charging = () => S.mission === -1 && canCharge(S.chargeKind === 'hyper' ? 'hyper' : 'coord');
