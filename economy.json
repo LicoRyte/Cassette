@@ -33,7 +33,7 @@
   "encounters": { "scale": 1, "rareWorldMultiplier": 1.5 },
   "_encounters": "Chance meetings: scale multiplies every meeting's own min-max pay, rareWorldMultiplier applies on Rare and Legendary worlds.",
 
-  "expedition": { "pay": 150, "boldPay": 0.6, "finale": 100, "findSafe": 0.45, "findBold": 0.8, "poiSellBonus": 0.08, "salvage": 120 },
+  "expedition": { "pay": 75, "boldPay": 0.6, "finale": 60, "findSafe": 0.45, "findBold": 0.8, "poiSellBonus": 0.07, "salvage": 100 },
   "investigate": { "min": 0.25, "max": 0.35, "pay": 120, "knowledge": 60 },
   "_investigate": "Investigate (worlds with an anomaly): each study session adds between min and max progress (0.25 = 25%). When it reaches 100%: pay resources, knowledge Knowledge points, a Codex entry and an Anomalies find.",
 
