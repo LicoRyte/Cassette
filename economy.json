@@ -66,7 +66,7 @@
     "_note": "Selling a world: the sum of everything that applies to it. earthLike is added at earthLikeAt% habitability or more."
   },
 
-  "distressRun": { "base": 400, "random": 130, "bonusMin": 70, "bonusMax": 130 },
+  "distressRun": { "base": 550, "random": 130, "bonusMin": 70, "bonusMax": 130 },
   "_distressRun": "Daily Distress Run payout: base + 0..random (not affected by incomeMultiplier). bonusMin-bonusMax is the extra-resources random bonus.",
 
   "tradeStation": { "prices": { "Common": 75, "Uncommon": 190, "Rare": 500, "Legendary": 1500 }, "sellRatio": 0.3 },
@@ -86,7 +86,7 @@
   "decorCost": { "t1": 150, "t2": 400, "t3": 900, "t4": 1800, "station": 2500 },
   "_decorCost": "Ship decorations by price tier (t1 cheapest .. t4 fanciest). station = price of a station-only decoration at an Interplanetary Station.",
 
-  "story": { "pay": 70, "chapter": 160, "ending": 1000 },
+  "story": { "pay": 60, "chapter": 200, "ending": 5000 },
   "_story": "The Meridian story: pay for each chapter part, a bonus for finishing a chapter, and the reward at the very end.",
 
 
