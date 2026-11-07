@@ -22,7 +22,8 @@
     "furn/records" : {},
     "furn/lava": {},
     "furn/tank" : {},
-    "furn/sofa" : {}
+    "furn/sofa" : {},
+    "furn/globe" : {}
   },
   "custom": []
 }
