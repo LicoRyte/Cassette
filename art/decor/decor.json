@@ -1,7 +1,11 @@
 {
   "_help": "See README.md in this folder. replace: built-in decorations to redraw ('category/id': {}). custom: new decorations.",
   "replace": {
-    "plant/sunflower": {}
+    "plant/sunflower": {},
+    "plant/cactus": {},
+    "plant/fern" : {},
+    "plant/ivy" : {},
+    "plant/palm" : {}
   },
   "custom": []
 }
