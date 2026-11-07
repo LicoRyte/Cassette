@@ -19,7 +19,7 @@ const GAME_FILES = [
   // the screen (the timer and medals sit between them because they use screen parts made above them)
   'js/ui/controls.js', 'js/ui/hud.js', 'js/ui/ship-interior.js', 'js/ui/layout.js', 'js/ui/main-screen.js', 'js/ui/right-panel.js',
   'js/ui/panels.js', 'js/ui/keyboard.js', 'js/ui/planetarium.js', 'js/ui/reports.js', 'js/game/timer.js', 'js/ui/ship-page.js',
-  'js/ui/star-map.js', 'js/game/achievements.js', 'js/ui/ship-views.js', 'js/ui/logbook.js', 'js/ui/intro.js',
+  'js/ui/star-map.js', 'js/game/achievements.js', 'js/ui/ship-views.js', 'js/ui/logbook.js', 'js/ui/reader.js', 'js/ui/intro.js',
   // last: resume a running timer and draw the first frame
   'js/game/start.js',
 ];
