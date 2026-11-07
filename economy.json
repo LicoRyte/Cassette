@@ -53,7 +53,7 @@
   "_trade": "Travelers' Posts pay perFacilityLevel per facility level (all posts together) every study session, up to cap.",
 
   "sell": {
-    "rarity": { "Common": 8, "Uncommon": 20, "Rare": 60, "Legendary": 180 },
+    "rarity": { "Common": 15, "Uncommon": 25, "Rare": 65, "Legendary": 180 },
     "perHabitabilityPercent": 0.33,
     "earthLike": 20,
     "earthLikeAt": 80,
