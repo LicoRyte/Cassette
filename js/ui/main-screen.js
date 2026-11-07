@@ -33,8 +33,6 @@ let leftTab = 'here'; try { leftTab = localStorage.getItem('solarist-ltab') || '
 function drawLeft() {
   const drInfo = !S.dr && !drAvail() ? el('p', { class: 'sl-muted' }, S.drDay === today() ? 'Today\'s run is done. A new distress call comes in tomorrow.' : S.fcDay === today() ? 'A distress call comes in at the start of your next cycle.' : 'Finish a whole cycle without skipping (a Full Cycle) and a distress call comes in after the long break.') : null;
   const qs = S.bounties.map(b => el('div', { class: 'sx-q' }, el('span', {}, b.t, el('small', {}, b.k === 'sessions' ? (b.prog || 0) + ' of ' + b.v + ' done' : b.k === 'cycle' ? 'finish a whole cycle, nothing skipped' : 'on any Explore trip')), el('em', {}, '✦ ' + Math.round(b.reward * INCOME))));
-  const coordB = !S.coord && !S.dr ? el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || (charging() && S.chargeKind !== 'hyper') || null, onclick: () => setMission('charge', 'coord') }, charging() && S.chargeKind !== 'hyper' ? 'Charging next session' : 'Charge it next session') : null;
-  const hyperB = canCharge('hyper') && !S.dr ? el('button', { type: 'button', class: 'sl-link', disabled: (running && mode === 'focus') || (charging() && S.chargeKind === 'hyper') || null, onclick: () => setMission('charge', 'hyper') }, charging() && S.chargeKind === 'hyper' ? 'Charging next session' : 'Charge one next session') : null;
   const lock = running && mode === 'focus';
   const legBar = (n, now, total, label) => el('div', { class: 'sl-dr-legs sx-legs' }, Array.from({ length: total }, (_, k) => el('span', { class: k < n ? 'done' : k === now ? 'now' : '' }, label(k))));
   const hereS = hereSec(lock, legBar);
@@ -59,17 +57,14 @@ function drawLeft() {
       : wkDone() ? el('div', { class: 'sx-claim' }, el('p', {}, 'All done! Pick your pay:'), el('div', { class: 'sx-row-l' },
         el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('dust') }, '✦ ' + Math.round(E.quests.contract * INCOME)), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('kp') }, E.quests.contractKnowledge + ' Knowledge'), el('button', { type: 'button', class: 'btn sx-buy', onclick: () => wkClaim('item') }, 'A Rare find')))
         : el('p', { class: 'sl-muted' }, 'Finish all three this week (resets Monday).'));
-  const travelS = sec('Coordinator & Hyperdrive', el('p', {}, '⚡ Hyperdrive: ' + (S.hyper || 0) + ' of ' + Math.round(E.hyperdrive.max) + ' charges. A charge jumps you to any world you\'ve visited (Star map or Logbook). ', hyperB),
-      el('p', {}, S.coord ? '🧭 Coordinator charged. Next Explore, every chip counts double.' : '🧭 Coordinator empty. One study session of Charge doubles your chips for the next Explore.'),
-      el('p', { class: 'sl-muted' }, chipsPut() + ' of ' + S.chips.own + ' chips placed' + (chipsPut() ? ': ' + CHIP_F.filter(f => S.chips.put[f[0]]).map(f => f[1] + ' ' + S.chips.put[f[0]]).join('  ') : '.')),
-      el('div', { class: 'sx-row-l' }, coordB, el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'coord'; drawRight(); } }, 'Open the panel')));
+  const travelS = travelSec(lock);
   // quests, with whatever needs you first: an open distress call or contract pay, a sighting, jobs you carry, then the rest
   const wkReady = wkDone() && !S.wk.claimed, drNow = !!S.dr || drAvail(), sighted = !!S.mw && S.mw.sighted != null;
   const quests = [[drNow ? 0 : 9, sec('Distress Run', drBox, drInfo)], [wkReady ? 0 : S.wk.claimed ? 8 : 4, wkSec], [sighted ? 1 : S.mw ? 3 : 7, mwSec],
     [S.dl.carry.length ? 2 : 6, dlSec], [5, sec('Bounties', ...qs, el('p', { class: 'sl-muted' }, S.bDone + ' completed so far'))]].sort((a, b) => a[0] - b[0]).map(x => x[1]);
   // a "!" on a tab when something there is waiting for you
   const p = atP(), hereNew = !!p && (!!(p.postal && p.postal.offers.length && S.dl.carry.length < DLMAX()) || !!(p.cassini && !p.cassini.taken && !S.mw) || !!derelictHere() || !!mwHere() || atDoor());
-  const tabs = [['here', '📍 Here', hereNew], ['quests', 'Quests', drAvail() || wkReady || (sighted && !mwHere())], STD ? ['story', '📡 Meridian', signalOn() && !following()] : null, ['travel', '⚡ Travel', false]].filter(Boolean);
+  const tabs = [['here', 'Here', hereNew], ['quests', 'Quests', drAvail() || wkReady || (sighted && !mwHere())], STD ? ['story', 'Meridian', signalOn() && !following()] : null, ['travel', 'Travel', false]].filter(Boolean);
   if (!tabs.some(t => t[0] === leftTab)) leftTab = 'here';
   const lt = ([k, label, dot]) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(leftTab === k), onclick: () => { leftTab = k; try { localStorage.setItem('solarist-ltab', k); } catch (e) { } drawLeft(); leftCol.scrollTop = 0; } },
     label, dot && leftTab !== k ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null);
@@ -175,4 +170,18 @@ function chapterBits(p, lock, legBar) {
   }
   out.push(...leg.success.map(t => el('p', { class: 'sx-story' }, t)), el('div', { class: 'sx-paths' }, [leg.a, leg.b].map((o, i) => el('button', { type: 'button', disabled: lock || null, onclick: () => storyEnd(i) }, el('b', {}, o[0])))));
   return out;
+}
+// the Travel tab: the two things Charge can fill, each as one row with its button
+function travelSec(lock) {
+  const hmax = Math.round(E.hyperdrive.max), hy = S.hyper || 0, now = k => charging() && (S.chargeKind === 'hyper' ? 'hyper' : 'coord') === k;
+  const act = (k, full, fullText) => full ? el('span', { class: 'sx-done' }, fullText) : now(k) ? el('span', { class: 'sx-done sx-next' }, 'Next session')
+    : el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || !!S.dr || null, onclick: () => setMission('charge', k) }, 'Charge');
+  const pips = (n, of) => el('span', { class: 'sx-pips', role: 'img', 'aria-label': n + ' of ' + of }, Array.from({ length: of }, (_, i) => el('i', { class: i < n ? 'on' : '' })));
+  const placed = CHIP_F.filter(f => S.chips.put[f[0]]).map(f => f[2] + ' ' + S.chips.put[f[0]]);
+  return sec('Charge',
+    el('p', { class: 'sl-muted' }, 'One study session of Charge fills one of these.'),
+    el('div', { class: 'sx-up' }, el('b', {}, 'Hyperdrive ', pips(hy, hmax)), el('small', {}, 'Each charge jumps you to any world you\'ve visited.'), act('hyper', hy >= hmax, 'Full')),
+    el('div', { class: 'sx-up' }, el('b', {}, 'Coordinator ', pips(S.coord ? 1 : 0, 1)), el('small', {}, S.coord ? 'Charged: your next Explore is steered, chips count double.' : 'Steers your next Explore. Chips count double.'), act('coord', !!S.coord, 'Charged')),
+    el('div', { class: 'sx-chipline' }, el('small', { class: 'sl-muted' }, chipsPut() + ' of ' + (S.chips.own + (S.chips.temp || 0)) + ' chips placed' + (placed.length ? ': ' + placed.join(', ') : '')),
+      el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'coord'; drawRight(); } }, 'Open the Coordinator')));
 }

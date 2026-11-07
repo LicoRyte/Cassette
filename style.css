@@ -607,3 +607,10 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-door { display: flex; gap: 6px; margin: 8px 0; }
 .sx-door-in { flex: 1; min-width: 0; padding: 5px 8px; background: none; border: 1px solid var(--dim); color: var(--white); font: 600 17px var(--ui); letter-spacing: .12em; text-transform: lowercase; }
 .sx-door-msg { color: var(--soft); font-style: italic; }
+
+/* the Travel tab on the left */
+.sx-up b .sx-pips { display: inline-flex; vertical-align: middle; margin-left: 6px; }
+.sx-up b .sx-pips i.on { background: var(--amber); box-shadow: none; }
+.sx-next { color: var(--amber); }
+.sx-chipline { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+
