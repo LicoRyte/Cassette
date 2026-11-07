@@ -37,6 +37,7 @@ const report = el('div', { class: 'sx-report', hidden: true, role: 'dialog', 'ar
   el('div', { class: 'sx-report-row' }, el('div', { class: 'sx-report-in' }, el('h2', {}, 'Session report'), encBox, trans, card, el('div', { class: 'sx-report-ft' }, el('button', { type: 'button', class: 'btn sl-go', onclick: () => closeReport() }, 'Continue'))), reportSide));
 report.addEventListener('click', e => { if (e.target === report) closeReport(); });
 let typeT = 0;
+const typeSnd = () => { if (S.opts && S.opts.typeSnd === false) return; if (hooks.tick) hooks.tick(); }; // the typewriter blip (Settings can turn it off)
 function typeOut() { // Meridian legs and transmissions print like an old ship terminal; a click on the report finishes them
   clearInterval(typeT);
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -45,7 +46,7 @@ function typeOut() { // Meridian legs and transmissions print like an old ship t
   let i = 0, k = 0;
   const done = () => { clearInterval(typeT); ps.forEach((p, j) => { p.textContent = full[j]; p.classList.remove('sx-type'); }); report.removeEventListener('pointerdown', done); };
   report.addEventListener('pointerdown', done);
-  typeT = setInterval(() => { if (i >= ps.length) return done(); k += 2; ps[i].textContent = full[i].slice(0, k); if (k >= full[i].length) { ps[i].classList.remove('sx-type'); i++; k = 0; } }, 22);
+  typeT = setInterval(() => { if (i >= ps.length) return done(); k += 2; ps[i].textContent = full[i].slice(0, k); typeSnd(); if (k >= full[i].length) { ps[i].classList.remove('sx-type'); i++; k = 0; } }, 22);
 }
 function openReport(replay) { if (trans.hidden && card.hidden && encBox.hidden) return; report.hidden = false; reportBtn.hidden = false; if (!replay) typeOut(); const b = report.querySelector('.sx-report-ft .btn'); if (b) b.focus({ preventScroll: true }); }
 function closeReport() { report.hidden = true; }

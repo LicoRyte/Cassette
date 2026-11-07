@@ -17,6 +17,18 @@
     if (!soundOn) return;
     try { const c = ctx(); if (!c) return; if (c.state === 'suspended') await c.resume(); const b = await load(k), s = c.createBufferSource(), g = c.createGain(); g.gain.value = SFX[k][1]; s.buffer = b; s.connect(g).connect(c.destination); s.start(); } catch (e) { /* no audio here */ }
   }
+  // a tiny typewriter blip for text that types itself out: a soft square beep, slightly different each time, at most ~20 a second
+  let lastTick = 0;
+  function typeTick() {
+    if (!soundOn || document.hidden) return;
+    const c = ctx(); if (!c || c.state !== 'running') return;
+    const now = performance.now(); if (now - lastTick < 48) return; lastTick = now;
+    const t = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'square'; o.frequency.value = 820 + Math.random() * 260;
+    f.type = 'lowpass'; f.frequency.value = 2400;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.035, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + .035);
+    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + .04);
+  }
   const unlock = () => { const c = ctx(); if (c && c.state === 'suspended') c.resume(); Object.keys(SFX).forEach(k => load(k).catch(() => {})); };
   window.addEventListener('pointerdown', unlock, { once: true }); window.addEventListener('keydown', unlock, { once: true });
 
@@ -533,6 +545,7 @@ void main(){
       show: () => setTimeout(() => { const h = root.querySelector('.sl-hint'); notify(h && h.textContent ? h.textContent : 'Session finished.'); }, 0),
       title: t => { document.title = t; },
       scene,
+      tick: typeTick,
       settings: appSettings,
     }, econ, items);
   }).catch(e => { console.error('Solarist failed to start:', e); root.innerHTML = '<p class="boot">Solarist couldn\'t start. Reload the page to try again.</p>'; });

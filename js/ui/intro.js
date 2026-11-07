@@ -55,7 +55,7 @@ function playIntro() {
     full = typeof L === 'function' ? L() : L;
     if (still) { text.textContent = full; return finishLine(); }
     text.textContent = ''; text.classList.add('typing'); let k = 0;
-    typing = setInterval(() => { k++; text.textContent = full.slice(0, k); if (k >= full.length) finishLine(); }, 32);
+    typing = setInterval(() => { k++; text.textContent = full.slice(0, k); if (full[k - 1] !== ' ') typeSnd(); if (k >= full.length) finishLine(); }, 32);
   }
   function step() { if (asking) return; if (typing) finishLine(); else next(); } // a click finishes the line, or moves on
   function answer() {
@@ -87,6 +87,8 @@ function playIntro() {
 {
   const box = el('input', { type: 'checkbox', checked: S.opts.intro !== false || null });
   box.addEventListener('change', () => { S.opts.intro = box.checked; save(); });
-  settingsPane.append(sec('Title sequence', el('label', { class: 'sx-check' }, box, ' Play the title sequence when Solarist opens'),
+  const snd = el('input', { type: 'checkbox', checked: S.opts.typeSnd !== false || null });
+  snd.addEventListener('change', () => { S.opts.typeSnd = snd.checked; save(); });
+  settingsPane.append(sec('Title sequence', el('label', { class: 'sx-check' }, box, ' Play the title sequence when Solarist opens'), el('label', { class: 'sx-check' }, snd, ' Typing sound for text that types itself out'),
     el('div', { class: 'sx-row-l' }, el('button', { type: 'button', class: 'btn', onclick: () => { tab('timer'); playIntro(); } }, 'Play it now'))));
 }

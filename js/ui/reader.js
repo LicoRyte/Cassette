@@ -51,7 +51,7 @@ function openReader(startAt) {
     full = String(it.t || ''); const p = el('p', { class: 'sx-rd-p' }); body.replaceChildren(p);
     if (still || !full) { p.textContent = full; got.hidden = !it.extra; return; }
     p.classList.add('typing'); let k = 0; const per = full.length > 400 ? 4 : full.length > 160 ? 2 : 1; // long logs type faster
-    typing = setInterval(() => { k += per; p.textContent = full.slice(0, k); if (k >= full.length) { stopType(); p.classList.remove('typing'); got.hidden = !it.extra; } }, 24);
+    typing = setInterval(() => { k += per; p.textContent = full.slice(0, k); typeSnd(); if (k >= full.length) { stopType(); p.classList.remove('typing'); got.hidden = !it.extra; } }, 24);
   }
   function finishOrNext() { if (typing) { stopType(); const p = body.firstChild; if (p) { p.textContent = full; p.classList.remove('typing'); } got.hidden = !got.textContent; } else show(idx + 1); }
   function shut() { stopType(); rdOn = false; document.removeEventListener('keydown', keys, true); win.classList.remove('on'); setTimeout(() => win.remove(), still ? 0 : 300); }
