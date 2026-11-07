@@ -1,6 +1,6 @@
 /* Solarist page shell: sounds, notifications, the install button, offline support, and the planet viewport:
    a full-screen WebGL scene behind the HUD. The planet is a real sphere with 3D-noise terrain, lit, then
-   ordered-dithered and snapped to the 32-colour palette at 1/3 resolution. The game itself lives in solarist.js. */
+   ordered-dithered and snapped to the 32-colour palette at 1/3 resolution. The game itself lives in js/game and js/ui (started by js/boot.js). */
 (() => {
   'use strict';
   const root = document.getElementById('slRoot');
@@ -527,7 +527,7 @@ void main(){
   optJson('music.json').then(j => music.lists(j));
   Promise.all([optJson('economy.json'), optJson('items.json'), optJson('campaign.json')]).then(([econ, items, camp]) => {
     root.replaceChildren();
-    window.Solarist.mount(root, {
+    return window.Solarist.mount(root, { // a promise: if a game file fails, the catch below shows the error message
       tada: () => play('granted'),
       ding: () => play('notify'),
       show: () => setTimeout(() => { const h = root.querySelector('.sl-hint'); notify(h && h.textContent ? h.textContent : 'Session finished.'); }, 0),
