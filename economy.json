@@ -28,7 +28,7 @@
   "bountyMultiplier": 1.25,
   "_bountyMultiplier": "Scales every bounty reward when the bounty is created.",
 
-  "encounter": { "chance": 0.35, "weights": { "meeting": 30, "postal": 22, "trade": 20, "outlaw": 15, "cassini": 15, "derelict": 10, "station": 15 } },
+  "encounter": { "chance": 0.35, "weights": { "meeting": 30, "postal": 22, "trade": 20, "outlaw": 12, "cassini": 12, "derelict": 12, "station": 10 } },
   "_encounter": "The arrival roll: every new world has this chance (0.3 = 3 in 10) of one visitor, and the weights pick which one (a world never gets two). meeting = a chance meeting that pays a little, trade = Trade Station, outlaw = an outlaw gang holds the world, derelict = a derelict ship to salvage, station = Interplanetary Station. postal = a Postal office with delivery jobs, cassini = a Cassini Federation Post with a Most Wanted poster.",
 
   "encounters": { "scale": 1.3, "rareWorldMultiplier": 1.5 },
