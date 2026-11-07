@@ -27,7 +27,7 @@
 
     const t = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
 //820 + Math.random() * 260;
-    o.type = 'square'; o.frequency.value = 200 + Math.random() * 200;
+    o.type = 'square'; o.frequency.value = 300 + Math.random() * 80;
 
     f.type = 'lowpass'; f.frequency.value = 2400;
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.035, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + .035);
