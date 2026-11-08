@@ -178,7 +178,7 @@
   const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
   const FS = `precision highp float;
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
-uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, reveal, warp, neb, fIce, fStorm, fSpot; uniform vec3 sc[4]; uniform vec2 sunP; uniform float sunR, sunOn, sunTwo;
+uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, reveal, warp, neb, fIce, fStorm, fSpot;
 uniform vec3 pal[47]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 uniform float fStyle, dfCut; uniform vec3 ca[5]; uniform vec3 cb[3]; uniform vec3 ck[4]; uniform vec3 rc[6];
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -278,23 +278,6 @@ vec3 dfPlanet(vec2 u0, vec2 fc, float px, out float glow){
     float pz = floor(g2 * 4.) / 2.; c = g2 < .625 ? pick3(ca[0], ca[1], ca[2], pz * 2.) : pick3(cb[0], cb[1], cb[2], (pz - 1.) * 2.);
   }
   return c; }
-// the sun (Star.gdshader + StarBlobs.gdshader by Deep-Fold): a ball of churning cells inside a ring of drifting blobs
-vec2 sHash(vec2 p){ float r = 523. * sin(dot(p, vec2(53.3158, 43.6143))); return vec2(fract(15.32354 * r), fract(17.25865 * r)); }
-float sCells(vec2 p, float n){ p *= n; float d = 1e10;
-  for (int xo = -1; xo <= 1; xo++) for (int yo = -1; yo <= 1; yo++){ vec2 tp = floor(p) + vec2(float(xo), float(yo)); tp = p - tp - sHash(mod(tp, n)); d = min(d, dot(tp, tp)); }
-  return sqrt(d); }
-float sBlob(vec2 uv){ float inv = .5; if (mod(uv.y, inv * 2.) < inv) uv.x += inv * .5; vec2 rc = floor(uv * 2.) / 2.; uv = mod(uv, inv) * 2.;
-  dSize = 4.93; dTx = 1.; float r = clamp(dRand(rc), inv, 1. - inv); float c = distance(uv, vec2(r)); return smoothstep(c, c + .5, inv * dRand(rc * 1.5)); }
-bool sunAt(vec2 fc, vec2 at, float rad, out vec3 c){ // rad: the ball's radius in pixels; the corona reaches twice as far
-  vec2 bu = (fc - at) / (rad * 4.) + .5; bu.y = 1. - bu.y; float d = distance(bu, vec2(.5)); if (d > .5) return false;
-  float tm = tt * .05;
-  if (d < .25){ vec2 u = (bu - .5) * 2. + .5; u = dSph(u); bool dh = mod(floor(fc.x) + floor(fc.y), 2.) < 1.;
-    float n = sCells(u - vec2(tm * 2., 0.), 5.) * sCells(u - vec2(tm, 0.), 10.); n = clamp(n * 2., 0., 1.); if (dh) n *= 1.3;
-    float k = floor(n * 3.); c = k < .5 ? sc[0] : k < 1.5 ? sc[1] : k < 2.5 ? sc[2] : sc[3]; return true; }
-  // the corona: 2.2x stronger than the original so it still shows on a small sun
-  dSeed = 4.837; float ang = atan(bu.x - .5, bu.y - .5), b = 0.;
-  for (int i = 0; i < 15; i++){ dSize = 4.93; dTx = 1.; float r = dRand(vec2(float(i))); b += sBlob(vec2(d, ang) * 4.93 - tm - (1. / d) * .1 + r); }
-  b *= (.37 - d) * 2.2; dTx = 2.; if (step(.07, b - d) > .5) { c = sc[0]; return true; } return false; }
 void main(){
   vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false, flatC = false;
   // a faint nebula behind some worlds: dithered so only a few of its pixels light up
@@ -304,8 +287,6 @@ void main(){
     float s = h3(vec3(mod(sp, 4096.), fl * 7. + 3.)); if (s > (fl < .5 ? .9988 : .9994)) col = fl < .5 ? pal[32] : (h3(vec3(mod(sp, 4096.), 11.)) > .6 ? vec3(1.) : pal[43]); }
   // the jump: for a moment every star stretches into a streak
   if (warp > 0.) for (int k = 1; k < 24; k++){ float fk = float(k); if (fk > warp * 23.) break; vec2 sp = floor(fc + vec2(fk + tt * 40., 37.) + vec2(91., 0.)); if (h3(vec3(mod(sp, 4096.), 10.)) > .9994) { col = mix(pal[43], vec3(1.), 1. - fk / 24.); } }
-  // the sun sits far behind the planet: drawn first, so the planet covers it
-  if (sunOn > 0.){ vec3 scol; if (sunAt(fc, sunP, sunR, scol)) col = scol * sunOn; else if (sunTwo > .5 && sunAt(fc, sunP + vec2(sunR * 2.6, -sunR * 1.3), sunR * .55, scol)) col = scol * sunOn; }
   vec2 uv = (fc - ctr) / R; float d2 = dot(uv, uv);
   float tl = tilt; mat2 rz = mat2(cos(tl), -sin(tl), sin(tl), cos(tl)); vec2 tu = rz * uv;
   // rings (an ellipse in a plane tilted towards you); the part behind the planet is hidden
@@ -359,7 +340,7 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'sc', 'sunP', 'sunR', 'sunOn', 'sunTwo', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
       gl.uniform3fv(U.pal, PAL.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
@@ -421,8 +402,6 @@ void main(){
     gl.uniform1f(U.fSpot, L.bands && (p.seed % 2) === 0 ? 1 : 0);
     const D = dfLook(p, L); gl.uniform1f(U.fStyle, D.st); gl.uniform1f(U.dfCut, D.cut); gl.uniform3fv(U.ca, D.ca.flatMap(rgb)); gl.uniform3fv(U.cb, D.cb.flatMap(rgb)); gl.uniform3fv(U.ck, D.ck.flatMap(rgb)); gl.uniform3fv(U.rc, D.rc.flatMap(rgb));
     gl.uniform1f(U.fClouds, D.clouds ? 1 : 0);
-    const sk = near(STAR_C[p.star] || '#d0da91'); gl.uniform3fv(U.sc, [shade(sk, 1.45), shade(sk, 1.1), sk, shade(sk, .6)].flatMap(rgb));
-    gl.uniform1f(U.sunR, /giant/.test(p.star) ? 7 : p.star === 'white dwarf' ? 3.5 : 5); gl.uniform1f(U.sunTwo, p.star === 'binary pair' ? 1 : 0);
   }
   function render(now) {
     raf = 0; if (!info) return;
@@ -448,10 +427,6 @@ void main(){
         gl.uniform1f(U.reveal, revealAt ? Math.min(1, (now - revealAt) / 1700) : 1);
         const wt = warpAt ? (now - warpAt) / 1300 : 1; gl.uniform1f(U.warp, wt < 1 ? (wt < .25 ? wt / .25 : 1 - (wt - .25) / .75) : 0);
         if (!pl && !sil) gl.uniform1f(U.neb, 0);
-        // the planet's own sun, up and to the left where the light comes from (none for rogue worlds)
-        const sunOk = pl && !sil && pl.type !== 'Rogue' && r && r.width, blink = sunOk && pl.star === 'pulsar' && moving && Math.floor(now / 333) % 3 === 0;
-        gl.uniform1f(U.sunOn, sunOk ? (blink ? .45 : 1) : 0);
-        if (sunOk) gl.uniform2f(U.sunP, r.left / PX + Math.max(14, r.width / PX * .12), cv.height - (r.top / PX + Math.max(14, r.height / PX * .14)));
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       } else if (g2) {
         g2.fillStyle = '#000'; g2.fillRect(0, 0, cv.width, cv.height); g2.imageSmoothingEnabled = false;
@@ -468,7 +443,7 @@ void main(){
   function drawExtras(now, cx, cy, rad, r) {
     const p = info.planet, sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running, still = reduceMotion.matches, t = now / 1000;
     // the planet's own sun, up and to the left where the light comes from
-    if (!ok && p && !sil && p.type !== 'Rogue') { // (no WebGL: a flat glow instead of the shaded sun)
+    if (p && !sil && p.type !== 'Rogue') {
       const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#d0da91';
       const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
       // a dithered pixel glow around the sun: bigger for giants, a soft breathing pulse, a strong one for pulsars
