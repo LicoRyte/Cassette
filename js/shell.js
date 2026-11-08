@@ -326,10 +326,9 @@ void main(){
     if (abs(d - (r + pulse * .9)) < .012) { col = pal[29] * (1. - pulse); dith = true; } }
   // charging: violet rings pulsing out from the planet
   if (kind == 3.){ float d = length(uv); for (int k = 0; k < 2; k++){ float ph = fract(tt * .25 * run + float(k) * .5); if (abs(d - (1.15 + ph * 1.1)) < .014) { col = mix(col, pal[4], 1. - ph); dith = true; } } }
-  // outlaws: raider blips circling, red at the edges of the screen
+  // outlaws: raider blips circling
   if (kind == 4.){ for (int k = 0; k < 4; k++){ float fk = float(k), an = tt * (.5 + fk * .13) * (run * .9 + .1) + fk * 1.7;
-      vec2 bp = vec2(cos(an) * 1.45, sin(an) * .55); if (length((uv - bp) * R) < 2.2) { col = pal[29]; dith = false; } }
-    vec2 e = fc / res; float v = min(min(e.x, 1. - e.x), min(e.y, 1. - e.y)); if (v < .025 && h1(floor(fc / 2.) + floor(tt * 3.)) > .55 + v * 18.) col = pal[32]; }
+      vec2 bp = vec2(cos(an) * 1.45, sin(an) * .55); if (length((uv - bp) * R) < 2.2) { col = pal[29]; dith = false; } } }
   gl_FragColor = vec4(dith ? snap(col + bayer(fc) * .16) : flatC ? snap(col) : col, 1.);
 }`;
   let prog = null, U = {}, ok = false;
