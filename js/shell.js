@@ -158,10 +158,12 @@
     const snd = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(soundOn) }, soundOn ? 'Sound is on' : 'Sound is off');
     snd.addEventListener('click', () => { soundOn = !soundOn; store.set('solarist-sound', soundOn ? 'on' : 'off'); appSettings(box); if (soundOn) play('notify'); });
     const inst = installEv ? mk('button', { type: 'button', class: 'btn', onclick: async () => { installEv.prompt(); try { await installEv.userChoice; } catch (e) { /* closed */ } installEv = null; appSettings(box); } }, 'Install as an app') : null;
+    const view = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(bigView), title: 'Big: a huge planet in the bottom-right corner, seen from its top-left' }, bigView ? 'Planet view: big horizon' : 'Planet view: classic');
+    view.addEventListener('click', () => { bigView = !bigView; store.set('solarist-view', bigView ? 'big' : 'classic'); applyView(); kick(); appSettings(box); });
     const ambBox = mk('div', { class: 'sx-row' }); amb.settings(ambBox);
     const musBox = mk('div', { class: 'sx-row' }); music.settings(musBox);
-    const credits = mk('p', { class: 'sl-muted sx-credits' }, 'Colour palette: Apollo by AdamCYounis. Fonts: Barlow Condensed, Courier Prime (OFL). Sounds: NightMargin and the Not-So-Awesome Archive. Break music: "Night Stars" by Hiroki971.');
-    box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), ambBox, musBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'), credits);
+    const credits = mk('p', { class: 'sl-muted sx-credits' }, 'Colour palette: Apollo by AdamCYounis. Planet shader based on PixelPlanets by Deep-Fold (MIT). Fonts: Barlow Condensed, Courier Prime (OFL). Sounds: NightMargin and the Not-So-Awesome Archive. Break music: "Night Stars" by Hiroki971.');
+    box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), mk('div', { class: 'sx-row' }, view), ambBox, musBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'), credits);
   }
 
   /* ---------- the viewport ---------- */
@@ -178,6 +180,7 @@
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
 uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, atmOn, reveal, warp, neb, fIce, fStorm, fSpot; uniform vec3 atmC;
 uniform vec3 pal[47]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
+uniform float fStyle, dfCut; uniform vec3 ca[5]; uniform vec3 cb[3]; uniform vec3 ck[4]; uniform vec3 rc[6];
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float n3(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f);
@@ -189,18 +192,94 @@ float bayer(vec2 p){ vec2 q = mod(floor(p), 4.); float x = q.x, y = q.y;
   float w = floor(x / 2.) * 2. + floor(y / 2.) * 3. - floor(x / 2.) * floor(y / 2.) * 4.;
   return (v * 4. + w) / 16. - .47; }
 vec3 snap(vec3 c){ vec3 b = pal[0]; float bd = 1e9; for (int i = 0; i < 47; i++){ vec3 d = c - pal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = pal[i]; } } return b; }
-vec3 surface(vec3 q, out float emit){
-  emit = 0.; float h = fbm(q * 2.2 + seed); vec3 c;
-  if (fBands > .5){ float b = fract(q.y * 1.9 + fbm(q * vec3(1., 3., 1.) + seed) * .9); c = b < .25 ? pc[0] : b < .5 ? pc[1] : b < .75 ? pc[2] : pc[3]; }
-  else if (fLand > .5){ if (h < .52){ float k = (.52 - h) * 6.; c = k < .25 ? pc[0] : k < .55 ? pc[1] : k < .85 ? pc[2] : pc[3]; } else c = h < .6 ? lc[0] : lc[1]; }
-  else { c = h < .4 ? pc[3] : h < .5 ? pc[2] : h < .6 ? pc[1] : pc[0]; }
-  if (fLava > .5){ float r = abs(fbm(q * 3. + seed + 7.) - .5); if (r < .035){ c = r < .015 ? pc[0] : pc[1]; emit = 1.; } else c = h < .5 ? pc[3] : pc[2]; }
-  if (fLand > .5 || fClouds > .5) if (fLava < .5 && fLocked < .5 && abs(q.y) > 1.33) c = vec3(1.);
-  if (fClouds > .5){ float cl = fbm(q * 3. + vec3(tt * .03, 0., 0.) + seed + 20.); if (cl > .6) c = mix(c, vec3(1.), .85); }
-  if (fSpark > .5 && h3(floor(q * 40.)) > .985) { c = vec3(1.); emit = 1.; }
+/* Planet surfaces ported from PixelPlanets by Deep-Fold (MIT License, Copyright (c) 2020 Deep-Fold),
+   https://github.com/Deep-Fold/PixelPlanets. uv: 0..1 across the planet, y down. Styles: 0 land and sea, 1 rivers,
+   2 dry, 3 airless with craters, 4 lava, 5 ice, 6 gas giant. */
+float dSeed = 1., dSize = 5., dTx = 2.;
+float dRand(vec2 c){ c = mod(c, vec2(dTx, 1.) * floor(dSize + .5)); return fract(sin(dot(c, vec2(12.9898, 78.233))) * 15.5453 * dSeed); }
+float dNoise(vec2 c){ vec2 i = floor(c), f = fract(c); float a = dRand(i), b = dRand(i + vec2(1., 0.)), e = dRand(i + vec2(0., 1.)), d = dRand(i + vec2(1., 1.));
+  vec2 u = f * f * (3. - 2. * f); return mix(a, b, u.x) + (e - a) * u.y * (1. - u.x) + (d - b) * u.x * u.y; }
+float dFbm(vec2 c, int oc){ float v = 0., s = .5; for (int i = 0; i < 6; i++){ if (i >= oc) break; v += dNoise(c) * s; c *= 2.; s *= .5; } return v; }
+float dCirc(vec2 uv, float hard){ float y = floor(uv.y); uv.x += y * .31; vec2 f = fract(uv); float h = dRand(vec2(floor(uv.x), y));
+  float m = length(f - .25 - h * .5), r = h * .25; return hard > .5 ? smoothstep(r - .1 * r, r, m) : smoothstep(0., r, m * .75); }
+vec2 dSph(vec2 uv){ vec2 c = uv * 2. - 1.; float z = sqrt(max(0., 1. - dot(c, c))); return c / (z + 1.) * .5 + .5; }
+vec2 dRot(vec2 c, float a){ c -= .5; c = mat2(cos(a), -sin(a), sin(a), cos(a)) * c; return c + .5; }
+vec3 pick3(vec3 a, vec3 b, vec3 c, float i){ return i < .5 ? a : i < 1.5 ? b : c; }
+float dOff(float sz, float k){ return fLocked > .5 ? 0. : spin * k * sz; } // the planet turning: the noise slides sideways
+float dCloudV(vec2 su, float sz, int oc, float st, float sp){ // how thick one cloud layer is here
+  dSize = sz; dTx = 1.; vec2 cu = su; cu.y += smoothstep(0., 1.3, abs(cu.x - .4)); cu *= vec2(1., st); float o = spin * sp;
+  float cn = 0.; for (int i = 0; i < 9; i++) cn += dCirc(cu * dSize * .3 + float(i + 11) + vec2(o, 0.), 0.);
+  float c = dFbm(cu * dSize + cn + vec2(o, 0.), oc); dTx = 2.; return c; }
+vec3 dCloudC(float c, float dl, float cover, float b1, float b2, vec3 k0, vec3 k1, vec3 k2, vec3 k3){ // its colour: lit tops, shaded edges
+  vec3 k = k0; if (c < cover + .03) k = k1; if (dl + c * .2 > b1) k = k2; if (dl + c * .2 > b2) k = k3; return k; }
+vec3 dClouds(vec2 su, float dl, vec3 under, float cover){
+  float c = dCloudV(su, 7.745, 2, 2., .46); return c < cover ? under : dCloudC(c, dl, cover, .52, .62, ck[0], ck[1], ck[2], ck[3]); }
+// rings (Ring.gdshader): a wide band 3x the planet's size, tilted towards you; its back half hides behind the planet
+float dRing(vec2 uv, out vec3 rcol, out float back){ // uv: planet radius 1, y up
+  vec2 lo = fLocked > .5 ? vec2(.12, .45) : vec2(.39, .39);
+  vec2 ru = vec2(uv.x, -uv.y) / 6. + .5; float ld = distance(ru, .5 + (lo - .5) / 3.);
+  ru = dRot(ru, tilt);
+  vec2 uc = (ru - vec2(0., .5)) * vec2(1., 6.); float cd = distance(uc, vec2(.5, 0.)), w = .127;
+  float ring = smoothstep(.5 - w * 2., .5 - w, cd) * smoothstep(cd - w, cd, .4);
+  back = ru.y < .5 && distance(ru, vec2(.5)) < 1. / 6. ? 1. : 0.;
+  dSeed = 1. + mod(seed * 1.7, 9.); dSize = 15.; dTx = 2.;
+  uc = dRot(uc + vec2(0., .5), spin * .08);
+  ring *= dFbm(uc * dSize, 4);
+  float pz = min(floor((ring + ld * ld * 2.) * 4.) / 4., 2.);
+  rcol = pz <= 1. ? pick3(rc[0], rc[1], rc[2], floor(pz * 2.)) : pick3(rc[3], rc[4], rc[5], floor((pz - 1.) * 2.));
+  return step(.28, ring); }
+vec3 dUnder(vec2 su, float dl, bool dith, float db, float sz, int oc, float b1, float b2, vec3 c0, vec3 c1, vec3 c2){ // a three-colour lit ground or sea
+  dSize = sz; float d = dl + dFbm(su * dSize + vec2(dOff(dSize, .04), 0.), oc) * .3; vec3 c = c0;
+  if (d > b1) c = (d < b1 + db && dith) ? c0 : c1; if (d > b2) c = (d < b2 + db && dith) ? c1 : c2; return c; }
+float dCrater(vec2 uv){ float c = 1.; for (int i = 0; i < 2; i++) c *= dCirc(uv * dSize + float(i + 11) + vec2(dOff(dSize, .04), 0.), 1.); return 1. - c; }
+vec3 dfPlanet(vec2 u0, vec2 fc, float px, out float glow){
+  glow = 0.; bool dith = mod(floor(fc.x) + floor(fc.y), 2.) < 1.; float db = 2. / px;
+  vec2 lo = fLocked > .5 ? vec2(.12, .45) : vec2(.39, .39);
+  vec2 su = dSph(dRot(u0, tilt)); float dl = distance(u0, lo); dSeed = 1. + mod(seed, 9.);
+  vec3 c = ca[0];
+  if (fStyle < .5 || fStyle > 4.5 && fStyle < 5.5) { // land and sea (5: ice with lakes)
+    bool ice = fStyle > 4.5; c = dUnder(su, dl, dith, db, 5.228, 3, .4, .6, cb[0], cb[1], cb[2]);
+    dSize = 4.292; vec2 bu = su * dSize + vec2(dOff(dSize, .04), 0.);
+    float f1 = dFbm(bu, 5), f2 = dFbm(bu - lo * f1, 5), f3 = dFbm(bu - lo * 1.5 * f1, 5), f4 = dFbm(bu - lo * 2. * f1, 5);
+    if (dl < .32) f4 *= .9; if (dl > .32) { f2 *= 1.05; f3 *= 1.05; f4 *= 1.05; } if (dl > .534) { f2 *= 1.3; f3 *= 1.4; f4 *= 1.8; }
+    float dd = dl * dl * .1;
+    if (f1 > dfCut) { vec3 g = ca[3]; if (f4 + dd < f1) g = ca[2]; if (f3 + dd < f1) g = ca[1]; if (f2 + dd < f1) g = ca[0]; if (ice) g = f2 + dd < f1 ? ca[0] : f3 + dd < f1 ? ca[1] : ca[2]; c = g; }
+    if (fClouds > .5) c = dClouds(su, dl, c, ice ? .5 : .415);
+  } else if (fStyle < 1.5) { // land crossed by rivers
+    dSize = 4.6; vec2 bu = su * dSize + vec2(dOff(dSize, .04), 0.);
+    float f1 = dFbm(bu, 5), f2 = dFbm(bu - lo * f1, 5), f3 = dFbm(bu - lo * 1.5 * f1, 5), f4 = dFbm(bu - lo * 2. * f1, 5);
+    float rf = step(dfCut, dFbm(bu + f1 * 6., 5));
+    if (dl < .32) f4 *= .9; if (dl > .32) { f2 *= 1.05; f3 *= 1.05; f4 *= 1.05; }
+    if (dl > .534) { f2 *= 1.3; f3 *= 1.4; f4 *= 1.8; if (dl < .534 + db && dith) f4 *= .5; }
+    float dd = dl * dl * .4; c = ca[3]; if (f4 + dd < f1 * 1.5) c = ca[2]; if (f3 + dd < f1) c = ca[1]; if (f2 + dd < f1) c = ca[0];
+    if (rf < f1 * .5) { c = cb[1]; if (f4 + dd < f1 * 1.5) c = cb[0]; }
+    if (fClouds > .5) c = dClouds(su, dl, c, .47);
+  } else if (fStyle < 2.5) { // dry: a smooth gradient in five bands
+    dSize = 8.; float f = dFbm(su * dSize + vec2(dOff(dSize, .04), 0.), 3), d = smoothstep(-.3, 1.2, dl);
+    if (d < .362) d *= .9; if (d < .525) d *= .9;
+    float v = d * pow(f, .8) * 3.5; if (dith) { v += .02; v *= 1.05; }
+    float i = min(floor(v * 4.) / 4., 1.) * 4.; c = i < .5 ? ca[0] : i < 1.5 ? ca[1] : i < 2.5 ? ca[2] : i < 3.5 ? ca[3] : ca[4];
+    if (fClouds > .5) c = dClouds(su, dl, c, .5);
+  } else if (fStyle < 4.5) { // airless (3) and lava (4): ground, craters, then lava rivers
+    c = dUnder(su, dl, dith, db, 8., 4, .615, .729, ca[0], ca[1], ca[2]);
+    dSize = 5.; float c1 = dCrater(su), c2 = dCrater(su + (lo - .5) * .03);
+    if (c1 > .5) { c = cb[0]; if (c2 < c1 - (.5 - dl) * 2.) c = cb[1]; if (dl > .465) c = cb[1]; }
+    if (fStyle > 3.5) { dSize = 10.; float lf = dFbm(su * dSize + vec2(dOff(dSize, .04), 0.), 4), rf = dFbm(su + lf * 2.5, 4), dd = dl * dl * .4; dd -= dd * rf;
+      if (rf > dfCut) { c = ck[0]; if (dd > .019) c = ck[1]; if (dd > .05) c = ck[2]; glow = 1.; } }
+  } else if (fStyle > 6.5) { // cloud giant: a dark base layer, bright cloud tops drifting faster over it
+    float dg = distance(u0, fLocked > .5 ? lo : vec2(.25));
+    float c1 = dCloudV(su, 9., 5, 1., .7); c = dCloudC(c1, dg, 0., .692, .666, ck[0], ck[1], ck[2], ck[3]);
+    float c2 = dCloudV(su, 9., 5, 1., .47); if (c2 > dfCut) c = dCloudC(c2, dg, dfCut, .439, .746, ca[0], ca[1], ca[2], ca[3]);
+  } else { // gas giant: bands stirred by turbulence
+    dSize = 10.107; float o = dOff(dSize, .04), band = dFbm(vec2(0., su.y * dSize * .892), 3), turb = 0.;
+    for (int i = 0; i < 10; i++) turb += dCirc(su * dSize * .3 + float(i + 11) + vec2(o, 0.), 0.);
+    float g1 = dFbm(su * dSize, 3), g2 = dFbm(su * vec2(1., 2.) * dSize + g1 + vec2(-o, 0.) + turb, 3);
+    g2 *= pow(band, 2.) * 7.; float li = g2 + dl * 1.8; g2 += dl - .3; g2 = smoothstep(-.2, 4. - g2, li); if (dith) g2 *= 1.1;
+    float pz = floor(g2 * 4.) / 2.; c = g2 < .625 ? pick3(ca[0], ca[1], ca[2], pz * 2.) : pick3(cb[0], cb[1], cb[2], (pz - 1.) * 2.);
+  }
   return c; }
 void main(){
-  vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false;
+  vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false, flatC = false;
   // a faint nebula behind some worlds: dithered so only a few of its pixels light up
   if (neb > .5){ float nf = fbm(vec3(fc / res.y * 2.4, seed * .7 + 3.)); float nb = smoothstep(.56, .72, nf) * .55; if (nb > 0. && bayer(fc) + .47 < nb * .6) { col = nf > .66 ? pal[25] : pal[39]; } }
   // a few stars, drifting slowly (faster while you travel) on black space
@@ -211,8 +290,8 @@ void main(){
   vec2 uv = (fc - ctr) / R; float d2 = dot(uv, uv);
   float tl = tilt; mat2 rz = mat2(cos(tl), -sin(tl), sin(tl), cos(tl)); vec2 tu = rz * uv;
   // rings (an ellipse in a plane tilted towards you); the part behind the planet is hidden
-  float ringZ = -9., ringHit = 0.;
-  if (fRings > .5 && hasP > .5 && sil < .5){ float rr = length(vec2(tu.x, tu.y / .32)); if (rr > 1.35 && rr < 2.1){ float band = fract(rr * 7.); if (band > .18){ ringHit = 1.; ringZ = tu.y / .32 * -.4; } } }
+  float ringHit = 0., ringBack = 0.; vec3 ringCol = vec3(0.);
+  if (fRings > .5 && hasP > .5 && sil < .5 && d2 < 7.) ringHit = dRing(uv, ringCol, ringBack);
   if (hasP > .5 && d2 <= 1.){
     vec3 n = vec3(uv, sqrt(1. - d2));
     // fake spin: map the disc to longitude/latitude and slide a flat noise texture sideways
@@ -221,15 +300,11 @@ void main(){
     vec3 L = normalize(fLocked > .5 ? vec3(-1., .1, .25) : vec3(-.55, .35, .75)); float lit = clamp(dot(n, L), 0., 1.);
     if (sil > .5){ col = pal[25] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = coord > .5 ? pal[24] : pal[4]; }
     else {
-      float emit; vec3 c = surface(q, emit);
-      col = c * (.08 + 1.02 * lit); col = mix(col, c, emit * .9);
-      // world-type effects: glowing lava, glittering ice, a gas giant's storm, lightning
-      if (fLava > .5 && emit > .5) col *= .8 + .35 * sin(tt * 1.6 + q.x * 2.3 + q.y * 3.1);
-      if (fSpot > .5){ float sx = mod(seed * 1.7, 7.85) - 3.93, dx = mod(q.x - sx + 3.93, 7.85) - 3.93, dy = (q.y - (fract(seed * .37) - .5) * .9) * 2.3, e = length(vec2(dx, dy));
-        if (e < .42){ float sw = fract(e * 5. - tt * .25 + atan(dy, dx) * .16); vec3 sc = sw < .5 ? pc[0] : pc[3]; col = mix(col, sc * (.12 + 1.0 * lit), .85); } }
+      float glow; col = dfPlanet(vec2(uv.x, -uv.y) * .5 + .5, fc, R * 2., glow); flatC = true;
+      // world-type effects: glowing lava, glittering ice, lightning in storms
+      if (glow > .5) col *= .85 + .2 * sin(tt * 1.6 + uv.x * 9. + uv.y * 7.);
       if (fIce > .5){ vec3 cell = floor(q * 34.); float g = h3(cell + seed + 5.); if (g > .978 && lit > .2 && fract(tt * .45 + g * 13.) < .16) col = vec3(1.); }
       if (fStorm > .5 && lit < .45){ vec3 cell = floor(q * 6.); float fl = floor(tt * 1.1); float hh = h3(cell + fl + seed); if (hh > .93 && fract(tt * 1.1) < .22 && h3(floor(q * 30.) + fl) > .45) col = mix(col, vec3(.88, .93, 1.), .85); }
-      col += vec3(.35, .45, .9) * pow(1. - n.z, 3.) * .45 * (lit + .15);
       // your post's lights on the night side, more of them as the settlers grow
       if (postLv > 9.){ vec3 cell = floor(q * 9.); if (h3(cell + seed + 4.) > 1. - postLv * .045) col = h3(cell + 9.) > .5 ? pal[24] : pal[12]; }
       if (kind == 99.){ vec3 cell = floor(q * 26.); if (h3(cell + seed) > .982 && mod(floor(tt * 2.5 + h3(cell) * 9.), 3.) > 0.) col = h3(cell + 3.) > .5 ? pal[12] : pal[11]; } // little work lights on the build site
@@ -240,12 +315,12 @@ void main(){
         col = mix(col, vec3(.42, .79, .42), clamp(band * .95 + trail, 0., 1.)); }
     }
     // arrival reveal: the dark silhouette dissolves into the real world through the dither
-    if (reveal < 1. && sil < .5 && bayer(fc) + .47 > reveal) { col = pal[25] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = pal[4]; }
-    dith = true;
-    if (ringHit > .5 && ringZ > n.z * .2 && tu.y < 0.) { col = ringC * (.35 + .65 * clamp(.5 - tu.x * .3, 0., 1.)); }
+    if (reveal < 1. && sil < .5 && bayer(fc) + .47 > reveal) { col = pal[25] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = pal[4]; flatC = false; }
+    dith = !flatC;
+    if (ringHit > .5 && ringBack < .5) { col = ringCol; dith = false; flatC = true; }
   } else if (hasP > .5 && sil < .5 && atmOn > 0. && d2 < 1.075 && reveal >= 1.) { // a thin atmosphere rim, brightest on the lit side
     vec2 dirL = normalize(vec2(-.55, .35)); float side = dot(normalize(uv), dirL) * .5 + .5; side *= side; if (d2 < 1.045 && side * atmOn > .28 + bayer(fc) * .5) { col = atmC; dith = true; }
-  } else if (ringHit > .5) { col = ringC * (.4 + .6 * clamp(.5 - tu.x * .3, 0., 1.)) * (d2 < 1.6 && tu.y > 0. ? .45 : 1.); dith = true; }
+  } else if (ringHit > .5) { col = ringCol; flatC = true; }
   // distress: a red beacon ahead that pulses and grows
   if (kind == 5.){ float r = .05 + pct * .0012; float d = length(uv); float pulse = fract(tt * .6);
     if (d < r) col = mod(floor(tt * 2.), 2.) > 0. || run < .5 ? pal[29] : pal[27];
@@ -256,7 +331,7 @@ void main(){
   if (kind == 4.){ for (int k = 0; k < 4; k++){ float fk = float(k), an = tt * (.5 + fk * .13) * (run * .9 + .1) + fk * 1.7;
       vec2 bp = vec2(cos(an) * 1.45, sin(an) * .55); if (length((uv - bp) * R) < 2.2) { col = pal[29]; dith = false; } }
     vec2 e = fc / res; float v = min(min(e.x, 1. - e.x), min(e.y, 1. - e.y)); if (v < .025 && h1(floor(fc / 2.) + floor(tt * 3.)) > .55 + v * 18.) col = pal[32]; }
-  gl_FragColor = vec4(dith ? snap(col + bayer(fc) * .16) : col, 1.);
+  gl_FragColor = vec4(dith ? snap(col + bayer(fc) * .16) : flatC ? snap(col) : col, 1.);
 }`;
   let prog = null, U = {}, ok = false;
   if (gl) {
@@ -267,7 +342,7 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'atmOn', 'atmC', 'reveal', 'warp', 'neb'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'atmOn', 'atmC', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
       gl.uniform3fv(U.pal, PAL.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
@@ -275,12 +350,45 @@ void main(){
   const g2 = ok ? null : cv.getContext('2d'); // fallback: the pixel portrait, no shader
   const sv = mk('canvas', { class: 'sx-view sx-shipview', 'aria-hidden': 'true' }); cv.after(sv); const gs = sv.getContext('2d'); // your ship, drawn over the planet scene
   let info = null, raf = 0, lastDraw = 0, simT = 0, spinT = 0, lastNow = 0, curSeed = null;
+  // planet view: 'classic' (in the middle of the screen) or 'big' (a huge planet in the bottom-right corner, seen from its top-left)
+  let bigView = store.get('solarist-view') === 'big';
+  const applyView = () => { root.classList.toggle('sx-bigview', bigView); lastDraw = 0; };
+  applyView();
+  function geom(r, rings, overlay) { // centre (art pixels, y down) and radius
+    // big: the rim runs from about a third in along the bottom edge up to halfway up the right edge
+    if (bigView) { const W = cv.width, H = cv.height; return { cx: W * 1.1, cy: H * 1.7, rad: Math.hypot(W * .75, H * .7) }; }
+    const cx = r && r.width ? (r.left + r.width / 2) / PX : cv.width / 2, cy = r && r.height ? (r.top + r.height / 2) / PX : cv.height / 2;
+    return { cx, cy, rad: r && r.width ? (rings && !overlay ? Math.min(r.height * .38, r.width * .2) : Math.min(r.width, r.height) * .44) / PX : cv.height * .2 }; // a ring reaches 2.4x the radius sideways but is flat
+  }
   const fallbackImg = new Map();
   function size() { cv.width = sv.width = Math.max(1, Math.round(innerWidth / PX)); cv.height = sv.height = Math.max(1, Math.round(innerHeight / PX)); }
   size(); addEventListener('resize', () => { size(); lastDraw = 0; kick(); });
   addEventListener('scroll', () => { lastDraw = 0; kick(); }, { passive: true }); // on phones the planet scrolls with the page
   const ATM = a => !a || /^(Almost none|Frozen solid|None)/i.test(a) ? [0, '#000000'] : /methane|spore/i.test(a) ? [.8, '#a8ca58'] : /sulfur|ash|chlorine|carbon dioxide|CO₂|acid/i.test(a) ? [.8, '#e8c170'] : /hydrogen|helium|neon|argon/i.test(a) ? [.9, '#4f8fba'] : [/thin/i.test(a) ? .6 : 1, '#73bed3'];
   const STAR_C = { 'red dwarf': '#cf573c', 'orange dwarf': '#e8c170', 'yellow dwarf': '#d0da91', 'white dwarf': '#ebede9', 'blue giant': '#a4dddb', 'red giant': '#cf573c', 'binary pair': '#d0da91', 'pulsar': '#a4dddb' };
+  // Deep-Fold styles per planet type, and their colours from the planet's own palette (snapped to the game palette)
+  const DF_STYLE = { Ocean: 0, Garden: 0, Hycean: 0, Fungal: 0, Jungle: 1, Swamp: 1, Savanna: 1, Desert: 2, Toxic: 2, Iron: 2, 'Tidally locked': 2,
+    Rocky: 3, Dwarf: 3, Carbon: 3, Rogue: 3, Lava: 4, Shattered: 4, Ice: 5, Tundra: 5, Crystal: 5, 'Gas giant': 6, 'Ice giant': 7, 'Glass storm': 7 };
+  const near = h => { const [r, g, b] = rgb(h); let best = PAL[0], bd = 1e9; PAL.forEach(q => { const [x, y, z] = rgb(q), d = (r - x) ** 2 * .3 + (g - y) ** 2 * .59 + (b - z) ** 2 * .11; if (d < bd) { bd = d; best = q; } }); return best; };
+  const shade = (h, f) => { const c = rgb(h).map(v => f >= 1 ? v + (1 - v) * (f - 1) : v * f); return near('#' + c.map(v => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')).join('')); };
+  function dfLook(p, L) {
+    const st = DF_STYLE[p.type] != null ? DF_STYLE[p.type] : 3, P = (L.pal || ['#819796', '#7a367b', '#752438', '#402751']).map(near), land = L.land ? L.land.map(near) : null;
+    const WHITE = ['#ebede9', '#c7cfcc', '#819796', '#577277'];
+    let ca = [P[0], P[1], P[2], P[3], P[3]], cb = [P[1], P[2], P[3]], ck = WHITE, cut = .6, clouds = false;
+    if (st === 0) { const w = p.type === 'Fungal' ? P[2] : P[0], l = land || [P[0], P[1]]; cb = [shade(w, 1.25), w, shade(w, .65)]; ca = [shade(l[0], 1.2), l[0], l[1], shade(l[1], .6), P[3]];
+      cut = { Ocean: .66, Garden: .58, Hycean: .68, Fungal: .55 }[p.type] || .6; clouds = true; }
+    else if (st === 1) { const a = land ? land[1] : P[0], b2 = P[1] !== P[0] ? P[1] : P[2]; ca = [shade(a, 1.2), a, b2, shade(b2, .6), P[3]]; cb = p.type === 'Swamp' ? ['#3c5e8b', '#253a5e', '#172038'] : ['#73bed3', '#4f8fba', '#3c5e8b']; cut = .368; clouds = !!L.clouds || p.type === 'Jungle'; }
+    else if (st === 2) { ca = [shade(P[0], 1.15), P[0], P[1], P[2], P[3]]; if (p.type === 'Toxic') { clouds = true; ck = ['#d0da91', '#a8ca58', '#75a743', '#468232']; } }
+    else if (st === 3) { ca = [P[0], P[1], P[2], P[3], P[3]]; cb = [shade(P[1], .8), P[3], P[3]]; }
+    else if (st === 4) { ca = [shade(P[2], 1.3), P[2], P[3], P[3], P[3]]; cb = [P[3], shade(P[3], .7), P[3]]; ck = [P[0], P[1], shade(P[1], .7), P[3]]; cut = .579; }
+    else if (st === 5) { cb = [P[0], P[1], P[2]]; ca = [P[2], P[3], shade(P[3], .7), P[3], P[3]]; cut = .62; clouds = true; }
+    else if (st === 6) { ca = [P[0], P[1], P[2], P[3], P[3]]; cb = [P[2], P[3], shade(P[3], .6)]; }
+    else { ca = [shade(P[0], 1.2), P[0], P[1], P[2], P[3]]; ck = [shade(P[2], .5), shade(P[2], .5), shade(P[3], .35), shade(P[3], .25)]; cut = .28 + (p.seed % 23) / 23 * .22; }
+    // ring colours: a gas giant's ring shares its bands' colours; others use the planet's ring colour, light to dark
+    const rk = L.ringCol ? near(L.ringCol) : P[0];
+    const rc = st === 6 ? [ca[0], ca[1], ca[2], cb[0], cb[1], cb[2]] : [shade(rk, 1.25), rk, shade(rk, .75), shade(rk, .55), shade(rk, .4), shade(rk, .28)];
+    return { st, ca, cb, ck, cut, clouds, rc };
+  }
   function setPlanet(p) {
     if (!ok) return;
     const seed = p ? p.seed : null; if (seed === curSeed) return; curSeed = seed;
@@ -295,6 +403,8 @@ void main(){
     gl.uniform1f(U.fSpark, L.sparkle ? 1 : 0); gl.uniform1f(U.fRings, p.rings ? 1 : 0); gl.uniform1f(U.fLand, L.land ? 1 : 0);
     gl.uniform1f(U.fIce, /^(Ice|Crystal|Ice giant)$/.test(p.type) ? 1 : 0); gl.uniform1f(U.fStorm, /^(Toxic|Glass storm)$/.test(p.type) ? 1 : 0);
     gl.uniform1f(U.fSpot, L.bands && (p.seed % 2) === 0 ? 1 : 0);
+    const D = dfLook(p, L); gl.uniform1f(U.fStyle, D.st); gl.uniform1f(U.dfCut, D.cut); gl.uniform3fv(U.ca, D.ca.flatMap(rgb)); gl.uniform3fv(U.cb, D.cb.flatMap(rgb)); gl.uniform3fv(U.ck, D.ck.flatMap(rgb)); gl.uniform3fv(U.rc, D.rc.flatMap(rgb));
+    gl.uniform1f(U.fClouds, D.clouds ? 1 : 0);
   }
   function render(now) {
     raf = 0; if (!info) return;
@@ -306,8 +416,8 @@ void main(){
     if (now - lastDraw >= 1000 / fps - 2) {
       lastDraw = now;
       const r = info.spot && info.spot.getBoundingClientRect(), rings = info.planet && info.planet.rings;
-      const cx = r && r.width ? (r.left + r.width / 2) / PX : cv.width / 2, cy = r && r.height ? cv.height - (r.top + r.height / 2) / PX : cv.height / 2;
-      let rad = r && r.width ? Math.min(r.width, r.height) / PX * (rings ? .25 : .44) : cv.height * .2;
+      const G = geom(r, rings), cx = G.cx, cy = cv.height - G.cy;
+      let rad = G.rad;
       const sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running ? 1 : 0;
       if (sil) rad *= .25 + .75 * info.pct / 100;
       if (ok) {
@@ -358,7 +468,7 @@ void main(){
     }
     // moons on tilted orbits; the far half of each orbit goes behind the planet
     if (p && !sil) {
-      const n = Math.min(6, p.moons || 0), base = p.rings ? 2.25 : 1.35;
+      const n = Math.min(6, p.moons || 0), base = p.rings ? 2.6 : 1.35;
       for (let i = 0; i < n; i++) {
         const a = rad * (base + i * .16), b = a * .3, ang = (still ? 0 : t) * (.22 / (1 + i * .45)) + i * 2.1 + (p.seed % 628) / 100;
         const mx = cx + Math.cos(ang) * a, my = cy + Math.sin(ang) * b, behind = Math.sin(ang) < 0;
@@ -511,7 +621,7 @@ void main(){
     gs.clearRect(0, 0, sv.width, sv.height);
     if (!info) return;
     const r = info.spot && info.spot.getBoundingClientRect(); if (!r || !r.width) return;
-    const cx = (r.left + r.width / 2) / PX, cy = (r.top + r.height / 2) / PX, rad = Math.min(r.width, r.height) / PX * .44;
+    const G = geom(r, false, true), cx = G.cx, cy = G.cy, rad = G.rad;
     const t = now / 1000, still = reduceMotion.matches, half = r.width / PX / 2;
     stationDock = null;
     drawExtras(now, cx, cy, rad, r);

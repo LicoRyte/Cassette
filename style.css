@@ -687,3 +687,9 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-stats-sm { display: flex; flex-wrap: wrap; gap: 6px; }
 .sx-stats-sm .sx-stat { flex-direction: row; padding: 1px 6px; font-size: 14px; color: var(--soft); }
 
+/* big planet view: the planet sits huge in the bottom-right corner, so its slot in the middle column shrinks away */
+.sx-bigview .sx-planet, .sx-bigview.sx-clean .sx-mid > .sx-planet { flex: 0 0 auto; height: 2vh; min-height: 0; }
+
+/* big view: the planet runs under the right column and the timer hint, so give them a dark backing to stay readable */
+.sx-bigview .sx-right { background: rgb(9 10 20 / .78); padding-left: 10px; padding-right: 6px; }
+.sx-bigview .sx-mid { text-shadow: 0 0 4px #090a14, 0 0 2px #090a14; }
