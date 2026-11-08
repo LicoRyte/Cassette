@@ -154,6 +154,39 @@
     let reloaded = false; const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', () => { if (!hadController || reloaded) return; const st = (() => { try { return JSON.parse(localStorage.getItem('lico-solarist')); } catch (e) { return null; } })(); if (st && st.run && st.run.running) return; reloaded = true; location.reload(); });
   }
+  /* ---------- Discord status: off unless you turn it on. Browsers can't reach Discord, so a small helper on your
+     computer (tools/discord-presence) passes it along. Sent only when something changes, plus a heartbeat ---------- */
+  const discord = (() => {
+    const URL = 'http://127.0.0.1:6473/';
+    let on = store.get('solarist-discord') === 'on', last = '', lastAt = 0, cur = null, status = 'unknown', paint = null;
+    const show = j => { status = j; if (paint) paint(); };
+    // text/plain keeps it a simple request (no extra CORS round trip)
+    const post = (path, body) => fetch(URL + path, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(body) })
+      .then(r => r.json()).then(j => show(j.ok ? 'ok' : 'discord:' + (j.error || 'Discord said no'))).catch(() => show('none'));
+    function update(d) {
+      cur = d; if (!on) return;
+      const k = JSON.stringify(d), now = Date.now(); if (k === last && now - lastAt < 30000) return;
+      last = k; lastAt = now; post('presence', d);
+    }
+    function check() { show('checking'); fetch(URL).then(r => r.json()).then(j => show(j.discord ? 'ok' : 'discord:' + (j.error || 'not connected'))).catch(() => show('none')); }
+    addEventListener('pagehide', () => { if (on && navigator.sendBeacon) navigator.sendBeacon(URL + 'clear', new Blob(['{}'], { type: 'text/plain' })); });
+    function settings(box) {
+      const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on), title: 'Show your timer and the planet you are on as your Discord status' }, on ? 'Discord status is on' : 'Discord status is off');
+      const note = mk('small', { class: 'sl-muted' });
+      paint = () => { if (!note.isConnected) { paint = null; return; }
+        note.textContent = !on ? 'Shows your timer and planet on your Discord profile. Needs the small helper in tools/discord-presence running on this computer.'
+          : status === 'ok' ? 'Connected: your Discord status is showing.' : status === 'checking' ? 'Looking for the helper...'
+          : status === 'none' ? 'Helper not found. Start tools/discord-presence/solarist_presence.py on this computer (and allow Solarist to reach this device if your browser asks).'
+          : status.startsWith('discord:') ? 'The helper is running, but Discord says: ' + status.slice(8) : ''; };
+      tg.addEventListener('click', () => { on = !on; store.set('solarist-discord', on ? 'on' : 'off'); last = '';
+        if (on) { check(); if (cur) update(cur); } else post('clear', {});
+        settings(box); });
+      box.replaceChildren(tg, note); paint();
+      if (on && status !== 'checking') check();
+    }
+    return { update, settings };
+  })();
+
   function appSettings(box) { // filled in when Settings opens
     const snd = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(soundOn) }, soundOn ? 'Sound is on' : 'Sound is off');
     snd.addEventListener('click', () => { soundOn = !soundOn; store.set('solarist-sound', soundOn ? 'on' : 'off'); appSettings(box); if (soundOn) play('notify'); });
@@ -162,8 +195,9 @@
     view.addEventListener('click', () => { bigView = !bigView; store.set('solarist-view', bigView ? 'big' : 'classic'); applyView(); kick(); appSettings(box); });
     const ambBox = mk('div', { class: 'sx-row' }); amb.settings(ambBox);
     const musBox = mk('div', { class: 'sx-row' }); music.settings(musBox);
+    const dcBox = mk('div', { class: 'sx-row' }); discord.settings(dcBox);
     const credits = mk('p', { class: 'sl-muted sx-credits' }, 'Colour palette: Apollo by AdamCYounis. Planet shader based on PixelPlanets by Deep-Fold (MIT). Fonts: Barlow Condensed, Courier Prime (OFL). Sounds: NightMargin and the Not-So-Awesome Archive. Break music: "Night Stars" by Hiroki971.');
-    box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), mk('div', { class: 'sx-row' }, view), ambBox, musBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'), credits);
+    box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), mk('div', { class: 'sx-row' }, view), ambBox, musBox, dcBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'), credits);
   }
 
   /* ---------- the viewport ---------- */
@@ -656,6 +690,7 @@ void main(){
       show: () => setTimeout(() => { const h = root.querySelector('.sl-hint'); notify(h && h.textContent ? h.textContent : 'Session finished.'); }, 0),
       title: t => { document.title = t; },
       scene,
+      presence: d => discord.update(d),
       tick: typeTick,
       settings: appSettings,
     }, econ, items);

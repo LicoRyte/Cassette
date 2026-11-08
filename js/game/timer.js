@@ -170,7 +170,14 @@ function drawClock() {
     hooks.scene({ mode, kind: pv ? 'view' : kind, pv: !!pv, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), coord: !pv && !!S.coord, spot: planetSpot, ship: S.ship, build: !pv && kind === 'build' && building() ? { k: building().k, fac: building().fac } : null, trader: !pv && S.trader ? S.trader.num : null, station: S.station ? S.station.num : null });
     if (pv) { const tm = pvBar.querySelector('.sx-pv-time'); if (tm) tm.textContent = running ? '⏱ ' + fmt(r) + (mode === 'focus' ? ' left to study' : ' of break left') : ''; }
   }
-  if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.dr ? 'Distress Run' : chaptering() ? 'The Meridian' : following() ? 'Following the signal' : expediting() ? 'Exploring' : investigating() ? 'Investigating' : salvaging() ? 'Salvaging' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : heldP() ? 'Fighting' : 'Traveling') : 'Preparing') : 'Solarist');
+  const act = S.dr ? 'Distress Run' : chaptering() ? 'The Meridian' : following() ? 'Following the signal' : expediting() ? 'Exploring' : investigating() ? 'Investigating' : salvaging() ? 'Salvaging' : hunting() ? 'Hunting' : building() ? (building().k === 'upgrade' ? 'Upgrading' : 'Building') : charging() ? 'Charging' : heldP() ? 'Fighting' : 'Traveling';
+  if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? act : 'Preparing') : 'Solarist');
+  if (hooks.presence) { // your Discord status (only sent when it's turned on in Settings)
+    const kind = sceneKind(), p = pv ? null : scenePlanet(kind), paused = !running && left > 0 && left < length(mode);
+    const details = mode === 'focus' ? (running ? 'Studying · ' + act : paused ? 'Paused · ' + act : 'Ready for launch') : (running ? (mode === 'long' ? 'On a long break' : 'On a break') : paused ? 'Break paused' : 'Break is ready');
+    const state = p ? 'At ' + nm(p) + ' · ' + p.type + ' world' : S.dr ? 'Answering a distress call' : 'Between worlds';
+    hooks.presence({ details, state, end: running ? endAt : 0, ship: S.ship && S.ship.name });
+  }
 }
 // while a study session runs, everything that isn't pure data is put away (back at the break)
 let wasLocked = false, rightPrev = 'up';
