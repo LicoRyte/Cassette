@@ -46,6 +46,7 @@ Your progress is saved in this browser.
 - **Most Wanted:** a Cassini Federation Post gives you a poster. Every trip might bring a sighting (more likely the longer it takes), and a sighting opens a 3-session Manhunt on that world that ends in the capture and the bounty.
 - **Hyperdrive:** Charge either the Coordinator or the hyperdrive. A hyperdrive charge (up to 3) jumps you to any world you've visited, from the Star map (click a world) or its Logbook page.
 - **The Meridian:** five people left on a small survey ship and never came back. When their signal is waiting, Explore can Follow the Signal instead of finding a random world. It leads to one of fifteen worlds they left their mark on, each a chapter of five study sessions. Leave mid-chapter and the signal brings you back. Read it all under Transmissions, Meridian.
+- **Travelers' Posts:** build any facility, even the same one twice, while there are free slots. Each facility levels up to 10, and every upgrade picks one of its two paths (both cost the same), like a Greenhouse's Research or Aesthetic. Paths feed five Post stats: Comfort (settlers move in faster), Fun (XP), Science (Knowledge), Industry (trade income) and Culture (Rating). The two paths for each facility are in `FAC_PATHS` in `js/world/posts.js`.
 - **Your ship:** rooms are built with a study session and upgraded with resources. Crew live in the Crew Quarters; each adds a Ship Activity (a small story and bonus every session). Name, hull color and design are in Ship, Hangar.
 
 ## Code layout

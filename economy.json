@@ -50,7 +50,7 @@
 
   "_expedition": "Planet expeditions (3 parts per world). pay = resources per part (a risky part pays boldPay x that), finale = extra on the last part, findSafe / findBold = chance of a collectible on a safe / risky part (the finale always finds one), poiSellBonus = how much each Point of Interest adds to a world's sale price (0.08 = 8%), salvage = resources for salvaging a derelict.",
 
-  "trade": { "perFacilityLevel": 5, "cap": 200 },
+  "trade": { "perFacilityLevel": 3, "cap": 120 },
   "_trade": "Travelers' Posts pay perFacilityLevel per facility level (all posts together) every study session, up to cap.",
 
   "sell": {

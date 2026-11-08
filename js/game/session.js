@@ -13,6 +13,7 @@ function sessionEnd(reps, p, ev) {
   if (p) { checkRecords(p, notes); checkBounties({ planet: p }, notes); }
   checkBounties({ session: true }, notes);
   growPosts(notes);
+  { const fx = statFun(), kn = statSci(); if (fx || kn) award(fx, kn); const cul = allStats().cul; S.cnt.cultureBest = Math.max(S.cnt.cultureBest || 0, cul); } // Fun and Science from your posts; Culture's best counts for Rating
   shipActivity(reps); if (roomLv('lab')) award(0, Math.round(4 * roomPow('lab')));
   if (!S.rec.dayN || S.todayN > S.rec.dayN.v) { if (S.rec.dayN && S.todayN > S.rec.dayN.v) notes.push('🏆 New record! Most sessions in a day: ' + S.todayN); S.rec.dayN = { v: S.todayN, date: Date.now() }; }
   reps.forEach(({ rep }) => { if (rep) award(0, KN_REP[rep.k] || 10); }); // everything heard teaches you something
@@ -28,5 +29,5 @@ function shopXP(n) { award(n, 0); const out = flushXP([]); const msg = out.join(
 let lvMsg = '', lvMsgAt = 0;
 const modMax = k => Math.max(2, Math.round((E.moduleCost.maxLevel || {})[k] || 30));
 function upgradeMod(k) { const c = modCost(k); if (S.dust < c || lvl(k) >= modMax(k)) return; S.dust -= c; S.mods[k] = lvl(k) + 1; shopXP(15); save(); draw(); }
-function upgradeFac(p, f) { const lv = f.lv || 1, c = facCost(lv + 1); if (lv >= FAC_MAX || S.dust < c) return; S.dust -= c; f.lv = lv + 1;
+function upgradeFac(p, f, path) { const n = facLvN(f), c = facCost(n + 2); if (n >= FAC_MAX || S.dust < c || focusLock()) return; S.dust -= c; f.ups = facUps(f) + (path === 'b' ? 'b' : 'a'); f.lv = 1 + f.ups.length; const lv = f.lv - 1;
   const st = S.cnt.facRow = S.cnt.facRow || { k: null, n: 0, best: {} }; st.n = st.k === f.k ? st.n + 1 : 1; st.k = f.k; st.best[f.k] = Math.max(st.best[f.k] || 0, st.n); shopXP(10 + 5 * lv); save(); draw(); }

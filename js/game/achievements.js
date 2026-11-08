@@ -25,7 +25,7 @@ tiers('Worlds', 'sold', '💰', [[1, 'First Sale'], [25, 'Guild Regular'], [100,
 tiers('Posts', 'post', '🗼', [[1, 'Listening In'], [3, 'Network'], [5, 'Wide Net'], [10, 'Everywhere at Once']], () => posts().length, n => 'Own ' + n + ' Listening Post' + (n === 1 ? '' : 's'));
 tiers('Posts', 'tp', '🏘', [[1, 'Settler'], [3, 'Founder'], [5, 'Colonial Office']], () => posts().filter(f => f.p.post.tp).length, n => 'Own ' + n + ' Travelers\' Post' + (n === 1 ? '' : 's'));
 tiers('Posts', 'fac', '🏗', [[1, 'Open for Business'], [14, 'Fully Built'], [42, 'Three Full Posts']], () => facAll().length, n => 'Build ' + n + ' facilit' + (n === 1 ? 'y' : 'ies'));
-tiers('Posts', 'max', '⭐', [[1, 'Top Shelf'], [14, 'Five Star Post']], () => facAll().filter(f => (f.lv || 1) >= FAC_MAX).length, n => 'Upgrade ' + n + ' facilit' + (n === 1 ? 'y' : 'ies') + ' to the max level');
+tiers('Posts', 'max', '⭐', [[1, 'Top Shelf'], [14, 'Five Star Post']], () => facAll().filter(f => facLvN(f) >= FAC_MAX).length, n => 'Upgrade ' + n + ' facilit' + (n === 1 ? 'y' : 'ies') + ' to the max level');
 tiers('Posts', 'city', '🏙', [[1, 'City Lights']], () => posts().filter(f => f.p.post.tp && (f.p.post.tp.pop || 0) >= 5000).length, () => 'Grow a Travelers\' Post to 5,000 settlers');
 tiers('Adventure', 'bty', '🎯', [[1, 'Bounty Hunter'], [10, 'Contract Work'], [50, 'Professional'], [100, 'Most Wanted List']], () => S.bDone, n => 'Complete ' + n + ' bount' + (n === 1 ? 'y' : 'ies'));
 tiers('Adventure', 'fight', '⚔', [[1, 'Sheriff'], [10, 'Outlaw Bane'], [50, 'Peacekeeper']], () => S.fights || 0, n => 'Drive out ' + n + ' outlaw gang' + (n === 1 ? '' : 's'));
@@ -57,7 +57,7 @@ SQ('rough', '🏴', 'Rough Neighborhood', 'Arrive at 2 outlaw-held worlds in a r
 SQ('name', '✏', 'I Name Thee', 'Give a world a name of your own', () => anyW(p => !!p.custom));
 SQ('ship', '🏷', 'Main Character', 'Rename your ship', () => S.ship.name !== 'The Lantern');
 SQ('diner', '🍜', 'Diner First!', 'Upgrade the Diner 3 times in a row', () => !!S.cnt.facRow && (S.cnt.facRow.best.diner || 0) >= 3);
-SQ('arcade', '🕹', 'High Score', 'Get an Arcade to level 5', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'arcade' && (f.lv || 1) >= 5)));
+SQ('arcade', '🕹', 'High Score', 'Get an Arcade to level 5', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'arcade' && facLvN(f) >= 5)));
 SQ('spa', '♨', 'Spa Day', 'Have a Hot Spring Bath and a Lounge at the same post', () => postHas('bathhouse', 'lounge'));
 SQ('noise', '📻', 'Noise Complaint', 'Have a Radio Shack and a Library at the same post', () => postHas('radio', 'library'));
 SQ('whale', '🐋', 'Whale Watcher', 'See a space whale', () => seen('Space whale') >= 1);
@@ -95,7 +95,7 @@ SQ('lava', '🌋', 'The Floor Is Lava', 'Have 3 Lava worlds in your Logbook', ()
 SQ('shroom', '🍄', 'Shroom Room', 'Find a Fungal world with life on it', () => anyW(p => p.type === 'Fungal' && p.lifeLvl > 0));
 SQ('steer3', '🎛', 'Overachiever', 'Get a world steered by 3 Coordinator fields at once', () => anyW(p => p.nudged && p.nudged.length >= 3));
 SQ('city', '🏙', 'Big City Lights', 'Grow a Travelers\' Post to 10,000 settlers', () => posts().some(x => x.p.post.tp && (x.p.post.tp.pop || 0) >= 10000));
-SQ('dinermax', '🧑‍🍳', 'Diner Supremacy', 'Get a Diner to the max level', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'diner' && (f.lv || 1) >= FAC_MAX)));
+SQ('dinermax', '🧑‍🍳', 'Diner Supremacy', 'Get a Diner to the max level', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'diner' && facLvN(f) >= FAC_MAX)));
 SQ('mall', '🛍', 'No Vacancy', 'Fill every facility slot at a post', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= facSlots(x.p)));
 SQ('theme', '🎪', 'Theme Park', 'Give a post a theme by building its facilities around one idea', () => posts().some(x => x.p.post.tp && !!postTheme(x.p)));
 SQ('city10', '🌆', 'Skyline', 'Have a Travelers\' Post with 10 facilities', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= 10));

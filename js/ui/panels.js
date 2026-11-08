@@ -51,12 +51,10 @@ function buildView() {
       const descIn = el('textarea', { class: 'sl-find sx-desc', maxlength: 220, rows: 2, placeholder: 'What is this post like? (optional)', 'aria-label': 'Post description', disabled: locked || null }, tp.desc || '');
       descIn.addEventListener('change', () => { const v = descIn.value.trim().slice(0, 220); if (v) tp.desc = v; else delete tp.desc; save(); });
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Identity'), el('p', { class: 'sl-muted' }, th ? th[0] + ' Its facilities make it a ' + th[1] + '.' : 'Build two or more facilities of one kind (food, science, fun, rest, work, culture) and the post gets a theme.'), nameIn, descIn));
-      built.forEach(f => { const lv = f.lv || 1, max = lv >= FAC_MAX, c = facCost(lv + 1);
-        const ren = el('button', { type: 'button', class: 'sl-link sx-ren', disabled: locked || null, title: 'Give it your own name', onclick: () => { const v = window.prompt('Name this ' + FAC[f.k][1] + ' (leave empty for the default):', f.name || ''); if (v == null) return; const t = v.trim().slice(0, 32); if (t) f.name = t; else delete f.name; save(); draw(); } }, '✎');
-        frows.push(el('div', { class: 'sx-up' }, el('b', {}, FAC[f.k][0] + ' ' + facName(f) + ' ' + lv, ren), el('small', {}, (f.name ? FAC[f.k][1] + '. ' : '') + (max ? 'Max level' : 'Level ' + (lv + 1) + ': bigger numbers in its logs'), ' ', armBtn('Tear down', 'Sure? No refund', () => { tp.fac = tp.fac.filter(x => x !== f); S.cnt.torn = (S.cnt.torn || 0) + 1; pushEv({ c: 'ship', ic: FAC[f.k][0], title: 'Torn down: ' + facName(f), t: 'The ' + facName(f) + ' at ' + postName(p) + ' was cleared to make room.', at: Date.now() }); save(); draw(); }, 'sx-mini')),
-          max ? el('span', { class: 'sx-done' }, 'Max') : el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < c || null, onclick: () => upgradeFac(p, f) }, '✦ ' + c.toLocaleString()))); });
-      if (free) Object.keys(THEMES).forEach(t => { const ks = Object.keys(FAC).filter(k => FAC_THEME[k] === t && !hasFac(p, k)); if (!ks.length) return;
-        frows.push(el('p', { class: 'sx-themeh' }, THEMES[t][0] + ' ' + THEMES[t][1].replace(/ (Post|Stop)$/, '').replace('Research', 'Science'))); ks.forEach(k => frows.push(up(FAC[k][0] + ' ' + FAC[k][1], FAC_DESC[k], queue('add:' + p.num + ':' + k), 'unbuilt'))); });
+      out.push(statsRow(p));
+      built.forEach(f => frows.push(facRow(p, f, locked)));
+      if (free) Object.keys(THEMES).forEach(t => { const ks = Object.keys(FAC).filter(k => FAC_THEME[k] === t); if (!ks.length) return;
+        frows.push(el('p', { class: 'sx-themeh' }, THEMES[t][0] + ' ' + THEMES[t][1].replace(/ (Post|Stop)$/, '').replace('Research', 'Science'))); ks.forEach(k => { const n = facCount(p, k), P = FAC_PATHS[k], st = id => POST_STATS.find(x => x[0] === id); frows.push(up(FAC[k][0] + ' ' + FAC[k][1] + (n ? ' (you have ' + n + ')' : ''), FAC_DESC[k] + (P ? ' Paths: ' + P[0][0] + ' ' + st(P[0][1])[1] + ' or ' + P[1][0] + ' ' + st(P[1][1])[1] + '.' : ''), queue('add:' + p.num + ':' + k), 'unbuilt')); }); });
       out.push(el('div', { class: 'sx-sec' }, el('h3', {}, 'Facilities', el('small', { class: 'sx-h-n' }, ' ' + built.length + ' / ' + slots + ' slots')),
         el('p', { class: 'sl-muted' }, free ? 'Room for ' + (slots - built.length) + ' more. New ones take a study session, upgrades cost resources. Choose what this post is about.' : 'No room left. ' + ((tp.pop || 0) < 1000 ? 'It gets a free slot when it grows into a Town (1,000 settlers). ' : '') + 'Buy more land, or tear one down to build something else.'),
         (tp.extra || 0) < slotBuyMax() ? el('div', { class: 'sx-up sx-slotbuy' }, el('b', {}, '🧱 Buy more land'), el('small', {}, 'One more facility slot (' + (tp.extra || 0) + ' of ' + slotBuyMax() + ' bought, up to ' + FS.max + ' slots in all).'), el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < slotCost(p) || null, onclick: () => buySlot(p) }, '✦ ' + slotCost(p).toLocaleString())) : el('p', { class: 'sl-muted' }, 'All the land there is: ' + FS.max + ' slots once it is a Town.'),
@@ -121,4 +119,27 @@ function drawFeed() {
   posts().forEach(f => { const r = f.p.post.reports[f.p.post.reports.length - 1]; if (r && (!best || r.at > best.at)) best = { at: r.at, h: nm(f.p) + ', day ' + r.day, t: r.t }; });
   const e = S.events[S.events.length - 1]; if (e && (!best || e.at > best.at)) best = { at: e.at, h: e.title, t: e.t };
   feedLine.hidden = !best; if (best) feedLine.replaceChildren(el('b', {}, best.h + ': '), best.t);
+}
+// ---------- facilities: two upgrade paths, one level bar ----------
+// the post's five stats, with what each does
+function statsRow(p) {
+  const st = postStats(p);
+  return el('div', { class: 'sx-sec' }, el('h3', {}, 'Post stats'),
+    el('div', { class: 'sx-stats' }, POST_STATS.map(([k, ic, name, what]) => el('div', { class: 'sx-stat', title: name + ': ' + what }, el('span', {}, ic), el('b', {}, String(st[k])), el('small', {}, name)))),
+    el('p', { class: 'sl-muted' }, 'Every facility adds to its kind, and every upgrade adds to the path you pick. Comfort: settlers move in faster here. Across all posts: Fun gives XP and Science Knowledge every session, Industry trade income, Culture Rating.'));
+}
+// one facility: its level bar (each level coloured by the path picked), then a button for each path at the same price
+function facRow(p, f, locked) {
+  const tp = p.post.tp, n = facLvN(f), ups = facUps(f), max = n >= FAC_MAX, c = facCost(n + 2), P = FAC_PATHS[f.k] || [['Path A', 'com'], ['Path B', 'com']];
+  const stat = id => POST_STATS.find(x => x[0] === id) || POST_STATS[0];
+  const ren = el('button', { type: 'button', class: 'sl-link sx-ren', disabled: locked || null, title: 'Give it your own name', onclick: () => { const v = window.prompt('Name this ' + FAC[f.k][1] + ' (leave empty for the default):', f.name || ''); if (v == null) return; const t = v.trim().slice(0, 32); if (t) f.name = t; else delete f.name; save(); draw(); } }, '✎');
+  const bar = el('div', { class: 'sl-dr-legs sx-legs sx-facbar', role: 'img', 'aria-label': n + ' of ' + FAC_MAX + ' upgrades' }, Array.from({ length: FAC_MAX }, (_, i) => el('span', { class: i < n ? 'done sx-p' + ups[i] : i === n && !max ? 'now' : '' }, i < n ? (ups[i] === 'b' ? 'B' : 'A') : '')));
+  const pathBtn = (key, i) => { const [name, sid] = P[i], s = stat(sid), cnt = [...ups].filter(x => x === key).length;
+    return el('button', { type: 'button', class: 'btn sx-path sx-p' + key, disabled: max || locked || S.dust < c || null, title: 'Upgrade along ' + name + ': +1 ' + s[2], onclick: () => upgradeFac(p, f, key) },
+      el('b', {}, key.toUpperCase() + ' · ' + name + ' ' + cnt), el('small', {}, s[1] + ' +1 ' + s[2] + (max ? '' : ' · ✦ ' + c.toLocaleString()))); };
+  return el('div', { class: 'sx-fac' },
+    el('div', { class: 'sx-fac-h' }, el('b', {}, FAC[f.k][0] + ' ' + facName(f) + ' ', ren), el('span', { class: 'sl-muted' }, max ? 'Max level' : 'Lv ' + n + ' / ' + FAC_MAX)),
+    f.name ? el('small', { class: 'sl-muted' }, FAC[f.k][1]) : null,
+    bar, el('div', { class: 'sx-paths2' }, pathBtn('a', 0), pathBtn('b', 1)),
+    el('div', { class: 'sx-row-l' }, armBtn('Tear down', 'Sure? No refund', () => { tp.fac = tp.fac.filter(x => x !== f); S.cnt.torn = (S.cnt.torn || 0) + 1; pushEv({ c: 'ship', ic: FAC[f.k][0], title: 'Torn down: ' + facName(f), t: 'The ' + facName(f) + ' at ' + postName(p) + ' was cleared to make room.', at: Date.now() }); save(); draw(); }, 'sx-mini')));
 }

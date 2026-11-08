@@ -90,6 +90,7 @@ function planetCard(p, kind) {
     poiList(p),
     p.post && p.post.tp ? el('div', { class: 'sx-postid' }, el('b', {}, (postTheme(p) ? postTheme(p)[0] : '🏘') + ' ' + postName(p)), p.post.tp.desc ? el('p', {}, p.post.tp.desc) : null) : null,
     p.post && p.post.tp ? el('div', { class: 'sl-facs', title: 'Facilities at this Travelers\' Post' }, [el('span', { class: 'sl-fac sl-popl' }, '🏙 ' + tierOf(p.post.tp.pop || 0) + ' · ' + (p.post.tp.pop || 0).toLocaleString() + ' settlers'), ...p.post.tp.fac.map(f => el('span', { class: 'sl-fac' }, FAC[f.k][0] + ' ' + facName(f) + ((f.lv || 1) > 1 ? ' ' + '★'.repeat(Math.min(5, f.lv - 1)) + (f.lv > 6 ? '+' : '') : '')))]) : null,
+    p.post && p.post.tp ? el('div', { class: 'sx-stats sx-stats-sm', title: 'Post stats' }, POST_STATS.map(([k, ic, name]) => el('span', { class: 'sx-stat', title: name }, ic + ' ' + postStats(p)[k]))) : null,
     p.post ? postLog(p) : null,
   ].filter(Boolean);
 }
