@@ -12,7 +12,7 @@ function drawName() {
   const kind = sceneKind(), p = scenePlanet(kind);
   nameBox.disabled = !p;
   nameBox.replaceChildren(...(p ? [el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable' + (held(p) ? ', held by outlaws' : ''))]
-    : hunting() && mode === 'focus' ? [el('b', {}, S.mw.name), el('span', {}, 'Most Wanted hunt, Act ' + roman(S.mw.act + 1) + ' of II')]
+    : hunting() && mode === 'focus' ? [el('b', {}, S.mw.name), el('span', {}, 'Most Wanted hunt, ' + MH_PARTS[(S.mw.hunt && S.mw.hunt.step) || 0] + ', Part ' + roman(((S.mw.hunt && S.mw.hunt.step) || 0) + 1) + ' of ' + roman(MH_PARTS.length))]
     : kind === 'distress' ? [el('b', {}, DISTRESS[S.dr.sc][1]), el('span', {}, 'Distress Run, Act ' + roman(S.dr.n + 1) + ' of ' + roman(S.dr.need))]
       : [el('b', {}, 'Uncharted world'), el('span', {}, S.coord ? 'Following the Coordinator' : 'Somewhere ahead')]));
   nameBox.onclick = p ? () => { tab('log'); openWorld(p.num); } : null;
