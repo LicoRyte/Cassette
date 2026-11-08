@@ -171,10 +171,10 @@
     function check() { show('checking'); fetch(URL).then(r => r.json()).then(j => show(j.discord ? 'ok' : 'discord:' + (j.error || 'not connected'))).catch(() => show('none')); }
     addEventListener('pagehide', () => { if (on && navigator.sendBeacon) navigator.sendBeacon(URL + 'clear', new Blob(['{}'], { type: 'text/plain' })); });
     function settings(box) {
-      const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on), title: 'Show your timer and the planet you are on as your Discord status' }, on ? 'Discord status is on' : 'Discord status is off');
+      const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on), title: 'Show what you are doing and the planet you are on as your Discord status' }, on ? 'Discord status is on' : 'Discord status is off');
       const note = mk('small', { class: 'sl-muted' });
       paint = () => { if (!note.isConnected) { paint = null; return; }
-        note.textContent = !on ? 'Shows your timer and planet on your Discord profile. Needs the small helper in tools/discord-presence running on this computer.'
+        note.textContent = !on ? 'Shows what you are doing and your planet on your Discord profile. Needs the small helper in tools/discord-presence running on this computer.'
           : status === 'ok' ? 'Connected: your Discord status is showing.' : status === 'checking' ? 'Looking for the helper...'
           : status === 'none' ? 'Helper not found. Start tools/discord-presence/solarist_presence.py on this computer (and allow Solarist to reach this device if your browser asks).'
           : status.startsWith('discord:') ? 'The helper is running, but Discord says: ' + status.slice(8) : ''; };

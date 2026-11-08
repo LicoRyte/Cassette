@@ -4,7 +4,6 @@ Shows what you're doing in Solarist on your Discord profile, for example:
 
 > **Studying · Exploring**
 > At Netue IV · Ocean world
-> 12:34 left
 
 Browsers can't talk to the Discord app, so `solarist_presence.py` runs on your computer and passes the status along.
 It's off until you turn it on in Solarist, and it only accepts updates from Solarist itself

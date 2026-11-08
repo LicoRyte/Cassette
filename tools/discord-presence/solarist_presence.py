@@ -145,9 +145,6 @@ def to_activity(d):
            'buttons': [{'label': 'Play Solarist', 'url': PLAY_URL}]}
     if len(state) >= 2:
         act['state'] = state
-    end = d.get('end')
-    if isinstance(end, (int, float)) and end > time.time() * 1000:
-        act['timestamps'] = {'end': int(end)}  # Discord shows a countdown
     return act
 
 

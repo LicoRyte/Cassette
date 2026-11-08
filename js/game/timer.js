@@ -176,7 +176,7 @@ function drawClock() {
     const kind = sceneKind(), p = pv ? null : scenePlanet(kind), paused = !running && left > 0 && left < length(mode);
     const details = mode === 'focus' ? (running ? 'Studying · ' + act : paused ? 'Paused · ' + act : 'Ready for launch') : (running ? (mode === 'long' ? 'On a long break' : 'On a break') : paused ? 'Break paused' : 'Break is ready');
     const state = p ? 'At ' + nm(p) + ' · ' + p.type + ' world' : S.dr ? 'Answering a distress call' : 'Between worlds';
-    hooks.presence({ details, state, end: running ? endAt : 0, ship: S.ship && S.ship.name });
+    hooks.presence({ details, state, ship: S.ship && S.ship.name });
   }
 }
 // while a study session runs, everything that isn't pure data is put away (back at the break)

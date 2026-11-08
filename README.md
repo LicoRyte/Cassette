@@ -60,7 +60,7 @@ No build step: plain JavaScript files that the browser loads in a fixed order. T
 | `js/boot.js` | Start-up. Holds `GAME_FILES`, the load order of everything below |
 | `js/game/` | Rules and saved state, one file per feature: `core.js` (the save `S`, `save()`, `el()`), `build.js`, `encounters.js`, `research.js`, `ship.js`, `levels.js`, `distress.js`, `quests.js`, `delivery.js`, `station.js`, `coordinator.js`, `worlds.js`, `trade.js`, `session.js`, `timer.js` (`finish()`, the end of every session, and `draw()`), `achievements.js` (medals and Side Quests) |
 | `js/ui/` | The screen: `controls.js`, `layout.js` (pages and tabs), `main-screen.js`, `right-panel.js`, `panels.js` (Build, Sell, Research, Trade), `reports.js`, `ship-interior.js`, `ship-page.js`, `ship-views.js`, `star-map.js`, `logbook.js`, `keyboard.js`, `planetarium.js` |
-| `tools/discord-presence/` | Optional helper that shows your timer and planet as your Discord status (see its README). Not loaded by the game |
+| `tools/discord-presence/` | Optional helper that shows what you're doing and your planet as your Discord status (see its README). Not loaded by the game |
 
 Rules that keep it working:
 
