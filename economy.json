@@ -26,7 +26,7 @@
   "fullCycle": { "base": 80, "perHullLevel": 4 },
   "_fullCycle": "Paid when a Full Cycle (no skipping) ends: base + perHullLevel x (Hull level - 1).",
 
-  "bountyMultiplier": 1.25,
+  "bountyMultiplier": 1.0,
   "_bountyMultiplier": "Scales every bounty reward when the bounty is created.",
 
   "encounter": { "chance": 0.35, "weights": { "meeting": 30, "postal": 22, "trade": 20, "outlaw": 12, "cassini": 12, "derelict": 12, "station": 10 } },
