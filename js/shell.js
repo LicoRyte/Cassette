@@ -205,15 +205,16 @@ float dCirc(vec2 uv, float hard){ float y = floor(uv.y); uv.x += y * .31; vec2 f
 vec2 dSph(vec2 uv){ vec2 c = uv * 2. - 1.; float z = sqrt(max(0., 1. - dot(c, c))); return c / (z + 1.) * .5 + .5; }
 vec2 dRot(vec2 c, float a){ c -= .5; c = mat2(cos(a), -sin(a), sin(a), cos(a)) * c; return c + .5; }
 vec3 pick3(vec3 a, vec3 b, vec3 c, float i){ return i < .5 ? a : i < 1.5 ? b : c; }
-float dOff(float sz, float k){ return fLocked > .5 ? 0. : spin * k * sz; } // the planet turning: the noise slides sideways
+const float SPIN = .025; // how fast every planet turns (uv per second): about a tenth of the radius a second at the centre
+float dOff(float sz, float k){ return fLocked > .5 ? 0. : spin * SPIN * sz; } // the planet turning: the noise slides sideways
 float dCloudV(vec2 su, float sz, int oc, float st, float sp){ // how thick one cloud layer is here
-  dSize = sz; dTx = 1.; vec2 cu = su; cu.y += smoothstep(0., 1.3, abs(cu.x - .4)); cu *= vec2(1., st); float o = spin * sp;
-  float cn = 0.; for (int i = 0; i < 9; i++) cn += dCirc(cu * dSize * .3 + float(i + 11) + vec2(o, 0.), 0.);
+  dSize = sz; dTx = 1.; vec2 cu = su; cu.y += smoothstep(0., 1.3, abs(cu.x - .4)); cu *= vec2(1., st); float o = spin * SPIN * sp * sz;
+  float cn = 0.; for (int i = 0; i < 9; i++) cn += dCirc(cu * dSize * .3 + float(i + 11) + vec2(o * .3, 0.), 0.);
   float c = dFbm(cu * dSize + cn + vec2(o, 0.), oc); dTx = 2.; return c; }
 vec3 dCloudC(float c, float dl, float cover, float b1, float b2, vec3 k0, vec3 k1, vec3 k2, vec3 k3){ // its colour: lit tops, shaded edges
   vec3 k = k0; if (c < cover + .03) k = k1; if (dl + c * .2 > b1) k = k2; if (dl + c * .2 > b2) k = k3; return k; }
 vec3 dClouds(vec2 su, float dl, vec3 under, float cover){
-  float c = dCloudV(su, 7.745, 2, 2., .46); return c < cover ? under : dCloudC(c, dl, cover, .52, .62, ck[0], ck[1], ck[2], ck[3]); }
+  float c = dCloudV(su, 7.745, 2, 2., 1.25); return c < cover ? under : dCloudC(c, dl, cover, .52, .62, ck[0], ck[1], ck[2], ck[3]); }
 // rings (Ring.gdshader): a wide band 3x the planet's size, tilted towards you; its back half hides behind the planet
 float dRing(vec2 uv, out vec3 rcol, out float back){ // uv: planet radius 1, y up
   vec2 lo = fLocked > .5 ? vec2(.12, .45) : vec2(.39, .39);
@@ -223,7 +224,7 @@ float dRing(vec2 uv, out vec3 rcol, out float back){ // uv: planet radius 1, y u
   float ring = smoothstep(.5 - w * 2., .5 - w, cd) * smoothstep(cd - w, cd, .4);
   back = ru.y < .5 && distance(ru, vec2(.5)) < 1. / 6. ? 1. : 0.;
   dSeed = 1. + mod(seed * 1.7, 9.); dSize = 15.; dTx = 2.;
-  uc = dRot(uc + vec2(0., .5), spin * .08);
+  uc = dRot(uc + vec2(0., .5), spin * .03);
   ring *= dFbm(uc * dSize, 4);
   float pz = min(floor((ring + ld * ld * 2.) * 4.) / 4., 2.);
   rcol = pz <= 1. ? pick3(rc[0], rc[1], rc[2], floor(pz * 2.)) : pick3(rc[3], rc[4], rc[5], floor((pz - 1.) * 2.));
@@ -268,11 +269,11 @@ vec3 dfPlanet(vec2 u0, vec2 fc, float px, out float glow){
       if (rf > dfCut) { c = ck[0]; if (dd > .019) c = ck[1]; if (dd > .05) c = ck[2]; glow = 1.; } }
   } else if (fStyle > 6.5) { // cloud giant: a dark base layer, bright cloud tops drifting faster over it
     float dg = distance(u0, fLocked > .5 ? lo : vec2(.25));
-    float c1 = dCloudV(su, 9., 5, 1., .7); c = dCloudC(c1, dg, 0., .692, .666, ck[0], ck[1], ck[2], ck[3]);
-    float c2 = dCloudV(su, 9., 5, 1., .47); if (c2 > dfCut) c = dCloudC(c2, dg, dfCut, .439, .746, ca[0], ca[1], ca[2], ca[3]);
+    float c1 = dCloudV(su, 9., 5, 1., 1.); c = dCloudC(c1, dg, 0., .692, .666, ck[0], ck[1], ck[2], ck[3]);
+    float c2 = dCloudV(su, 9., 5, 1., 1.3); if (c2 > dfCut) c = dCloudC(c2, dg, dfCut, .439, .746, ca[0], ca[1], ca[2], ca[3]);
   } else { // gas giant: bands stirred by turbulence
     dSize = 10.107; float o = dOff(dSize, .04), band = dFbm(vec2(0., su.y * dSize * .892), 3), turb = 0.;
-    for (int i = 0; i < 10; i++) turb += dCirc(su * dSize * .3 + float(i + 11) + vec2(o, 0.), 0.);
+    for (int i = 0; i < 10; i++) turb += dCirc(su * dSize * .3 + float(i + 11) + vec2(o * .3, 0.), 0.);
     float g1 = dFbm(su * dSize, 3), g2 = dFbm(su * vec2(1., 2.) * dSize + g1 + vec2(-o, 0.) + turb, 3);
     g2 *= pow(band, 2.) * 7.; float li = g2 + dl * 1.8; g2 += dl - .3; g2 = smoothstep(-.2, 4. - g2, li); if (dith) g2 *= 1.1;
     float pz = floor(g2 * 4.) / 2.; c = g2 < .625 ? pick3(ca[0], ca[1], ca[2], pz * 2.) : pick3(cb[0], cb[1], cb[2], (pz - 1.) * 2.);
@@ -296,7 +297,7 @@ void main(){
     vec3 n = vec3(uv, sqrt(1. - d2));
     // fake spin: map the disc to longitude/latitude and slide a flat noise texture sideways
     float lon = atan(n.x, n.z), lat = asin(clamp(n.y, -1., 1.));
-    vec3 q = vec3(lon * 1.25 + spin * (fLocked > .5 ? .05 : .16), lat * 1.25, 0.);
+    vec3 q = vec3(lon * 1.25 + spin * (fLocked > .5 ? 0. : SPIN * 5.), lat * 1.25, 0.);
     vec3 L = normalize(fLocked > .5 ? vec3(-1., .1, .25) : vec3(-.55, .35, .75)); float lit = clamp(dot(n, L), 0., 1.);
     if (sil > .5){ col = pal[25] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = coord > .5 ? pal[24] : pal[4]; }
     else {
