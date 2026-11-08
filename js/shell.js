@@ -165,11 +165,16 @@
       .then(r => r.json()).then(j => show(j.ok ? 'ok' : 'discord:' + (j.error || 'Discord said no'))).catch(() => show('none'));
     function update(d) {
       cur = d; if (!on) return;
-      const k = JSON.stringify(d), now = Date.now(); if (k === last && now - lastAt < 30000) return;
+      const k = JSON.stringify(d), now = Date.now(); if (k === last && now - lastAt < 20000) return;
       last = k; lastAt = now; post('presence', d);
     }
     function check() { show('checking'); fetch(URL).then(r => r.json()).then(j => show(j.discord ? 'ok' : 'discord:' + (j.error || 'not connected'))).catch(() => show('none')); }
-    addEventListener('pagehide', () => { if (on && navigator.sendBeacon) navigator.sendBeacon(URL + 'clear', new Blob(['{}'], { type: 'text/plain' })); });
+    // closing the app: tell the helper to clear your status (keepalive lets the request finish after the window is gone)
+    let bye = false;
+    const goodbye = () => { if (!on || bye) return; bye = true;
+      try { fetch(URL + 'clear', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'text/plain' }, body: '{}' }).catch(() => {}); } catch (e) { /* closing anyway */ } };
+    addEventListener('pagehide', goodbye); addEventListener('beforeunload', goodbye);
+    addEventListener('pageshow', () => { bye = false; last = ''; }); // came back (from the back/forward cache): send the status again
     function settings(box) {
       const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on), title: 'Show what you are doing and the planet you are on as your Discord status' }, on ? 'Discord status is on' : 'Discord status is off');
       const note = mk('small', { class: 'sl-muted' });

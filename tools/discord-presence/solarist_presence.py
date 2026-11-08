@@ -24,7 +24,7 @@ from urllib.parse import urlparse
 PORT = 6473
 # only these pages may set your status, so no other website can
 ALLOWED_ORIGINS = {'https://licoryte.github.io'}  # plus localhost on any port: your own copy while you work on it
-STALE_AFTER = 150  # seconds without news from Solarist (closed, or the computer slept): clear the status
+STALE_AFTER = 100  # seconds without news from Solarist (closed, or the computer slept): clear the status
 ICON = 'https://licoryte.github.io/solarist/icons/icon-512.png'
 PLAY_URL = 'https://licoryte.github.io/solarist/'
 
@@ -111,6 +111,18 @@ class Discord:
         except OSError:
             pass
         self.pipe = None
+
+    def clear(self):
+        """Remove the status and hang up: Discord always drops an app's status once it disconnects."""
+        with self.lock:
+            if self.pipe:
+                try:
+                    self._send(1, {'cmd': 'SET_ACTIVITY', 'args': {'pid': os.getpid()}, 'nonce': str(uuid.uuid4())})
+                    self._recv()
+                except (OSError, ValueError):
+                    pass
+            self._drop()
+        print('Status cleared.', flush=True)
 
     def set(self, activity):
         """activity: a dict, or None to clear. Returns True when Discord took it."""
@@ -202,7 +214,8 @@ def make_handler():
                 return self._reply(400, {'ok': False})
             State.last_seen = time.time()
             if self.path.startswith('/clear') or not isinstance(d, dict) or d.get('off'):
-                ok = State.discord.set(None)
+                State.discord.clear()
+                ok = True
                 State.showing = False
             else:
                 ok = State.discord.set(to_activity(d))
@@ -211,11 +224,23 @@ def make_handler():
     return Handler
 
 
+class OneServer(ThreadingHTTPServer):
+    """Refuses a port that's already taken. (By default Windows lets two helpers share it, and then either one may
+    get Solarist's updates, so an old copy could keep your status up.)"""
+    allow_reuse_address = False
+    daemon_threads = True
+
+    def server_bind(self):
+        if sys.platform == 'win32' and hasattr(socket, 'SO_EXCLUSIVEADDRUSE'):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 def watchdog():
     while True:
         time.sleep(10)
         if State.showing and time.time() - State.last_seen > STALE_AFTER:
-            State.discord.set(None)
+            State.discord.clear()
             State.showing = False
 
 
@@ -238,7 +263,7 @@ def main():
     State.discord = Discord(cid)
     threading.Thread(target=watchdog, daemon=True).start()
     try:
-        srv = ThreadingHTTPServer(('127.0.0.1', a.port), make_handler())
+        srv = OneServer(('127.0.0.1', a.port), make_handler())
     except OSError:
         print('Port %d is busy: is the helper already running?' % a.port, file=sys.stderr)
         sys.exit(1)
@@ -248,7 +273,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
-        State.discord.set(None)
+        State.discord.clear()
 
 
 if __name__ == '__main__':
