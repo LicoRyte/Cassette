@@ -4,7 +4,7 @@
 // the right side has two tabs: Research (what Knowledge points unlock) and Transmissions (everything the ship heard and logged)
 let rightTab = 'tx';
 // every kind of log in one place: the ship's log, Meridian logs, Ship Logs from research, achievements, and old Listening Post transmissions
-const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['stay', 'Stays'], ['trade', 'Traders'], ['mystery', 'Mysteries'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements']];
+const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['stay', 'Stays'], ['trade', 'Traders'], ['mystery', 'Mysteries'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements'], ['learn', 'Learning']];
 let txFilter = 'all', txQuery = '';
 const txFind = el('input', { type: 'search', class: 'sl-find sx-txfind', placeholder: 'Search the logs...', 'aria-label': 'Search the logs' });
 txFind.addEventListener('input', () => { txQuery = txFind.value; drawRight(); txFind.focus(); });
@@ -46,17 +46,16 @@ function drawRight() {
   const unread = txUnread();
   if (rightTab === 'tx' && unread) { S.txPrev = S.txSeen || 0; S.txSeen = Date.now(); save(); }
   const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
-  const tabsR = focusLock() ? el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('tx', 'Transmissions'), el('span', { class: 'sx-locknote' }, '🔒 Everything else is back at the break'))
-    : el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('tx', '📡 Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null), rt('research', 'Research'));
-  if (rightTab === 'research') { rightCol.replaceChildren(tabsR, ...researchView()); return; }
+  const tabsR = el('div', { class: 'sx-rtabs' }, el('button', { type: 'button', class: 'btn', onclick: () => openReader('latest') }, 'Read one at a time')); void rt;
   rightTab = 'tx';
   {
     const feed = txFeed(), seen = S.txPrev || 0, cnt = {}, fresh = {};
     feed.forEach(it => { cnt[it.c] = (cnt[it.c] || 0) + 1; if (it.at > seen) fresh[it.c] = 1; });
-    const chips = el('div', { class: 'sx-chips', role: 'tablist' }, TXF.filter(([k]) => k === 'all' || cnt[k] || k === 'camp' || k === 'arc').map(([k, label]) =>
+    const chips = el('div', { class: 'sx-chips', role: 'tablist' }, TXF.filter(([k]) => k === 'all' || cnt[k] || k === 'camp' || k === 'arc' || k === 'learn').map(([k, label]) =>
       el('button', { type: 'button', role: 'tab', 'aria-selected': String(txFilter === k), class: fresh[k] || (k === 'all' && Object.keys(fresh).length) ? 'new' : null, onclick: () => { txFilter = k; drawRight(); rightCol.scrollTop = 0; } }, label, el('small', {}, String(k === 'all' ? feed.length : cnt[k] || 0)))));
     let body;
-    if (txFilter === 'camp') body = meridianView();
+    if (txFilter === 'learn') body = learningView((t, ...k) => el('div', { class: 'sx-sec' }, el('h3', {}, t), ...k));
+    else if (txFilter === 'camp') body = meridianView();
     else if (txFilter === 'arc') body = shipLogsView();
     else { const q = txQuery.trim().toLowerCase(), list = (txFilter === 'all' ? feed : feed.filter(it => it.c === txFilter)).filter(it => !q || ((it.title || '') + ' ' + (it.t || '') + ' ' + (it.extra || '')).toLowerCase().includes(q));
       body = [list.length ? el('div', { class: 'sx-tx' }, renderFeed(list, 'rtx' + txFilter, true, drawRight))

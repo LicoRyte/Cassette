@@ -63,6 +63,6 @@ line: "3 sessions today, a comet tonight".
 |---|---|---|
 | A ✅ | **Palette**: the 32 colours for planets and UI, dithered shading, fewer colours per world | Every colour on screen is from the palette |
 | B ✅ | **Merges**: Investigate into Mysteries, Expedition and Salvage into Stay activities, the Meridian as a Travel option | Three verbs, old saves converted |
-| C | **Layout**: Study and Break screens with choice cards, Atlas / Journal / Ship, the Workshop, plain text | No side columns; at most 4 things to press at the break |
-| D | **The globe**: drag, zoom, waypoints, picking a waypoint | Sessions can be chosen on the planet |
-| E | **Polish**: "Who's aboard?" on first start, the today line, motion, phone check | Feels finished |
+| C ✅ | **Layout**: Study and Break screens with choice cards, Atlas / Journal / Ship, the Workshop, plain text | No side columns; at most 4 things to press at the break |
+| D ✅ | **The globe**: drag, zoom, waypoints, picking a waypoint | Sessions can be chosen on the planet |
+| E ✅ | **Polish**: "Who's aboard?" on first start, the today line, motion, phone check | Feels finished |

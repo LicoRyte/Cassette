@@ -45,7 +45,7 @@ function renamePlace(p, o) {
 // a finished Stay here session
 function stayDone(reps) {
   const p = atP(), a = stayAct(), people = S.crew.length ? S.crew : [S.me], who = people[Math.floor(Math.random() * people.length)];
-  const found = exOf(p).poi, spot = found.length && Math.random() < .6 ? placeName(found[Math.floor(Math.random() * found.length)]) : nm(p);
+  const found = exOf(p).poi, at = stayPlace(), spot = at ? placeName(at) : found.length && Math.random() < .6 ? placeName(found[Math.floor(Math.random() * found.length)]) : nm(p);
   const t = crewMoment(who, 'act_' + a.id, p, { place: spot }) || capFirst(a.name.toLowerCase()) + ' on ' + nm(p) + '.';
   const got = [];
   if (Math.random() < (a.find || 0)) { const o = findPlace(p, a.id); if (o) got.push('📍 New place: ' + o.name); }
@@ -55,7 +55,7 @@ function stayDone(reps) {
   award(20 + 10 * got.length, 10 + (got.length ? 5 : 0));
   if (a.id === 'camp' || a.id === 'picnic') p.camped = true; // your camp will still be here if you come back
   S.cnt.stays = (S.cnt.stays || 0) + 1; (S.cnt.acts = S.cnt.acts || {})[a.id] = (S.cnt.acts[a.id] || 0) + 1;
-  const title = a.ic + ' ' + a.name + ' on ' + nm(p), gotTxt = got.join(' · ') || null;
+  const title = a.ic + ' ' + a.name + (at ? ' at ' + placeName(at) : '') + ' on ' + nm(p), gotTxt = got.join(' · ') || null;
   reps.unshift({ ev: { battle: true, ic: a.ic, title, t, got: gotTxt } });
   pushEv({ c: 'stay', ic: a.ic, title, t, got: gotTxt, at: Date.now() });
   return a.ic + ' ' + (got.length ? got[0] + '.' : a.name + ' on ' + nm(p) + '.');

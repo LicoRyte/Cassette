@@ -68,11 +68,11 @@ function fillRegionSel() { const g = regionNow(); regionSel.replaceChildren(...r
 // Mystery picks which one, when there are several
 const mysSel = el('select', { class: 'sl-build-sel', 'aria-label': 'Which mystery' });
 mysSel.addEventListener('change', () => setMission('mystery', mysSel.value));
-function fillMysSel() { mysSel.replaceChildren(...S.mys.filter(o => mysDef(o.id)).map(o => { const m = mysDef(o.id); return el('option', { value: o.id }, m.ic + ' ' + m.title); })); const o = mysPicked(); if (o) mysSel.value = o.id; }
+function fillMysSel() { mysSel.replaceChildren(...S.mys.filter(o => mysDef(o.id)).map(o => { const m = mysDef(o.id); return el('option', { value: o.id }, m.title); })); const o = mysPicked(); if (o) mysSel.value = o.id; }
 // Stay here picks what to do
 const staySel = el('select', { class: 'sl-build-sel', 'aria-label': 'What to do here' });
 staySel.addEventListener('change', () => setMission('stay', staySel.value));
-function fillStaySel() { const L = actsFor(atP()), a = stayAct(); staySel.replaceChildren(...L.map(x => el('option', { value: x.id }, x.ic + ' ' + x.name))); if (a) staySel.value = a.id; }
+function fillStaySel() { const L = actsFor(atP()), a = stayAct(); staySel.replaceChildren(...L.map(x => el('option', { value: x.id }, x.name))); if (a) staySel.value = a.id; }
 const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), exploreSel, regionSel, mysSel, staySel, misNote);
 // one line under the mission buttons: what the chosen mission gives
 function misGives(k) {
@@ -80,7 +80,7 @@ function misGives(k) {
   if (k === 'explore' && following()) return '📡 Follow the Signal to the next Meridian world. No visitors there, just the story.';
   if (k === 'explore' && returning()) { const p = byNum(S.returnTo).p; return (S.home === p.num ? '🏠 Home to ' : '★ Back to ') + nm(p) + '. See what changed while you were gone.'; }
   if (k === 'explore') { const g = regionNow(); return '🚀 A new world' + (g && regions().filter(regionOpen).length > 1 ? ' in ' + g.name + ': ' + g.desc.charAt(0).toLowerCase() + g.desc.slice(1) : '. Now and then something is waiting there.'); }
-  if (k === 'mystery' && mysPicked()) { const o = mysPicked(), m = mysDef(o.id); return m.ic + ' ' + m.title + ': ' + o.step + ' of ' + m.steps.length + ' observed. It can\'t go wrong: every session gets closer.'; }
+  if (k === 'mystery' && mysPicked()) { const o = mysPicked(), m = mysDef(o.id); return m.title + ': ' + o.step + ' of ' + m.steps.length + ' observed. It can\'t go wrong: every session gets closer.'; }
   if (k === 'stay' && a && stayAct()) { const s = stayAct(), n = placesLeft(a); return s.ic + ' ' + s.desc + (n ? ' Might find a new place (' + n + ' still out there).' : placesUnfound(a) ? ' The places left here are on the expedition.' : ' Every place here is found.'); }
   if (k === 'campaign' && chHere()) return '📡 Chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1) + ' of ' + ST_LEGS + '.';
   return '';
@@ -95,4 +95,4 @@ function lvBar(k, ic, list, full) {
     el('div', { class: 'sl-lv-head' }, el('b', {}, ic + ' ' + (k === 'xp' ? 'Captain' : 'Knowledge') + ' Level ' + i.L), el('span', {}, t)), bar,
     el('small', { class: 'sl-muted' }, i.need ? (i.need - i.into) + (k === 'xp' ? ' XP' : ' Knowledge') + ' to Lv ' + (i.L + 1) : 'Maxed out. ' + (S[k] || 0).toLocaleString() + ' total.'));
 }
-function drawLv() { lvStrip.replaceChildren(lvBar('xp', '⭐', CAPT), lvBar('kn', '📚', KNOW)); }
+function drawLv() { lvStrip.replaceChildren(lvBar('xp', '', CAPT), lvBar('kn', '', KNOW), el('span', { class: 'sx-kpc', title: 'Knowledge points: spend them in the Workshop (Ship)' }, (S.kp || 0) + ' points')); }

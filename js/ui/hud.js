@@ -44,9 +44,9 @@ function typeOut() { // Meridian legs and transmissions print like an old ship t
   const ps = [...trans.querySelectorAll('.sx-camp p:not(.sl-ev-got), .sl-trans-i:not(.sl-notes):not(.sl-event) > p')].filter(p => p.textContent.length > 0);
   const full = ps.map(p => p.textContent); ps.forEach(p => { p.textContent = ''; p.classList.add('sx-type'); });
   let i = 0, k = 0;
-  const done = () => { clearInterval(typeT); ps.forEach((p, j) => { p.textContent = full[j]; p.classList.remove('sx-type'); }); report.removeEventListener('pointerdown', done); };
-  report.addEventListener('pointerdown', done);
+  const done = () => { clearInterval(typeT); ps.forEach((p, j) => { p.textContent = full[j]; p.classList.remove('sx-type'); }); breakPanel.removeEventListener('pointerdown', done); };
+  breakPanel.addEventListener('pointerdown', done);
   typeT = setInterval(() => { if (i >= ps.length) return done(); k += 2; ps[i].textContent = full[i].slice(0, k); typeSnd(); if (k >= full[i].length) { ps[i].classList.remove('sx-type'); i++; k = 0; } }, 22);
 }
-function openReport(replay) { if (trans.hidden && card.hidden && encBox.hidden) return; report.hidden = false; reportBtn.hidden = false; if (!replay) typeOut(); const b = report.querySelector('.sx-report-ft .btn'); if (b) b.focus({ preventScroll: true }); }
-function closeReport() { learnCommit(); report.hidden = true; }
+function openReport(replay) { if (!replay) typeOut(); if (typeof drawBreak === 'function') drawBreak(); } // the story shows in the break panel now
+function closeReport() { learnCommit(); }

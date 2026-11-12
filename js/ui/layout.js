@@ -1,9 +1,18 @@
-/* Solarist: Pages and tabs: puts every part of the screen together. */
+/* Solarist: Pages and tabs: puts every part of the screen together.
+   Two columns: the planet with the timer on the left, and the break panel on the right (what happened, and what next).
+   While you study, the panel steps aside and only the planet and the timer stay. Pages: Atlas, Journal, Ship, Settings. */
 'use strict';
 
 const status = el('span', { class: 'sx-cap' }), status2 = el('span', { hidden: true });
 const timeBlock = el('div', { class: 'sx-clock' }, screen, cycleBar, status);
-const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, pvBar, timeBlock, mission, el('div', { class: 'sl-btns' }, startB, resetB, skipB), hint, reportBtn);
+const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, pvBar, timeBlock, el('div', { class: 'sl-btns' }, startB, resetB, skipB), hint);
+// the break panel: js/ui/breakpanel.js fills it
+const bpNotes = el('div', { class: 'sx-bp-notes' });
+const bpStoryH = el('h3', { class: 'sx-bp-h' }, 'What happened');
+const bpStory = el('div', { class: 'sx-bp-story' }, encBox, trans, card, reportSide, learnBox);
+const bpCards = el('div', { class: 'sx-cards', role: 'radiogroup', 'aria-label': 'Next study session' });
+const bpDetail = el('div', { class: 'sx-bp-detail' });
+const breakPanel = el('aside', { class: 'sx-breakp', 'aria-label': 'Your break' }, bpNotes, bpStoryH, bpStory, el('h3', { class: 'sx-bp-h' }, 'What next?'), bpCards, bpDetail);
 settings.open = true;
 const appSettings = el('div', { class: 'sx-appset' });
 const settingsPane = el('div', { class: 'sl-pane', hidden: true },
@@ -16,33 +25,41 @@ const logList = el('div', { class: 'sl-list' });
 const logPane = el('div', { class: 'sl-pane', hidden: true }, logHead, el('div', { class: 'sl-tools' }, typeSel, rarSel, find), logList);
 const shipPane = el('div', { class: 'sl-pane', hidden: true });
 const itemsPane = el('div', { class: 'sl-pane', hidden: true });
-const tabItems = el('button', { type: 'button', onclick: () => tab('items') }, 'Collection');
-const tabSet = el('button', { type: 'button', onclick: () => tab('settings') }, 'Settings');
-// clean view: hide the quest and resource panels (levels, pages, timer and controls stay)
-let clean = false; try { clean = localStorage.getItem('solarist-clean') === '1'; } catch (e) { }
-const cleanB = el('button', { type: 'button', class: 'sx-cleanb', title: 'Hide or show the side panels (H)' });
-function setClean(v) { clean = v; root.classList.toggle('sx-clean', v); cleanB.replaceChildren(v ? '◨' : '◧', el('span', { class: 'sx-cleant' }, v ? ' Show panels' : ' Hide panels')); cleanB.setAttribute('aria-label', v ? 'Show panels' : 'Hide panels'); cleanB.setAttribute('aria-pressed', String(v)); try { localStorage.setItem('solarist-clean', v ? '1' : '0'); } catch (e) { } }
-cleanB.addEventListener('click', () => setClean(!clean)); setClean(clean);
-const tabMap = el('button', { type: 'button', onclick: () => tab('map') }, 'Star map');
 const mapPane = el('div', { class: 'sl-pane sx-mappane', hidden: true });
+const journalPane = el('div', { class: 'sl-pane sx-journal', hidden: true }, rightCol);
+// the top bar: Atlas (worlds, map, collection), Journal (every log), Ship, Settings
+let atlasSub = 'log';
+const tabAtlas = el('button', { type: 'button', onclick: () => tab(atlasSub) }, 'Atlas');
+const tabJournal = el('button', { type: 'button', onclick: () => tab('journal') }, 'Journal');
+const tabSet = el('button', { type: 'button', onclick: () => tab('settings') }, 'Settings');
+const tabItems = el('button', { type: 'button', hidden: true }), tabMap = el('button', { type: 'button', hidden: true }); // (old names other files still touch)
+const atlasNav = el('div', { class: 'sl-stabs sx-atlasnav', role: 'tablist' }, [['log', 'Worlds'], ['map', 'Map'], ['items', 'Collection']].map(([k, label]) =>
+  el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'data-k': k, onclick: () => tab(k) }, label)));
+// H hides the break panel too (the old "hide panels")
+let clean = false;
+function setClean(v) { clean = v; root.classList.toggle('sx-nopanel', v); }
 const pageTitle = el('h2', { class: 'sx-page-t' });
 const page = el('div', { class: 'sx-page', hidden: true },
   el('div', { class: 'sx-page-h' }, pageTitle, el('button', { type: 'button', class: 'btn', onclick: () => tab('timer') }, 'Back to the voyage')),
-  el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, mapPane, settingsPane));
+  atlasNav, el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, mapPane, journalPane, settingsPane));
 [tabTimer, tabLog, tabShip].forEach(b => b.removeAttribute('role'));
-root.classList.add('sx');
-root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, cleanB, tabLog, tabMap, tabShip, tabItems, tabSet)), leftCol, midCol, rightCol, feedLine, report, page, el('div', { hidden: true }, tabTimer, status2));
+root.classList.add('sx', 'sx-v2');
+root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabAtlas, tabJournal, tabShip, tabSet)), midCol, breakPanel, report, page,
+  el('div', { hidden: true }, tabTimer, tabLog, tabItems, tabMap, status2, leftCol, feedLine, mission, reportBtn));
 function tab(t) {
-  if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Logbook again goes back to the grid
-  const names = { log: 'Logbook', ship: 'Ship', items: 'Collection', settings: 'Settings', map: 'Star map' };
+  if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Worlds again goes back to the grid
+  const atlas = t === 'log' || t === 'map' || t === 'items'; if (atlas) atlasSub = t;
+  const names = { log: 'Atlas', map: 'Atlas', items: 'Atlas', ship: 'Ship', settings: 'Settings', journal: 'Journal' };
   page.hidden = t === 'timer'; pageTitle.textContent = names[t] || '';
-  [[tabLog, 'log'], [tabMap, 'map'], [tabShip, 'ship'], [tabItems, 'items'], [tabSet, 'settings']].forEach(([b, k]) => { if (k === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-  logPane.hidden = t !== 'log'; shipPane.hidden = t !== 'ship'; itemsPane.hidden = t !== 'items'; settingsPane.hidden = t !== 'settings'; mapPane.hidden = t !== 'map';
+  [[tabAtlas, atlas], [tabJournal, t === 'journal'], [tabShip, t === 'ship'], [tabSet, t === 'settings']].forEach(([b, on]) => { if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  atlasNav.hidden = !atlas; atlasNav.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.k === t)));
+  logPane.hidden = t !== 'log'; shipPane.hidden = t !== 'ship'; itemsPane.hidden = t !== 'items'; settingsPane.hidden = t !== 'settings'; mapPane.hidden = t !== 'map'; journalPane.hidden = t !== 'journal';
   root.classList.toggle('paged', t !== 'timer');
   if (t === 'ship') drawShip();
   if (t === 'items') drawItems();
   if (t === 'log') drawLog();
   if (t === 'map') drawMap();
+  if (t === 'journal') { rightTab = 'tx'; drawRight(); }
   if (t === 'settings' && hooks.settings) hooks.settings(appSettings);
   if (t !== 'timer') { const bd = root.querySelector('.sl-body'); if (bd && t !== 'log') bd.scrollTop = 0; }
 }

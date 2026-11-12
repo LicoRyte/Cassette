@@ -38,22 +38,31 @@ function personCard(p, isMe, i) {
     slotRow('wear', 'clothing', 'Wears'), slotRow('gear', 'equipment', 'Carries'),
     p.quirk ? el('small', { class: 'sl-muted' }, 'Also: ' + firstName(p) + ' ' + p.quirk + '.') : null);
 }
+// Crew: you, the crew, and the stash
 function crewView(group) {
   const lock = focusLock(), out = [];
-  out.push(group('🧑‍🚀 You', personCard(S.me, true)));
+  out.push(group('You', personCard(S.me, true)));
   const add = el('button', { type: 'button', class: 'btn', disabled: lock || S.crew.length >= CREW_MAX || null, onclick: () => { addCrew(); drawShip(); } }, '+ Add a crew member');
-  out.push(group('👥 Crew (' + S.crew.length + ' / ' + CREW_MAX + ')', el('p', { class: 'sl-muted' }, 'Each crew member brings a little story to every study session, shaped by who they are and what they carry. Change anything, any time.'),
+  out.push(group('Crew (' + S.crew.length + ' / ' + CREW_MAX + ')', el('p', { class: 'sl-muted' }, 'Each crew member brings a little story to every study session, shaped by who they are and what they carry. Change anything, any time.'),
     ...S.crew.map((c, i) => personCard(c, false, i)), S.crew.length < CREW_MAX ? add : el('p', { class: 'sl-muted' }, 'The ship is full: five is a crew, six is a crowd.'), profList));
   const stash = S.stash.map(itemById).filter(Boolean);
-  const craftB = el('button', { type: 'button', class: 'btn sl-go', disabled: lock || (S.kp || 0) < 1 || null, onclick: () => { const it = craft(); craftMsg = it ? '🧵 New: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, 'Craft something (1 Knowledge point)');
-  out.push(group('🧵 Stash and crafting', el('div', { class: 'sx-res sx-kp' }, el('b', {}, String(S.kp || 0)), el('small', {}, 'Knowledge points. Crafting turns one into a random piece of clothing or gear, new to you when it can be.')),
-    craftB, craftMsg ? el('p', { class: 'sx-craftmsg' }, craftMsg) : null,
-    stash.length ? el('div', { class: 'sx-stash' }, stash.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, it.kind + ' · ' + capFirst(it.desc)))))
-      : el('p', { class: 'sl-muted' }, 'The stash is empty. Anything nobody is wearing or carrying waits here.')));
-  const gear = S.shipGear.map(itemById).filter(Boolean), leftN = txItems('ship').length - gear.length;
-  const shipB = el('button', { type: 'button', class: 'btn', disabled: lock || (S.kp || 0) < 4 || !leftN || null, onclick: () => { const it = craftShip(); craftMsg = it ? '🛠 New on the ship: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, leftN ? 'Craft ship equipment (4 Knowledge points)' : 'The ship has everything');
-  out.push(group('🛠 Ship equipment', el('p', { class: 'sl-muted' }, 'Bigger things for the ship. Each one opens something new to do when you stay on a world, and new moments aboard.'), shipB,
-    gear.length ? el('div', { class: 'sx-stash' }, gear.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, capFirst(it.desc))))) : el('p', { class: 'sl-muted' }, 'Nothing yet.')));
+  out.push(group('Stash', stash.length ? el('div', { class: 'sx-stash' }, stash.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, it.kind + ' · ' + capFirst(it.desc)))))
+    : el('p', { class: 'sl-muted' }, 'The stash is empty. Anything nobody is wearing or carrying waits here. Make new things in the Workshop.')));
   if (lock) out.unshift(el('p', { class: 'sl-muted' }, 'Changes wait until the study session is over. You can still look.'));
   return out;
+}
+// the ship's equipment (on the Ship tab)
+function shipGearView(group) {
+  const gear = S.shipGear.map(itemById).filter(Boolean);
+  return [group('Ship equipment', el('p', { class: 'sl-muted' }, 'Each piece opens something new to do when you stay on a world. Make more in the Workshop.'),
+    gear.length ? el('div', { class: 'sx-stash' }, gear.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, capFirst(it.desc))))) : el('p', { class: 'sl-muted' }, 'Nothing yet.'))];
+}
+// the Workshop: everything Knowledge points buy, in one place
+function workshopView(group) {
+  const lock = focusLock(), leftN = txItems('ship').length - S.shipGear.length;
+  const craftB = el('button', { type: 'button', class: 'btn', disabled: lock || (S.kp || 0) < 1 || null, onclick: () => { const it = craft(); craftMsg = it ? 'New: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, 'Make clothes or gear · 1 point');
+  const shipB = el('button', { type: 'button', class: 'btn', disabled: lock || (S.kp || 0) < 4 || !leftN || null, onclick: () => { const it = craftShip(); craftMsg = it ? 'New on the ship: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, leftN ? 'Make ship equipment · 4 points' : 'The ship has everything');
+  return [el('div', { class: 'sx-res sx-kp' }, el('b', {}, String(S.kp || 0)), el('small', {}, 'Knowledge points. You earn one for every finished study session, Full Cycle, solved mystery and Meridian chapter.')),
+    group('Make something', el('p', { class: 'sl-muted' }, 'Clothes and gear are random, and new to you when they can be. Ship equipment opens a new thing to do when you stay on a world.'), el('div', { class: 'sx-row-l' }, craftB, shipB), craftMsg ? el('p', { class: 'sx-craftmsg' }, craftMsg) : null),
+    group('Research', ...researchView().slice(1))];
 }

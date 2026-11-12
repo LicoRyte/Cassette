@@ -71,7 +71,3 @@ function openReader(startAt) {
 }
 
 // the button in the top-right bar
-{
-  const readB = el('button', { type: 'button', title: 'Read every log one at a time', onclick: () => openReader('latest') }, 'Reader');
-  root.querySelector('.sx-nav').insertBefore(readB, tabSet);
-}

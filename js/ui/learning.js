@@ -51,7 +51,7 @@ function learningView(group) {
   const list = S.learn.filter(l => !learnFilter || l.sub === learnFilter).slice().reverse();
   const mins = s => S.learn.filter(l => l.sub === s).reduce((a, l) => a + (l.mins || 0), 0);
   const chips = subs.length ? el('div', { class: 'sx-chips', role: 'tablist' }, [['', 'All', S.learn.length], ...subs.map(s => [s, s, S.learn.filter(l => l.sub === s).length])].map(([k, label, n]) =>
-    el('button', { type: 'button', role: 'tab', 'aria-selected': String(learnFilter === k), title: k ? Math.round(mins(k) / 6) / 10 + ' hours of study notes' : '', onclick: () => { learnFilter = k; drawShip(); } }, label, el('small', {}, String(n))))) : null;
+    el('button', { type: 'button', role: 'tab', 'aria-selected': String(learnFilter === k), title: k ? Math.round(mins(k) / 6) / 10 + ' hours of study notes' : '', onclick: () => { learnFilter = k; if (!journalPane.hidden) drawRight(); else drawShip(); } }, label, el('small', {}, String(n))))) : null;
   return [group('📖 Learning log', el('p', { class: 'sl-muted' }, S.learn.length ? S.learn.length + ' note' + (S.learn.length === 1 ? '' : 's') + ' from your study sessions, each saved with the world you were at.' : 'Nothing yet. After a study session, write one line about what you learned. It\'s saved with the world you were at.'),
     chips, ...list.slice(0, 300).map(l => learnRow(l, true)))];
 }

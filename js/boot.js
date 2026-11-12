@@ -17,9 +17,9 @@ const GAME_FILES = [
   'js/game/levels.js', 'js/game/people.js', 'js/game/expedition.js', 'js/game/investigate.js', 'js/game/stay.js', 'js/game/traders.js', 'js/game/mysteries.js', 'js/game/wonders.js', 'js/game/extras.js', 'js/game/story.js',
   'js/game/session.js',
   // the screen (the timer and achievements sit between them because they use screen parts made above them)
-  'js/ui/controls.js', 'js/ui/hud.js', 'js/ui/learning.js', 'js/ui/ship-interior.js', 'js/ui/layout.js', 'js/ui/main-screen.js', 'js/ui/right-panel.js',
+  'js/ui/controls.js', 'js/ui/hud.js', 'js/ui/learning.js', 'js/ui/ship-interior.js', 'js/ui/layout.js', 'js/ui/main-screen.js', 'js/ui/breakpanel.js', 'js/ui/globe.js', 'js/ui/right-panel.js',
   'js/ui/panels.js', 'js/ui/keyboard.js', 'js/ui/planetarium.js', 'js/ui/reports.js', 'js/game/timer.js', 'js/ui/ship-page.js',
-  'js/ui/star-map.js', 'js/game/achievements.js', 'js/ui/ship-views.js', 'js/ui/crew.js', 'js/ui/logbook.js', 'js/ui/album.js', 'js/ui/reader.js', 'js/ui/intro.js',
+  'js/ui/star-map.js', 'js/game/achievements.js', 'js/ui/ship-views.js', 'js/ui/crew.js', 'js/ui/logbook.js', 'js/ui/album.js', 'js/ui/reader.js', 'js/ui/intro.js', 'js/ui/aboard.js',
   // last: resume a running timer and draw the first frame
   'js/game/start.js',
 ];

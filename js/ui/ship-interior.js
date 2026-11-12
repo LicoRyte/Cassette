@@ -306,13 +306,13 @@ function inTipFor(k) {
 }
 const inRoomAt = e => { const b = inCv.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * inCv.width, y = (e.clientY - b.top) / b.height * inCv.height;
   for (let d = 0; d < 2; d++) for (let c = 0; c < 4; c++) { const rx = IX + c * RW, ry = IY + d * (RH + 2); if (x >= rx && x < rx + RW && y >= ry && y < ry + RH) return DECKS[d][c]; } return null; };
-inCv.addEventListener('mousemove', e => { const k = inRoomAt(e); if (k !== inHover) { inHover = k; inTip.textContent = inTipFor(k || inSel); inCv.style.cursor = k ? 'pointer' : ''; } });
-inCv.addEventListener('mouseleave', () => { inHover = null; inTip.textContent = inTipFor(inSel); });
-inCv.addEventListener('click', e => { const k = inRoomAt(e); if (!k) return; if (!roomAt(k)) { inTip.textContent = inTipFor(k); return; } inSel = k; drawShip(); });
+inCv.addEventListener('mousemove', e => { const k = inRoomAt(e); if (k !== inHover) { inHover = k; inTip.textContent = plain(inTipFor(k || inSel)); inCv.style.cursor = k ? 'pointer' : ''; } });
+inCv.addEventListener('mouseleave', () => { inHover = null; inTip.textContent = plain(inTipFor(inSel)); });
+inCv.addEventListener('click', e => { const k = inRoomAt(e); if (!k) return; if (!roomAt(k)) { inTip.textContent = plain(inTipFor(k)); return; } inSel = k; drawShip(); });
 function interiorView() { // the Ship page: cutaway on top, decorating below
   if (!roomAt(inSel)) inSel = 'bridge';
   if (!inRaf) inRaf = requestAnimationFrame(drawInterior);
-  inTip.textContent = inTipFor(inSel);
+  inTip.textContent = plain(inTipFor(inSel));
   const lock = focusLock(), [ic, name] = ROOM_NAME(inSel);
   const itemBtn = (cat, it, on) => {
     const b = el('button', { type: 'button', class: 'sx-dec' + (on ? ' on' : ''), disabled: lock || null, onclick: () => decBuy(cat, it[0]) },

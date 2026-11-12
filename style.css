@@ -745,3 +745,89 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 /* today's sky, at the top of the Here card */
 .sx-sky { margin: 0 0 6px; color: var(--sky, #77d6c1); font-size: 14px; }
 
+/* ---------- the two-column layout: the planet and timer on the left, the break panel on the right ---------- */
+#slRoot.sx.sx-v2 { grid-template-columns: minmax(0, 1fr) minmax(360px, 32vw); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "top top" "mid side"; column-gap: 40px; }
+#slRoot.sx.sx-v2.sx-lock, #slRoot.sx.sx-v2.sx-nopanel { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "mid"; }
+.sx-v2 .sx-breakp { grid-area: side; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; padding: 2px 0 16px; }
+.sx-v2 .sx-bp-story { flex: 1 1 auto; min-height: 60px; overflow-y: auto; scrollbar-width: thin; padding-right: 8px; } /* the story scrolls; the choices always stay in view */
+.sx-v2 .sx-cards, .sx-v2 .sx-bp-detail, .sx-v2 .sx-bp-notes { flex: none; }
+.sx-v2 .sx-bp-detail { max-height: 34vh; overflow-y: auto; }
+.sx-v2.sx-lock .sx-breakp, .sx-v2.sx-nopanel .sx-breakp { display: none; }
+.sx-bp-h { margin: 6px 0 0; font: 600 14px var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.sx-bp-story { display: flex; flex-direction: column; gap: 8px; }
+.sx-bp-story .sl-card { margin: 0; }
+.sx-note { padding: 10px 12px; border: 1px solid var(--amber); }
+.sx-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sx-cardc { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); cursor: pointer; text-align: left; min-height: 64px; }
+.sx-cardc:hover { border-color: var(--mute); }
+.sx-cardc.on { border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber); }
+.sx-cardc b { font: 600 19px var(--ui); color: var(--white); }
+.sx-cardc small { font-size: 14px; color: var(--soft); line-height: 1.25; }
+.sx-cardc[aria-disabled="true"] { cursor: default; opacity: .6; }
+.sx-cardpick { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.sx-cardpick select { width: 100%; }
+.sx-bp-detail { display: flex; flex-direction: column; gap: 6px; }
+.sx-bp-detail p { margin: 0; }
+.sx-v2 .sx-mid { justify-content: flex-start; }
+.sx-v2 .sx-top { align-items: center; }
+.sx-kpc { align-self: center; font: 600 15px var(--ui); color: var(--amber); white-space: nowrap; }
+.sx-atlasnav { margin: 0 0 12px; }
+.sx-journal .sx-rhead { position: static; }
+
+.sx-cardpick select.sl-build-sel:not([hidden]) { display: block !important; width: 100%; } /* the pickers inside the choice cards */
+
+/* the globe: waypoints on the planet (js/ui/globe.js) */
+html.sx-grabbing, html.sx-grabbing * { cursor: grabbing !important; user-select: none; }
+.sx-globe { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+.sx-globe[hidden] { display: none; }
+.sx-wp { position: absolute; left: 0; top: 0; pointer-events: auto; display: block; width: 0; height: 0; padding: 0; border: 0; background: none; color: #ffffe4; font: 600 13px var(--ui); cursor: pointer; will-change: transform; }
+.sx-wp.off { visibility: hidden; }
+.sx-wp-m { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; display: grid; place-items: center; background: #ffd832; box-shadow: 0 0 0 2px #030710; line-height: 1; font-size: 12px; color: #030710; }
+.sx-wp::before { content: ''; position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; } /* a bigger target to click */
+.sx-wp-unknown .sx-wp-m { background: rgba(3, 7, 16, .55); box-shadow: 0 0 0 1px #6d8a8d; color: #bfc3c6; }
+.sx-wp-derelict .sx-wp-m { background: #bfc3c6; transform: rotate(45deg); }
+.sx-wp-trader .sx-wp-m { background: #ff823b; }
+.sx-wp-mystery .sx-wp-m { background: #c03b94; transform: rotate(45deg); }
+.sx-wp-meridian .sx-wp-m { background: #77d6c1; border-radius: 50%; }
+.sx-wp.on .sx-wp-m { box-shadow: 0 0 0 2px #030710, 0 0 0 4px #ffffe4; }
+.sx-wp-l { position: absolute; left: 12px; top: -11px; white-space: nowrap; padding: 2px 7px; background: #030710; border: 1px solid #293b49; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.sx-wp:hover .sx-wp-l, .sx-wp:focus-visible .sx-wp-l, .sx-wp.on .sx-wp-l { opacity: 1; }
+.sx-wp:hover, .sx-wp:focus-visible { z-index: 2; }
+.sx-wp:focus-visible { outline: none; }
+.sx-wp:focus-visible .sx-wp-m { box-shadow: 0 0 0 2px #030710, 0 0 0 4px #ffd832; }
+@media (prefers-reduced-motion: reduce) { .sx-wp-l { transition: none; } }
+.sx-v2 .sx-mid, .sx-v2 .sx-top { text-shadow: 0 0 4px #030710, 0 0 2px #030710; } /* readable over a zoomed planet */
+.sx-v2 .sx-cardc, .sx-v2 .sx-bp-detail, .sx-v2 .sx-bp-notes .sx-note { background: #030710; } .sx-v2 .sx-breakp { text-shadow: 0 0 4px #030710, 0 0 2px #030710; } /* readable over the big planet view */
+
+/* Who's aboard? (js/ui/aboard.js): the title sequence's black screen, with a short form */
+.sx-aboard { align-items: flex-start; overflow-y: auto; }
+.sx-ab-w { width: min(760px, 100%); margin: auto; padding: 32px 0; display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.sx-ab-w h2 { margin: 0; font: 600 30px var(--ui); color: #ffffe4; }
+.sx-ab-list { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.sx-ab-p { width: 100%; display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #293b49; background: #030710; }
+.sx-ab-who { font: 600 13px var(--ui); color: #6d8a8d; text-transform: uppercase; }
+.sx-ab-f { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sx-ab-f .sl-find { width: auto; min-width: 0; flex: 1 1 120px; }
+.sx-ab-f .sx-ab-age { flex: 0 0 52px; }
+.sx-ab-agel { display: flex; align-items: center; gap: 4px; color: #6d8a8d; font-size: 13px; }
+.sx-ab-btns { display: flex; flex-direction: column; gap: 4px; }
+.sx-ab-ft { display: flex; justify-content: flex-end; }
+@media (max-width: 600px) { .sx-ab-p { grid-template-columns: 1fr; } .sx-ab-btns { flex-direction: row; } }
+/* calm motion: the choice cards fade in when a break starts */
+@keyframes sx-fadein { from { opacity: 0; } to { opacity: 1; } }
+.sx-v2 .sx-cards.sx-fade > * { animation: sx-fadein .45s ease-out both; }
+.sx-v2 .sx-cards.sx-fade > :nth-child(2) { animation-delay: .08s; } .sx-v2 .sx-cards.sx-fade > :nth-child(3) { animation-delay: .16s; } .sx-v2 .sx-cards.sx-fade > :nth-child(4) { animation-delay: .24s; }
+@media (prefers-reduced-motion: reduce) { .sx-v2 .sx-cards > * { animation: none; } }
+/* phones and narrow windows: one column (the planet and timer, then the break panel below), and the page scrolls */
+@media (max-width: 900px) {
+  #slRoot.sx.sx-v2, #slRoot.sx.sx-v2.sx-lock, #slRoot.sx.sx-v2.sx-nopanel { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "top" "mid" "side"; }
+  .sx-v2 .sx-breakp { overflow: visible; padding-bottom: 24px; }
+  .sx-v2 .sx-bp-story { flex: none; max-height: 46vh; }
+  .sx-v2 .sx-bp-detail { max-height: none; }
+  .sx-v2 .sx-cards { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .sx-v2 .sx-top { align-items: stretch; }
+  .sx-v2 .sx-nav { justify-content: space-around; }
+}
+@media (max-width: 420px) { .sx-v2 .sx-cards { grid-template-columns: minmax(0, 1fr); } }
+.sx-wp.flip .sx-wp-l { left: auto; right: 12px; }
+.sx-planet { touch-action: pan-y; } /* sideways swipes turn the globe; up and down still scroll the page */

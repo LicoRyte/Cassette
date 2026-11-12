@@ -71,6 +71,7 @@ function playIntro() {
     if (asking === 'ship') { S.ship.named = true; save(); } // skipped at a question: keep what's there, don't ask again
     if (asking === 'pilot') { S.pilot.asked = true; save(); }
     box.classList.remove('on'); setTimeout(() => box.remove(), still ? 0 : 600);
+    setTimeout(showAboard, still ? 0 : 650); // a first start: who's aboard? (js/ui/aboard.js)
   }
   function keys(e) { // the title sequence gets the keyboard first, so Space doesn't start the timer underneath
     if (e.target === nameIn) { if (e.key === 'Enter') { e.preventDefault(); answer(); } e.stopImmediatePropagation(); return; }

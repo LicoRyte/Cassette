@@ -229,7 +229,7 @@
 
   const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
   const FS = `precision highp float;
-uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
+uniform vec2 res, ctr; uniform float R, t, tt, spin, drag, pct, kind, run, coord;
 uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, reveal, warp, neb, fIce, fStorm, fSpot;
 uniform vec3 pal[47]; uniform vec3 rpal[32]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 uniform float fStyle, dfCut; uniform vec3 ca[5]; uniform vec3 cb[3]; uniform vec3 ck[4]; uniform vec3 rc[6];
@@ -260,9 +260,9 @@ vec2 dSph(vec2 uv){ vec2 c = uv * 2. - 1.; float z = sqrt(max(0., 1. - dot(c, c)
 vec2 dRot(vec2 c, float a){ c -= .5; c = mat2(cos(a), -sin(a), sin(a), cos(a)) * c; return c + .5; }
 vec3 pick3(vec3 a, vec3 b, vec3 c, float i){ return i < .5 ? a : i < 1.5 ? b : c; }
 const float SPIN = .025; // how fast every planet turns (uv per second): about a tenth of the radius a second at the centre
-float dOff(float sz, float k){ return fLocked > .5 ? 0. : spin * SPIN * sz; } // the planet turning: the noise slides sideways
+float dOff(float sz, float k){ return (fLocked > .5 ? drag : spin) * SPIN * sz; } // the planet turning: the noise slides sideways (locked worlds only turn when dragged)
 float dCloudV(vec2 su, float sz, int oc, float st, float sp){ // how thick one cloud layer is here
-  dSize = sz; dTx = 1.; vec2 cu = su; cu.y += smoothstep(0., 1.3, abs(cu.x - .4)); cu *= vec2(1., st); float o = spin * SPIN * sp * sz;
+  dSize = sz; dTx = 1.; vec2 cu = su; cu.y += smoothstep(0., 1.3, abs(cu.x - .4)); cu *= vec2(1., st); float o = (fLocked > .5 ? drag : spin) * SPIN * sp * sz;
   float cn = 0.; for (int i = 0; i < 9; i++) cn += dCirc(cu * dSize * .3 + float(i + 11) + vec2(o * .3, 0.), 0.);
   float c = dFbm(cu * dSize + cn + vec2(o, 0.), oc); dTx = 2.; return c; }
 vec3 dCloudC(float c, float dl, float cover, float b1, float b2, vec3 k0, vec3 k1, vec3 k2, vec3 k3){ // its colour: lit tops, shaded edges
@@ -394,7 +394,7 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'rpal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'drag', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'rpal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
       gl.uniform3fv(U.pal, PAL.flatMap(rgb)); gl.uniform3fv(U.rpal, PAL32.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
@@ -402,6 +402,37 @@ void main(){
   const g2 = ok ? null : cv.getContext('2d'); // fallback: the pixel portrait, no shader
   const sv = mk('canvas', { class: 'sx-view sx-shipview', 'aria-hidden': 'true' }); cv.after(sv); const gs = sv.getContext('2d'); // your ship, drawn over the planet scene
   let info = null, raf = 0, lastDraw = 0, simT = 0, spinT = 0, lastNow = 0, curSeed = null;
+  /* The globe: drag to turn the planet, scroll to zoom. Its surface is a flat map sliding sideways under the disc
+     (see dfPlanet), so a point on it is (x, y) on that map: x goes round (period 2), y from .15 (top) to .85.
+     project() says where such a point is on screen right now; js/ui/globe.js pins the waypoints with it. */
+  const globe = window.SolaristGlobe = {
+    drag: 0, zoom: 1, zoomT: 1, look: { tilt: 0, st: 0, locked: false }, at: null, onDraw: null, dragging: false,
+    reset(L) { this.look = { tilt: (L && L.tilt) || 0, st: 0, locked: !!(L && L.locked) }; this.drag = 0; this.zoomT = 1; },
+    busy() { return this.dragging || Math.abs(this.zoom - this.zoomT) > .002; },
+    step(dt) { if (Math.abs(this.zoom - this.zoomT) > .002) { this.zoom += (this.zoomT - this.zoom) * Math.min(1, dt * 12); lastDraw = 0; } else this.zoom = this.zoomT; },
+    dir() { return this.look.st === 6 ? -1 : 1; }, // gas giant bands slide the other way
+    project(x, y) { // a point on the surface map -> { x, y } on the screen (CSS pixels), with z (0 at the rim, 1 facing you), or null when it's round the back
+      const a = this.at; if (!a || !a.has || a.sil) return null;
+      let sx = x - this.dir() * a.spin * SPIN; sx = ((sx % 2) + 2) % 2; if (sx > 1.5) sx -= 2;
+      const wx = (sx - .5) * 2, wy = (y - .5) * 2, w2 = wx * wx + wy * wy; if (w2 >= 1) return null;
+      const cx = 2 * wx / (1 + w2), cy = 2 * wy / (1 + w2), t = this.look.tilt, co = Math.cos(t), si = Math.sin(t); // back from the sphere map, then undo the tilt
+      const ux = co * cx - si * cy, uy = si * cx + co * cy;
+      return { x: (a.cx + ux * a.rad) * PX, y: (a.cy + uy * a.rad) * PX, z: Math.sqrt(Math.max(0, 1 - cx * cx - cy * cy)) };
+    },
+    over(e) { const a = this.at; if (!a || !a.has || a.sil || root.classList.contains('paged')) return false;
+      if (e.target.closest && e.target.closest('button, a, input, select, textarea, label, .sx-breakp, .sx-top, .sx-page, .sx-report, .sx-clock, .sl-btns, .sl-hint')) return false;
+      return Math.hypot(e.clientX / PX - a.cx, e.clientY / PX - a.cy) < a.rad * 1.05; },
+  };
+  const SPIN = .025; // the same as in the shader
+  let dragFrom = null;
+  addEventListener('pointerdown', e => { if (e.button !== 0 || !globe.over(e)) return; dragFrom = { x: e.clientX, d: globe.drag, id: e.pointerId }; globe.dragging = true; document.documentElement.classList.add('sx-grabbing'); kick(); });
+  addEventListener('pointermove', e => { if (!dragFrom || e.pointerId !== dragFrom.id || !globe.at) return;
+    globe.drag = dragFrom.d - globe.dir() * (e.clientX - dragFrom.x) / (4 * globe.at.rad * PX) / SPIN; lastDraw = 0; kick(); });
+  const dragEnd = () => { if (!dragFrom) return; dragFrom = null; globe.dragging = false; document.documentElement.classList.remove('sx-grabbing'); };
+  addEventListener('pointerup', dragEnd); addEventListener('pointercancel', dragEnd);
+  addEventListener('wheel', e => { if (!globe.over(e)) return; e.preventDefault();
+    globe.zoomT = Math.max(1, Math.min(1.8, globe.zoomT * Math.exp(-e.deltaY * .0015))); kick(); }, { passive: false });
+  addEventListener('dblclick', e => { if (globe.over(e)) { globe.zoomT = 1; kick(); } });
   // planet view: 'classic' (in the middle of the screen) or 'big' (a huge planet in the bottom-right corner, seen from its top-left)
   let bigView = store.get('solarist-view') === 'big';
   const applyView = () => { root.classList.toggle('sx-bigview', bigView); lastDraw = 0; };
@@ -446,6 +477,7 @@ void main(){
     const seed = p ? p.seed : null; if (seed === curSeed) return; curSeed = seed;
     gl.uniform1f(U.hasP, p ? 1 : 0); if (!p) return;
     const L = window.Solarist.lookOf ? window.Solarist.lookOf(p) : p.look;
+    globe.reset(L);
     const four = (L.pal || []).concat(L.pal || []).slice(0, 4);
     gl.uniform3fv(U.pc, four.flatMap(rgb)); gl.uniform3fv(U.lc, (L.land || [four[1], four[2]]).slice(0, 2).flatMap(rgb));
     gl.uniform3fv(U.ringC, rgb(L.ringCol || '#6d8a8d'));
@@ -455,7 +487,7 @@ void main(){
     gl.uniform1f(U.fSpark, L.sparkle ? 1 : 0); gl.uniform1f(U.fRings, p.rings ? 1 : 0); gl.uniform1f(U.fLand, L.land ? 1 : 0);
     gl.uniform1f(U.fIce, /^(Ice|Crystal|Ice giant)$/.test(p.type) ? 1 : 0); gl.uniform1f(U.fStorm, /^(Toxic|Glass storm)$/.test(p.type) ? 1 : 0);
     gl.uniform1f(U.fSpot, L.bands && (p.seed % 2) === 0 ? 1 : 0);
-    const D = dfLook(p, L); gl.uniform1f(U.fStyle, D.st); gl.uniform1f(U.dfCut, D.cut); gl.uniform3fv(U.ca, D.ca.flatMap(rgb)); gl.uniform3fv(U.cb, D.cb.flatMap(rgb)); gl.uniform3fv(U.ck, D.ck.flatMap(rgb)); gl.uniform3fv(U.rc, D.rc.flatMap(rgb));
+    const D = dfLook(p, L); globe.look.st = D.st; gl.uniform1f(U.fStyle, D.st); gl.uniform1f(U.dfCut, D.cut); gl.uniform3fv(U.ca, D.ca.flatMap(rgb)); gl.uniform3fv(U.cb, D.cb.flatMap(rgb)); gl.uniform3fv(U.ck, D.ck.flatMap(rgb)); gl.uniform3fv(U.rc, D.rc.flatMap(rgb));
     gl.uniform1f(U.fClouds, D.clouds ? 1 : 0);
   }
   function render(now) {
@@ -464,25 +496,28 @@ void main(){
     const dt = lastNow ? Math.min(.1, (now - lastNow) / 1000) : 0; lastNow = now;
     if (moving) simT += dt;
     spinT += dt * (moving ? 1 : .5); // the planet always turns, timer running or not
-    const fps = info.running ? 30 : 15;
+    globe.step(dt);
+    const fps = info.running || globe.busy() ? 30 : 15;
     if (now - lastDraw >= 1000 / fps - 2) {
       lastDraw = now;
       const r = info.spot && info.spot.getBoundingClientRect(), rings = info.planet && info.planet.rings;
       const G = geom(r, rings), cx = G.cx, cy = cv.height - G.cy;
-      let rad = G.rad;
+      let rad = G.rad * globe.zoom;
       const sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running ? 1 : 0;
       if (sil) rad *= .25 + .75 * info.pct / 100;
       if (ok) {
         gl.viewport(0, 0, cv.width, cv.height);
         setPlanet(info.planet); if (sil) gl.uniform1f(U.hasP, 1);
         gl.uniform2f(U.res, cv.width, cv.height); gl.uniform2f(U.ctr, cx, cy); gl.uniform1f(U.R, Math.max(4, rad));
-        gl.uniform1f(U.t, now / 1000); gl.uniform1f(U.tt, simT + 40); gl.uniform1f(U.spin, spinT); gl.uniform1f(U.pct, info.pct);
+        gl.uniform1f(U.t, now / 1000); gl.uniform1f(U.tt, simT + 40); gl.uniform1f(U.spin, spinT + globe.drag); gl.uniform1f(U.drag, globe.drag); gl.uniform1f(U.pct, info.pct);
         gl.uniform1f(U.kind, KINDS[info.kind] || 0); gl.uniform1f(U.run, info.running ? 1 : 0); gl.uniform1f(U.coord, info.coord ? 1 : 0); gl.uniform1f(U.sil, sil);
         const pl = info.planet, post = pl && pl.post; gl.uniform1f(U.postLv, !post ? 0 : post.tp ? 1 + Math.min(2, (post.tp.pop || 0) / 4000) : .6);
         gl.uniform1f(U.reveal, revealAt ? Math.min(1, (now - revealAt) / 1700) : 1);
         const wt = warpAt ? (now - warpAt) / 1300 : 1; gl.uniform1f(U.warp, wt < 1 ? (wt < .25 ? wt / .25 : 1 - (wt - .25) / .75) : 0);
         if (!pl && !sil) gl.uniform1f(U.neb, 0);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
+        globe.at = { cx: G.cx, cy: G.cy, rad, spin: (globe.look.locked ? 0 : spinT) + globe.drag, sil: !!sil, has: !!info.planet };
+        if (globe.onDraw) globe.onDraw();
       } else if (g2) {
         g2.fillStyle = '#030710'; g2.fillRect(0, 0, cv.width, cv.height); g2.imageSmoothingEnabled = false;
         const p = info.planet; if (p) { let im = fallbackImg.get(p.seed); if (!im) { im = new Image(); im.onload = kick; im.src = window.Solarist.paint(p, 64); fallbackImg.set(p.seed, im); }
@@ -536,7 +571,7 @@ void main(){
     gs.clearRect(0, 0, sv.width, sv.height);
     if (!info) return;
     const r = info.spot && info.spot.getBoundingClientRect(); if (!r || !r.width) return;
-    const G = geom(r, false, true), cx = G.cx, cy = G.cy, rad = G.rad;
+    const G = geom(r, false, true), cx = G.cx, cy = G.cy, rad = G.rad * globe.zoom;
     drawExtras(now, cx, cy, rad, r);
   }
   function typeName() { // the new world's name types itself out

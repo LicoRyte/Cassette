@@ -50,7 +50,7 @@ function finish(quiet) {
     } else if (following()) { // Follow the Signal: the next Meridian world (no visitors there)
       const { p, fresh } = followSignal(); foundP = fresh ? p : null;
       done('', p, fresh ? 'story' : 'log');
-      hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (see Here, on the left).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + then();
+      hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (see What next).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + then();
     } else { // Explore: a brand-new world
       const p = makePlanet((Math.random() * 4294967296) >>> 0, S.nextNum++, false, .05, regionNow());
       const visit = rollArrival(p); p.visit = visit || 'none'; // one roll: at most one visitor per world
@@ -67,7 +67,7 @@ function finish(quiet) {
       }
       foundP = p;
       done('', p, 'new');
-      hint.textContent = visit === 'derelict' ? '🛸 Arrived, and a derelict ship is drifting nearby! Salvage it with one study session (see Here, on the left).' + then() : 'Arrived! Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
+      hint.textContent = visit === 'derelict' ? '🛸 Arrived, and a derelict ship is drifting nearby! Salvage it with one study session (see What next).' + then() : 'Arrived! Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
     }
     sessionEnd(reps, foundP, ev);
     learnAsk(true); openReport();
@@ -94,7 +94,7 @@ function finish(quiet) {
 function drawClock() {
   const r = remaining(), pct = Math.min(100, Math.max(0, 100 - (r / length(mode)) * 100));
   timeText.textContent = fmt(r);
-  const hl = headline(); if (bigText.textContent !== hl) bigText.textContent = hl;
+  const hl = plain(headline()); if (bigText.textContent !== hl) bigText.textContent = hl;
   if (running && !dotT) dotT = setInterval(() => { dotN++; drawDots(); }, 450);
   if (!running && dotT) { clearInterval(dotT); dotT = 0; dotN = 0; }
   drawDots(); drawCycle(pct);
@@ -151,10 +151,12 @@ function draw() {
   mysSel.hidden = cm !== 'mystery' || S.mys.length < 2; mysSel.disabled = locked; if (!mysSel.hidden) fillMysSel();
   staySel.hidden = cm !== 'stay'; staySel.disabled = locked; if (!staySel.hidden) fillStaySel();
   const round = mode === 'focus' ? S.cycle % S.set.every + 1 : (S.cycle % S.set.every || S.set.every);
-  status.textContent = (mode === 'focus' ? 'Study session ' + round + ' of ' + S.set.every : mode === 'long' ? 'Long break' : 'Short break') + (S.fc.broken ? '. Full Cycle broken' : '. Full Cycle on track') + '. ' + S.todayN + ' today';
+  const sky = skyToday(); // the today line: where you are in the cycle, today's count, today's sky
+  status.textContent = (mode === 'focus' ? 'Session ' + round + ' of ' + S.set.every : mode === 'long' ? 'Long break' : 'Short break') + ' · ' + (S.todayN ? S.todayN + ' session' + (S.todayN === 1 ? '' : 's') + ' today' : 'nothing yet today') + (sky ? ', ' + sky.name + (S.skies[today()] ? ' seen' : ' tonight') : '') + (S.fc.broken ? ' · Full Cycle broken' : '');
   status.title = S.fc.broken ? 'Full Cycle broken this time (something was skipped). It resets after the long break.' : 'Full Cycle: finish every session and break of this cycle without skipping for a bonus after the long break';
   status2.textContent = S.found.length + ' world' + (S.found.length === 1 ? '' : 's');
   tabLog.textContent = 'Logbook ' + S.found.length;
-  drawName(); drawLeft(); drawRight(); drawFeed(); checkAch();
+  drawName(); drawBreak(); drawGlobe(); if (!journalPane.hidden) drawRight(); checkAch();
+  hint.textContent = plain(hint.textContent);
   if (!shipPane.hidden) drawShip();
 }

@@ -9,5 +9,5 @@ if (S.run && S.run.running) {
 if (S.found.length && card.hidden) showCard(S.found[S.found.length - 1].p, 'last');
 draw();
 weekRecap(); // once a week: a gentle look back
-if (S.opts.intro !== false) playIntro(); // the title sequence (Settings can turn it off)
+if (S.opts.intro !== false) playIntro(); else showAboard(); // the title sequence (Settings can turn it off)
 document.addEventListener('visibilitychange', () => { if (!document.hidden && running && remaining() <= 0) finish(); });
