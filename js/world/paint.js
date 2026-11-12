@@ -40,8 +40,8 @@ function famWeights(s, type) {
   return Object.entries(w).map(([k, v]) => [k, Math.max(.05, v)]);
 }
 // a world's colours: 4 for its surface (light to dark), 2 for its land, and a ring colour
-function pickLook(r, s, type) {
-  const fw = famWeights(s, type), wild = r() < .22; // now and then, anything goes
+function pickLook(r, s, type, boost) { // boost: extra weight for some families (a star region's taste)
+  const fw = famWeights(s, type).map(([k, v]) => [k, v + ((boost || {})[k] || 0)]), wild = r() < .22; // now and then, anything goes
   const one = skip => { const list = fw.filter(([k]) => k !== skip).map(([k, v]) => [k, wild ? 1 : v]); return weighted(r, list); };
   const a = one(), b = one(a), A = FAM[a], B = FAM[b], n = A.length;
   const top = Math.min(n - 1, 2 + Math.floor(r() * (n - 2))); // how light the brightest colour goes

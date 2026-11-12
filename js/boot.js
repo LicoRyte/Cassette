@@ -14,7 +14,7 @@
 const GAME_FILES = [
   // rules and saved state
   'js/game/core.js', 'js/game/voyage.js', 'js/game/encounters.js', 'js/game/research.js', 'js/game/ship.js',
-  'js/game/levels.js', 'js/game/people.js', 'js/game/expedition.js', 'js/game/investigate.js', 'js/game/stay.js', 'js/game/traders.js', 'js/game/mysteries.js', 'js/game/wonders.js', 'js/game/story.js',
+  'js/game/levels.js', 'js/game/people.js', 'js/game/expedition.js', 'js/game/investigate.js', 'js/game/stay.js', 'js/game/traders.js', 'js/game/mysteries.js', 'js/game/wonders.js', 'js/game/extras.js', 'js/game/story.js',
   'js/game/session.js',
   // the screen (the timer and achievements sit between them because they use screen parts made above them)
   'js/ui/controls.js', 'js/ui/hud.js', 'js/ui/learning.js', 'js/ui/ship-interior.js', 'js/ui/layout.js', 'js/ui/main-screen.js', 'js/ui/right-panel.js',
@@ -25,7 +25,7 @@ const GAME_FILES = [
 ];
 
 // content/: the JSON the text engine (js/world/text.js) builds sentences from. Add your own files here; a missing or broken one is skipped
-const CONTENT_FILES = ['content/items.json', 'content/lines.json', 'content/activities.json', 'content/traders.json', 'content/mysteries.json', 'content/wonders.json'];
+const CONTENT_FILES = ['content/items.json', 'content/lines.json', 'content/activities.json', 'content/traders.json', 'content/mysteries.json', 'content/wonders.json', 'content/extras.json'];
 
 let SOLARIST_MOUNT = null; // { root, hooks, econ, items, expd, story }, read by js/game/core.js, expedition.js and story.js
 

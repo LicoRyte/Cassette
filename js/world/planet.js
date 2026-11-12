@@ -11,7 +11,7 @@ function cToHeat(t) { for (let i = 1; i < HEAT_C.length; i++) { const [x1, y1] =
 const TYPE_WATER = { Ocean: [85, 99], Garden: [55, 80], Jungle: [20, 50], Desert: [0, 3], Rocky: [0, 12], Toxic: [0, 8], 'Tidally locked': [2, 25], Savanna: [5, 25], Tundra: [10, 40], Swamp: [40, 70], Fungal: [15, 40], Hycean: [96, 100], Iron: [0, 2], Carbon: [0, 5], Crystal: [0, 6] };
 const TYPE_LIFE = { Garden: .6, Jungle: .5, Savanna: .4, Swamp: .4, Fungal: .4, Hycean: .3 }; // types that need living things
 // the type that fits a world's settings: every type is scored, and the good fits are picked by their usual weights
-function fitType(r, s, giant, lucky) {
+function fitType(r, s, giant, lucky, types) { // types: a region's weights for some types (multiplied)
   const LUCK = { Garden: 3, Ocean: 1.6, Jungle: 2, Savanna: 2.2, Fungal: 2, Swamp: 1.5, Tundra: 1.5, Hycean: 1.5, Crystal: 1.5, Lava: .3, Toxic: .3, Rogue: .3, Shattered: .3, 'Glass storm': .3, Dwarf: .5, 'Gas giant': .5, 'Ice giant': .5 };
   const t = heatToC(s.heat);
   const scored = Object.entries(TYPES).map(([k, T]) => {
@@ -20,7 +20,7 @@ function fitType(r, s, giant, lucky) {
     const W = TYPE_WATER[k], w = s.water * 100, wFit = !W || T.noGround ? (w < 20 ? 1 : .5) : w >= W[0] - 5 && w <= W[1] + 5 ? 1 : Math.exp(-Math.min(Math.abs(w - W[0]), Math.abs(w - W[1])) / 15);
     const need = TYPE_LIFE[k], lFit = need ? (s.life >= need ? 1 : .15) : s.life > .6 ? .5 : 1;
     const score = tFit * wFit * lFit * Math.min(1, Math.sqrt(150 / Math.max(1, T.t[1] - T.t[0]))); // types that fit almost anything count a little less
-    return [k, T.w * (lucky ? LUCK[k] || 1 : 1) * score * score];
+    return [k, T.w * (lucky ? LUCK[k] || 1 : 1) * ((types || {})[k] || 1) * score * score];
   });
   const good = scored.filter(([, v]) => v > 0);
   return good.length ? weighted(r, good) : weighted(r, Object.entries(TYPES).filter(([, T]) => giant === !!T.noGround).map(([k, T]) => [k, T.w]));
@@ -41,15 +41,16 @@ function worldLabel(p) {
   return words.charAt(0).toUpperCase() + words.slice(1) + ' ' + p.type.toLowerCase() + ' world';
 }
 
-function makePlanet(seed, num, lucky, oddBoost) {
-  const r = rng(seed);
+function makePlanet(seed, num, lucky, oddBoost, region) { // region: a star region's bias (content/extras.json), or nothing
+  const r = rng(seed), B = (region && region.bias) || {};
   // settings first: how hot, wet, alive, old and airy it is (0 to 1); liquid water and life need middling heat
   // most ground worlds land somewhere in the middle (freezing to scorching); the rest anywhere at all
-  const giant = r() < .15, heat = giant || r() < .4 ? r() : .3 + (r() + r()) * .17, liquid = heat > .38 && heat < .66;
-  const set = { heat, water: giant ? 0 : liquid ? (r() < .4 ? r() * .12 : Math.pow(r(), .7)) : r() * .25, air: r(), age: r(), life: 0 };
-  set.life = giant ? r() * .05 : (liquid ? r() : r() * .2) * (set.water > .05 ? 1 : .35);
-  const type = fitType(r, set, giant, lucky), T = TYPES[type];
-  const rarity = weighted(r, lucky ? RARITY_LUCKY : RARITY); // a charged Interplanetary Coordinator steers toward better worlds
+  const clamp1 = v => Math.max(0, Math.min(1, v));
+  const giant = r() < (B.giant != null ? B.giant : .15), h0 = giant || r() < .4 ? r() : .3 + (r() + r()) * .17, heat = clamp1(h0 + ((B.mild || 0) * (.52 - h0)) + (B.heat || 0)), liquid = heat > .38 && heat < .66;
+  const set = { heat, water: giant ? 0 : clamp1((liquid ? (r() < .4 ? r() * .12 : Math.pow(r(), .7)) : r() * .25) * (B.water || 1)), air: r(), age: clamp1(r() + (B.age || 0)), life: 0 };
+  set.life = giant ? r() * .05 : clamp1((liquid ? r() : r() * .2) * (set.water > .05 ? 1 : .35) * (B.life || 1));
+  const type = fitType(r, set, giant, lucky, B.types), T = TYPES[type];
+  const rarity = weighted(r, lucky || B.rare ? RARITY_LUCKY : RARITY); // a charged Interplanetary Coordinator steers toward better worlds
   // name: 2-3 made-up syllables + a numeral or letter; plus a survey catalog code
   let name = ''; const ns = r() < .6 ? 2 : 3; for (let i = 0; i < ns; i++) name += pick(r, SYL);
   name = name.charAt(0).toUpperCase() + name.slice(1);
@@ -89,9 +90,9 @@ function makePlanet(seed, num, lucky, oddBoost) {
   // look: colours from the Resurrect 64 families that suit its settings (with a wild one now and then)
   const W = TYPE_WATER[type]; if (W) set.water = Math.max(W[0], Math.min(W[1], set.water * 100)) / 100; else set.water = 0;
   set.life = Math.max(set.life, lifeLvl / 6 * .8);
-  const LK = pickLook(r, set, type), pal = LK.pal, land = T.land ? LK.land : null;
+  const LK = pickLook(r, set, type, B.fam), pal = LK.pal, land = T.land ? LK.land : null;
   const planet = {
-    v: 2, set: Object.fromEntries(Object.entries(set).map(([k, v]) => [k, +v.toFixed(3)])), seed, num, lucky: !!lucky || undefined, type, rarity, name, code, star, temp, tempNight, gravity, day, year, moons, rings, dist, atm, life, lifeLvl, weather,
+    v: 2, region: region ? region.id : undefined, set: Object.fromEntries(Object.entries(set).map(([k, v]) => [k, +v.toFixed(3)])), seed, num, lucky: !!lucky || undefined, type, rarity, name, code, star, temp, tempNight, gravity, day, year, moons, rings, dist, atm, life, lifeLvl, weather,
     biomes: b.slice(0, 2), res, odd, log: lines.join(' '),
     look: { pv: 3, pal, land, clouds: !!T.clouds || (type === 'Ocean' && r() < .4), bands: !!T.noGround, locked: !!T.locked, lava: type === 'Lava' || type === 'Shattered', sparkle: !!T.sparkle || type === 'Crystal', crystal: type === 'Crystal', tilt: between(r, -0.35, 0.35), ringCol: LK.ringCol, noise: Math.floor(r() * 1e9) },
   };

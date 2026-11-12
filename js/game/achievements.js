@@ -130,6 +130,10 @@ tiers('Adventure', 'swap', '↔', [[1, 'Fair Trade'], [10, 'Swap Meet'], [30, 'K
 tiers('Knowledge', 'mys', '🔎', [[1, 'Detective'], [5, 'Puzzle Solver'], [15, 'Keeper of Secrets']], () => S.cnt.mysSolved || 0, n => 'Solve ' + n + ' myster' + (n === 1 ? 'y' : 'ies'));
 tiers('Collection', 'cards', '📮', [[1, 'Wish You Were Here'], [10, 'Fridge Door'], [40, 'Shoebox Full']], () => S.cards.length, n => 'Keep ' + n + ' postcard' + (n === 1 ? '' : 's'));
 tiers('Worlds', 'wonder', '✨', [[1, 'Wide-Eyed'], [8, 'Sightseer'], [20, 'Wonder Hunter']], () => Object.keys(S.wonders).length, n => 'See ' + n + ' Wonder' + (n === 1 ? '' : 's'));
+tiers('Worlds', 'skies', '🌠', [[1, 'Look Up'], [6, 'Sky Watcher'], [12, 'Every Sky There Is']], () => new Set(Object.values(S.skies || {})).size, n => 'See ' + n + ' different sk' + (n === 1 ? 'y' : 'ies') + ' of the day');
+tiers('Worlds', 'regions', '🌌', [[2, 'Beyond the Reaches'], [4, 'Wide Traveler'], [6, 'Edge of the Map']], () => Object.keys(S.regionsSeen || {}).length, n => 'Open ' + n + ' star regions');
+tiers('Adventure', 'returns', '🏠', [[1, 'Homecoming'], [10, 'Regular']], () => S.cnt.returns || 0, n => 'Go back to a world ' + n + ' time' + (n === 1 ? '' : 's'));
+SQ('fire', '🔥', 'Fireside', 'Sit around 10 campfires', () => (S.cnt.campfires || 0) >= 10);
 SQ('kind', '💛', 'Kindness', 'Give something away to someone who needed it', () => (S.cnt.gaveAway || 0) >= 1);
 tiers('Ship', 'shipgear', '🛠', [[1, 'Moving In'], [4, 'Home Comforts'], [7, 'Fully Furnished']], () => S.shipGear.length, n => 'Fit ' + n + ' piece' + (n === 1 ? '' : 's') + ' of ship equipment');
 tiers('Ship', 'craft', '🧵', [[1, 'Handmade'], [10, 'Tailor'], [30, 'Workshop Legend']], () => S.cnt.crafted || 0, n => 'Craft ' + n + ' thing' + (n === 1 ? '' : 's'));

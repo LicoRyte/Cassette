@@ -37,9 +37,9 @@
   window.addEventListener('pointerdown', unlock, { once: true }); window.addEventListener('keydown', unlock, { once: true });
 
   /* ---------- ambient space sound: generated live, so it works offline. A low drone, engine rumble while traveling,
-     scanner pings while surveying, a soft alarm during a Distress Run, thumps in a fight, shimmer while charging. ---------- */
+     scanner pings while surveying, and on breaks the world's own soundscape: rain, ocean swell, wind or birdsong. ---------- */
   const amb = (() => {
-    let on = store.get('solarist-amb') !== 'off', vol = +(store.get('solarist-amb-vol') || 35) / 100, nodes = null, kind = 'break', run = false, next = 0, tick = 0;
+    let on = store.get('solarist-amb') !== 'off', vol = +(store.get('solarist-amb-vol') || 35) / 100, nodes = null, kind = 'break', run = false, next = 0, tick = 0, scape = null, drop = 0;
     function build() {
       const c = ctx(); if (!c || nodes) return;
       const master = c.createGain(); master.gain.value = 0; master.connect(c.destination);
@@ -51,7 +51,14 @@
       const noise = c.createBufferSource(); noise.buffer = nb; noise.loop = true; const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 180; bp.Q.value = .8;
       const rumble = c.createGain(); rumble.gain.value = 0; noise.connect(bp).connect(rumble).connect(master); noise.start();
       const fx = c.createGain(); fx.gain.value = .6; fx.connect(master);
-      nodes = { c, master, lp, drone, rumble, fx };
+      // the soundscape on breaks: white noise, shaped by a filter, swelling slowly
+      const wb = c.createBuffer(1, c.sampleRate * 3, c.sampleRate), wd = wb.getChannelData(0); for (let i = 0; i < wd.length; i++) wd[i] = Math.random() * 2 - 1;
+      const sn = c.createBufferSource(); sn.buffer = wb; sn.loop = true;
+      const sf = c.createBiquadFilter(), swell = c.createGain(), sg = c.createGain(); swell.gain.value = .7; sg.gain.value = 0;
+      sn.connect(sf).connect(swell).connect(sg).connect(master); sn.start();
+      const sl = c.createOscillator(), slG = c.createGain(); sl.frequency.value = .09; slG.gain.value = 0; sl.connect(slG).connect(swell.gain); sl.start(); // swells (ocean)
+      const sw = c.createOscillator(), swG = c.createGain(); sw.frequency.value = .13; swG.gain.value = 0; sw.connect(swG).connect(sf.frequency); sw.start(); // gusts (wind)
+      nodes = { c, master, lp, drone, rumble, fx, sf, sg, slG, swG };
       tick = setInterval(step, 120);
     }
     function blip(f1, f2, dur, gain, type) { const { c, fx } = nodes, t = c.currentTime, o = c.createOscillator(), g = c.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(fx); o.start(t); o.stop(t + dur + .05); }
@@ -59,7 +66,11 @@
       const s2 = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s2.buffer = b; f.type = 'bandpass'; f.frequency.value = 900 + Math.random() * 600; f.Q.value = 6; g.gain.value = .25; s2.connect(f).connect(g).connect(fx); s2.start(t); }
     function apply() {
       if (!nodes) return; const { c, master, lp, rumble } = nodes, t = c.currentTime;
-      const target = !on ? 0 : vol * (kind === 'break' ? .1 : run ? .16 : .11);
+      const sc = kind === 'break' && run ? scape : null; // soundscapes only while a break runs
+      const target = !on ? 0 : vol * (sc ? .2 : kind === 'break' ? .1 : run ? .16 : .11);
+      const S2 = { rain: ['highpass', 1300, .55, 0, 0], ocean: ['lowpass', 520, .8, .35, 0], wind: ['bandpass', 420, .55, 0, 260], birds: ['lowpass', 320, .25, .1, 0] }[sc] || ['lowpass', 200, 0, 0, 0];
+      nodes.sf.type = S2[0]; nodes.sf.frequency.setTargetAtTime(S2[1], t, .5); nodes.sf.Q.value = S2[0] === 'bandpass' ? .6 : .7;
+      nodes.sg.gain.setTargetAtTime(S2[2], t, 1.5); nodes.slG.gain.setTargetAtTime(S2[3], t, 1); nodes.swG.gain.setTargetAtTime(S2[4], t, 1);
       master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(target, t, .8);
       rumble.gain.setTargetAtTime(run && (kind === 'explore' || kind === 'campaign' || kind === 'distress' || kind === 'fight') ? .55 : 0, t, 1.2);
       lp.frequency.setTargetAtTime(kind === 'break' ? 170 : kind === 'distress' || kind === 'fight' ? 340 : 260, t, 1.5);
@@ -67,6 +78,8 @@
     function step() {
       if (!nodes || !on || !run || document.hidden) return;
       const now = performance.now(); if (now < next) return;
+      if (kind === 'break' && scape === 'rain' && now > drop) { blip(2200 + Math.random() * 2400, 1600, .05, .035); drop = now + 90 + Math.random() * 320; next = drop; return; }
+      if (kind === 'break' && scape === 'birds') { const f = 2400 + Math.random() * 1400; blip(f, f * 1.25, .09, .05); setTimeout(() => nodes && on && blip(f * 1.1, f * 1.4, .08, .045), 140); next = now + 2500 + Math.random() * 5000; return; }
       if (kind === 'discover') { blip(1400, 900, .35, .22); next = now + 2300; }
       else if (kind === 'distress') { blip(660, 640, .22, .12, 'triangle'); setTimeout(() => nodes && on && blip(520, 500, .3, .12, 'triangle'), 280); next = now + 3200; }
       else if (kind === 'fight') { blip(90, 38, .4, .5); next = now + 1500 + Math.random() * 700; }
@@ -76,7 +89,7 @@
     }
     return {
       start() { if (on) { build(); apply(); } },
-      set(k, r) { kind = k; run = r; if (on && nodes) apply(); },
+      set(k, r, sc) { kind = k; run = r; scape = sc || null; if (on && nodes) apply(); },
       settings(box) {
         const tg = mk('button', { type: 'button', class: 'btn', 'aria-pressed': String(on) }, on ? 'Ambient sound is on' : 'Ambient sound is off');
         tg.addEventListener('click', () => { on = !on; store.set('solarist-amb', on ? 'on' : 'off'); if (on) build(); apply(); amb.settings(box); });
@@ -532,6 +545,16 @@ void main(){
   }
   function kick() { if (!raf) raf = requestAnimationFrame(render); }
   document.addEventListener('visibilitychange', () => { lastNow = 0; if (!document.hidden) kick(); });
+  // the soundscape a world has on breaks: from its weather, water and life
+  let scapeSeed = null;
+  function scapeOf(p) {
+    if (!p) return null; const T = TYPES[p.type] || {}, x = p.x || {};
+    if (T.noGround) return 'wind';
+    if (/rain|drizzle|shower|monsoon|storm/i.test(p.weather || '')) return 'rain';
+    if ((x.water || 0) > 50) return 'ocean';
+    if ((p.lifeLvl || 0) >= 3) return 'birds';
+    return 'wind';
+  }
   function scene(i) {
     const changed = !info || i.kind !== info.kind || i.running !== info.running || (i.planet && i.planet.seed) !== (info.planet && info.planet.seed);
     const still = reduceMotion.matches, travel = k => k === 'explore' || k === 'campaign' || k === 'distress' || k === 'fight';
@@ -541,7 +564,7 @@ void main(){
       if (newWorld) { revealAt = performance.now(); typeName(); } // just arrived: reveal the world
       if (i.kind === 'view' && i.planet && (!info.planet || i.planet.seed !== info.planet.seed)) { revealAt = performance.now(); typeName(); } // Planetarium: each world fades in
     }
-    info = i; if (changed) { lastDraw = 0; amb.set(i.kind, i.running); }
+    info = i; if (changed || (i.planet && i.planet.seed) !== scapeSeed) { lastDraw = 0; scapeSeed = i.planet && i.planet.seed; amb.set(i.kind, i.running, scapeOf(i.planet)); }
     music.set(i.running ? (i.mode === 'focus' ? 'study' : 'break') : null);
     kick();
   }

@@ -46,6 +46,7 @@ function stayDone(reps) {
   if (!p.trade && Math.random() < .15) meetTrader(p, reps); // someone who trades might come by
   mysFind(p, reps, .08); // or something strange
   award(20 + 10 * got.length, 10 + (got.length ? 5 : 0));
+  if (a.id === 'camp' || a.id === 'picnic') p.camped = true; // your camp will still be here if you come back
   S.cnt.stays = (S.cnt.stays || 0) + 1; (S.cnt.acts = S.cnt.acts || {})[a.id] = (S.cnt.acts[a.id] || 0) + 1;
   const title = a.ic + ' ' + a.name + ' on ' + nm(p), gotTxt = got.join(' · ') || null;
   reps.unshift({ ev: { battle: true, ic: a.ic, title, t, got: gotTxt } });

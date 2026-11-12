@@ -1,0 +1,266 @@
+{
+  "_guide": [
+    "Small extras: campfire talks on long breaks, coming back to a world, the sky of the day, and star regions.",
+    "campfire: lines for the long break, with {crew} and {other} (two people), {recent} (the last world you found) and {place}",
+    "  (a place on it). campfire_alone: the same when it's just you. return: when you travel back to a world, with {world},",
+    "  {days} (days since you were there), {crew}, and camped: true if you camped there before.",
+    "skies: one is today's sky, the same for everyone on the same day. id, ic, name, text (what you see).",
+    "regions: parts of space that open with hours studied. id, name, hours, desc, and bias (all optional):",
+    "  heat (added, -0.3 to 0.3), mild (0 to 1: pulls heat toward Earth-like), water and life (multiplied), giant (chance of a giant, 0 to 1), age (added),",
+    "  types (planet type weights multiplied, like { \"Crystal\": 4 }), fam (colour family weights added, see js/world/paint.js),",
+    "  rare: true (better odds of rare worlds)."
+  ],
+  "lines": {
+    "campfire": [
+      "{Crew} pokes the fire and says {recent} was the strangest place so far. {Other} says that about every place.",
+      "{Crew} and {other} argue about whether {place} had a better view than the last one. The fire wins the argument.",
+      "Somebody starts a song about {recent}. {Other} knows all the words already, somehow.",
+      "{Crew} tells {other} what {crew.they} {crew:wants|want} to find next. {Other} says {other.they} just {other:wants|want} more of this.",
+      "{Crew} roasts something over the fire. Nobody is sure what it is. Everyone has seconds.",
+      "{Other} falls asleep against {crew}'s shoulder. {Crew} doesn't move for an hour.",
+      {
+        "text": "{Crew} and {other} sit quietly for a long time. That's the kind of friends they are now.",
+        "when": {
+          "bond": ">15"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} finally asks {other} about {other.their} {other.gear}. It's a long story, and a good one.",
+        "when": {
+          "bond": "<10"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} tells the scariest story {crew.they} {crew:knows|know}. {Other} laughs all the way through it.",
+        "when": {
+          "crew.tags": [
+            "funny",
+            "talkative"
+          ]
+        },
+        "weight": 2
+      }
+    ],
+    "campfire_alone": [
+      "Just you, a small fire and the sound of the {ship}'s engines cooling. You write a few lines about {recent}.",
+      "You make tea, sit by the fire and count the worlds so far. It's a good number.",
+      "The fire crackles. You think about {place}, and about where to go next. No hurry."
+    ],
+    "return": [
+      "Back on {world}, {days} days later. It looks just the same, which is exactly what you hoped.",
+      "{Crew} is first down the ramp. \"It missed us,\" {crew.they} {crew:says|say}. Maybe it did.",
+      "Coming back to {world} after {days} days feels like coming home. The view over the {biome} hasn't changed a bit. You have.",
+      "Since you were last here, the light over the {biome} has turned [gold|silver|a soft blue|a deeper green].",
+      {
+        "text": "Your old campfire ring is still there on {world}. Someone, or something, has left a smooth stone in the middle.",
+        "when": {
+          "camped": true
+        },
+        "weight": 3
+      },
+      {
+        "text": "Only a day away, and {world} already feels different. {Crew} says it's the light.",
+        "when": {
+          "days": "<2"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{days} days is a long time. {World} has kept your footprints, half-filled with dust, like it was saving them.",
+        "when": {
+          "days": ">30"
+        },
+        "weight": 2
+      }
+    ]
+  },
+  "skies": [
+    {
+      "id": "meteors",
+      "ic": "🌠",
+      "name": "a meteor shower",
+      "text": "Hundreds of meteors streak across the sky, one after another. Everybody makes a wish. Nobody says what."
+    },
+    {
+      "id": "aurora",
+      "ic": "🌌",
+      "name": "an aurora",
+      "text": "Curtains of green and violet light ripple across the whole sky, slow and silent, for hours."
+    },
+    {
+      "id": "comet",
+      "ic": "☄",
+      "name": "a comet",
+      "text": "A comet hangs in the sky, its tail stretched halfway across the stars, as if it stopped to look around."
+    },
+    {
+      "id": "eclipse",
+      "ic": "🌑",
+      "name": "an eclipse",
+      "text": "A moon slides in front of the sun. Everything goes quiet and blue for a few long minutes."
+    },
+    {
+      "id": "alignment",
+      "ic": "🪐",
+      "name": "a planet alignment",
+      "text": "Five planets line up in a perfect row across the sky, like beads on a string."
+    },
+    {
+      "id": "nebula",
+      "ic": "🎆",
+      "name": "a glowing nebula",
+      "text": "A nebula is rising tonight: a cloud of pink and gold, big enough to hold a thousand suns."
+    },
+    {
+      "id": "double-rainbow",
+      "ic": "🌈",
+      "name": "a double rainbow",
+      "text": "Rain and sun at the same time, and two rainbows, one inside the other."
+    },
+    {
+      "id": "green-flash",
+      "ic": "💚",
+      "name": "a green flash",
+      "text": "Just as the sun sets, the last sliver of it flashes bright green. Blink and you'd miss it. You don't."
+    },
+    {
+      "id": "moonbow",
+      "ic": "🌙",
+      "name": "a moonbow",
+      "text": "A pale rainbow made of moonlight arches over the horizon. It looks like it's made of silver."
+    },
+    {
+      "id": "shooting-stars",
+      "ic": "✨",
+      "name": "falling stars",
+      "text": "Every few minutes another falling star, as if the sky is shaking out its pockets."
+    },
+    {
+      "id": "zodiacal",
+      "ic": "🔺",
+      "name": "zodiacal light",
+      "text": "A faint cone of light rises from the horizon after sunset: sunlight on dust between the planets."
+    },
+    {
+      "id": "starfield",
+      "ic": "⭐",
+      "name": "a perfectly clear sky",
+      "text": "Not one cloud, not one light on the ground. More stars than anyone aboard has ever seen at once."
+    }
+  ],
+  "regions": [
+    {
+      "id": "near",
+      "name": "The Near Reaches",
+      "hours": 0,
+      "desc": "Where every voyage starts. A little of everything."
+    },
+    {
+      "id": "glass",
+      "name": "The Glass Nebula",
+      "hours": 10,
+      "desc": "Crystal worlds and glittering storms, in shades of violet and pink.",
+      "bias": {
+        "types": {
+          "Crystal": 5,
+          "Glass storm": 5,
+          "Fungal": 2
+        },
+        "fam": {
+          "dusk": 2,
+          "bloom": 1.5,
+          "fog": 1
+        }
+      }
+    },
+    {
+      "id": "quiet",
+      "name": "The Quiet Belt",
+      "hours": 25,
+      "desc": "Cold, old, peaceful worlds where nothing is in a hurry.",
+      "bias": {
+        "heat": -0.12,
+        "age": 0.3,
+        "types": {
+          "Ice": 1.5,
+          "Tundra": 2.5,
+          "Dwarf": 1.5
+        },
+        "fam": {
+          "fog": 2,
+          "sky": 1,
+          "sea": 0.6
+        },
+        "mild": 0
+      }
+    },
+    {
+      "id": "green",
+      "name": "The Green Drift",
+      "hours": 50,
+      "desc": "Wet, warm and alive. Gardens, jungles and seas everywhere.",
+      "bias": {
+        "water": 1.6,
+        "life": 1.8,
+        "types": {
+          "Garden": 5,
+          "Jungle": 3,
+          "Swamp": 3,
+          "Fungal": 3,
+          "Savanna": 3,
+          "Ocean": 1.5,
+          "Hycean": 2
+        },
+        "fam": {
+          "leaf": 2,
+          "sage": 1.5,
+          "sea": 1
+        },
+        "mild": 0.6,
+        "giant": 0.05
+      }
+    },
+    {
+      "id": "ember",
+      "name": "The Ember Reach",
+      "hours": 100,
+      "desc": "Close to young, hot stars. Lava, deserts and fire-coloured skies.",
+      "bias": {
+        "heat": 0.2,
+        "types": {
+          "Lava": 2,
+          "Shattered": 2,
+          "Desert": 1.5,
+          "Toxic": 1.5
+        },
+        "fam": {
+          "fire": 2,
+          "ember": 2,
+          "clay": 1
+        }
+      }
+    },
+    {
+      "id": "far",
+      "name": "The Far Dark",
+      "hours": 200,
+      "desc": "The edge of the map. Strange, lonely, rare worlds.",
+      "bias": {
+        "giant": 0.25,
+        "rare": true,
+        "types": {
+          "Rogue": 4,
+          "Carbon": 3,
+          "Iron": 2,
+          "Crystal": 1.5
+        },
+        "fam": {
+          "ash": 1.5,
+          "dusk": 1
+        }
+      }
+    }
+  ]
+}

@@ -30,7 +30,7 @@ function finish(quiet) {
   };
   if (mode === 'focus') {
     rollDay(); if (S.cnt.lastDay !== today()) { S.cnt.lastDay = today(); S.cnt.days++; }
-    S.total++; S.todayN++; S.cycle++; S.minutes += S.set.focus; S.fc.n++;
+    S.total++; S.todayN++; S.cycle++; S.minutes += S.set.focus; S.fc.n++; logStudy(S.set.focus);
     { S.cnt.maxFocus = Math.max(S.cnt.maxFocus || 0, S.set.focus); const st = S.cnt.streak = S.cnt.streak || { last: '', n: 0, best: 0 }, td = today(); if (st.last !== td) { const y = new Date(); y.setDate(y.getDate() - 1); st.n = st.last === dayKey(y) ? st.n + 1 : 1; st.last = td; st.best = Math.max(st.best, st.n); } }
     { (S.cnt.dow = S.cnt.dow || {})[new Date().getDay()] = 1; const hr = new Date().getHours(); if (hr < 4) S.cnt.night = (S.cnt.night || 0) + 1; else if (hr < 7) S.cnt.early = (S.cnt.early || 0) + 1; }
     const reps = [];
@@ -46,12 +46,15 @@ function finish(quiet) {
       const msg = stayDone(reps); done(msg); hint.textContent += then();
     } else if (expediting() || investigating() || salvaging()) {
       const msg = expediting() ? exLegDone(reps) : investigating() ? invDone(reps) : salvageDone(reps); done(msg); hint.textContent += then();
+    } else if (returning()) { // back to home or a favourite
+      const p = returnTrip(reps); done('', p, 'log');
+      hint.textContent = (S.home === p.num ? '🏠 Home again: ' : '★ Back on ') + nm(p) + '.' + then();
     } else if (following()) { // Follow the Signal: the next Meridian world (no visitors there)
       const { p, fresh } = followSignal(); foundP = fresh ? p : null;
       done('', p, fresh ? 'story' : 'log');
       hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (see Here, on the left).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + then();
     } else { // Explore: a brand-new world
-      const p = makePlanet((Math.random() * 4294967296) >>> 0, S.nextNum++, false, .05);
+      const p = makePlanet((Math.random() * 4294967296) >>> 0, S.nextNum++, false, .05, regionNow());
       const visit = rollArrival(p); p.visit = visit || 'none'; // one roll: at most one visitor per world
       S.found.push({ at: Date.now(), p }); S.at = p.num;
       S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1;
@@ -103,7 +106,7 @@ function drawClock() {
     hooks.scene({ mode, kind: pv ? 'view' : kind, pv: !!pv, running, pct, paused: !running && left > 0 && left < length(mode), planet: pv ? pvP() : scenePlanet(kind), spot: planetSpot, ship: S.ship });
     if (pv) { const tm = pvBar.querySelector('.sx-pv-time'); if (tm) tm.textContent = running ? '⏱ ' + fmt(r) + (mode === 'focus' ? ' left to study' : ' of break left') : ''; }
   }
-  const act = observing() ? 'Observing a mystery' : staying() ? 'Staying on a world' : chaptering() ? 'The Meridian' : following() ? 'Following the signal' : expediting() ? 'Exploring' : investigating() ? 'Investigating' : salvaging() ? 'Salvaging' : 'Traveling';
+  const act = returning() ? 'Heading back' : observing() ? 'Observing a mystery' : staying() ? 'Staying on a world' : chaptering() ? 'The Meridian' : following() ? 'Following the signal' : expediting() ? 'Exploring' : investigating() ? 'Investigating' : salvaging() ? 'Salvaging' : 'Traveling';
   if (hooks.title) hooks.title(running ? fmt(r) + ' · ' + (mode === 'focus' ? act : 'Preparing') : 'Solarist');
   if (hooks.presence) { // your Discord status (only sent when it's turned on in Settings)
     const kind = sceneKind(), p = pv ? null : scenePlanet(kind), paused = !running && left > 0 && left < length(mode);
@@ -122,13 +125,14 @@ function draw() {
   drawClock(); drawLv();
   root.dataset.mode = mode;
   modeBtns.forEach(b => { const on = b.dataset.m === mode; b.classList.toggle('on', on); b.disabled = running && !on; });
-  startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (observing() ? 'Observe' : staying() ? 'Stay' : chaptering() ? 'Continue the chapter' : following() ? 'Follow the Signal' : expediting() ? (exOf(atP()).step ? 'Continue' : 'Set out') : investigating() ? 'Investigate' : salvaging() ? 'Salvage' : 'Launch') : 'Start break');
-  if (!hint.textContent) hint.textContent = mode === 'focus' ? (observing() ? '🔎 Finish this session to observe ' + mysDef(mysPicked().id).title.charAt(0).toLowerCase() + mysDef(mysPicked().id).title.slice(1) + '.' : staying() ? stayAct().ic + ' Finish this session to ' + stayAct().name.toLowerCase() + ' on ' + nm(atP()) + '.' : expediting() ? (gasWorld(atP()) ? '🎈 ' : '🗺 ') + 'Finish this session for the ' + EX_PARTS[exOf(atP()).step].toLowerCase() + ' part of the expedition on ' + nm(atP()) + ' (' + (exOf(atP()).step + 1) + ' of ' + EX_LEN + '). It charts a Point of Interest.' : investigating() ? '🔬 Finish this session to study ' + atP().odd + ' (' + Math.round(invOf(atP()).pct * 100) + '% so far).' : salvaging() ? '🛸 Finish this session to salvage ' + atP().derelict.ship + '.' : chaptering() ? '📡 Finish this session for chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1) + ' of ' + ST_LEGS + ' on ' + nm(atP()) + '.' : following() ? '📡 ' + signalText() : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
+  startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (returning() ? 'Head back' : observing() ? 'Observe' : staying() ? 'Stay' : chaptering() ? 'Continue the chapter' : following() ? 'Follow the Signal' : expediting() ? (exOf(atP()).step ? 'Continue' : 'Set out') : investigating() ? 'Investigate' : salvaging() ? 'Salvage' : 'Launch') : 'Start break');
+  if (!hint.textContent) hint.textContent = mode === 'focus' ? (returning() ? '🏠 Finish this session to travel back to ' + nm(byNum(S.returnTo).p) + '.' : observing() ? '🔎 Finish this session to observe ' + mysDef(mysPicked().id).title.charAt(0).toLowerCase() + mysDef(mysPicked().id).title.slice(1) + '.' : staying() ? stayAct().ic + ' Finish this session to ' + stayAct().name.toLowerCase() + ' on ' + nm(atP()) + '.' : expediting() ? (gasWorld(atP()) ? '🎈 ' : '🗺 ') + 'Finish this session for the ' + EX_PARTS[exOf(atP()).step].toLowerCase() + ' part of the expedition on ' + nm(atP()) + ' (' + (exOf(atP()).step + 1) + ' of ' + EX_LEN + '). It charts a Point of Interest.' : investigating() ? '🔬 Finish this session to study ' + atP().odd + ' (' + Math.round(invOf(atP()).pct * 100) + '% so far).' : salvaging() ? '🛸 Finish this session to salvage ' + atP().derelict.ship + '.' : chaptering() ? '📡 Finish this session for chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1) + ' of ' + ST_LEGS + ' on ' + nm(atP()) + '.' : following() ? '📡 ' + signalText() : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
   // a mission whose reason is gone (the world changed, or it's finished) falls back to Explore
   if (S.mission > 0 || [-1, -2, -5, -6].includes(S.mission)) S.mission = 0; // missions that no longer exist
   if (S.mission === -8 && !investigating()) S.mission = 0;
   if (S.mission === -3 && !chaptering()) S.mission = 0;
   if (S.exploreKind === 'signal' && !signalOn()) S.exploreKind = 'random';
+  if (S.exploreKind === 'return' && !returning()) S.exploreKind = 'random';
   if (S.mission === -4 && !expediting()) S.mission = 0;
   if (S.mission === -7 && !salvaging()) S.mission = 0;
   if (S.mission === STAY && !staying()) S.mission = 0;
@@ -148,7 +152,8 @@ function draw() {
     if (k === 'campaign') b.hidden = !chHere() || atDoor();
   });
   misNote.textContent = mode === 'focus' ? misGives(cm) : '';
-  exploreSel.hidden = cm !== 'explore' || !signalOn(); exploreSel.disabled = locked;
+  exploreSel.hidden = cm !== 'explore' || !(signalOn() || returnPlaces().length); exploreSel.disabled = locked;
+  regionSel.hidden = cm !== 'explore' || S.exploreKind !== 'random' || regions().filter(regionOpen).length < 2; regionSel.disabled = locked; if (!regionSel.hidden) fillRegionSel();
   if (!exploreSel.hidden) fillExploreSel();
   mysSel.hidden = cm !== 'mystery' || S.mys.length < 2; mysSel.disabled = locked; if (!mysSel.hidden) fillMysSel();
   staySel.hidden = cm !== 'stay'; staySel.disabled = locked; if (!staySel.hidden) fillStaySel();

@@ -17,6 +17,7 @@ function headline() {
   if (observing() && mode === 'focus') { const m = mysDef(mysPicked().id); return !running ? (left > 0 && left < length(mode) ? 'Holding position' : m.ic + ' Ready to observe') : m.ic + ' Observing: ' + m.title.charAt(0).toLowerCase() + m.title.slice(1); }
   if (staying() && mode === 'focus') { const a = stayAct(); return !running ? (left > 0 && left < length(mode) ? 'Holding position' : a.ic + ' Staying: ' + a.name.toLowerCase()) : a.ic + ' ' + a.name + ' on ' + nm(atP()); }
   if (chaptering() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1)) : 'Following the Meridian\'s trail';
+  if (returning() && mode === 'focus') { const p = byNum(S.returnTo).p; return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to head back to ' + nm(p)) : 'Heading back to ' + nm(p); }
   if (following() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to follow the signal') : 'Following the signal';
   if (!running) return left > 0 && left < length(mode) ? 'Holding position' : mode === 'focus' ? 'Ready for launch' : 'Docked. Take a breather';
   return mode === 'focus' ? 'Traveling to an uncharted world' : 'Preparing equipment for the next mission';
@@ -43,7 +44,7 @@ const MISSIONS = [['explore', '🚀', 'Travel on', 'Travel on to a new world'], 
 const curMission = () => S.mission === MYS ? 'mystery' : S.mission === STAY ? 'stay' : S.mission === -7 ? 'salvage' : S.mission === -8 ? 'investigate' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : 'explore';
 function setMission(m, num) {
   if (running && mode === 'focus') return;
-  if (m === 'explore') { S.mission = 0; if (num === 'signal' || num === 'random') S.exploreKind = signalOn() ? num : 'random'; }
+  if (m === 'explore') { S.mission = 0; if (num === 'signal' || num === 'random') S.exploreKind = signalOn() ? num : 'random'; else if (/^ret:/.test(num || '')) { S.exploreKind = 'return'; S.returnTo = +num.slice(4); } }
   else if (m === 'mystery') { if (num) S.mysPick = num; if (!mysPicked()) return; S.mission = MYS; }
   else if (m === 'stay') { if (!actsFor(atP()).length) return; if (num) S.stayAct = num; S.mission = STAY; }
   else if (m === 'investigate') { if (!canInvestigate(atP())) return; S.mission = -8; }
@@ -59,9 +60,15 @@ const misNote = el('p', { class: 'sl-mis-note', 'aria-live': 'polite' });
 const exploreSel = el('select', { class: 'sl-build-sel', 'aria-label': 'Where to explore' });
 exploreSel.addEventListener('change', () => setMission('explore', exploreSel.value));
 function fillExploreSel() {
-  exploreSel.replaceChildren(el('option', { value: 'random' }, '🚀 A random world'), el('option', { value: 'signal' }, '📡 Follow the Signal'));
-  exploreSel.value = S.exploreKind === 'signal' ? 'signal' : 'random';
+  const back = returnPlaces().sort((a, b) => (S.home === b.num) - (S.home === a.num));
+  exploreSel.replaceChildren(el('option', { value: 'random' }, '🚀 A new world'), signalOn() ? el('option', { value: 'signal' }, '📡 Follow the Signal') : null,
+    ...back.map(p => el('option', { value: 'ret:' + p.num }, (S.home === p.num ? '🏠 Home: ' : '★ Back to ') + nm(p))));
+  exploreSel.value = S.exploreKind === 'signal' && signalOn() ? 'signal' : returning() ? 'ret:' + S.returnTo : 'random';
 }
+// Travel on picks a star region (more open as you study)
+const regionSel = el('select', { class: 'sl-build-sel', 'aria-label': 'Which region' });
+regionSel.addEventListener('change', () => { S.region = regionSel.value; save(); hint.textContent = ''; draw(); });
+function fillRegionSel() { const g = regionNow(); regionSel.replaceChildren(...regions().map(x => el('option', { value: x.id, disabled: !regionOpen(x) || null }, '🌌 ' + x.name + (regionOpen(x) ? '' : ' (opens at ' + x.hours + ' hours)')))); if (g) regionSel.value = g.id; }
 // Mystery picks which one, when there are several
 const mysSel = el('select', { class: 'sl-build-sel', 'aria-label': 'Which mystery' });
 mysSel.addEventListener('change', () => setMission('mystery', mysSel.value));
@@ -70,12 +77,13 @@ function fillMysSel() { mysSel.replaceChildren(...S.mys.filter(o => mysDef(o.id)
 const staySel = el('select', { class: 'sl-build-sel', 'aria-label': 'What to do here' });
 staySel.addEventListener('change', () => setMission('stay', staySel.value));
 function fillStaySel() { const L = actsFor(atP()), a = stayAct(); staySel.replaceChildren(...L.map(x => el('option', { value: x.id }, x.ic + ' ' + x.name))); if (a) staySel.value = a.id; }
-const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), exploreSel, mysSel, staySel, misNote);
+const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), exploreSel, regionSel, mysSel, staySel, misNote);
 // one line under the mission buttons: what the chosen mission gives
 function misGives(k) {
   const a = atP();
   if (k === 'explore' && following()) return '📡 Follow the Signal to the next Meridian world. No visitors there, just the story.';
-  if (k === 'explore') return '🚀 A new world. Now and then something is waiting there.';
+  if (k === 'explore' && returning()) { const p = byNum(S.returnTo).p; return (S.home === p.num ? '🏠 Home to ' : '★ Back to ') + nm(p) + '. See what changed while you were gone.'; }
+  if (k === 'explore') { const g = regionNow(); return '🚀 A new world' + (g && regions().filter(regionOpen).length > 1 ? ' in ' + g.name + ': ' + g.desc.charAt(0).toLowerCase() + g.desc.slice(1) : '. Now and then something is waiting there.'); }
   if (k === 'mystery' && mysPicked()) { const o = mysPicked(), m = mysDef(o.id); return m.ic + ' ' + m.title + ': ' + o.step + ' of ' + m.steps.length + ' observed. It can\'t go wrong: every session gets closer.'; }
   if (k === 'stay' && a && stayAct()) { const s = stayAct(), n = placesLeft(a); return s.ic + ' ' + s.desc + (n ? ' Might find a new place (' + n + ' still out there).' : placesUnfound(a) ? ' The places left here are on the expedition.' : ' Every place here is found.'); }
   if (k === 'expedition' && a) return (gasWorld(a) ? '🎈 Cloud dive ' : '🗺 Expedition ') + (exOf(a).step + 1) + '/' + EX_LEN + ': charts a Point of Interest and maybe a collectible' + (exOf(a).step === EX_LEN - 1 ? ' (certain on the finale)' : '') + '.';

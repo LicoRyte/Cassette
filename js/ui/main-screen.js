@@ -49,7 +49,7 @@ function hereSec(lock, legBar) {
   if (!p) return sec(null, el('p', { class: 'sl-muted' }, 'Deep space. Explore to find your first world.'));
   const x = exOf(p), gas = gasWorld(p), out = [];
   out.push(el('p', { class: 'sx-q-h' }, el('button', { type: 'button', class: 'sl-link sx-here-n', onclick: () => { tab('log'); openWorld(p.num); } }, nm(p))),
-    el('p', { class: 'sl-muted' }, worldLabel(p) + ' · ' + p.rarity + (p.odd ? ' · ' + p.odd : '')));
+    skyLine(), el('p', { class: 'sl-muted' }, (regionOf(p) ? regionOf(p).name + ' · ' : '') + worldLabel(p) + ' · ' + p.rarity + (p.odd ? ' · ' + p.odd : '')));
   // the visitor, if there is one
   if (p.enc) out.push(el('p', { class: 'sx-visit' }, p.enc.ic + ' ' + p.enc.title.replace(/!$/, '')));
   else if (p.visit === 'none' && !derelictHere()) out.push(el('p', { class: 'sx-visit' }, 'No visitors here. Just you and the world.'));
@@ -133,3 +133,7 @@ function chapterBits(p, lock, legBar) {
   out.push(...leg.success.map(t => el('p', { class: 'sx-story' }, t)), el('div', { class: 'sx-paths' }, [leg.a, leg.b].map((o, i) => el('button', { type: 'button', disabled: lock || null, onclick: () => storyEnd(i) }, el('b', {}, o[0])))));
   return out;
 }
+// the sky of the day, at the top of the Here card
+function skyLine() { const s = skyToday(); if (!s) return null; const seen = S.skies[today()] === s.id;
+  return el('p', { class: 'sx-sky' }, s.ic + ' Today\'s sky: ' + s.name + (seen ? '. You saw it.' : '. Finish a study session today to see it.')); }
+
