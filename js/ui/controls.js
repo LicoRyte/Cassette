@@ -57,8 +57,8 @@ const exploreSel = el('select', { class: 'sl-build-sel', 'aria-label': 'Where to
 exploreSel.addEventListener('change', () => setMission('explore', exploreSel.value));
 function fillExploreSel() {
   const back = returnPlaces().sort((a, b) => (S.home === b.num) - (S.home === a.num));
-  exploreSel.replaceChildren(el('option', { value: 'random' }, '🚀 A new world'), signalOn() ? el('option', { value: 'signal' }, '📡 Follow the Signal') : null,
-    ...back.map(p => el('option', { value: 'ret:' + p.num }, (S.home === p.num ? '🏠 Home: ' : '★ Back to ') + nm(p))));
+  exploreSel.replaceChildren(...[el('option', { value: 'random' }, '🚀 A new world'), signalOn() ? el('option', { value: 'signal' }, '📡 Follow the Signal') : null,
+    ...back.map(p => el('option', { value: 'ret:' + p.num }, (S.home === p.num ? '🏠 Home: ' : '★ Back to ') + nm(p)))].filter(Boolean));
   exploreSel.value = S.exploreKind === 'signal' && signalOn() ? 'signal' : returning() ? 'ret:' + S.returnTo : 'random';
 }
 // Travel on picks a star region (more open as you study)
