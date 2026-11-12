@@ -222,7 +222,9 @@ function frameCard(it) { // a frame: a labelled area. Its name is the handle; th
   const sws = el('span', { class: 'sx-frame-sw' }, ...FRAME_INKS.map(k => el('button', { type: 'button', class: 'sx-sw' + ((it.color || 'amber') === k ? ' on' : ''), style: 'background:' + inkOf(k), 'aria-label': k + ' frame', title: k, onclick: () => { deskMark(); it.color = k; save(); drawBoard(); } })));
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Remove the frame (what is in it stays)', title: 'Remove the frame (what is in it stays)', onclick: () => removeOne(it) }, '×');
   return el('div', { class: 'sx-bcard sx-bframe', 'data-id': it.id, style: 'left:' + it.x + 'px;top:' + it.y + 'px;width:' + it.w + 'px;height:' + it.h + 'px;--tilt:0deg;--fc:' + inkOf(it.color || 'amber') },
-    el('div', { class: 'sx-frame-h' }, ...[keyBadge(it), label, sws, x].filter(Boolean)), el('span', { class: 'sx-resize', title: 'Drag to resize' }));
+    el('div', { class: 'sx-frame-h' }, ...[keyBadge(it), label, sws, x].filter(Boolean)),
+    ...['t', 'r', 'b', 'l'].map(k => el('span', { class: 'sx-fe sx-fe-' + k, title: 'Drag to move the frame and what is in it' })), // its edges are handles too
+    el('span', { class: 'sx-resize', title: 'Drag to resize' }));
 }
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);

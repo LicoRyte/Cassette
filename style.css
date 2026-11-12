@@ -1517,3 +1517,44 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 #slRoot[data-clock="paused"] .sx-corner .sx-cmd .btn.sx-tape.go { color: #ffd832; }
 #slRoot .sx-corner .sx-cmd .btn.sx-tape:disabled { color: #293b49; cursor: default; }
 @media (prefers-reduced-motion: reduce) { .sx-tk { transition: none; } #slRoot .sx-corner .sx-cycle.sx-tape-strip .flash { animation: none; } }
+
+/* ---------- the reels (js/ui/tape.js) ---------- */
+.sx-deck { order: 2; display: flex; align-items: center; gap: 12px; }
+.sx-deck .sx-cycle { flex: 1; min-width: 0; }
+.sx-reel { flex: none; width: 34px; height: 34px; color: #ffb762; transition: color .8s; }
+.sx-reel svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.sx-reel .rl-rim { fill: none; stroke: currentColor; stroke-width: 1.6; }
+.sx-reel .rl-pack { fill: #293b49; stroke: #041528; stroke-width: 1; transition: r .4s; }
+.sx-reel .rl-hub circle { fill: #030710; stroke: currentColor; stroke-width: 1.4; }
+.sx-reel .rl-hub path { stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+#slRoot[data-clock="break"] .sx-reel { color: #77d6c1; }
+#slRoot[data-clock="paused"] .sx-reel { color: #ffd832; }
+#slRoot[data-clock="ready"] .sx-reel { color: #6d8a8d; }
+/* the counter: three little wheels */
+.sx-clockonly .sx-tally { display: flex; justify-content: center; align-items: center; gap: 8px; }
+.sx-ctr { display: inline-flex; gap: 2px; padding: 2px; background: #030710; border: 1px solid #293b49; }
+.sx-cw { display: block; width: .78em; height: 1.25em; overflow: hidden; background: #041528; box-shadow: inset 0 3px 3px rgba(0, 0, 0, .55), inset 0 -3px 3px rgba(0, 0, 0, .55); font: 700 15px/1.25 var(--ui); font-variant-numeric: tabular-nums; color: #ffffe4; text-align: center; }
+.sx-cs { display: block; }
+.sx-cs b { display: block; height: 1.25em; font: inherit; }
+.sx-cs.roll { animation: sx-ctr .55s cubic-bezier(.3, 1.4, .5, 1) forwards; }
+@keyframes sx-ctr { from { transform: translateY(0); } to { transform: translateY(-1.25em); } }
+.sx-ctr-l { font: 600 11px var(--ui); letter-spacing: .22em; text-transform: uppercase; color: #6d8a8d; }
+/* ink drying: a fresh stroke is wet and bright for a moment */
+.sx-wet { fill: none; stroke: #ffffe4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; animation: sx-wet 1.4s ease-out forwards; }
+@keyframes sx-wet { from { stroke-opacity: .7; } 30% { stroke-opacity: .4; } to { stroke-opacity: 0; } }
+/* the end of a session: the edges darken and lift, a breath out */
+.sx-vig { position: fixed; inset: 0; z-index: 38; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(3, 7, 16, .55) 80%, rgba(3, 7, 16, .85) 100%); }
+.sx-vig.on { animation: sx-vig 3.2s ease-in-out; }
+@keyframes sx-vig { from { opacity: 0; } 35% { opacity: 1; } to { opacity: 0; } }
+/* frames: grab them by any edge */
+.sx-fe { position: absolute; pointer-events: auto; cursor: grab; --t: calc(16px / var(--cz, 1)); }
+.sx-fe-t, .sx-fe-b { left: 0; right: 0; height: var(--t); }
+.sx-fe-t { top: calc(var(--t) / -2); } .sx-fe-b { bottom: calc(var(--t) / -2); }
+.sx-fe-l, .sx-fe-r { top: 0; bottom: 0; width: var(--t); }
+.sx-fe-l { left: calc(var(--t) / -2); } .sx-fe-r { right: calc(var(--t) / -2); }
+.sx-world .sx-bcard.sx-bframe:has(.sx-fe:hover), .sx-world .sx-bcard.sx-bframe:has(.sx-frame-t:hover) { border-color: var(--fc); }
+.sx-world .sx-bcard.sx-bframe.lift { scale: 1; }
+.sx-bframe .sx-resize { z-index: 2; }
+.sx-frame-t { padding: 5px 12px; }
+@media (prefers-reduced-motion: reduce) { .sx-cs.roll, .sx-wet, .sx-vig.on { animation: none; } }
+#slRoot .sx-deck .sx-cycle { order: 0; } /* (an older rule gave the strip order 2, which put both reels on the left) */

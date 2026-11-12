@@ -52,12 +52,16 @@ function strokeMarks(st) {
   }
   return [];
 }
+let drawWet = null; // the stroke just drawn: { id, i, t }
 // a drawing on the desk: an SVG of its strokes, each with a wide invisible edge so it's easy to grab
 function drawSvg(it, live) {
   const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('class', live ? 'sx-draft' : 'sx-dsvg'); if (!live) { svg.setAttribute('width', Math.max(1, it.w)); svg.setAttribute('height', Math.max(1, it.h)); }
   (it.strokes || []).forEach((st, i) => strokeMarks(st).forEach(mk => {
     if (!live) { const hit = document.createElementNS(NS, 'path'); hit.setAttribute('d', mk.d); hit.setAttribute('class', 'sx-dhit'); hit.setAttribute('stroke-width', Math.max(14, mk.w + 10)); hit.dataset.i = i; svg.append(hit); }
+    if (!live && drawWet && drawWet.id === it.id && drawWet.i === i && performance.now() - drawWet.t < 1400) { // still wet
+      const w = document.createElementNS(NS, 'path'); w.setAttribute('d', mk.d); w.setAttribute('class', 'sx-wet'); w.setAttribute('stroke-width', mk.w * 1.35); w.style.animationDelay = -(performance.now() - drawWet.t) + 'ms'; svg.append(w);
+    }
     const p = document.createElementNS(NS, 'path'); p.setAttribute('d', mk.d); p.setAttribute('class', 'sx-dpath'); p.setAttribute('stroke', inkOf(st.c)); p.setAttribute('stroke-width', mk.w); if (mk.o < 1) p.setAttribute('opacity', mk.o);
     svg.append(p);
   }));

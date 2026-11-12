@@ -67,7 +67,7 @@ function penCommit(st, seed) {
   deskMark();
   if (!it) { it = { id: 'd' + Date.now(), type: 'draw', board: B.cur, x: 0, y: 0, w: 0, h: 0, strokes: [] }; B.items.push(it); }
   drawFit(it, drawAbs(it).concat([st]));
-  drawLast = it.id; drawLastAt = Date.now(); save(); drawBoard();
+  drawLast = it.id; drawLastAt = Date.now(); if (!stillUI()) drawWet = { id: it.id, i: it.strokes.length - 1, t: performance.now() }; save(); drawBoard();
 }
 function penErase(x, y, marked) { // the eraser: whatever stroke is under it goes
   const hit = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('sx-dhit')); if (!hit) return marked;

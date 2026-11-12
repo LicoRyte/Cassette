@@ -1,6 +1,6 @@
 /* Solarist offline support. Every file is fetched fresh when online (so updates show up on the next reload)
    and saved, so the app also works offline. VERSION only needs bumping when this list of files changes. */
-const VERSION = 'solarist-52';
+const VERSION = 'solarist-53';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest', 'expeditions.json',
   'js/world/random.js', 'js/world/text.js', 'content/items.json', 'content/lines.json', 'content/activities.json', 'content/traders.json', 'content/mysteries.json', 'content/wonders.json', 'content/extras.json', 'content/stories.json', 'content/seasons.json', 'content/stories/windtrap.json', 'content/stories/second-solarist.json', 'content/stories/lantern.json', 'content/stories/tidebreak.json', 'content/stories/small-hours.json', 'content/reactions.json', 'js/world/planet-data.js', 'js/world/planet.js', 'js/world/events.js', 'js/world/items.js',

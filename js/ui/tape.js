@@ -55,3 +55,54 @@ function tapeSound() {
   if (b.disabled) return; tapeSound();
   if (!stillUI()) { b.classList.remove('press'); void b.offsetWidth; b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 180); } // (Space presses it too)
 }));
+
+/* ---------- the reels: either side of the strip, turning while the tape runs ---------- */
+// the left one holds what's left of the cycle, the right one what's done; they ease to a stop on pause and spin back on Rewind
+const reelSvg = () => { const s = el('span', { class: 'sx-reel', 'aria-hidden': 'true' });
+  s.innerHTML = '<svg viewBox="-18 -18 36 36"><circle class="rl-rim" r="16.5"/><circle class="rl-pack" r="10"/><g class="rl-hub"><circle r="4.2"/><path d="M0-4.2V-8M3.64 2.1L6.93 4M-3.64 2.1L-6.93 4"/></g></svg>'; return s; }; // (fixed drawing, written here)
+const reelL = reelSvg(), reelR = reelSvg();
+const deck = el('div', { class: 'sx-deck' }); cycleBar.replaceWith(deck); deck.append(reelL, cycleBar, reelR);
+let reelA = 0, reelV = 0, reelRaf = 0, reelProg = 0;
+function reelPacks() { // how much tape sits on each reel
+  const l = 6 + 9 * Math.sqrt(1 - reelProg), r = 6 + 9 * Math.sqrt(reelProg);
+  reelL.querySelector('.rl-pack').setAttribute('r', l.toFixed(2)); reelR.querySelector('.rl-pack').setAttribute('r', r.toFixed(2));
+}
+function reelStep() {
+  reelRaf = 0;
+  const target = running ? 1.6 : 0; reelV += (target - reelV) * (reelV < 0 ? .045 : .06); // degrees a frame: up to speed, or easing down
+  if (Math.abs(reelV) < .01 && !running) { reelV = 0; return; }
+  reelA = (reelA + reelV) % 360;
+  reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + reelA.toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (reelA * 1.3).toFixed(1) + ')');
+  reelRaf = requestAnimationFrame(reelStep);
+}
+const reelGo = () => { if (!stillUI() && !reelRaf) reelRaf = requestAnimationFrame(reelStep); };
+resetB.addEventListener('click', () => { if (!resetB.disabled && !stillUI()) { reelV = -14; reelGo(); } }); // Rewind: a quick spin back
+const drawCycleTape = drawCycle;
+drawCycle = function (pct) {
+  drawCycleTape(pct);
+  const segs = cycleBar.children.length, weights = [...cycleBar.children].map(s => s.classList.contains('fs') ? 3 : s.classList.contains('lb') ? 1.8 : 1), total = weights.reduce((a, b) => a + b, 0);
+  const cur = [...cycleBar.children].findIndex(s => s.classList.contains('now')), done = weights.slice(0, Math.max(0, cur)).reduce((a, b) => a + b, 0) + (cur >= 0 ? weights[cur] * pct / 100 : 0);
+  reelProg = segs ? Math.min(1, done / total) : 0; reelPacks();
+  if (running) reelGo();
+};
+reelPacks();
+
+/* ---------- the counter: today's sessions on three little wheels that roll up ---------- */
+// (tally: the line under the keys, made in js/ui/clock.js)
+const ctrWheels = el('span', { class: 'sx-ctr', 'aria-hidden': 'true' }), ctrLbl = el('span', { class: 'sx-ctr-l' }, 'today');
+const ctrSr = el('span', { class: 'sx-sr' });
+if (tally) tally.replaceChildren(ctrWheels, ctrLbl, ctrSr);
+let ctrLast = null;
+function tapeCounter(n) {
+  if (n === ctrLast) return;
+  const s = String(Math.max(0, n)).padStart(3, '0'), was = ctrLast == null ? null : String(ctrLast).padStart(3, '0'); ctrLast = n; ctrSr.textContent = n + ' sessions today';
+  if (ctrWheels.children.length !== s.length) ctrWheels.replaceChildren(...[...s].map(() => el('span', { class: 'sx-cw' }, el('span', { class: 'sx-cs' }))));
+  [...s].forEach((ch, i) => {
+    const stack = ctrWheels.children[i].firstChild, old = was && was.length === s.length ? was[i] : null;
+    if (old === ch) return;
+    if (old == null || stillUI() || n < (+was)) { stack.replaceChildren(el('b', {}, ch)); stack.classList.remove('roll'); return; }
+    stack.replaceChildren(el('b', {}, old), el('b', {}, ch)); stack.classList.remove('roll'); void stack.offsetWidth; stack.classList.add('roll'); // the wheel turns up one
+    setTimeout(() => { if (stack.lastChild && stack.lastChild.textContent === ch) { stack.replaceChildren(el('b', {}, ch)); stack.classList.remove('roll'); } }, 700);
+  });
+}
+tapeCounter(S.todayN || 0);
