@@ -35,7 +35,7 @@ tab = function (t) {
 };
 function drawStories() {
   const lock = running && mode === 'focus', cur = S.activeStory, list = stories();
-  storiesPane.replaceChildren(
+  storiesPane.replaceChildren(...[ // (replaceChildren would print an empty slot as the word null, so the list is filtered)
     el('p', { class: 'sx-st-lead' }, 'Every study session plays the next episode of the story you\'re playing. Switch whenever you like: each story keeps its own place and remembers your choices.'),
     lock ? el('p', { class: 'sl-muted' }, 'You can switch stories when this study session is over.') : null,
     el('div', { class: 'sx-st-shelf' }, list.map(s => {
@@ -47,7 +47,7 @@ function drawStories() {
         el('p', { class: 'sx-st-place' }, s.place()),
         on ? el('button', { type: 'button', class: 'btn', onclick: () => tab('timer') }, 'Back to it')
           : el('button', { type: 'button', class: 'btn sl-go', disabled: lock || null, onclick: () => { setStory(s.id); tab('timer'); } }, s.done() ? 'Read it again' : started ? 'Continue' : 'Start'));
-    })));
+    }))].filter(Boolean));
 }
 
 /* ---------- the episode reader: after a study session, the story fills the screen, one part at a time ---------- */

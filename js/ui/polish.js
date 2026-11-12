@@ -1,36 +1,34 @@
-/* Solarist: small satisfactions. The timer drawn in chunky pixel digits (the text stays underneath for screen
-   readers), the minute rolling over, a shine along a session bar when it fills, a stamp over the planet when the
+/* Solarist: small satisfactions. The timer's digits filling the panel and fading in as they change (the text stays
+   underneath for screen readers), a shine along a session bar when it fills, a stamp over the planet when the
    story arrives somewhere new, and the first start ending on the Stories page. Reduced motion keeps all of it still. */
 'use strict';
 
 const stillUI = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-/* ---------- the timer in pixel digits ---------- */
-const PIX = { // 5 wide, 7 tall
-  '0': ['01110', '10001', '10001', '10001', '10001', '10001', '01110'], '1': ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
-  '2': ['01110', '10001', '00001', '00010', '00100', '01000', '11111'], '3': ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
-  '4': ['00010', '00110', '01010', '10010', '11111', '00010', '00010'], '5': ['11111', '10000', '11110', '00001', '00001', '10001', '01110'],
-  '6': ['00110', '01000', '10000', '11110', '10001', '10001', '01110'], '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
-  '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], '9': ['01110', '10001', '10001', '01111', '00001', '00010', '01100'],
-  ':': ['0', '0', '1', '0', '1', '0', '0'] };
-const pixTime = el('canvas', { class: 'sx-pixtime', 'aria-hidden': 'true' });
-timeText.after(pixTime); timeText.classList.add('sx-sr');
-let pixLast = '';
-function drawPix() {
-  const t = timeText.textContent || ''; if (t === pixLast) return;
-  const minOld = pixLast.split(':').slice(0, -1).join(':'), minNew = t.split(':').slice(0, -1).join(':');
-  pixLast = t;
-  const glyphs = [...t].map(ch => PIX[ch]).filter(Boolean), w = glyphs.reduce((a, g) => a + g[0].length, 0) + Math.max(0, glyphs.length - 1);
-  pixTime.width = Math.max(1, w); pixTime.height = 7;
-  const g = pixTime.getContext('2d'); g.clearRect(0, 0, pixTime.width, 7); g.fillStyle = '#ffffe4'; // the palette's cream white
-  let x = 0; glyphs.forEach(gl => { gl.forEach((row, y) => [...row].forEach((b, i) => { if (b === '1') g.fillRect(x + i, y, 1, 1); })); x += gl[0].length + 1; });
-  pixTime.style.setProperty('--units', w);
-  if (minOld && minOld !== minNew && !stillUI()) { pixTime.classList.remove('roll'); void pixTime.offsetWidth; pixTime.classList.add('roll'); } // the minute rolls over
+/* ---------- the timer: big digits that fill the panel, each one fading in when it changes ---------- */
+const digits = el('div', { class: 'sx-digits', 'aria-hidden': 'true' });
+timeText.after(digits); timeText.classList.add('sx-sr'); // the plain text stays underneath for screen readers
+let digLast = '';
+let digW = 0; // the panel width the digits were last fitted to
+function fitDigits() { // as big as the panel is wide: measure the digits at 100px, then scale to the panel
+  const w = corner.clientWidth; if (!w) return; digW = w;
+  digits.style.fontSize = '100px'; const k = digits.children; if (!k.length) return;
+  const natural = (k[k.length - 1].getBoundingClientRect().right - k[0].getBoundingClientRect().left) || 1; // the digits themselves, not their box
+  digits.style.fontSize = Math.floor(100 * Math.min(w, 380) / natural) + 'px';
 }
-new MutationObserver(drawPix).observe(timeText, { childList: true, characterData: true, subtree: true });
-// the digits take the timer's colour (green on breaks), so redraw when the mode changes
-new MutationObserver(() => { pixLast = ''; drawPix(); }).observe(root, { attributes: true, attributeFilter: ['data-mode'] });
-drawPix();
+function drawDigits() {
+  if (corner.clientWidth && corner.clientWidth !== digW) fitDigits(); // the panel changed size (or wasn't laid out yet)
+  const t = timeText.textContent || ''; if (t === digLast) return;
+  const old = digLast; digLast = t;
+  if (digits.children.length !== t.length) { digits.replaceChildren(...[...t].map(ch => el('span', { class: ch === ':' ? 'sx-dig sx-colon' : 'sx-dig' }, ch))); fitDigits(); return; }
+  [...t].forEach((ch, i) => { const sp = digits.children[i]; if (sp.textContent === ch) return;
+    sp.textContent = ch; if (!old || stillUI()) return;
+    sp.classList.remove('chg'); void sp.offsetWidth; sp.classList.add('chg'); }); // only the digits that changed fade in
+}
+new MutationObserver(drawDigits).observe(timeText, { childList: true, characterData: true, subtree: true });
+addEventListener('resize', fitDigits);
+drawDigits(); requestAnimationFrame(fitDigits);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitDigits); // once the font has loaded, measure again
 
 /* ---------- a shine along a session bar when it fills ---------- */
 let barsDone = -1;

@@ -1150,11 +1150,14 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 @media (max-width: 600px) { .sx-rdr-in { padding: 20px; } .sx-rdr-b p { font-size: 17px; } }
 /* ---------- polish (js/ui/polish.js) ---------- */
 .sx-sr { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
-/* the timer in pixel digits: one canvas pixel per art pixel, scaled up crisp */
-.sx-pixtime { order: 1; display: block; width: 100%; height: auto; margin: 6px 0 14px; image-rendering: pixelated; }
-.sx-pixtime.roll { animation: sx-roll .32s steps(4) both; }
-@keyframes sx-roll { from { transform: translateY(-8px); opacity: .4; } to { transform: none; opacity: 1; } }
-@media (max-width: 900px) { .sx-pixtime { max-width: 380px; margin-left: auto; margin-right: auto; } }
+/* the timer: big digits in the UI font, as wide as the panel; each one fades in when it changes */
+.sx-digits { order: 1; display: block; width: 100%; margin: 0 0 10px; overflow: hidden; font: 700 100px/.86 var(--ui); font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: #ffffe4; white-space: nowrap; }
+.sx-dig { display: inline-block; }
+.sx-dig.sx-colon { padding: 0 .02em; }
+.sx-dig.chg { animation: sx-dig .45s ease-out both; }
+@keyframes sx-dig { from { opacity: 0; transform: translateY(-.12em); filter: blur(2px); } 60% { opacity: 1; filter: none; } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sx-dig.chg { animation: none; } }
+@media (max-width: 900px) { .sx-digits { max-width: 380px; margin-left: auto; margin-right: auto; } }
 /* a shine along the bar that just filled */
 .sx-cycle[data-shine] > span { overflow: hidden; }
 .sx-cycle[data-shine="1"] > :nth-child(1)::before, .sx-cycle[data-shine="2"] > :nth-child(2)::before, .sx-cycle[data-shine="3"] > :nth-child(3)::before, .sx-cycle[data-shine="4"] > :nth-child(4)::before,
