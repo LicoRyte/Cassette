@@ -62,3 +62,27 @@ if (typeof showAboard === 'function') {
     if (!was && aboardOn) { const wait = () => { if (aboardOn) return setTimeout(wait, 300); tab('stories'); }; setTimeout(wait, 300); }
   };
 }
+
+/* ---------- the clock ticking: once a second while the timer runs, only when Solarist is the window in front ---------- */
+let tickCtx = null, tickBuf = null;
+const tickWanted = () => S.opts.tick !== false && (localStorage.getItem('solarist-sound') !== 'off');
+function tickLoad() { // the browser lets sound start only after you've clicked or pressed a key
+  if (tickCtx || !(window.AudioContext || window.webkitAudioContext)) return;
+  tickCtx = new (window.AudioContext || window.webkitAudioContext)();
+  fetch('sfx/clock-tick.mp3').then(r => r.arrayBuffer()).then(b => tickCtx.decodeAudioData(b)).then(x => { tickBuf = x; }).catch(() => {});
+}
+addEventListener('pointerdown', tickLoad, { once: true }); addEventListener('keydown', tickLoad, { once: true });
+function tickPlay() {
+  if (!tickBuf || !running || !tickWanted() || document.hidden || !document.hasFocus()) return;
+  if (tickCtx.state === 'suspended') tickCtx.resume();
+  const src = tickCtx.createBufferSource(), g = tickCtx.createGain(); src.buffer = tickBuf;
+  g.gain.value = S.opts.tickVol != null ? S.opts.tickVol : .35; src.connect(g); g.connect(tickCtx.destination); src.start();
+}
+let tickLast = '';
+new MutationObserver(() => { const t = timeText.textContent; if (t !== tickLast) { tickLast = t; tickPlay(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
+// Settings: turn it off, or quieter
+{ const box = el('input', { type: 'checkbox', checked: S.opts.tick !== false || null });
+  box.addEventListener('change', () => { S.opts.tick = box.checked; save(); });
+  const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round((S.opts.tickVol != null ? S.opts.tickVol : .35) * 100), 'aria-label': 'Clock tick volume' });
+  vol.addEventListener('input', () => { S.opts.tickVol = vol.value / 100; save(); });
+  settingsPane.append(sec('Clock', el('label', { class: 'sx-check' }, box, ' The clock ticks while a session runs (only when Solarist is the window in front)'), el('label', { class: 'sx-check' }, 'Volume ', vol))); }

@@ -9,3 +9,6 @@ By NightMargin:
 Interface sounds (from the Not-So-Awesome Archive):
   twm_mouse_click.wav   button click
   twm_notif.wav         tabs and options
+
+By virtual_vibes (Pixabay, Pixabay Content License):
+  clock-tick.mp3   the clock ticking while a session runs

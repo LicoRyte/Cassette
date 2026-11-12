@@ -1182,3 +1182,39 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 .sx-v2.sx-lock .sx-top { opacity: .22; }
 .sx-v2.sx-lock .sx-top:hover, .sx-v2.sx-lock .sx-top:focus-within { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .sx-stamp, .sx-st-card, .sx-v2 .sx-top { transition: none; } .sx-rdr-b p { animation: none; } .btn:active:not(:disabled) { transform: none; } }
+
+/* the rail: the chapter or choice is the focus; the report waits behind a button; no session lines under the timer */
+.sx-v2 .sx-corner .sx-cap, .sx-v2 .sx-corner .sl-hint { display: none; }
+.sx-rptbtn { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 10px 14px; text-align: left; background: #030710; border: 1px solid #293b49; color: var(--ink); }
+.sx-rptbtn small { font: 600 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.sx-rptbtn b { font: 600 17px var(--ui); color: var(--amber); }
+.sx-rptbtn-t { font: 13px var(--ui); color: var(--mute); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx-rptbtn:hover:not(:disabled) { border-color: var(--amber); }
+.sx-rptbtn[hidden] { display: none; }
+@media (min-width: 901px) { .sx-v2 .sx-rail .sx-bp-notes { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; } }
+.sx-v2 .sx-rail .sx-bp-notes .sx-choice { min-height: 100%; }
+/* the Board: a cork board of episode cards, tied together with red string */
+.sl-pane:has(.sx-board-wrap), .sx-boardpane { max-width: none; }
+.sx-board-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sx-board-bar select { padding: 6px 8px; background: #030710; border: 1px solid #293b49; color: var(--white); font: 16px var(--ui); }
+.sx-board-wrap { height: calc(100vh - 210px); min-height: 360px; overflow: auto; border: 1px solid #293b49; background: #310c1b; background-image: radial-gradient(#43002a 1px, transparent 1.5px); background-size: 9px 9px; }
+.sx-board { position: relative; width: 2600px; height: 1800px; }
+.sx-strings { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+.sx-string { fill: none; stroke: #d9243c; stroke-width: 2.5; }
+.sx-string-temp { stroke-dasharray: 6 4; }
+.sx-string-hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
+.sx-string-hit:hover + .sx-string, .sx-string-hit:hover { stroke: rgba(255, 216, 50, .35); }
+.sx-bcard { position: absolute; z-index: 1; width: 230px; padding: 18px 14px 14px; background: #ffffe4; color: #030710; transform: rotate(var(--tilt)); box-shadow: 3px 4px 0 rgba(3, 7, 16, .55); cursor: grab; user-select: none; touch-action: none; }
+.sx-bcard.lift { z-index: 3; transform: rotate(0deg) scale(1.03); box-shadow: 6px 9px 0 rgba(3, 7, 16, .5); cursor: grabbing; }
+.sx-bcard small { display: block; font: 600 11px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #6d8a8d; }
+.sx-bcard b { display: block; margin: 2px 0 6px; font: 700 17px/1.2 var(--ui); color: #34111f; }
+.sx-bcard p { margin: 0; font: 13px/1.5 var(--text); color: #293b49; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.sx-bcard.open { z-index: 4; width: 380px; }
+.sx-bcard.open p { -webkit-line-clamp: unset; display: block; }
+.sx-pin { position: absolute; left: 50%; top: 4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #d9243c; box-shadow: inset -3px -3px 0 #890027, 0 2px 0 rgba(3, 7, 16, .5); cursor: crosshair; z-index: 3; }
+.sx-pin:hover { background: #ff6157; }
+.sx-bnote { background: #ffd832; width: 200px; min-height: 120px; }
+.sx-note-t { min-height: 80px; outline: none; font: 15px/1.5 var(--ui); color: #34111f; cursor: text; user-select: text; white-space: pre-wrap; }
+.sx-note-t:empty::before { content: 'Write something...'; color: #c76e46; }
+.sx-bnote-x { position: absolute; right: 4px; top: 2px; width: 22px; height: 22px; padding: 0; border: 0; background: none; color: #73392e; font: 18px/1 var(--ui); cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .sx-bcard.lift { transform: rotate(0deg); } }

@@ -381,8 +381,7 @@ vec3 surf(vec3 n, vec2 fc, out float glow, out vec3 pB){
     } else { // rocky, dry and icy worlds: rolling ground in the world's colours, craters where there's no air
       float t = (1. - h) * 3.2 - .4 + (det - .5) * .7;
       col = ramp4(pc[0], pc[1], pc[2], pc[3], t, bd);
-      if (fClouds < .5 && fIce < .5){ float cr = craterV(sp * 2.4);
-        if (cr < 1.) col = ramp4(pc[0], pc[1], pc[2], pc[3], t + (cr < .72 ? .9 : -.8), bd); }
+      // (no craters: the noise is the texture)
       if (fIce > .5 && abs(lat) > .74 - det * .1) col = SNOW;
     }
   }

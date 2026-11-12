@@ -14,12 +14,18 @@ headline = function () {
   return (running ? 'Now: ' : 'Next: ') + s.line();
 };
 // the rail under the timer on breaks: what happened, then whatever the story left you (a choice, the signal, the door)
+// the rail under the timer: the story's own panel (the chapter, a choice, the signal) is the thing to look at;
+// the last session's report waits behind a button, and opens full screen in the reader
+const reportOpen = el('button', { type: 'button', class: 'btn sx-rptbtn', onclick: () => openEpisodeReader(true) });
+bpNotes.before(reportOpen);
 drawBreak = function () {
   const lock = running && mode === 'focus', bits = activeStory().notes(lock) || [];
   bpNotes.replaceChildren(...(bits.length ? [el('div', { class: 'sx-note sx-choice' }, ...bits)] : []));
   bpNotes.hidden = !bits.length || lock;
-  const empty = trans.hidden && card.hidden && encBox.hidden;
-  bpStoryH.hidden = bpStory.hidden = storyPanel.hidden = empty;
+  storyPanel.hidden = true;
+  const head = trans.querySelector('.sl-trans-h, .sx-camp-h'), has = !trans.hidden && !!head;
+  reportOpen.hidden = !has || lock;
+  reportOpen.replaceChildren(el('small', {}, 'Last session'), el('b', {}, 'Read the report'), el('span', { class: 'sx-rptbtn-t' }, has ? (head.matches('.sx-camp-h') ? [...head.children].map(x => x.textContent.trim()).join(' · ') : head.textContent.trim()) : ''));
 };
 
 /* ---------- the Stories page ---------- */
@@ -53,8 +59,8 @@ function drawStories() {
 /* ---------- the episode reader: after a study session, the story fills the screen, one part at a time ---------- */
 if (!S.opts) S.opts = {};
 let rdrOn = false;
-function openEpisodeReader() {
-  if (rdrOn || S.opts.reader === false) return;
+function openEpisodeReader(force) {
+  if (rdrOn || (S.opts.reader === false && !force)) return;
   const head = n => { const a = n.querySelector('.sl-trans-h'); if (a) return a.textContent.trim(); const b = n.querySelector('.sx-camp-h'); return b ? [...b.children].map(x => x.textContent.trim()).join(' · ') : ''; };
   const parts = [...trans.querySelectorAll('.sl-trans-i')].map(n => ({ h: head(n), camp: n.classList.contains('sx-camp'), ps: [...n.querySelectorAll('p')].map(p => ({ t: p.textContent, got: p.classList.contains('sl-ev-got') })) })).filter(x => x.ps.length);
   if (!parts.length) return;
