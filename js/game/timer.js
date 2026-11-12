@@ -37,15 +37,10 @@ function finish(quiet) {
     // the story: the next episode of the season (js/game/season.js). It may take the ship to a new world first
     let foundP = null;
     const then = () => ' Now a ' + MODES[mode].toLowerCase() + '.';
-    const st = seasonStep(reps);
-    if (st.travel) {
-      const p = makePlanet((Math.random() * 4294967296) >>> 0, S.nextNum++, false, .05, regionNow());
-      p.visit = 'none'; S.found.push({ at: Date.now(), p }); S.at = p.num; S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1;
-      foundP = p;
-    }
-    const msg = st.after ? st.after() : '';
-    done('', foundP, foundP ? 'new' : 'log');
-    hint.textContent = (foundP ? 'Arrived at ' + nm(foundP) + '. ' : '') + msg + then();
+    const r = activeStory().play(reps) || {}; // the next episode of the story you're playing (js/game/campaign.js)
+    foundP = r.p || null;
+    done('', foundP, r.how || (foundP ? 'new' : 'log'));
+    hint.textContent = (foundP ? 'Arrived at ' + nm(foundP) + '. ' : '') + (r.msg || '') + then();
     const ev = null;
     sessionEnd(reps, foundP, ev);
     learnAsk(true); openReport();
@@ -101,7 +96,7 @@ function draw() {
   root.dataset.mode = mode;
   modeBtns.forEach(b => { const on = b.dataset.m === mode; b.classList.toggle('on', on); b.disabled = running && !on; });
   startB.textContent = running ? 'Pause' : (left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? (returning() ? 'Head back' : observing() ? 'Observe' : expediting() ? (exOf(atP()).step ? 'Continue' : 'Set out') : salvaging() ? 'Salvage' : staying() ? 'Stay' : chaptering() ? 'Continue the chapter' : following() ? 'Follow the Signal' : expediting() ? (exOf(atP()).step ? 'Continue' : 'Set out') : salvaging() ? 'Salvage' : 'Launch') : 'Start break');
-  if (!hint.textContent) hint.textContent = mode === 'focus' ? (returning() ? '🏠 Finish this session to travel back to ' + nm(byNum(S.returnTo).p) + '.' : observing() ? '🔎 Finish this session to observe ' + mysDef(mysPicked().id).title.charAt(0).toLowerCase() + mysDef(mysPicked().id).title.slice(1) + '.' : staying() ? stayAct().ic + ' Finish this session to ' + stayAct().name.toLowerCase() + ' on ' + nm(atP()) + '.' : expediting() ? (gasWorld(atP()) ? '🎈 ' : '🗺 ') + 'Finish this session for the ' + EX_PARTS[exOf(atP()).step].toLowerCase() + ' part of the expedition on ' + nm(atP()) + ' (' + (exOf(atP()).step + 1) + ' of ' + EX_LEN + '). It charts a Point of Interest.' : salvaging() ? '🛸 Finish this session to salvage ' + atP().derelict.ship + '.' : chaptering() ? '📡 Finish this session for chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1) + ' of ' + ST_LEGS + ' on ' + nm(atP()) + '.' : following() ? '📡 ' + signalText() : 'Finish a trip (a study session) to discover a new world.') : 'Break time. The crew is getting the gear ready for the next mission.';
+  if (!hint.textContent) hint.textContent = mode === 'focus' ? 'Finish this study session to play the next episode of ' + activeStory().title + '.' : 'Break time. Read what happened, stretch, drink some water.'; // the story is the reward
   // a mission whose reason is gone (the world changed, or it's finished) falls back to Explore
   if (S.mission > 0 || [-1, -2, -5, -6].includes(S.mission)) S.mission = 0; // missions that no longer exist
   if (S.mission === -3 && !chaptering()) S.mission = 0;

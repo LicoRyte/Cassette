@@ -1,0 +1,105 @@
+{
+  "campaign": {
+    "id": "small-hours",
+    "title": "Small Hours",
+    "themes": [
+      "rest",
+      "small joys"
+    ],
+    "loop": true,
+    "hook": "Nothing much happens. A kettle breaks. Somebody has a birthday. It rains on the hull. Standalone moments aboard, for when you want something quiet, or between stories.",
+    "worlds": {},
+    "seasons": [
+      {
+        "title": "Small Hours",
+        "episodes": [
+          {
+            "title": "The kettle",
+            "text": [
+              "The kettle breaks. It has been making the ship's tea for longer than anyone aboard has been alive, and this morning it simply stops.",
+              "Nobody says anything for a moment. Then {Crew} takes it apart on the galley table, with tiny screwdrivers and enormous patience, while everyone else makes tea in a saucepan, which is wrong in every possible way.",
+              "By evening, the kettle works again. It whistles a slightly different note now. Everyone agrees it suits it."
+            ]
+          },
+          {
+            "title": "Rain on the hull",
+            "text": [
+              "The ship parks in the clouds of a gas giant for the night, and it rains: real rain, made of something warm, drumming on the hull.",
+              "Everyone ends up in the galley with blankets, not talking much, listening to it. {Crew} falls asleep sitting up. Nobody wakes {crew.them}."
+            ]
+          },
+          {
+            "title": "A birthday",
+            "text": [
+              "It is {Crew}'s birthday, and {crew.they} {crew:hasn't|haven't} told anyone, and somehow everyone knows anyway.",
+              "There is a cake, slightly lopsided. There are candles, slightly too many. There is a song, slightly out of tune. {Crew} pretends to be embarrassed and is not embarrassed at all."
+            ]
+          },
+          {
+            "title": "The lost sock",
+            "text": [
+              "A single sock has been found in the engine room. Nobody will claim it.",
+              "A full investigation takes the whole session. Suspects are interviewed. Alibis are checked. The sock is examined under the microscope. In the end, the case is closed without a culprit, and the sock is given a place of honour on the galley wall."
+            ]
+          },
+          {
+            "title": "Letters",
+            "text": [
+              "A mail drone catches up with the ship, three months late, with a small bundle of letters.",
+              "Everyone takes theirs to a quiet corner. For a while the ship is very still. Somebody laughs out loud at something. Somebody sniffs. {Crew} reads {crew.their} letter four times and then puts it under {crew.their} pillow."
+            ]
+          },
+          {
+            "title": "Bread",
+            "text": [
+              "{Crew} decides to bake bread, properly, from scratch, for the first time.",
+              "It takes all session: mixing, kneading, waiting, worrying, waiting more. The whole ship starts to smell like a kitchen on a winter morning. When it comes out of the oven it is dense and slightly burnt and absolutely the best thing anyone has eaten in weeks."
+            ]
+          },
+          {
+            "title": "The window seat",
+            "text": [
+              "There is one good window seat on the ship, and today, for once, nobody is in it.",
+              "{Crew} takes it with a book and a blanket and a cup of tea, and watches the stars go by, and reads three pages in the whole session, and is completely happy."
+            ]
+          },
+          {
+            "title": "Snow in orbit",
+            "text": [
+              "The ship passes through the tail of an icy comet, and for an hour the windows are full of snow: tiny bright flakes of ice drifting past in the dark.",
+              "Everybody presses their faces to the glass like children. {Crew} draws a snowflake on the window in the fog of {crew.their} breath."
+            ]
+          },
+          {
+            "title": "Mending",
+            "text": [
+              "Everybody brings out the things that need mending: a torn sleeve, a loose button, a jumper with a hole in the elbow. They sit in a circle in the galley and mend together, and talk about nothing, and it takes all session.",
+              "Afterwards, everything is a little bit more patched, and everyone is a little bit closer."
+            ]
+          },
+          {
+            "title": "Stargazing",
+            "text": [
+              "The ship's lights go off for one hour, on purpose, and everybody lies on the floor of the observation deck in the dark.",
+              "There are so many stars it is almost loud. {Crew} points out a constellation {crew.they} {crew:has|have} made up, and explains it in great detail, and by the end everybody can see it."
+            ]
+          },
+          {
+            "title": "The plant",
+            "text": [
+              "The little plant on the galley windowsill has flowered. Just one flower, tiny and pale and smelling faintly of somewhere nobody has been.",
+              "Nobody remembers who planted it. Everybody takes credit. {Crew} waters it twice that evening, just to be sure."
+            ]
+          },
+          {
+            "title": "A quiet day",
+            "text": [
+              "Nothing happens today. The ship hums. The stars go by. Somebody hums along with the ship. Meals are eaten. Books are read. Nobody needs anything.",
+              "At the end of it, {Crew} writes one line in the ship's log: \"A good day.\" It is the whole entry."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

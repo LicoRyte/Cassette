@@ -119,7 +119,7 @@ function showTrans(list) {
   if (!list || !list.length) { trans.hidden = true; trans.replaceChildren(); return; }
   trans.hidden = false;
   trans.replaceChildren(...list.map(({ p, rep, passive, ev, notes, story: sy }) => sy ? storyBlock(sy.ch, sy.leg, sy.pick, sy.got, sy.signal) : notes ? el('div', { class: 'sl-trans-i sl-notes' }, notes.map(t => el('p', {}, t))) : ev ? el('div', { class: 'sl-trans-i sl-event' },
-      el('div', { class: 'sl-trans-h' }, el('span', { class: 'sl-ev-i' }, ev.ic), (ev.battle ? ' ' : ' Deep-space event: ') + ev.title), el('p', {}, ev.t), ev.got ? el('p', { class: 'sl-ev-got' }, ev.got) : null)
+      el('div', { class: 'sl-trans-h' }, el('span', { class: 'sl-ev-i' }, ev.ic), (ev.battle ? ' ' : ' Deep-space event: ') + ev.title), ...String(ev.t).split('\n\n').map(x => el('p', {}, x)), ev.got ? el('p', { class: 'sl-ev-got' }, ev.got) : null)
     : el('div', { class: 'sl-trans-i' },
     el('div', { class: 'sl-trans-h' }, el('img', { src: satSprite(), alt: '' }), (passive ? ' Overheard from ' : ' Transmission from ') + nm(p) + ' · Day ' + rep.day), el('p', {}, rep.t))));
 }

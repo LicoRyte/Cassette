@@ -1123,3 +1123,59 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 .sx-choice-o { display: flex; flex-direction: column; gap: 6px; }
 .sx-choice-o .btn { width: 100%; padding: 8px 10px; text-align: left; font-size: 16px; }
 @media (min-width: 901px) { .sx-v2 .sx-rail .sx-storyp { flex: 1 1 auto; min-height: 120px; } } /* the story gets the room; the choice sits under it */
+
+/* the Stories page: a shelf of story cards */
+.sx-st-lead { margin: 0; font: 16px/1.5 var(--ui); color: var(--ink); max-width: 760px; }
+.sx-st-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.sx-st-card { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px 18px; background: #030710; border: 1px solid #293b49; border-top: 2px solid #293b49; }
+.sx-st-card.on { border-top-color: var(--amber); }
+.sx-st-card.done { border-top-color: #458239; }
+.sx-st-card h3 { margin: 0; font: 700 26px/1.1 var(--ui); color: var(--white); }
+.sx-st-hook { margin: 0; font: 15px/1.6 var(--text); color: #bfc3c6; flex: 1; }
+.sx-st-th { margin: 0; font: 600 12px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #ff88a9; }
+.sx-st-place { margin: 0; font: 14px var(--ui); color: var(--mute); }
+.sx-st-card .btn { align-self: flex-start; min-width: 140px; }
+/* the episode reader */
+.sx-rdr { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px; background: rgba(3, 7, 16, .9); opacity: 0; transition: opacity .3s; }
+.sx-rdr.on { opacity: 1; }
+.sx-rdr-in { width: min(720px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 28px 32px; background: #030710; border: 1px solid #293b49; border-top: 2px solid var(--amber); }
+.sx-rdr-k { font: 600 13px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+.sx-rdr-h { margin: 0; font: 700 30px/1.15 var(--ui); color: var(--white); }
+.sx-rdr-b { display: flex; flex-direction: column; gap: 14px; min-height: 120px; }
+.sx-rdr-b p { margin: 0; font: 19px/1.7 var(--text); color: #ffffe4; }
+.sx-rdr-b p.sx-rdr-got { font: 600 16px var(--ui); color: #9cb93b; }
+.sx-rdr-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 6px; }
+.sx-rdr-nav .btn { min-width: 170px; }
+@media (prefers-reduced-motion: reduce) { .sx-rdr { transition: none; } }
+@media (max-width: 600px) { .sx-rdr-in { padding: 20px; } .sx-rdr-b p { font-size: 17px; } }
+/* ---------- polish (js/ui/polish.js) ---------- */
+.sx-sr { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+/* the timer in pixel digits: one canvas pixel per art pixel, scaled up crisp */
+.sx-pixtime { order: 1; display: block; width: 100%; height: auto; margin: 6px 0 14px; image-rendering: pixelated; }
+.sx-pixtime.roll { animation: sx-roll .32s steps(4) both; }
+@keyframes sx-roll { from { transform: translateY(-8px); opacity: .4; } to { transform: none; opacity: 1; } }
+@media (max-width: 900px) { .sx-pixtime { max-width: 380px; margin-left: auto; margin-right: auto; } }
+/* a shine along the bar that just filled */
+.sx-cycle[data-shine] > span { overflow: hidden; }
+.sx-cycle[data-shine="1"] > :nth-child(1)::before, .sx-cycle[data-shine="2"] > :nth-child(2)::before, .sx-cycle[data-shine="3"] > :nth-child(3)::before, .sx-cycle[data-shine="4"] > :nth-child(4)::before,
+.sx-cycle[data-shine="5"] > :nth-child(5)::before, .sx-cycle[data-shine="6"] > :nth-child(6)::before, .sx-cycle[data-shine="7"] > :nth-child(7)::before, .sx-cycle[data-shine="8"] > :nth-child(8)::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -30%; width: 30%; z-index: 1; background: #ffd832; animation: sx-shine 1s steps(10) forwards; }
+@keyframes sx-shine { to { left: 110%; } }
+/* the arrival stamp */
+.sx-stamp { position: fixed; z-index: 7; left: 50%; top: auto; bottom: 9%; transform: translate(-50%, -12px) rotate(-3deg); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 26px 12px; background: #030710; border: 2px solid var(--amber); box-shadow: 0 0 0 4px #030710; opacity: 0; transition: opacity .35s, transform .35s; pointer-events: none; }
+.sx-stamp.on { opacity: 1; transform: translate(-50%, 0) rotate(-3deg); }
+.sx-stamp small { font: 600 12px var(--ui); letter-spacing: .18em; text-transform: uppercase; color: var(--amber); }
+.sx-stamp b { font: 700 30px/1.1 var(--ui); color: var(--white); }
+.sx-stamp span { font: 14px var(--ui); color: var(--mute); }
+@media (min-width: 901px) { .sx-stamp { left: calc(50% + 192px); } }
+/* buttons press in; pages and cards move a little */
+.btn:active:not(:disabled) { transform: translateY(2px); }
+.sx-rdr-b p { animation: sx-fadein .35s ease-out both; }
+.sx-rdr-b p:nth-child(2) { animation-delay: .05s; } .sx-rdr-b p:nth-child(3) { animation-delay: .1s; }
+.sx-st-card { transition: transform .15s ease-out, border-color .15s; }
+.sx-st-card:hover { transform: translateY(-3px); border-color: #6d8a8d; }
+/* while you study, the top bar fades back: the planet and the timer are everything */
+.sx-v2 .sx-top { transition: opacity .6s; }
+.sx-v2.sx-lock .sx-top { opacity: .22; }
+.sx-v2.sx-lock .sx-top:hover, .sx-v2.sx-lock .sx-top:focus-within { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .sx-stamp, .sx-st-card, .sx-v2 .sx-top { transition: none; } .sx-rdr-b p { animation: none; } .btn:active:not(:disabled) { transform: none; } }

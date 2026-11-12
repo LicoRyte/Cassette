@@ -601,7 +601,7 @@ void main(){
   function drawExtras(now, cx, cy, rad, r) {
     const p = info.planet, sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running, still = reduceMotion.matches, t = now / 1000;
     // the planet's own sun, up and to the left where the light comes from
-    if (p && !sil && p.type !== 'Rogue') {
+    if (p && !sil && p.type !== 'Rogue' && !/^none/.test(p.star || '')) { // (a world with no sun gets none drawn)
       const sx = bigView ? r.left / PX + Math.max(14, r.width / PX * .12) : cx - rad * .98, sy = bigView ? r.top / PX + Math.max(14, r.height / PX * .14) : Math.max(r.top / PX + 10, cy - rad * .88), c = STAR_C[p.star] || '#ffdaac'; // near the planet, where its light comes from
       const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
       // a dithered pixel glow around the sun: bigger for giants, a soft breathing pulse, a strong one for pulsars

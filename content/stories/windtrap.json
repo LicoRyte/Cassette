@@ -1,0 +1,627 @@
+{
+  "campaign": {
+    "id": "windtrap",
+    "title": "The Windtrap Project",
+    "themes": [
+      "the beauty of invention",
+      "nature",
+      "horror",
+      "determination"
+    ],
+    "hook": "Twelve cathedral-sized machines stand silent in the dunes of Aridel, built to wring water from the wind. The last engineer wants help to start them again. Sixty years ago, the people who built them vanished.",
+    "worlds": {
+      "aridel-dry": {
+        "name": "Aridel",
+        "type": "Desert",
+        "star": "orange dwarf",
+        "clouds": false,
+        "pal": [
+          "#ffdaac",
+          "#eb9c6e",
+          "#c76e46",
+          "#73392e"
+        ],
+        "desc": "A desert world of copper dunes under an orange sun. Twelve great machines stand half buried in the sand, silent for sixty years."
+      },
+      "aridel-green": {
+        "name": "Aridel",
+        "type": "Savanna",
+        "star": "orange dwarf",
+        "clouds": true,
+        "pal": [
+          "#77d6c1",
+          "#1c92a7",
+          "#033e5e",
+          "#041528"
+        ],
+        "land": [
+          "#9cb93b",
+          "#c76e46"
+        ],
+        "desc": "Aridel again, changed: a green line runs around the world where the windtraps breathe, and there is water where there was none."
+      },
+      "kessa": {
+        "name": "Kessa",
+        "type": "Rocky",
+        "star": "orange dwarf",
+        "pal": [
+          "#bfc3c6",
+          "#6d8a8d",
+          "#293b49",
+          "#041528"
+        ],
+        "desc": "Aridel's small grey moon. The Collective kept their workshop here, high above the sand, where they could see the whole ring of traps at once."
+      },
+      "aridel-storm": {
+        "name": "Aridel",
+        "type": "Desert",
+        "star": "orange dwarf",
+        "clouds": true,
+        "pal": [
+          "#eb9c6e",
+          "#c76e46",
+          "#833f34",
+          "#310c1b"
+        ],
+        "land": [
+          "#9cb93b",
+          "#73392e"
+        ],
+        "desc": "Aridel in storm season. A wall of dust taller than mountains circles the world, and it is turning towards the green."
+      }
+    },
+    "seasons": [
+      {
+        "title": "Dry Season",
+        "episodes": [
+          {
+            "title": "Hands, not tourists",
+            "text": [
+              "The message is three lines long. \"Windtrap Project, Aridel. Need hands. Not tourists. Paying in water, which is worth more than money down here.\" It is signed Oda Vey.",
+              "{World} is copper dunes from one horizon to the other. On the edge of the landing field stands the first windtrap: a ribbed brass tower the height of a cathedral, half drowned in sand, its great vents shut like sleeping eyes.",
+              "A small, sunburnt woman is sitting on a crate in front of it with something long over her shoulder. It turns out to be a wrench. \"You're late,\" says Oda Vey. \"Good. I hate early people.\""
+            ],
+            "world": "aridel-dry"
+          },
+          {
+            "title": "Trap Nine",
+            "text": [
+              "Inside, the windtrap is a cathedral built for wind. Bellows the size of houses hang in the dark like folded wings. Copper pipes climb the walls in hundreds, from thick as a body to thin as a finger, and every single one is engraved with tiny leaves.",
+              "\"The Collective built twelve of these,\" Oda says. \"Wind comes in hot and dry. The coils freeze it. It gives up its water, every drop it was hiding.\" She runs her thumb over the leaves. \"They engraved every pipe. Nobody would ever see. They did it anyway.\"",
+              "{Crew} stands under the great bellows and doesn't say anything for a long time. Some things are beautiful just because somebody loved making them."
+            ],
+            "choice": {
+              "prompt": "Oda has been alone out here for years. Ask her why she stayed, or get straight to work?",
+              "options": [
+                {
+                  "label": "Ask why she stayed",
+                  "flag": "listened",
+                  "reply": "Oda is quiet for so long you think she won't answer. \"My mother was the youngest engineer in the Collective,\" she says at last. \"Everyone else went. She stayed and waited for them. Now I'm waiting too, I suppose. Hand me that spanner.\""
+                },
+                {
+                  "label": "Get to work",
+                  "flag": "pressed",
+                  "reply": "Oda grins for the first time. \"Finally. Somebody who understands.\" She points you at a wall of seized valves. By dusk your hands are black and she has started calling the crew by their names."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The cold coils",
+            "text": [
+              "The heart of the trap is the cold coils: a spiral of glass and silver that drinks the heat out of the wind. Sixty years of sand have packed it solid.",
+              {
+                "text": "Oda talks while she works, now. About her mother. About the Collective's songs, which they sang to keep time while they built. She hums one, badly, and {Crew} learns it by the end of the day.",
+                "when": {
+                  "flags.listened": "yes"
+                }
+              },
+              {
+                "text": "Oda works like a machine herself, fast and sure and quiet, and only stops to show the crew a better way to hold a file. By the end of the day the coils are clear of sand.",
+                "when": {
+                  "flags.pressed": "yes"
+                }
+              },
+              "Under the sand the glass is perfect. Not one crack in sixty years. \"They built it to last,\" Oda says. \"They just didn't.\""
+            ],
+            "choice": {
+              "prompt": "The last coil is stuck fast. Work it free slowly, or force it with the ship's winch?",
+              "options": [
+                {
+                  "label": "Slowly, by hand",
+                  "flag": "careful",
+                  "reply": "It takes the whole night and every hand. At dawn the coil turns, smooth as silk, and not a single leaf of engraving is scratched. Oda looks at you differently after that."
+                },
+                {
+                  "label": "Force it with the winch",
+                  "flag": "bold",
+                  "reply": "The winch screams. Something deep in the trap goes bang. Then the coil turns, and Oda laughs so hard she has to sit down. \"That,\" she says, \"is exactly what my mother would have done.\""
+                }
+              ]
+            }
+          },
+          {
+            "title": "The water-sellers",
+            "text": [
+              "Two sand-skiffs come gliding over the dunes at noon, their sails painted with blue circles: water-sellers. A tall, slow man called Teodor Sahl, and his daughter Ivi, who is about twelve and wants to see everything at once.",
+              "Teodor sells water from deep wells, by the cup. He looks up at the windtrap for a long time. \"Last time the traps ran,\" he says, \"people went missing. My grandmother saw it.\" Oda tells him exactly where he can put his grandmother's stories.",
+              "Ivi, meanwhile, has climbed halfway up the trap's outside ladder before anyone notices, and is waving at {Crew} from forty metres up."
+            ]
+          },
+          {
+            "title": "First breath",
+            "text": [
+              "Oda pulls the great lever with both hands and all her weight.",
+              "Nothing. Then, from somewhere far below, a creak like a ship turning in harbour. The bellows unfold. Slowly, slowly, they fill, and the whole tower breathes in, a long hot desert breath, and every one of the hundreds of pipes sings at once.",
+              "It is not music, exactly. It is wind, given shape. {Crew} feels it in {crew.their} chest. Outside, Ivi Sahl has stopped on the dune with her hands over her ears and her mouth open in delight.",
+              {
+                "text": "Deep in the trap the coil the winch forced gives a small complaining knock, every breath. Oda says that's just its personality now.",
+                "when": {
+                  "flags.bold": "yes"
+                }
+              }
+            ]
+          },
+          {
+            "title": "Water",
+            "text": [
+              "For a whole day the trap breathes and nothing happens. Oda doesn't sleep. She sits by the cistern with a lamp and watches the dry spout.",
+              "Just before dawn: one drop. It hangs on the lip of the spout, catches the lamp, and falls. Then another. Then a thin silver thread, and then a stream, singing into a cistern that has been dry for sixty years.",
+              "Oda puts her face in her hands. She says it's the sand in her eyes. Everybody agrees that there is a lot of sand around today. The crew drinks the first cup together, passed hand to hand. It tastes of nothing at all, which is the best taste in the world."
+            ]
+          },
+          {
+            "title": "Handprints",
+            "text": [
+              "At night {Crew} goes to check the condensation shafts: tall glass tubes where the water runs down from the coils, lit from inside by the trap's little lamps.",
+              "On the inside of the glass, in the beading water, there are handprints. Small ones. Smaller than a child's. Dozens of them, pressed up against the glass, as if something had been looking out.",
+              "{Crew} goes to fetch Oda. When they come back, the prints have run into streaks. \"Condensation,\" Oda says, too quickly. \"It makes patterns.\" She doesn't look at the glass again."
+            ],
+            "choice": {
+              "prompt": "There is a service hatch at the bottom of the shaft. Seal it, or open it and look inside?",
+              "options": [
+                {
+                  "label": "Seal it shut",
+                  "flag": "sealed",
+                  "reply": "You bolt the hatch and weld the seam for good measure. Oda nods once and says nothing. In the night, very faintly, the crew on watch hears something tap on the other side, twice, politely."
+                },
+                {
+                  "label": "Open it and look",
+                  "flag": "opened",
+                  "reply": "The hatch opens on wet dark and the smell of rain. Nothing in there but water running down the glass. And, on the floor of the shaft, a tiny pile of smooth stones, arranged in a spiral, like a gift."
+                }
+              ]
+            }
+          },
+          {
+            "title": "Rain",
+            "text": [
+              "The trap breathes for three days and three nights. On the third evening, clouds begin to gather above it: small ones at first, then a whole grey shoulder of cloud, sitting over the trap like a hen on an egg.",
+              "It rains on {world}. For the first time in sixty years, it rains, for one whole night. It rattles on the hull of {ship} and hisses on the hot dunes, and the air smells so green it is almost a colour.",
+              "Teodor Sahl stands in it with his face turned up and his eyes closed. Ivi dances in the rain until she falls over, and then lies in a puddle laughing. Even Oda comes out, with a cup, and holds it up to catch the rain, and drinks."
+            ]
+          },
+          {
+            "title": "Teodor's warning",
+            "text": [
+              "The morning after the rain, Teodor finds {Crew} alone and tells the whole story, quietly, like something he has been carrying a long time.",
+              "\"The Collective vanished the season the traps ran best. My grandmother watched from the wells. At night she saw lights walking in the dunes. Hundreds of them, small, all going towards the traps. In the morning the engineers were gone. Their boots were still by the doors.\"",
+              "\"I don't know what happened,\" he says. \"Nobody does. But it happened when there was water. And now there is water again.\""
+            ],
+            "choice": {
+              "prompt": "Tell Oda what Teodor said, or keep it between you for now?",
+              "options": [
+                {
+                  "label": "Tell Oda",
+                  "flag": "told",
+                  "reply": "Oda listens to all of it without interrupting, which is a first. Then she says, \"My mother's boots were by the door too.\" She goes back to work. But that night she sleeps in the ship instead of the trap."
+                },
+                {
+                  "label": "Keep it to yourselves",
+                  "flag": "kept",
+                  "reply": "You keep it. It sits heavy in the galley over dinner. Oda notices something is wrong and pretends not to, which is almost worse."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The end of the dry season",
+            "text": [
+              "In the morning there is green on {world}. Tiny shoots, thin as threads, in a perfect ring around the windtrap, as far as the rain fell.",
+              "Oda walks the ring twice, very slowly, stepping carefully over each shoot. \"Eleven more traps,\" she says. \"We start the next one tomorrow.\" She doesn't ask if the crew is staying. She already knows.",
+              {
+                "text": "By the condensation shaft, the welded hatch is still shut. But on the outside of the glass now, in the morning dew, there are small handprints. As if something had come out another way, and wanted you to know.",
+                "when": {
+                  "flags.sealed": "yes"
+                }
+              },
+              {
+                "text": "By the open hatch, the spiral of stones has grown in the night. There are more of them now, and at its centre, a single green shoot, carefully planted.",
+                "when": {
+                  "flags.opened": "yes"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "The Green Line",
+        "episodes": [
+          {
+            "title": "Aridel, after",
+            "text": [
+              "Weeks pass. Three more traps breathe. From orbit, {world} has changed: a green line runs around its middle where the traps stand, bright as a ribbon on a parcel, and there are clouds again, real ones, drifting.",
+              "The crew comes down into air that smells of wet earth. Where the landing field was dust, there is short soft grass. Oda is waiting on her crate. She has a hat now, made by Ivi from reeds, and she is wearing it without complaining.",
+              {
+                "text": "\"Four traps,\" Oda says. \"Eight to go. And you look like you've been reading my mother's songbook.\" She has been teaching the crew the Collective's working songs. Half the ship hums them now.",
+                "when": {
+                  "flags.listened": "yes"
+                }
+              },
+              {
+                "text": "\"Four traps,\" Oda says. \"Eight to go. Stop gawping at the grass, it's just grass.\" She is gawping at it too.",
+                "when": {
+                  "flags.pressed": "yes"
+                }
+              }
+            ],
+            "world": "aridel-green"
+          },
+          {
+            "title": "Too fast",
+            "text": [
+              "Grass, then reeds, then trees. In a month the green line has grown a forest that was never planted: tall pale trunks with silver leaves that turn to follow the wind.",
+              "The Sahls' deep wells have filled to the brim. Ivi is delighted. She has started a garden, and a pet beetle the size of a shoe, and a list of names for every new kind of plant. Teodor walks under the silver trees with his hands in his pockets, looking up, saying nothing.",
+              "\"It's too fast,\" he says finally, to {Crew}. \"Things don't grow like this. Not on their own.\""
+            ]
+          },
+          {
+            "title": "Trap Four",
+            "text": [
+              "The fourth trap stands alone far to the north, at the end of a valley of new reeds. Inside, in a workroom behind the bellows, the crew finds what Oda has been looking for all her life: the Collective's logs. A whole shelf of them, in waterproof cases.",
+              "The first one is by an engineer called Pell, and it is mostly about lunch. But near the end there is a page that just says: \"The little ones were in the shafts again tonight. Ama says not to feed them. I fed them. They seem to like copper filings and old songs.\"",
+              "Oda reads it four times. \"Ama was my mother,\" she says."
+            ],
+            "choice": {
+              "prompt": "There are dozens of logs. Read them all now, or keep moving and read them as you go?",
+              "options": [
+                {
+                  "label": "Read them all now",
+                  "flag": "read",
+                  "reply": "The crew reads by lamplight all night, taking turns. It is the story of forty people who loved building things, and loved each other, and slowly, over a year, stopped being afraid of something in the sand. The last few logs are missing."
+                },
+                {
+                  "label": "Keep moving",
+                  "flag": "moved",
+                  "reply": "You pack the logs into the ship and keep going. Oda reads them in snatches between repairs, and sometimes stops and laughs, and sometimes stops and doesn't."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The breathing",
+            "text": [
+              "With four traps running, the nights on {world} have a sound: a deep slow breath, in and out, from four directions at once, so low it is mostly felt through the ground.",
+              "Then {Crew} notices: when the crew sleeps near a trap, its breathing slows to match theirs. When somebody turns over, it catches. When somebody wakes up from a bad dream, it stops, as if listening.",
+              "\"Machines don't do that,\" says {Crew}, very quietly, in the galley. Nobody argues. Nobody sleeps near the traps that night."
+            ]
+          },
+          {
+            "title": "Sealed from inside",
+            "text": [
+              "At the back of Trap Four there is a door with a wheel lock, and the wheel is on the inside. It takes the ship's cutting gear and a whole session to get through.",
+              "Inside: a long room with a long table, set for twelve. Plates, cups, a vase of flowers sixty years dead. Thick dust on everything.",
+              "And in every cup, clear fresh water, as if it had just been poured.",
+              "Nobody touches anything. On the way out, {Crew} looks back, and the chair at the head of the table is pulled out a little further than it was."
+            ]
+          },
+          {
+            "title": "The silver moss",
+            "text": [
+              "Something is growing in the pipes. It starts as a silver fur on the inside of the copper, then thickens into soft silver moss that fills the smaller pipes, warm to the touch, humming faintly with the trap's breath.",
+              "It is spreading. Trap Nine has it now, and Trap Two. The water still runs clear. If anything, it runs better. But the pipes sing differently with the moss in them: higher, sweeter, almost like voices.",
+              {
+                "text": "Oda remembers the stone spiral from the open hatch, and the shoot planted at its centre. \"Someone's gardening in my machines,\" she says, and she doesn't sound angry.",
+                "when": {
+                  "flags.opened": "yes"
+                }
+              },
+              {
+                "text": "Oda looks at the moss for a long time. \"My mother would have known what to do,\" she says. \"I don't.\"",
+                "when": {
+                  "flags.sealed": "yes"
+                }
+              }
+            ],
+            "choice": {
+              "prompt": "Burn the moss out of the pipes, or leave it be?",
+              "options": [
+                {
+                  "label": "Burn it out",
+                  "flag": "burned",
+                  "reply": "You scour the pipes with flame, trap by trap. The moss shrivels with a sound like sighing. The traps run rougher afterwards, coughing, as if they have lost something. That night there are no handprints anywhere, and somehow that is worse."
+                },
+                {
+                  "label": "Leave it be",
+                  "flag": "spared",
+                  "reply": "You leave the moss. By morning it has threaded itself through every pipe in Trap Nine, and the trap breathes easier than it ever has. On the cistern lid, someone has left a neat row of copper filings. A thank-you, maybe."
+                }
+              ]
+            }
+          },
+          {
+            "title": "Ivi is missing",
+            "text": [
+              "Teodor comes running at dusk with no hat and no shoes. Ivi is gone. She went to check her garden near Trap Four and didn't come back.",
+              "The crew searches the green valley in the dark with lamps. The silver trees turn their leaves towards the lights. The reeds are taller than people now, and full of small sounds.",
+              "And then {Crew} sees them: lights, walking. Small soft lights, dozens of them, moving through the reeds towards Trap Four, exactly as Teodor's grandmother described. Teodor makes a sound like nothing you have ever heard a person make."
+            ]
+          },
+          {
+            "title": "The little ones",
+            "text": [
+              "They follow the lights into Trap Four, down through the bellows room, into the great shaft where the water falls. And there is Ivi: fast asleep, curled up in a nest of silver moss inside a broken pipe, perfectly safe.",
+              "Around her, in the lamp-glow, are the little ones. Small shapes made of wet sand and light, with too-long fingers and no faces to speak of, hundreds of them, sitting in the pipes and on the ledges, very still, watching over her.",
+              "When the lamps come closer, they slip away into the walls like water into sand. Ivi wakes up, yawns, and says, \"Oh, you came. They were singing to me. They know all of the Collective's songs.\""
+            ]
+          },
+          {
+            "title": "Pell's last log",
+            "text": [
+              {
+                "text": "Among the logs you read that first night, one was missing. Ivi has it. The little ones gave it to her, she says, folded into a paper boat.",
+                "when": {
+                  "flags.read": "yes"
+                }
+              },
+              {
+                "text": "Oda finds the last log tucked into the moss where Ivi slept, folded into a paper boat.",
+                "when": {
+                  "flags.moved": "yes"
+                }
+              },
+              "It is Pell's, and it is short. \"We built the traps to wake the desert. We did. It is very old and very young at once, and it has been waiting a long time for water. It isn't dangerous. It's lonely. Tonight we are going down to meet it properly. Ama is staying behind, in case. Somebody should keep the lights on.\"",
+              "Oda folds the log back into a boat, very carefully, and holds it for a long time."
+            ],
+            "choice": {
+              "prompt": "Teodor thinks the sand took his grandmother's friends, and nearly took Ivi. Tell him what Pell wrote, or let him believe Ivi just wandered off?",
+              "options": [
+                {
+                  "label": "Tell him the truth",
+                  "flag": "truth",
+                  "reply": "Teodor reads Pell's log twice. Then he sits down on the sand and laughs, and cries, and laughs. \"Lonely,\" he says. \"All these years, we were afraid of something lonely.\""
+                },
+                {
+                  "label": "Let him believe she wandered",
+                  "flag": "spared_him",
+                  "reply": "You tell Teodor she wandered and fell asleep. He believes you, because he wants to. But he puts a lock on Ivi's window, and stops taking his skiff near the traps."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The green line",
+            "text": [
+              "The green reaches the horizon now in every direction. Rivers have found their way back into old dry beds. There are birds on {world}, and nobody knows where they came from.",
+              "Oda wants all twelve traps running before the season turns. \"Determination,\" she says, \"is just stubbornness that's found a reason.\" She has written it on the wall of Trap Nine.",
+              "Then, one evening, {Crew} looks south and sees the sky has gone the colour of rust. The great storm that circles {world}, the one the Collective never wrote about, has changed its course. It is turning north. Towards the green."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "The Eye of the Storm",
+        "episodes": [
+          {
+            "title": "Storm season",
+            "text": [
+              "From orbit the storm is terrifying and beautiful: a wall of dust taller than mountains, wrapped all the way around {world}, turning slowly like a slow brown river around a green island. And the river is narrowing.",
+              "Oda has a week, maybe two. The traps are breathing harder, all of them at once, the way animals breathe before weather. The little ones have stopped hiding. At dusk you can see their lights everywhere, gathering near the traps, waiting.",
+              {
+                "text": "Ivi says they are frightened. She says it the way you say something you know.",
+                "when": {
+                  "flags.truth": "yes"
+                }
+              },
+              {
+                "text": "Teodor has packed his skiffs to leave. Ivi refuses to go. They are not speaking.",
+                "when": {
+                  "flags.spared_him": "yes"
+                }
+              }
+            ],
+            "world": "aridel-storm"
+          },
+          {
+            "title": "What the traps were for",
+            "text": [
+              "The answer is on {world}'s little moon. The Collective kept their workshop there, high above the sand, and Oda has never been able to get there. {Ship} can.",
+              "The workshop is cold and perfectly kept. On the big table is the plan of the whole project, drawn by hand: the twelve traps in a ring, and around them, in red, the storm. The traps were never only for water. Breathing together, they turn the wind. Twelve of them make a shield.",
+              "And under the ring, in pencil, small and careful, the Collective drew the little ones: asleep in the deep sand, curled up like seeds, waiting for the water that would wake them. Next to the drawing, in Ama's handwriting: \"Don't let the storm reach them before they're strong.\""
+            ],
+            "world": "kessa"
+          },
+          {
+            "title": "Twelve traps",
+            "text": [
+              "Back on {world} there is no time to be careful. Five traps run. Seven to go, and the storm is a week out.",
+              "Everybody works: the crew, Oda, the Sahls, three families of well-diggers who arrived on foot, a retired pilot who heard about it on the radio. They split into teams and sing the Collective's working songs to keep time, because it turns out they really do work.",
+              "Oda doesn't sleep. She goes from trap to trap on Teodor's fastest skiff, with her wrench over her shoulder, shouting instructions, and laughing, and once, only once, standing very still in the wind with her eyes closed, listening to all the traps breathe at once."
+            ],
+            "world": "aridel-storm"
+          },
+          {
+            "title": "Trap Eleven",
+            "text": [
+              "Trap Eleven is the worst: half buried in a dune that has moved across it, its vents choked, its bellows torn. The crew digs for a whole day just to reach the door.",
+              {
+                "text": "Inside, the old coil the crew forced back in Trap Nine has become a sort of legend: everybody now hits stuck things harder than strictly necessary.",
+                "when": {
+                  "flags.bold": "yes"
+                }
+              },
+              {
+                "text": "Inside, the crew works the way they learned in Trap Nine: slow, careful, by hand. The new teams watch and learn.",
+                "when": {
+                  "flags.careful": "yes"
+                }
+              },
+              "At the heart of Eleven the cold coil is cracked right through. There is no spare."
+            ],
+            "choice": {
+              "prompt": "Trap Eleven's coil is cracked. Patch it carefully and hope it holds, or take the one from the ship's own cooling system?",
+              "options": [
+                {
+                  "label": "Patch it carefully",
+                  "flag": "patched",
+                  "reply": "The patch takes every hour you have left. It holds, mostly. Trap Eleven breathes with a whistle in it, like someone breathing through a gap in their teeth."
+                },
+                {
+                  "label": "Take the ship's",
+                  "flag": "gave",
+                  "reply": "{Ship} will be warm and stuffy for a while. Nobody minds. The ship's coil fits Trap Eleven as if it was made for it, and the trap breathes deep and clean."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The storm wall",
+            "text": [
+              "It comes at dusk. First the light goes orange, then brown, then a strange green. Then the wall: sand falling sideways like a waterfall, a roar so big it stops being a sound and becomes the whole world.",
+              "Eleven traps breathe. Their great breath goes out against the storm, all together, and the storm bends. Not much. Enough. Around the ring of traps the wind turns aside, like water around a stone, and inside the ring the air is almost still.",
+              "One trap is still silent: Trap One, the oldest, the biggest. Oda is inside it."
+            ]
+          },
+          {
+            "title": "The little ones wake",
+            "text": [
+              "Out of the sand, everywhere, the little ones rise. Not dozens now. Thousands. Small shapes of wet sand and soft light, streaming towards the traps through the howling dark.",
+              "For one terrible moment it looks like an attack. Then the crew sees what they are doing. They are climbing the traps. Bracing them. Pressing their small bodies into every crack and seam, holding the old machines together against the wind with their own sand.",
+              {
+                "text": "In the pipes of every trap, the silver moss glows, and the traps breathe stronger, as if the little ones and the machines have become one thing.",
+                "when": {
+                  "flags.spared": "yes"
+                }
+              },
+              {
+                "text": "In the burned pipes, the little ones have to hold on from outside. Many of them are torn away by the wind. They keep coming anyway.",
+                "when": {
+                  "flags.burned": "yes"
+                }
+              }
+            ]
+          },
+          {
+            "title": "Oda",
+            "text": [
+              "Trap One's great bellows have jammed half open. Oda is up inside them, on a ladder in the dark, trying to free a pin the size of her arm with a wrench and her whole weight.",
+              "The trap is groaning. The storm is getting in through the open vents. \"Go back to the ship,\" she shouts down. \"I'm nearly there.\" She has been nearly there for an hour."
+            ],
+            "choice": {
+              "prompt": "Pull Oda out of Trap One before it fails, or climb up and help her finish?",
+              "options": [
+                {
+                  "label": "Pull her out",
+                  "flag": "saved",
+                  "reply": "You drag her down the ladder against all her shouting. Seconds later the bellows tear loose and crash where she was standing. She stops shouting. She holds on to {Crew} very tightly and doesn't let go for a while."
+                },
+                {
+                  "label": "Help her finish",
+                  "flag": "stayed_with",
+                  "reply": "You climb up into the dark beside her and put your weight on the wrench too. The pin moves. The bellows open. Trap One takes its first breath in sixty years with a sound like the whole desert sighing, and Oda is laughing so hard she nearly falls off the ladder."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The eye",
+            "text": [
+              "At midnight the eye of the storm passes over. The roar stops as if somebody shut a door.",
+              "Above, a perfect circle of stars. Below, the whole desert glowing: the little ones on every dune and every trap, thousands of soft lights, all looking up.",
+              "In the pipes of the nearest trap, the moss hums, and the hum becomes a song, and the song becomes words, in a voice nobody has heard for sixty years: Pell, or Ama, or all forty of them at once. \"Thank you,\" it sings, \"for keeping the lights on.\"",
+              {
+                "text": "Oda is crying. She doesn't pretend it's sand this time.",
+                "when": {
+                  "flags.saved": "yes"
+                }
+              },
+              {
+                "text": "Oda, still covered in grease from Trap One, sings back. Badly. The whole desert seems to listen.",
+                "when": {
+                  "flags.stayed_with": "yes"
+                }
+              }
+            ]
+          },
+          {
+            "title": "The last choice",
+            "text": [
+              "The far wall of the storm is coming. The traps have held for six hours at full breath, and they are failing: coughing, whistling, shaking. They can't hold it back forever. Something has to change.",
+              "Oda lays it out on the floor of Trap Nine with a stick in the sand. Hold the shield at full power and burn the traps out doing it. Open the vents and let the storm through, and let the desert drink the rain behind it. Or the third way, the one in Ama's last notes: stop fighting the storm, and teach the traps to breathe with it, the way the little ones do.",
+              "\"It's your call,\" she says. \"You came here as hands. You're not hands any more.\""
+            ],
+            "choice": {
+              "prompt": "How should the traps meet the storm?",
+              "options": [
+                {
+                  "label": "Hold the shield at full power",
+                  "flag": "full",
+                  "reply": "Oda nods and goes to the great lever. \"Then we hold,\" she says. Twelve traps take the deepest breath they have ever taken."
+                },
+                {
+                  "label": "Open the vents and let it through",
+                  "flag": "open",
+                  "reply": "Oda looks at the green outside for a long moment, then reaches for the vent wheels. \"Some things aren't ours to keep,\" she says."
+                },
+                {
+                  "label": "Teach the traps to breathe with it",
+                  "flag": "bend",
+                  "reply": "Oda takes out Ama's notes and spreads them on the sand. \"I never understood these,\" she says. \"Let's understand them now.\""
+                }
+              ]
+            }
+          },
+          {
+            "title": "After the storm",
+            "text": [
+              {
+                "text": "The traps hold. All night they breathe against the storm with everything they have, and at dawn the storm turns and rolls away south, defeated. {World} stays green. But Trap Seven is cracked through, and Trap Two will never breathe again, and the little ones, exhausted, sink back into the sand to sleep. The traps hum alone now. Oda keeps them running for the rest of her life, one repair at a time, and on the wall of Trap Nine she adds a line under the old one: \"And sometimes stubbornness is enough.\"",
+                "when": {
+                  "flags.full": "yes"
+                }
+              },
+              {
+                "text": "The vents open and the storm pours through the ring, burying the young forest, filling the rivers with sand. Then, behind it, the rain: days of it, enough rain for a hundred years. The green is gone. But the desert is alive in its own way now, soft and damp and glittering, and the little ones dance in the rain by the thousand. Oda watches them from the door of Trap Nine. \"Some things,\" she says, \"aren't ours to fix.\"",
+                "when": {
+                  "flags.open": "yes"
+                }
+              },
+              {
+                "text": "The traps change their breath. Instead of pushing against the storm they draw it in and let it out, in and out, the way the little ones breathe, the way the whole desert breathes. The storm doesn't turn away. It slows, and softens, and settles over {world} as a long, warm, gentle rain.",
+                "when": {
+                  "flags.bend": "yes"
+                }
+              },
+              {
+                "text": "By morning there is green and gold together: forest and desert sharing the world, each where it wants to be. The little ones live in the traps now, in the silver moss, singing the old songs. Oda teaches Ivi to keep the machines, and Ivi teaches the little ones new songs, and the Windtrap Project, after sixty years, is finished at last. Or rather, it has finally begun.",
+                "when": {
+                  "flags.bend": "yes",
+                  "flags.spared": "yes"
+                }
+              },
+              {
+                "text": "It is not perfect. Without the moss, the traps never quite learn the breath, and every storm season will be hard. But {world} is alive, and green, and gold, and Oda says that's good enough for engineering.",
+                "when": {
+                  "flags.bend": "yes",
+                  "flags.burned": "yes"
+                }
+              },
+              "When {ship} lifts off, the traps are breathing slowly behind it, and the whole desert seems to breathe with them. Teodor and Ivi wave from a dune. Oda doesn't wave. She is already inside a trap, fixing something. But the hull radio crackles as you leave orbit, and a gruff voice says: \"Thanks for the hands.\""
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

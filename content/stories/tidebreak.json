@@ -1,0 +1,304 @@
+{
+  "campaign": {
+    "id": "tidebreak",
+    "title": "Tidebreak",
+    "themes": [
+      "community",
+      "change",
+      "letting go"
+    ],
+    "hook": "On an ocean world, a city of boats lashed together drifts with the tides. Once a generation the tides turn, and the city has to decide: break apart and scatter, or hold together and sail into the unknown.",
+    "worlds": {
+      "tidebreak": {
+        "name": "Tidebreak",
+        "type": "Ocean",
+        "star": "yellow dwarf",
+        "clouds": true,
+        "pal": [
+          "#77d6c1",
+          "#1c92a7",
+          "#033e5e",
+          "#041528"
+        ],
+        "land": [
+          "#ffdaac",
+          "#c76e46"
+        ],
+        "desc": "An ocean world with no land at all, only one city: thousands of boats lashed together, drifting with the tides."
+      },
+      "turning": {
+        "name": "Tidebreak",
+        "type": "Ocean",
+        "star": "yellow dwarf",
+        "clouds": true,
+        "pal": [
+          "#1c92a7",
+          "#033e5e",
+          "#041528",
+          "#030710"
+        ],
+        "land": [
+          "#eb9c6e",
+          "#833f34"
+        ],
+        "desc": "Tidebreak at the Turning: the sea running dark and fast, the great current changing its mind."
+      }
+    },
+    "seasons": [
+      {
+        "title": "The City of Boats",
+        "episodes": [
+          {
+            "title": "Landing on water",
+            "text": [
+              "{World} has no land. Not an island, not a rock. Just ocean, and on the ocean, a city: thousands of boats lashed together with ropes and bridges and planks, a whole town floating on the tide, its masts like a forest.",
+              "{Ship} sets down on a landing raft at the edge, which bobs. A boy of about ten rows out to meet you in a tiny boat painted with fish. \"I'm Pim,\" he says. \"I carry messages. The Harbourmistress wants to see you. She says it's the Turning year and we need every pair of hands.\""
+            ],
+            "world": "tidebreak"
+          },
+          {
+            "title": "The Harbourmistress",
+            "text": [
+              "The Harbourmistress, Sela Marr, runs the city from the deck of the biggest boat, an old barge with a garden on its roof. She is broad and calm and has a voice that carries across water.",
+              "\"Every forty years the great current turns,\" she explains. \"When it does, it will pull the city apart unless we choose first. Some want to unlash every boat and scatter, each family its own way. Some want to hold together and sail wherever the new current takes us. We have one season to decide. I want outsiders to help. Outsiders don't have grandmothers who will be angry with them.\""
+            ]
+          },
+          {
+            "title": "Fen the net-weaver",
+            "text": [
+              "Pim takes the crew to meet old Fen, the oldest person in the city, who sits on a little boat weaving nets and remembers the last Turning.",
+              "\"We held together, last time,\" Fen says, her fingers never stopping. \"We sailed for a year into a sea none of us knew. Half of us were seasick. All of us were frightened. We found this water, and it was good.\" She knots a knot. \"But the young ones want to be free. And maybe they're right. A net is only good if every knot agrees to be a knot.\""
+            ],
+            "choice": {
+              "prompt": "Fen offers to teach {Crew} to weave. Stay and learn, or go see more of the city?",
+              "options": [
+                {
+                  "label": "Stay and learn",
+                  "flag": "learned",
+                  "reply": "{Crew} spends the whole session learning one knot. By the end it is a good knot. Fen nods once, which Pim says is the most she has ever nodded at anyone."
+                },
+                {
+                  "label": "See more of the city",
+                  "flag": "explored",
+                  "reply": "Pim shows you everything: the floating school, the boat that is only a library, the market that sells fish and kites and nothing else. Every boat has a name, and every name has a story, and Pim knows all of them."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The Scatterers",
+            "text": [
+              "The Scatterers meet on a bright painted catamaran at the edge of the city. They are mostly young: fishers and traders and a girl called Nell Corrie who wants to sail all the way round the world alone.",
+              "\"The city is beautiful,\" Nell says. \"But it's heavy. Everyone tied to everyone. If we scatter, every boat can go where it wants. We can still visit. We're not leaving each other. We're just untying.\""
+            ]
+          },
+          {
+            "title": "The Holders",
+            "text": [
+              "The Holders meet in the floating school, at night, by lamplight. Families with small children. Old people. The baker, the doctor, the woman who runs the library boat.",
+              "\"Scattered, we're a hundred small boats in a big sea,\" says the doctor. \"Together, we're a city. Who looks after the old ones if we scatter? Who keeps the library? Some things only work when they're shared.\"",
+              "{Crew} looks around the room, and then at the city through the window, all its lights rocking gently together on the dark water."
+            ]
+          },
+          {
+            "title": "Pim's family",
+            "text": [
+              "Pim's family is split down the middle. His mother is a Holder. His older brother is a Scatterer and has already started untying his boat's ropes, one by one, in secret.",
+              "Pim spends the session rowing between them with messages that neither of them will read. In the end he rows to {ship} instead and sits in the galley, very small, eating biscuits, saying nothing."
+            ],
+            "choice": {
+              "prompt": "Pim is caught in the middle. Help him talk to his family, or just let him be a kid for an evening?",
+              "options": [
+                {
+                  "label": "Help him talk to them",
+                  "flag": "mediated",
+                  "reply": "You row Pim home, all three of you in his tiny boat. It is a long, hard conversation on a narrow deck. Nobody changes their mind. But his mother and brother hug at the end, and that is something."
+                },
+                {
+                  "label": "Let him be a kid",
+                  "flag": "played",
+                  "reply": "You teach Pim a card game and let him win, then let him really win. He laughs for the first time in days. That night he sleeps on {ship}, in the little bunk, and his mother says that's fine."
+                }
+              ]
+            }
+          },
+          {
+            "title": "The storm before the Turning",
+            "text": [
+              "A storm comes, the way storms always come before a Turning, Fen says. The whole city heaves and groans on its ropes. Bridges snap. A boat breaks loose and drifts towards the open sea with a family aboard.",
+              "Holders and Scatterers row out together into the storm, side by side, and bring it back. Nobody asks anybody which side they are on. {Crew} rows with them until {crew.their} arms shake."
+            ]
+          },
+          {
+            "title": "The council of boats",
+            "text": [
+              "After the storm, Sela Marr calls the council: one person from every boat, thousands of them, standing on decks and bridges all through the city, listening to her voice carry across the water.",
+              "\"The current turns in one season,\" she says. \"When it does, we decide. Until then, think. Not about what you want. About what the city is for.\"",
+              {
+                "text": "Fen sits beside {Crew} at the council, weaving, and hands {crew.them} the end of the net to hold. \"Practice,\" she says.",
+                "when": {
+                  "flags.learned": "yes"
+                }
+              },
+              {
+                "text": "Pim sits beside {Crew} at the council and names every boat that speaks, and who they are married to, and what they had for breakfast.",
+                "when": {
+                  "flags.explored": "yes"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "The Turning",
+        "episodes": [
+          {
+            "title": "The sea changes",
+            "text": [
+              "It begins at dawn. The water goes dark and fast. The great current, which has run the same way for forty years, slows, and stops, and begins, very slowly, to turn.",
+              "The ropes between the boats creak like a forest in wind. Every person in the city is on deck, watching. {World} has a different sound now: the sound of everyone holding their breath."
+            ],
+            "world": "turning"
+          },
+          {
+            "title": "Nell's boat",
+            "text": [
+              "Nell Corrie has unlashed her little boat already. She is going, alone, the moment the current sets. She comes to say goodbye to {ship}, because she likes ships that have been places.",
+              "\"Will you come with me to the edge of the city?\" she asks. \"Just to see me off. Nobody else will. They think I'm abandoning them.\""
+            ],
+            "choice": {
+              "prompt": "See Nell off at the edge of the city, or try to persuade her to wait for the council?",
+              "options": [
+                {
+                  "label": "See her off",
+                  "flag": "saw_off",
+                  "reply": "You walk Nell to the edge of the city and hold her rope while she casts off. Halfway to the horizon, she turns and waves both arms. Half the Holders, watching from the decks, wave back."
+                },
+                {
+                  "label": "Ask her to wait",
+                  "flag": "asked_wait",
+                  "reply": "\"Wait for the council,\" {Crew} says. \"Let them hear you first.\" Nell is angry, then thoughtful. She ties her boat back on. \"One more day,\" she says. \"Then I go.\""
+                }
+              ]
+            }
+          },
+          {
+            "title": "Fen's last net",
+            "text": [
+              "Fen is finishing a net, the biggest she has ever made. It is too big for fishing. It covers her whole deck and spills off into the water.",
+              "\"It's not for fishing,\" she says. \"It's for the city. Whatever we decide, somebody should make something for after.\" She shows {Crew} the pattern: every knot different, every knot holding. \"Some boats will go. Some will stay. The net doesn't mind. It just needs enough knots.\""
+            ]
+          },
+          {
+            "title": "The vote",
+            "text": [
+              "The council gathers for the last time. The current is almost fully turned now. Sela Marr stands on her garden barge and asks each boat, one by one, to raise a lamp for holding, or lower it for scattering.",
+              "It goes on all night. Lamps rise and fall across the whole city like slow waves of light. At dawn it is too close to call. Sela turns to {ship}, the only boat without a family here, and says, \"You've seen both sides. What do you think the city is for?\""
+            ],
+            "choice": {
+              "prompt": "What do you tell the council?",
+              "options": [
+                {
+                  "label": "Hold together",
+                  "flag": "hold",
+                  "reply": "\"For each other,\" {Crew} says. \"The city is the people who look after each other. Hold on to that.\" The decks go quiet. Then, all across the city, lamps start to rise."
+                },
+                {
+                  "label": "Scatter and be free",
+                  "flag": "scatter",
+                  "reply": "\"For whatever each of you needs,\" {Crew} says. \"The city isn't the ropes. You'll still be a city, even far apart.\" There is a long silence. Then lamps start to lower, slowly, gently, everywhere."
+                },
+                {
+                  "label": "Both: split into two cities",
+                  "flag": "both",
+                  "reply": "\"Why does it have to be one thing?\" {Crew} says. \"Let the ones who want to hold, hold. Let the ones who want to go, go together. Two cities. And meet again at the next Turning.\" Fen laughs out loud."
+                }
+              ]
+            }
+          },
+          {
+            "title": "Untying",
+            "text": [
+              {
+                "text": "The city holds. All day the crews re-lash the ropes, tighter and better than before, and the doctor and the baker and the librarian hug each other on the bridges. Nell Corrie ties her little boat to the very edge, where she can see the horizon.",
+                "when": {
+                  "flags.hold": "yes"
+                }
+              },
+              {
+                "text": "The city scatters. All day, ropes are untied, gently, one by one, with hugs and promises on every bridge. The library boat stays with the school boat. The old ones are taken in by whoever they love best. It is very sad and very kind.",
+                "when": {
+                  "flags.scatter": "yes"
+                }
+              },
+              {
+                "text": "The city splits in two. The Holders stay lashed together in the old way. The Scatterers lash themselves into a looser, smaller, lighter city, a city that can turn quickly. Fen stands at the place where they part and cuts the last rope herself.",
+                "when": {
+                  "flags.both": "yes"
+                }
+              },
+              "Pim rows between all of it with messages, faster than he has ever rowed in his life, crying and laughing at once."
+            ]
+          },
+          {
+            "title": "The net",
+            "text": [
+              "Fen's great net is finished. She asks the crew to help her lay it out on the water, at the place where the old city used to be: a huge web of knots floating on the dark sea, every knot different, every knot holding.",
+              "\"For whoever comes back,\" she says. \"So they know where we were.\"",
+              {
+                "text": "Nell Corrie ties one knot of her own into it, before the last boats go.",
+                "when": {
+                  "flags.saw_off": "yes"
+                }
+              },
+              {
+                "text": "Nell Corrie ties one knot of her own into it, the day she had promised to wait. Then she goes.",
+                "when": {
+                  "flags.asked_wait": "yes"
+                }
+              }
+            ]
+          },
+          {
+            "title": "After the Turning",
+            "text": [
+              "The new current runs strong and steady now. {World} looks different from orbit: lights spread across the sea in a new shape.",
+              {
+                "text": "One great bright city, sailing slowly into water nobody knows, all its boats together.",
+                "when": {
+                  "flags.hold": "yes"
+                }
+              },
+              {
+                "text": "A hundred little lights, scattering in every direction like seeds on the wind.",
+                "when": {
+                  "flags.scatter": "yes"
+                }
+              },
+              {
+                "text": "Two cities, a big slow one and a small quick one, drifting apart gently, both of them waving their lamps.",
+                "when": {
+                  "flags.both": "yes"
+                }
+              },
+              "Sela Marr radios up as {ship} leaves orbit. \"Come back for the next Turning,\" she says. \"Forty years. Bring your grandchildren. Bring a better boat.\"",
+              {
+                "text": "In the galley, there is a small net hanging by the hatch, one perfect knot in its middle, tied by {Crew} on Fen's deck.",
+                "when": {
+                  "flags.learned": "yes"
+                }
+              },
+              {
+                "text": "In the galley, there is a drawing of the whole city, every boat labelled in a child's handwriting. Pim gave it to you on the last day.",
+                "when": {
+                  "flags.explored": "yes"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
