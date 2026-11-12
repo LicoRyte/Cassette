@@ -37,11 +37,11 @@ function stories() {
     line: () => S.story.done ? 'The Meridian is finished' : chHere() ? (atDoor() ? 'The door is waiting' : 'Chapter ' + (S.story.ch + 1) + ', part ' + (chHere().story.step + 1) + ' of ' + ST_LEGS) : 'Follow the signal to chapter ' + (S.story.ch + 1),
     play: reps => {
       if (S.story.done) return { msg: 'The Meridian is finished. Pick another story on the Stories page.' };
-      if (signalOn() && stP(S.story.ch)) { const { p } = followSignal(); if (chHere() && !atDoor()) return { p, how: 'log', msg: chLegDone(reps).replace(/Follow the Signal from Explore\./, 'Your next session follows it.').replace(/^📡 /, '') }; } // back to a chapter you'd started: the trip is part of the episode
+      if (signalOn() && stP(S.story.ch)) { const { p } = followSignal(); if (chHere() && !atDoor()) return { p, how: 'log', msg: meridianReact(reps, chLegDone(reps)).replace(/Follow the Signal from Explore\./, 'Your next session follows it.').replace(/^📡 /, '') }; } // back to a chapter you'd started: the trip is part of the episode
       if (signalOn()) { const ch = S.story.ch, { p, fresh } = followSignal();
         reps.unshift({ ev: { battle: true, ic: '', title: 'The Meridian · Season ' + (Math.floor(ch / 5) + 1) + ' · Chapter ' + (ch + 1) + ': ' + nm(p), t: fresh ? 'The signal leads the ship down to ' + nm(p) + '. Whatever the Meridian left here is waiting.' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.' } });
         return { p: fresh ? p : null, how: fresh ? 'story' : 'log', msg: 'Chapter ' + (ch + 1) + ' begins.' }; }
-      if (chHere() && !atDoor()) return { msg: chLegDone(reps).replace(/Follow the Signal from Explore\./, 'Your next session follows it.').replace(/^📡 /, '') };
+      if (chHere() && !atDoor()) return { msg: meridianReact(reps, chLegDone(reps)).replace(/Follow the Signal from Explore\./, 'Your next session follows it.').replace(/^📡 /, '') };
       return { msg: 'The door is waiting, under the timer.' };
     },
     notes: lock => { const p = chHere(); if (p) return chapterBits(p, lock, bpLegBar);
@@ -62,12 +62,28 @@ function stories() {
     notes: lock => voyageNotes(lock) });
   return out;
 }
+// the Meridian's parts get a crew reaction too (a quiet one: the story speaks for itself)
+function meridianReact(reps, msg) { const r = reps.find(x => x.story); if (r) r.story.react = crewReaction('quiet', atP() ? worldCtx(atP()) : {}); return msg; }
 const storyById = id => stories().find(s => s.id === id) || null;
 if (!S.activeStory || !storyById(S.activeStory)) S.activeStory = STD && !S.story.done ? 'meridian' : 'voyages';
 const activeStory = () => { const s = storyById(S.activeStory) || storyById('voyages'); return s.done() && storyById('small-hours') ? storyById('small-hours') : s; }; // a finished story: quiet moments aboard until you pick the next
 function setStory(id) { if (!storyById(id) || (running && mode === 'focus')) return; S.activeStory = id; S.lastStoryAt = Object.assign(S.lastStoryAt || {}, { [id]: Date.now() }); save(); draw(); }
 
 /* ---------- authored campaigns ---------- */
+// one crew member's reaction to an episode: a line from content/reactions.json for its mood, trait lines first
+function crewReaction(mood, base) {
+  const L = TEXT.lines['react_' + mood] || []; if (!L.length) return null;
+  const people = S.crew.length ? S.crew : [S.me], opts = [];
+  people.forEach(c => { const ctx = Object.assign({}, base, { crew: personCtx(c) }); L.forEach(t => { if (txFits(t, ctx)) opts.push({ t, ctx, w: t && t.weight ? t.weight : 1 }); }); });
+  if (!opts.length) return null;
+  let x = Math.random() * opts.reduce((a, o) => a + o.w, 0); const o = opts.find(q => (x -= q.w) < 0) || opts[0];
+  return txFill(typeof o.t === 'object' ? o.t.text : o.t, o.ctx);
+}
+// the end of a story: where everyone ended up, by your choices
+function campEpilogue(c, st) {
+  const ctx = campCtx(c, st);
+  return (c.epilogue || []).map(pp => { const l = (pp.lines || []).find(t => txFits(t, ctx)); return l ? txFill(typeof l === 'object' ? l.text : l, ctx) : null; }).filter(Boolean);
+}
 function campPlay(c, reps) {
   const st = campState(c); if (st.done) return { msg: c.title + ' is finished. Pick another story on the Stories page.' };
   st.answered = null; if (st.ask) { st.flags[st.ask.options[0].flag] = 'yes'; st.ask = null; } // a choice nobody made: the first one happens
@@ -79,9 +95,11 @@ function campPlay(c, reps) {
   const last = st.e >= se.episodes.length - 1, title = c.loop ? c.title + ' · ' + ep.title : c.title + ' · Season ' + (st.s + 1) + ': ' + se.title + ' · ' + (last ? 'Finale' : 'Episode ' + (st.e + 1)) + (ep.title ? ': ' + ep.title : ''); // Small Hours: standalone moments, no seasons
   let got = null;
   if (ep.choice) { st.ask = { prompt: txFill(ep.choice.prompt, ctx), options: ep.choice.options.map(o => ({ label: txFill(o.label, ctx), flag: o.flag, reply: o.reply })) }; got = 'A choice waits on the break.'; }
-  reps.unshift({ ev: { battle: true, ic: '', title, t, got } }); pushEv({ c: 'season', ic: '', title, t, got, at: Date.now() });
+  const react = (ep.mood || c.mood) ? crewReaction(ep.mood || c.mood, ctx) : null; // somebody aboard reacts
+  reps.unshift({ ev: { battle: true, ic: '', title, t, got, react } }); pushEv({ c: 'season', ic: '', title, t: t + (react ? '\n\n' + react : ''), got, at: Date.now() });
   st.at = Date.now();
-  if (last) { st.e = 0; st.s++; if (st.s >= c.seasons.length) { if (c.loop) { st.s = 0; return { p, how, msg: '' }; } st.done = true; return { p, how, msg: 'The end of ' + c.title + '. Until you pick another story, Small Hours plays.' }; } return { p, how, msg: 'The end of season ' + st.s + '. Season ' + (st.s + 1) + ' starts with your next session.' }; }
+  if (last) { st.e = 0; st.s++; if (st.s >= c.seasons.length) { if (c.loop) { st.s = 0; return { p, how, msg: '' }; } st.done = true;
+    st.epi = campEpilogue(c, st); if (st.epi.length) { const et = c.title + ' · Where are they now'; reps.splice(1, 0, { ev: { battle: true, ic: '', title: et, t: st.epi.join('\n\n') } }); pushEv({ c: 'season', ic: '', title: et, t: st.epi.join('\n\n'), at: Date.now() }); } return { p, how, msg: 'The end of ' + c.title + '. Until you pick another story, Small Hours plays.' }; } return { p, how, msg: 'The end of season ' + st.s + '. Season ' + (st.s + 1) + ' starts with your next session.' }; }
   st.e++;
   return { p, how, msg: 'Episode ' + st.e + ' of ' + se.title + '.' };
 }

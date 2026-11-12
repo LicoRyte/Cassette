@@ -1218,3 +1218,117 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 .sx-note-t:empty::before { content: 'Write something...'; color: #c76e46; }
 .sx-bnote-x { position: absolute; right: 4px; top: 2px; width: 22px; height: 22px; padding: 0; border: 0; background: none; color: #73392e; font: 18px/1 var(--ui); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .sx-bcard.lift { transform: rotate(0deg); } }
+
+/* reading: narration in silver, spoken lines in cream, names in their colours, a crew member's reaction as an aside */
+.sx-rdr-b p { color: #bfc3c6; }
+.sx-rdr-b .sx-q { color: #ffffe4; }
+.sx-rdr-b .sx-name { font-weight: 700; }
+.sx-rdr-b p.sx-rdr-react { margin-top: 4px; padding: 2px 0 2px 14px; border-left: 2px solid #ffb762; font-style: italic; font-size: 17px; color: #ffdaac; }
+.sl-react { padding-left: 10px; border-left: 2px solid #ffb762; font-style: italic !important; color: #ffdaac !important; }
+/* ==================== the clock (js/ui/clock.js): Solarist is a timer now ==================== */
+.sx-clockonly ~ .sx-view, body:has(.sx-clockonly) .sx-view { display: none; }
+#slRoot.sx.sx-v2.sx-clockonly, #slRoot.sx.sx-v2.sx-clockonly.sx-lock, #slRoot.sx.sx-v2.sx-clockonly.sx-nopanel { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "top" "rail"; }
+.sx-clockonly .sx-mid, .sx-clockonly .sx-storyp, .sx-clockonly .sx-bp-notes, .sx-clockonly .sx-rptbtn, .sx-clockonly .sx-breakp,
+.sx-clockonly .sx-globe, .sx-clockonly .sx-wpcard, .sx-clockonly .sl-lv-i, .sx-clockonly .sx-kpc { display: none !important; }
+.sx-v2.sx-clockonly .sx-rail, .sx-v2.sx-clockonly.sx-lock .sx-rail { position: static; grid-area: rail; width: auto; display: grid; place-items: center; padding: 0 0 6vh; pointer-events: auto; }
+.sx-v2.sx-clockonly .sx-corner { position: relative; width: min(480px, calc(100vw - 96px)); align-items: stretch; text-align: center; }
+.sx-v2.sx-clockonly .sx-corner .sl-big { text-align: center; margin-bottom: 10px; letter-spacing: .22em; }
+.sx-clockonly .sx-digits { text-align: center; margin-bottom: 16px; transition: color .8s; }
+.sx-clockonly .sx-cmd { margin-top: 16px; }
+.sx-tally { order: 6; margin: 14px 0 0; font: 600 12px var(--ui); letter-spacing: .18em; text-transform: uppercase; color: #6d8a8d; text-align: center; }
+.sx-clockonly .sx-top { position: relative; z-index: 3; }
+/* the console frame: two amber corner brackets around the clock */
+.sx-clockonly .sx-corner::before, .sx-clockonly .sx-corner::after { content: ''; position: absolute; width: 22px; height: 22px; border: 0 solid #ffb762; transition: border-color .8s; pointer-events: none; }
+.sx-clockonly .sx-corner::before { left: -30px; top: -26px; border-left-width: 2px; border-top-width: 2px; }
+.sx-clockonly .sx-corner::after { right: -30px; bottom: -26px; border-right-width: 2px; border-bottom-width: 2px; }
+/* the background: drifting grain, scanlines, and one faint line sweeping down once a minute */
+.sx-grain { position: fixed; inset: -60px; z-index: 0; pointer-events: none; background-image: radial-gradient(#041528 1px, transparent 1.3px); background-size: 6px 6px; animation: sx-drift 120s linear infinite; }
+@keyframes sx-drift { to { transform: translate(48px, 36px); } }
+.sx-sweep { position: fixed; inset: 0; z-index: 40; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(41, 59, 73, .13) 0 1px, transparent 1px 3px); }
+.sx-sweep::after { content: ''; position: absolute; left: 0; right: 0; top: -3%; height: 3px; background: rgba(119, 214, 193, .07); animation: sx-scan 60s linear infinite; }
+@keyframes sx-scan { to { top: 103%; } }
+/* colour tells you where you are */
+[data-clock="ready"] .sx-digits { color: #ffffe4; }
+[data-clock="focus"] .sx-digits { color: #ffffe4; }
+[data-clock="ready"] .sx-colon, [data-clock="focus"] .sx-colon { color: #ffb762; }
+[data-clock="last"] .sx-digits { color: #ffdaac; }
+[data-clock="last"] .sx-colon { color: #ffd832; }
+[data-clock="last"] .sx-corner::before, [data-clock="last"] .sx-corner::after { border-color: #ffd832; }
+[data-clock="break"] .sx-digits, [data-clock="break"] .sx-corner .sl-big { color: #77d6c1; }
+[data-clock="break"] .sx-corner::before, [data-clock="break"] .sx-corner::after { border-color: #77d6c1; }
+[data-clock="paused"] .sx-digits { color: #6d8a8d; }
+[data-clock="paused"] .sx-corner::before, [data-clock="paused"] .sx-corner::after { border-color: #293b49; }
+/* the colon's heartbeat while you focus; a slow blink when paused, like an old clock waiting to be set */
+.sx-colon.beat { animation: sx-beat 1s ease-out; }
+@keyframes sx-beat { 0% { color: #ffd832; text-shadow: 0 0 22px rgba(255, 183, 98, .65); } 100% { text-shadow: 0 0 0 rgba(255, 183, 98, 0); } }
+[data-clock="paused"] .sx-colon { animation: sx-blinkc 1.4s steps(2) infinite; }
+@keyframes sx-blinkc { 50% { opacity: .15; } }
+/* breaks breathe instead of ticking */
+[data-clock="break"] .sx-digits { animation: sx-breathe 4s ease-in-out infinite; }
+@keyframes sx-breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+/* the afterglow: the old digit lingers like phosphor while the new one fades in */
+.sx-dig { position: relative; isolation: isolate; }
+.sx-ghost { position: absolute; left: 0; top: 0; z-index: -1; font-style: normal; color: #6d8a8d; pointer-events: none; animation: sx-ghost .9s ease-out forwards; }
+@keyframes sx-ghost { from { opacity: .7; } to { opacity: 0; transform: translateY(.08em); } }
+.sx-ending .sx-dig.chg { animation-duration: .95s; }
+/* the power-on, and the soft landing at zero */
+.sx-digits { transform-origin: 50% 50%; }
+.sx-digits.poweron { animation: sx-power .6s ease-out; }
+@keyframes sx-power { 0% { transform: scale(1.06, .02); filter: brightness(3); } 30% { transform: scale(1, .05); filter: brightness(2); } 70% { transform: scale(1, 1.03); } 100% { transform: none; filter: none; } }
+.sx-digits.landed { animation: sx-land 2.6s ease-out; }
+@keyframes sx-land { 0% { color: #ffffe4; text-shadow: 0 0 0 rgba(255, 216, 50, 0); } 18% { color: #ffd832; text-shadow: 0 0 30px rgba(255, 216, 50, .7); } 100% { text-shadow: 0 0 0 rgba(255, 216, 50, 0); } }
+@media (prefers-reduced-motion: reduce) { .sx-grain, .sx-sweep::after, [data-clock="break"] .sx-digits, [data-clock="paused"] .sx-colon, .sx-colon.beat, .sx-ghost, .sx-digits.poweron, .sx-digits.landed { animation: none; } }
+@media (max-width: 900px) { .sx-v2.sx-clockonly .sx-rail { padding-top: 8vh; } .sx-v2.sx-clockonly .sx-corner { width: calc(100vw - 72px); } }
+/* the Board as a library: boards, notes, Polaroid photos */
+.sx-board-gap { flex: 1; }
+.sx-board-help { display: block; margin: -4px 0 0; }
+.sx-board-empty { margin: -60vh auto 0; position: relative; z-index: 1; text-align: center; font: 16px var(--ui); color: #ffdaac; pointer-events: none; }
+.sx-board-wrap.drop { outline: 2px dashed #ffd832; outline-offset: -8px; }
+.sx-polaroid { width: 230px; padding: 12px 12px 10px; background: #ffffe4; }
+.sx-pol-img { width: 100%; aspect-ratio: 1 / 1; background: #293b49; overflow: hidden; display: grid; place-items: center; }
+.sx-pol-img img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.sx-cap-t { min-height: 30px; margin-top: 8px; outline: none; font: italic 17px/1.3 var(--text); color: #34111f; text-align: center; cursor: text; user-select: text; white-space: pre-wrap; }
+.sx-cap-t:empty::before, .sx-note-t:empty::before { content: attr(data-ph); color: #c76e46; }
+.sx-polaroid .sx-bnote-x { right: 2px; top: 0; color: #6d8a8d; }
+.sx-bcard .sx-bnote-x { opacity: 0; transition: opacity .15s; }
+.sx-bcard:hover .sx-bnote-x, .sx-bcard:focus-within .sx-bnote-x { opacity: 1; }
+
+/* the desk: the whole screen is one big workspace with the clock at its centre (js/ui/board.js) */
+.sx-desk .sx-rail { display: none !important; }
+.sx-ws { position: fixed; inset: 0; z-index: 1; overflow: hidden; cursor: grab; touch-action: none; background-image: radial-gradient(rgba(109, 138, 141, .22) 1px, transparent 1.4px); }
+.sx-ws.panning { cursor: grabbing; }
+.sx-ws.drop { outline: 2px dashed #ffd832; outline-offset: -10px; }
+.sx-world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+#slRoot .sx-world > .sx-corner { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); margin: 0; cursor: grab; }
+.sx-ws.panning .sx-world > .sx-corner { cursor: grabbing; }
+.sx-world > .sx-corner button { cursor: pointer; }
+.sx-layer { position: absolute; left: 0; top: 0; }
+.sx-world .sx-strings { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; z-index: 2; pointer-events: none; }
+.sx-world .sx-bcard { z-index: auto; }
+.sx-bcard.sel { outline: 2px solid #ffb762; outline-offset: 4px; }
+.sx-note-t, .sx-cap-t { white-space: pre-wrap; }
+.sx-bkey { position: absolute; left: -10px; top: -10px; min-width: 24px; height: 24px; padding: 0 6px; display: grid; place-items: center; background: #030710; color: #ffb762; border: 1px solid #ffb762; font: 700 14px/1 var(--ui); transform: rotate(calc(var(--tilt) * -1)); pointer-events: none; z-index: 4; }
+/* the bar along the bottom: quiet until you reach for it */
+.sx-ws-bar { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 18px; max-width: calc(100vw - 32px); padding: 8px 14px; background: rgba(3, 7, 16, .82); border: 1px solid #293b49; opacity: .55; transition: opacity .3s; }
+.sx-ws-bar:hover, .sx-ws-bar:focus-within { opacity: 1; }
+.sx-ws-grp { display: flex; align-items: center; gap: 6px; }
+.sx-ws-bar select { padding: 4px 6px; background: #030710; border: 1px solid #293b49; color: #ffffe4; font: 15px var(--ui); }
+.sx-ws-b { padding: 4px 10px; background: none; border: 1px solid #293b49; color: #ffdaac; font: 600 14px var(--ui); letter-spacing: .04em; cursor: pointer; }
+.sx-ws-b:hover { border-color: #ffb762; color: #ffffe4; }
+.sx-ws-home { min-width: 92px; font-variant-numeric: tabular-nums; }
+.sx-ws-home.away { border-color: #ffb762; color: #ffb762; }
+.sx-ws-keys { display: flex; gap: 4px; }
+.sx-ws-keys .sx-ws-b { min-width: 28px; padding: 4px 6px; color: #ffb762; }
+.sx-ws-help { flex-basis: 100%; text-align: center; font: 12px var(--ui); letter-spacing: .04em; color: #6d8a8d; }
+[data-clock="focus"] .sx-ws-bar, [data-clock="last"] .sx-ws-bar { opacity: .25; }
+[data-clock="focus"] .sx-ws-bar:hover, [data-clock="last"] .sx-ws-bar:hover, [data-clock="focus"] .sx-ws-bar:focus-within { opacity: 1; }
+@media (max-width: 700px) { .sx-ws-help { display: none; } .sx-ws-bar { gap: 6px 10px; } }
+.sx-ws-bar .btn.sx-ws-b { min-height: 0; padding: 4px 10px; background: none; border: 1px solid #293b49; color: #ffdaac; font: 600 14px var(--ui); box-shadow: none; }
+.sx-ws-bar .btn.sx-ws-b.arm { border-color: #d9243c; color: #ff6157; }
+/* stacking on the desk: notes, then strings, then the clock on top (with a dark backing out to its brackets, so strings pass behind it) */
+.sx-world .sx-layer { z-index: 1; }
+.sx-world .sx-strings { z-index: 2; }
+#slRoot .sx-world > .sx-corner { z-index: 3; background: #030710; box-shadow: 0 0 0 30px #030710; }
+.sx-ws-help { display: none; }
+.sx-ws-bar:hover .sx-ws-help { display: block; }
+.sx-ws-bar { width: max-content; }

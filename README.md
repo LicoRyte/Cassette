@@ -1,7 +1,7 @@
 # Solarist
 
-A Pomodoro study timer where every study session is a trip through deep space to a new, randomly generated planet.
-Explore each world you reach, build posts, collect oddities, answer distress calls, and level up your captain while you study.
+A focus timer and nothing else: one big clock in a vintage sci-fi console, made to be satisfying to watch while it runs.
+No rewards, no streaks to protect, no story to chase. Just the time passing nicely. Around it, a desk you can move across for your own notes and photos.
 
 **Play:** https://licoryte.github.io/solarist/
 
@@ -14,7 +14,9 @@ Your progress is saved in this browser.
 
 | File | What it is |
 |---|---|
-| `index.html`, `style.css` | The page and its look: black space, floating text, colours from the 46-colour Apollo palette (see `CREDITS.md`) |
+| `index.html`, `style.css` | The page and its look: a dark console, colours from the 32-colour palette by BurakoIRL (see `CREDITS.md`) |
+| `js/ui/clock.js` | The clock-only Solarist: switches the space game off and adds the console, state colours, power-on, landing and breathing |
+| `js/ui/board.js` | The desk: the pannable, zoomable workspace around the clock, with notes, Polaroid photos, strings and number-key bookmarks |
 | `js/shell.js` | Sounds, notifications, install, offline support, and the planet viewport: a WebGL shader that draws each world as a dithered, palette-snapped 3D sphere (radar sweep while surveying, and so on) |
 | `js/world/`, `js/boot.js`, `js/game/`, `js/ui/` | The game: planets, missions, the Meridian, collectibles, research, levels, the Learning log, stats. See **Code layout** below |
 | `economy.json` | Tuning numbers (levels, expedition and anomaly odds, arrival chances). Some entries are left over from the old economy and no longer used |
@@ -32,30 +34,16 @@ Your progress is saved in this browser.
 
 ## Controls
 
-`Space` starts or pauses, `H` hides the side panels, `←` `→` flip worlds in the Planetarium, `Esc` closes a page, the report or the ship view.
+`Space` starts or pauses, `1`-`9` glide to a bookmark, `Shift`+`1`-`9` bookmarks the selected note or photo, `0` goes back to the clock, `Esc` puts down the note you're writing or closes a page.
 
 ## What's in it
 
-Solarist is about discovery, not grinding: no resources, shops or upgrades to buy. See `docs/cozy-redesign-plan.md` for where it's heading.
-
-- **A shelf of stories:** Solarist is a book of long stories you study your way through. The **Stories** page (top bar) lists them: pick one, switch whenever you like, and each keeps its own place and remembers your choices. Every finished study session plays the next **episode** of the story you're playing, and after the session it fills the screen to read, one part at a time (Settings can turn that off).
-- **The Meridian:** the long authored story, told as three seasons of five chapters. Each chapter is its own fixed world: one episode follows the signal there, then five parts, each with a careful or bold choice made on the break. Going back to it after another story is part of the next episode.
-- **Authored campaigns** (`content/stories/*.json`, now: **The Windtrap Project**, three seasons and 30 episodes on Aridel, a desert world of cathedral-sized machines that wring water from the wind, and **Second Solarist**, three seasons and 30 episodes following Captain Aurel Vance's convoy past the edge of the charts towards a white shore your crew keeps dreaming of, **The Lantern's Last Crew** (two seasons following a route scratched under a bunk to the people who had your ship before you), **Tidebreak** (two seasons on an ocean world whose city of boats must decide whether to hold together or scatter), and **Small Hours** (12 quiet standalone moments aboard that come round again, and play by themselves once a story is finished)): fixed worlds, seasons of written episodes, and choices on the break that later episodes and endings remember. See docs/stories-plan.md.
-- **Voyages:** short random seasons (`content/seasons.json`) that are never quite the same twice: each run picks a different twist and a different crew member in the spotlight, uses different wording, and calls back to earlier worlds and seasons.
-- **The crew fills in the rest:** after the episode come the crew's own moments, built from who they are, what they wear and carry, and what's aboard: ship life, two of them together, a crew member's own little storyline (`content/stories.json`), the sky of the day, a campfire before the long break.
-- **Your crew is the cast:** under Ship, Crew, a full-page editor: everyone aboard on the left, the one you picked filling the rest. Name, pronouns, age, profession, one or two traits, five clothing slots (hat, accessory, top, bottom, shoes) and one thing to carry, all freely chosen. It all changes how the story is written. "Who's aboard?" opens the same editor on a first start.
-- **Your ship:** under Ship, Ship: the cutaway, every room's look, the hull paint and the name.
-- **Main screen:** the timer on the left (the time, one bar per study session of the cycle, white while you study and green over it on the break, then Start/Pause and Reset), with what happened under it and a choice when the episode left one. The planet fills the rest: drag it to turn it, scroll to zoom. While you study, only the planet and the timer stay. Space starts or pauses; R resets and S skips while the timer is stopped.
-- **Small satisfactions:** the timer filling its panel in big digits, each digit fading in as it changes, a shine along a session bar when it fills, a stamp over the planet when the story reaches a new world, buttons that press in, and the top bar fading back while you study. A first start ends on the Stories page, so you choose your story. Reduced motion keeps all of it still.
-- **The clock:** while a session runs and Solarist is the window in front, the clock ticks once a second (Settings, Clock: on or off and how loud).
-- **The Board:** every episode you play is a paper card on a cork board (top bar, Board). Drag cards anywhere, drag from a card's red pin onto another to tie a string between them (click a string to cut it), double-click to read a card, and pin up your own notes. Each story has its own board.
-- **Planets:** every world is generated from a few settings (heat, water, air, life, age) and drawn by Solarist's own shader in the 32-colour palette by BurakoIRL: seas, continents, craters, lava rivers, gas bands and drifting clouds, with dithered shading. Its portrait in the Atlas uses the same colours.
-- **Pages** (top bar): **Atlas** (Worlds you've been to, and the star map), **Journal** (the story so far and every log, with filters and search, a Learning log, and a reader for one at a time), **Ship** (Crew, Ship) and **Settings**. Text is plain, without emoji.
-- **Learning log:** after each study session, write one optional line about what you learned. It's saved with the world you were at.
-- **The today line** under the timer: where you are in the cycle, how many sessions today, and the sky of the day.
-- **Phones:** one column: the planet, the timer, then the story.
-- **Gone on purpose:** research, crafting, collectibles, levels, points, achievements, missions and the old waypoint cards. Their code is still in the project (switched off in `js/ui/season-ui.js`), and saves keep their old data.
-- **Full Cycle:** finish every session and break of a cycle without skipping, and something interesting waits on your next trip.
+- **The clock:** one centred clock in a console frame with amber corner brackets, over a slowly drifting grain and faint scanlines, with a single line sweeping down the screen once a minute. Above the digits: Ready, Focus or Paused, and which session of the cycle this is. Under them: the session bars, Start/Pause and Reset, and how many sessions you've done today.
+- **Colour tells you where you are:** cream while you focus, warmer in the last minute, mint on a break, dimmed and blinking when paused, quiet silver when ready.
+- **The feel:** each digit fades in as it changes and the old one lingers for a moment like phosphor. The colon glows on every second. Pressing Start switches the digits on like an old screen. In the last ten seconds the fade slows down. At 00:00 the digits hold and glow for a moment before letting go. Breaks don't tick: the digits breathe. Reduced motion keeps all of it still.
+- **The tick:** while you focus and Solarist is the window in front, the clock ticks once a second, softer through the last minute (Settings, Clock: on or off and how loud).
+- **The desk:** the whole screen is one big workspace with the clock in the middle. Drag empty space (or the clock's face) to move around, scroll to zoom, double-click anywhere to pin a note there, and drop photos straight on (they hang as Polaroids with a caption). Drag from a red pin onto something else to tie a string; click a string to cut it. **Bookmarks:** click a note or photo and press Shift+1 to 9 to give it a number; 1 to 9 glides the camera there and 0 glides back to the clock (the 0 button shows the time while the clock is out of sight). The bar along the bottom switches, makes, renames and deletes desks. Photos are kept in this browser (IndexedDB), shrunk to 640 px.
+- **Gone on purpose:** the space game (planets, the crew, the stories, the Atlas, the Journal, the ship). Its code and content are still in the project, switched off by `js/ui/clock.js`, and the full space version is kept in git under the tag `space-game` (`git checkout space-game`).
 
 ## Code layout
 

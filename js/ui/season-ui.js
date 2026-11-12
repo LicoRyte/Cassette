@@ -51,6 +51,7 @@ function drawStories() {
         el('h3', {}, s.title), el('p', { class: 'sx-st-hook' }, s.hook),
         s.themes.length ? el('p', { class: 'sx-st-th' }, s.themes.join(' · ')) : null,
         el('p', { class: 'sx-st-place' }, s.place()),
+        s.done() && S.camp[s.id] && S.camp[s.id].epi && S.camp[s.id].epi.length ? el('button', { type: 'button', class: 'btn sx-mini', onclick: () => openEpisodeReader(true, [{ h: 'Where are they now', kick: s.title, ps: S.camp[s.id].epi.map(t => ({ t })) }]) }, 'Where are they now') : null,
         on ? el('button', { type: 'button', class: 'btn', onclick: () => tab('timer') }, 'Back to it')
           : el('button', { type: 'button', class: 'btn sl-go', disabled: lock || null, onclick: () => { setStory(s.id); tab('timer'); } }, s.done() ? 'Read it again' : started ? 'Continue' : 'Start'));
     }))].filter(Boolean));
@@ -59,10 +60,33 @@ function drawStories() {
 /* ---------- the episode reader: after a study session, the story fills the screen, one part at a time ---------- */
 if (!S.opts) S.opts = {};
 let rdrOn = false;
-function openEpisodeReader(force) {
-  if (rdrOn || (S.opts.reader === false && !force)) return;
+// names in the story, in their own colours: each story's cast (content/stories/*.json "cast"), and your crew in amber
+function storyNames() {
+  const m = {}; (TEXT.campaigns || []).forEach(c => Object.assign(m, c.cast || {}));
+  [S.me].concat(S.crew).forEach(p => { const f = p === S.me ? (hasMyName() ? meName() : '') : String(p.name || '').split(' ')[0]; if (f && f.length > 1) m[f] = '#ffb762'; });
+  return m;
+}
+// a paragraph as nodes: spoken lines a little brighter, names in their colours
+function fmtStory(t) {
+  const names = storyNames(), keys = Object.keys(names).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const re = new RegExp('("[^"]+")' + (keys.length ? '|\\b(' + keys.join('|') + ')\\b' : ''), 'g');
+  const out = []; let last = 0, m;
+  const nameSpan = n => el('span', { class: 'sx-name', style: 'color:' + names[n] }, n);
+  const withNames = s => { if (!keys.length) return [s]; const r = new RegExp('\\b(' + keys.join('|') + ')\\b', 'g'), o = []; let l = 0, x; while ((x = r.exec(s))) { if (x.index > l) o.push(s.slice(l, x.index)); o.push(nameSpan(x[1])); l = x.index + x[1].length; } if (l < s.length) o.push(s.slice(l)); return o; };
+  while ((m = re.exec(t))) {
+    if (m.index > last) out.push(t.slice(last, m.index));
+    out.push(m[1] ? el('span', { class: 'sx-q' }, ...withNames(m[1])) : nameSpan(m[2]));
+    last = m.index + m[0].length;
+  }
+  if (last < t.length) out.push(t.slice(last));
+  return out;
+}
+// the reader: the last session's report (or any parts you give it), one part at a time, typed with a little rhythm
+function openEpisodeReader(force, given) {
+  if (rdrOn || (S.opts.reader === false && !force && !given)) return;
   const head = n => { const a = n.querySelector('.sl-trans-h'); if (a) return a.textContent.trim(); const b = n.querySelector('.sx-camp-h'); return b ? [...b.children].map(x => x.textContent.trim()).join(' · ') : ''; };
-  const parts = [...trans.querySelectorAll('.sl-trans-i')].map(n => ({ h: head(n), camp: n.classList.contains('sx-camp'), ps: [...n.querySelectorAll('p')].map(p => ({ t: p.textContent, got: p.classList.contains('sl-ev-got') })) })).filter(x => x.ps.length);
+  const parts = given || [...trans.querySelectorAll('.sl-trans-i')].map(n => ({ h: head(n), camp: n.classList.contains('sx-camp'),
+    ps: [...n.querySelectorAll('p')].map(p => ({ t: p.textContent, got: p.classList.contains('sl-ev-got'), react: p.classList.contains('sl-react') })) })).filter(x => x.ps.length);
   if (!parts.length) return;
   rdrOn = true;
   const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -72,15 +96,21 @@ function openEpisodeReader(force) {
     el('div', { class: 'sx-rdr-in' }, kick, h, body, el('div', { class: 'sx-rdr-nav' }, pos, next)));
   document.body.append(box); requestAnimationFrame(() => box.classList.add('on'));
   let i = 0, typing = 0;
-  const finishType = () => { clearInterval(typing); typing = 0; body.querySelectorAll('p').forEach(p => { p.textContent = p.dataset.full; p.classList.remove('sx-type'); }); };
+  const dress = p => { p.replaceChildren(...fmtStory(p.dataset.full)); p.classList.remove('sx-type'); }; // a finished paragraph gets its colours
+  const finishType = () => { clearTimeout(typing); typing = 0; body.querySelectorAll('p').forEach(p => { if (!p.dataset.done) { dress(p); p.dataset.done = '1'; } }); };
   function show() {
-    const x = parts[i], m = x.h.match(/^(.*?) · (Episode .*|Finale.*|Chapter .*)$/);
-    kick.textContent = x.camp ? 'The Meridian' : m ? m[1] : (i ? 'Aboard' : 'Episode'); h.textContent = m ? m[2] : x.h;
-    body.replaceChildren(...x.ps.map(p => el('p', { class: p.got ? 'sx-rdr-got' : '', 'data-full': p.t }, still ? p.t : '')));
+    const x = parts[i], m = x.h.match(/^(.*?) · (Episode .*|Finale.*|Chapter .*|Where are they now.*)$/);
+    kick.textContent = x.kick || (x.camp ? 'The Meridian' : m ? m[1] : (i ? 'Aboard' : 'Episode')); h.textContent = m ? m[2] : x.h;
+    body.replaceChildren(...x.ps.map(p => el('p', { class: p.got ? 'sx-rdr-got' : p.react ? 'sx-rdr-react' : '', 'data-full': p.t })));
     pos.textContent = (i + 1) + ' of ' + parts.length; next.textContent = i < parts.length - 1 ? 'Next' : 'Back to the ship';
-    if (still) return;
+    if (still) return finishType();
     const ps = [...body.querySelectorAll('p')]; let k = 0, c = 0;
-    typing = setInterval(() => { const p = ps[k]; if (!p) return finishType(); c += 2; p.textContent = p.dataset.full.slice(0, c); p.classList.add('sx-type'); if (c % 4 === 0) typeSnd(); if (c >= p.dataset.full.length) { p.classList.remove('sx-type'); k++; c = 0; } }, 24);
+    const tick = () => { const p = ps[k]; if (!p) { typing = 0; return; }
+      const full = p.dataset.full; c += 1; p.textContent = full.slice(0, c); p.classList.add('sx-type'); if (c % 3 === 0) typeSnd();
+      if (c >= full.length) { dress(p); p.dataset.done = '1'; k++; c = 0; typing = setTimeout(tick, 420); return; } // a breath between paragraphs
+      const ch = full[c - 1], nx = full[c] || ' ';
+      typing = setTimeout(tick, /[.!?]/.test(ch) && /\s|"/.test(nx) ? 300 : /[,;:]/.test(ch) ? 110 : ch === '—' ? 180 : 16); }; // pauses where a reader would pause
+    typing = setTimeout(tick, 120);
   }
   function step() { if (typing) return finishType(); if (i < parts.length - 1) { i++; show(); } else close(); }
   function close() { finishType(); rdrOn = false; document.removeEventListener('keydown', keys, true); box.classList.remove('on'); setTimeout(() => box.remove(), 300); draw(); }

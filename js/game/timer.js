@@ -37,7 +37,7 @@ function finish(quiet) {
     // the story: the next episode of the season (js/game/season.js). It may take the ship to a new world first
     let foundP = null;
     const then = () => ' Now a ' + MODES[mode].toLowerCase() + '.';
-    const r = activeStory().play(reps) || {}; // the next episode of the story you're playing (js/game/campaign.js)
+    const r = typeof CLOCK_ONLY !== 'undefined' && CLOCK_ONLY ? {} : activeStory().play(reps) || {}; // (the clock-only Solarist plays no story) // the next episode of the story you're playing (js/game/campaign.js)
     foundP = r.p || null;
     done('', foundP, r.how || (foundP ? 'new' : 'log'));
     hint.textContent = (foundP ? 'Arrived at ' + nm(foundP) + '. ' : '') + (r.msg || '') + then();

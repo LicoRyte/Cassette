@@ -557,7 +557,7 @@ void main(){
     const D = dfLook(p, L); globe.look.st = D.st; gl.uniform1f(U.fStyle, D.st); gl.uniform1f(U.dfCut, D.cut); gl.uniform3fv(U.ca, D.ca.flatMap(rgb)); gl.uniform3fv(U.cb, D.cb.flatMap(rgb)); gl.uniform3fv(U.ck, D.ck.flatMap(rgb)); gl.uniform3fv(U.rc, D.rc.flatMap(rgb));
   }
   function render(now) {
-    raf = 0; if (!info) return;
+    raf = 0; if (!info || root.classList.contains('sx-clockonly')) return; // the clock-only Solarist draws no planet
     const moving = !reduceMotion.matches; // effects (radar, rings, raiders) stop when reduced motion is on; the slow spin keeps going
     const dt = lastNow ? Math.min(.1, (now - lastNow) / 1000) : 0; lastNow = now;
     if (moving) simT += dt;

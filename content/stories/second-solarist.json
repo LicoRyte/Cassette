@@ -106,7 +106,8 @@
               "Every ship in the sector hears it at once. A warm, enormous voice, the kind of voice that has given a lot of speeches: \"This is Captain Aurel Vance. Sixty years ago the First Solarist sailed past the edge of every chart, and never came home. I am going to finish what they started. I am calling it the Second Solarist. And I want you with me.\"",
               "In the galley of {ship}, nobody speaks for a moment. Then {Crew} says, very quietly, that {crew.they} had a strange dream last night. A white shore. A black sky. And a voice that said almost exactly the same thing."
             ],
-            "world": "muster"
+            "world": "muster",
+            "mood": "eerie"
           },
           {
             "title": "Halcyon Relay",
@@ -128,7 +129,8 @@
                   "reply": "Mira looks surprised to be asked anything. \"Supplies for eight months. Charts for four. He thinks the rest will turn up.\" She pauses. \"Sign anyway. He needs ships that ask questions.\""
                 }
               ]
-            }
+            },
+            "mood": "wonder"
           },
           {
             "title": "The speech",
@@ -136,7 +138,8 @@
               "On the last night before departure, Vance gives a speech from the top of the relay tower. It is very long. It mentions the First Solarist eleven times and himself thirty-four times. {Crew} counts.",
               "But some of it is beautiful. He talks about the edge of the charts like a coastline nobody has walked, and about what it would mean to be the people who finally walk it. Half the convoy is crying by the end. A young pilot near {ship} called Tamsin Rook is crying hardest of all.",
               "That night {Crew} dreams of the white shore again. It is closer this time."
-            ]
+            ],
+            "mood": "funny"
           },
           {
             "title": "The shared dream",
@@ -158,14 +161,16 @@
                   "reply": "You keep it. But that night you hear Tamsin Rook on the open channel, talking in her sleep: \"white sand,\" she says, \"white sand,\" and then, clearly, your ship's name."
                 }
               ]
-            }
+            },
+            "mood": "eerie"
           },
           {
             "title": "Departure",
             "text": [
               "Thirty-one ships light their engines at once. From the relay it must look like a new constellation, sliding off the edge of the sky.",
               "The first days are glorious. Vance broadcasts music to the whole convoy. Ships race each other through the asteroid belts. Tamsin Rook flies loops around {ship} until Mira tells her, over the open channel, to stop showing off. She stops showing off for about an hour."
-            ]
+            ],
+            "mood": "warm"
           },
           {
             "title": "Tamsel",
@@ -188,7 +193,8 @@
                   "reply": "You keep your cup down. Nobody notices, except Vance, who notices everything about himself. Later, Mira passes {ship} on the beach and says, without stopping, \"Thank you.\""
                 }
               ]
-            }
+            },
+            "mood": "funny"
           },
           {
             "title": "Rook",
@@ -210,7 +216,8 @@
                   "reply": "Rook goes pale, but she goes. Mira fixes the line herself, says nothing to Vance, and docks Rook's racing privileges for a week. Rook is furious, then grateful, in that order."
                 }
               ]
-            }
+            },
+            "mood": "warm"
           },
           {
             "title": "Logs",
@@ -218,14 +225,16 @@
               "Every evening Vance broadcasts the day's log to the whole convoy, and from there back to the relay, and from there to the whole sector. Everyone back home is listening.",
               "Tonight's log describes the landing on Vance's Rest. In it, there was a storm. There was a moment of great danger. Vance made a daring choice and saved the landing party.",
               "There was no storm. {Crew} was there. It was a lovely, calm afternoon."
-            ]
+            ],
+            "mood": "tense"
           },
           {
             "title": "The dream, closer",
             "text": [
               "The dream is different tonight. The figure in the flight jacket is closer to the shore, and when {Crew} tries to walk towards them, the white sand pulls at {crew.their} feet like deep snow.",
               "In the morning, the whole convoy's course has shifted by a few degrees. Nobody ordered it. Every navigator on every ship checks their instruments. Every instrument says they are flying straight. Vance says it is destiny. Mira says it is a fault in the charts, and stays up all night trying to find it."
-            ]
+            ],
+            "mood": "eerie"
           },
           {
             "title": "Past the last chart",
@@ -244,7 +253,8 @@
                 }
               },
               "That night everybody in the convoy has the same dream, and for the first time the figure on the shore turns around. Nobody can remember their face in the morning. Only that they were smiling, and that they looked very, very tired."
-            ]
+            ],
+            "mood": "quiet"
           }
         ]
       },
@@ -257,7 +267,8 @@
               "Two months past the edge. The convoy stops at a cold bright world of blue ice to mend its engines. Vance names it after himself, again: Vance's Glory. Then, a week later, Vance's Patience. He seems to have forgotten he already named it.",
               "The crews are tired now. The music broadcasts have stopped. Rations were cut last week, quietly, by Mira. {Crew} has started keeping a private log, in pencil, of what actually happens each day."
             ],
-            "world": "harrow"
+            "world": "harrow",
+            "mood": "tense"
           },
           {
             "title": "The rewritten log",
@@ -279,7 +290,8 @@
                   "reply": "You let it stand. It is only a story, you tell yourselves. Back home, children are already playing at being Aurel Vance on the ice."
                 }
               ]
-            }
+            },
+            "mood": "tense"
           },
           {
             "title": "The Shallows",
@@ -288,7 +300,8 @@
               "The crews swim. Rook teaches {Crew} to dive for the glowing shells. For three days, nobody talks about the First Solarist at all, and everybody is happier than they have been in months.",
               "Vance hates it. On the fourth morning he orders the convoy on, an hour before dawn, without warning."
             ],
-            "world": "shallows"
+            "world": "shallows",
+            "mood": "warm"
           },
           {
             "title": "The ship that fell behind",
@@ -310,7 +323,8 @@
                   "reply": "You stay. Mira takes her own ship back for them instead, against orders. She comes back four days later, towing the Persimmon, and doesn't speak to anybody for a while."
                 }
               ]
-            }
+            },
+            "mood": "determined"
           },
           {
             "title": "Mira",
@@ -332,7 +346,8 @@
                   "reply": "You tell her the captain should have his chance. Mira smiles, very tiredly. \"So did I, once. Twenty years ago.\" She leaves her tea behind, still full."
                 }
               ]
-            }
+            },
+            "mood": "sad"
           },
           {
             "title": "The figure on the shore",
@@ -340,7 +355,8 @@
               "The dream has changed again. Now everyone in the convoy is on the white shore together, thousands of them, standing in the silent waves. And the figure in the flight jacket is walking down the beach towards {Crew}.",
               "It is the First Solarist's captain. {Crew} knows it the way you know things in dreams. She stops a few steps away, and she says, very kindly: \"You can stay, you know. It's what you want. It's what everyone wants, in the end.\"",
               "{Crew} wakes up shouting. So do half the crews in the convoy."
-            ]
+            ],
+            "mood": "eerie"
           },
           {
             "title": "Hunger",
@@ -362,7 +378,8 @@
                   "reply": "You keep it. Your crew eats well and feels terrible. That night {Crew} takes half {crew.their} dinner across to Rook's ship anyway, without telling anyone."
                 }
               ]
-            }
+            },
+            "mood": "sad"
           },
           {
             "title": "Rook's dream",
@@ -381,7 +398,8 @@
                   "flags.reported": "yes"
                 }
               }
-            ]
+            ],
+            "mood": "sad"
           },
           {
             "title": "Cinder",
@@ -389,7 +407,8 @@
               "The last world anyone has a name for is black and burning: rivers of fire under a dim red sun. The convoy stops at its edge because there is nowhere else to stop.",
               "Vance stands on a ridge above the lava and makes his longest speech yet. Beyond Cinder, he says, the white shore is waiting. He has seen it in his dreams. The First Solarist found it, and now he will. He doesn't mention Rook. He doesn't mention the ships that turned back. He doesn't mention food."
             ],
-            "world": "cinder"
+            "world": "cinder",
+            "mood": "tense"
           },
           {
             "title": "The vote",
@@ -409,7 +428,8 @@
               },
               "The question is simple. Turn back now, while there is still food enough to make it home. Or go on, past Cinder, to the white shore, and find out what the First Solarist found, and wake Rook and the others, if they can be woken.",
               "The vote is a tie. Every face in the room turns to {ship}."
-            ]
+            ],
+            "mood": "determined"
           }
         ]
       },
@@ -422,7 +442,8 @@
               "The convoy goes on. Not because Vance said so, but because of Rook and the others, asleep in their bunks, and because there is no other way to wake them.",
               "Past Cinder there are no stars. Not few: none. The dark outside is absolute, and the instruments read nothing at all, and every night now the whole convoy sleeps on the same white beach."
             ],
-            "world": "cinder"
+            "world": "cinder",
+            "mood": "eerie"
           },
           {
             "title": "The mutiny that wasn't",
@@ -441,7 +462,8 @@
               },
               "Vance finds out, of course. He always finds out things about himself. He doesn't rage. He goes very quiet and very small, and broadcasts, to the whole convoy: \"I only wanted it to mean something. I only wanted us to matter.\" Then he goes off the air.",
               "Nobody takes the convoy. Nobody has the heart."
-            ]
+            ],
+            "mood": "sad"
           },
           {
             "title": "The shore",
@@ -449,7 +471,8 @@
               "And then, one morning, it is there: a world with no sun, glowing faintly by itself, white from pole to pole. Under the black sky, a white shore. Exactly as everyone has dreamed it.",
               "The whole convoy lands on the beach together. The waves make no sound. The sand is warm. Standing in the shallows, in rows, motionless, facing the sea, are people. Dozens of them, in old Solarist flight jackets. The First Solarist's crew."
             ],
-            "world": "white-shore"
+            "world": "white-shore",
+            "mood": "wonder"
           },
           {
             "title": "The sleepers",
@@ -457,7 +480,8 @@
               "They are alive. Asleep on their feet, breathing slowly, sixty years older than in any photograph, and smiling. Every one of them is smiling.",
               "Mira walks down the line, reading the names off their jackets in a whisper. They are all here. All twelve.",
               "The shore is dreaming, {Crew} realises. The whole world is one long slow dream, and it has been reaching out across the dark for sixty years, offering every sleeper the one thing they want most. The First Solarist came, and it gave them what they wanted, and they stayed."
-            ]
+            ],
+            "mood": "eerie"
           },
           {
             "title": "What Vance wants",
@@ -479,7 +503,8 @@
                   "reply": "You shake the First Solarist's captain gently by the shoulders. Her eyes open, very slowly. \"Oh,\" she says, sixty years late. \"You came. I hoped somebody would.\" She looks at Vance and sighs. \"Him too? Poor man.\""
                 }
               ]
-            }
+            },
+            "mood": "sad"
           },
           {
             "title": "The captain's story",
@@ -497,7 +522,8 @@
                 }
               },
               "\"Rook and the others are already here,\" she says. \"In the dream. They wanted to be heroes. The shore made them heroes.\" She looks at the convoy ships on the beach. \"And it will take the rest of you, one by one, if you stay long enough.\""
-            ]
+            ],
+            "mood": "quiet"
           },
           {
             "title": "Desperation",
@@ -516,7 +542,8 @@
                   "flags.kept_food": "yes"
                 }
               }
-            ]
+            ],
+            "mood": "determined"
           },
           {
             "title": "The way out",
@@ -524,7 +551,8 @@
               "The First Solarist's captain knows how to leave. You can't be dragged out of the dream, she says. You have to be given a reason to want something else more.",
               "For Rook, it is easy: {Crew} tells her about the biscuits, and the loops she flew, and the people waiting for her back on the Persimmon. She wakes up crying and laughing and asking what she missed.",
               "One by one, the crews are woken, each with a reason. It takes all night. And then there is only Vance, standing in the shallows, smiling at applause that will never stop."
-            ]
+            ],
+            "mood": "warm"
           },
           {
             "title": "The last choice",
@@ -551,7 +579,8 @@
                   "reply": "You leave him where he stands, smiling. Mira takes off her First Officer's badge and pins it on his jacket, very gently. \"There,\" she says. \"Now you're in charge forever.\""
                 }
               ]
-            }
+            },
+            "mood": "tense"
           },
           {
             "title": "Home",
@@ -575,7 +604,104 @@
                 }
               },
               "Weeks later, in the galley of {ship}, the dream comes back once, faintly: a white shore, a black sky. But it is empty now. No figures in the shallows. Just quiet water. {Crew} wakes up, makes a cup of tea, and finds {crew.they} {crew:doesn't|don't} want to be anywhere else at all."
-            ]
+            ],
+            "mood": "quiet"
+          }
+        ]
+      }
+    ],
+    "cast": {
+      "Vance": "#ffd832",
+      "Aurel": "#ffd832",
+      "Mira": "#bfc3c6",
+      "Rook": "#ff823b",
+      "Tamsin": "#ff823b"
+    },
+    "epilogue": [
+      {
+        "name": "Aurel Vance",
+        "lines": [
+          {
+            "text": "Vance runs a small flight school at Halcyon Relay. He never gives speeches. His students say he's the best teacher they've ever had, and that he always tells them the truth.",
+            "when": {
+              "flags.save_vance": "yes"
+            }
+          },
+          {
+            "text": "Vance stays on the White Shore, smiling at applause that never ends. Nobody back home knows. His statue at the relay is very tall.",
+            "when": {
+              "flags.legend": "yes"
+            }
+          },
+          {
+            "text": "Vance is never seen again. The convoy doesn't speak of him much. When it does, it is gently.",
+            "when": {
+              "flags.save_crews": "yes"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Mira Osei",
+        "lines": [
+          {
+            "text": "Mira becomes captain of the Second Solarist, which she renames: just the Convoy. She keeps the logs plainly, with no adjectives, for twenty more years.",
+            "when": {
+              "flags.save_crews": "yes"
+            }
+          },
+          {
+            "text": "Mira stays Vance's first officer until he retires. Then she takes up painting, and is very good at it.",
+            "when": {
+              "flags.save_vance": "yes"
+            }
+          },
+          {
+            "text": "Mira keeps one thing from the White Shore: Vance's flight jacket. She never wears it. She never throws it away.",
+            "when": {
+              "flags.legend": "yes"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Tamsin Rook",
+        "lines": [
+          {
+            "text": "Rook flies loops around {ship} every time their paths cross, for the rest of her life, and always ends with a waggle of the wings.",
+            "when": {
+              "flags.helped_rook": "yes"
+            }
+          },
+          {
+            "text": "Rook joins Mira's crew and becomes the most careful pilot in the sector, which surprises everyone, especially Rook.",
+            "when": {
+              "flags.reported": "yes"
+            }
+          },
+          "Rook keeps flying."
+        ]
+      },
+      {
+        "name": "The First Solarist",
+        "lines": [
+          "The First Solarist's twelve come home sixty years late. Their captain lives in a small house by the sea and refuses, very politely, every interview."
+        ]
+      },
+      {
+        "name": "The Persimmon",
+        "lines": [
+          {
+            "text": "The Persimmon's crew name their next ship after {ship}.",
+            "when": {
+              "flags.turned_back": "yes"
+            }
+          },
+          {
+            "text": "The Persimmon's crew send Mira a crate of fruit every year.",
+            "when": {
+              "flags.pressed_on": "yes"
+            }
           }
         ]
       }

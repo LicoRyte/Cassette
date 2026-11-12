@@ -14,16 +14,18 @@ function fitDigits() { // as big as the panel is wide: measure the digits at 100
   const w = corner.clientWidth; if (!w) return; digW = w;
   digits.style.fontSize = '100px'; const k = digits.children; if (!k.length) return;
   const natural = (k[k.length - 1].getBoundingClientRect().right - k[0].getBoundingClientRect().left) || 1; // the digits themselves, not their box
-  digits.style.fontSize = Math.floor(100 * Math.min(w, 380) / natural) + 'px';
+  digits.style.fontSize = Math.floor(100 * Math.min(w, 560) / natural) + 'px';
 }
+let digitsHold = 0, digitsHoldText = ''; // after a session, the digits stay on 00:00 for a moment (js/ui/clock.js)
 function drawDigits() {
   if (corner.clientWidth && corner.clientWidth !== digW) fitDigits(); // the panel changed size (or wasn't laid out yet)
-  const t = timeText.textContent || ''; if (t === digLast) return;
+  const t = Date.now() < digitsHold ? digitsHoldText : timeText.textContent || ''; if (t === digLast) return;
   const old = digLast; digLast = t;
   if (digits.children.length !== t.length) { digits.replaceChildren(...[...t].map(ch => el('span', { class: ch === ':' ? 'sx-dig sx-colon' : 'sx-dig' }, ch))); fitDigits(); return; }
-  [...t].forEach((ch, i) => { const sp = digits.children[i]; if (sp.textContent === ch) return;
-    sp.textContent = ch; if (!old || stillUI()) return;
-    sp.classList.remove('chg'); void sp.offsetWidth; sp.classList.add('chg'); }); // only the digits that changed fade in
+  [...t].forEach((ch, i) => { const sp = digits.children[i]; if (sp.firstChild && sp.firstChild.nodeValue === ch) return;
+    const was = sp.firstChild ? sp.firstChild.nodeValue : ''; sp.textContent = ch; if (!old || stillUI()) return;
+    sp.classList.remove('chg'); void sp.offsetWidth; sp.classList.add('chg'); // only the digits that changed fade in
+    if (was) { const g = el('i', { class: 'sx-ghost', 'aria-hidden': 'true' }, was); sp.append(g); setTimeout(() => g.remove(), 900); } }); // the old digit lingers, like phosphor
 }
 new MutationObserver(drawDigits).observe(timeText, { childList: true, characterData: true, subtree: true });
 addEventListener('resize', fitDigits);
@@ -73,10 +75,11 @@ function tickLoad() { // the browser lets sound start only after you've clicked 
 }
 addEventListener('pointerdown', tickLoad, { once: true }); addEventListener('keydown', tickLoad, { once: true });
 function tickPlay() {
-  if (!tickBuf || !running || !tickWanted() || document.hidden || !document.hasFocus()) return;
+  if (!tickBuf || !running || mode !== 'focus' || !tickWanted() || document.hidden || !document.hasFocus()) return; // breaks don't tick: they breathe
   if (tickCtx.state === 'suspended') tickCtx.resume();
   const src = tickCtx.createBufferSource(), g = tickCtx.createGain(); src.buffer = tickBuf;
-  g.gain.value = S.opts.tickVol != null ? S.opts.tickVol : .35; src.connect(g); g.connect(tickCtx.destination); src.start();
+  const rem = remaining(), soft = rem < 60000 ? Math.max(.25, rem / 60000) : 1; // the last minute winds down
+  g.gain.value = (S.opts.tickVol != null ? S.opts.tickVol : .35) * soft; src.connect(g); g.connect(tickCtx.destination); src.start();
 }
 let tickLast = '';
 new MutationObserver(() => { const t = timeText.textContent; if (t !== tickLast) { tickLast = t; tickPlay(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
