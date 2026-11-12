@@ -34,41 +34,19 @@ function finish(quiet) {
     { S.cnt.maxFocus = Math.max(S.cnt.maxFocus || 0, S.set.focus); const st = S.cnt.streak = S.cnt.streak || { last: '', n: 0, best: 0 }, td = today(); if (st.last !== td) { const y = new Date(); y.setDate(y.getDate() - 1); st.n = st.last === dayKey(y) ? st.n + 1 : 1; st.last = td; st.best = Math.max(st.best, st.n); } }
     { (S.cnt.dow = S.cnt.dow || {})[new Date().getDay()] = 1; const hr = new Date().getHours(); if (hr < 4) S.cnt.night = (S.cnt.night || 0) + 1; else if (hr < 7) S.cnt.early = (S.cnt.early || 0) + 1; }
     const reps = [];
-    const forced = !!S.eventNext; S.eventNext = false;
-    const ev = rollEvent(forced); if (ev) reps.unshift({ ev });
+    // the story: the next episode of the season (js/game/season.js). It may take the ship to a new world first
     let foundP = null;
     const then = () => ' Now a ' + MODES[mode].toLowerCase() + '.';
-    if (chaptering()) {
-      const msg = chLegDone(reps); done(msg); hint.textContent += then();
-    } else if (observing()) {
-      const msg = mysStep(reps); done(msg); hint.textContent += then();
-    } else if (staying()) {
-      const a = stayAct().id, msg = a === 'expedition' ? exLegDone(reps) : a === 'salvage' ? salvageDone(reps) : stayDone(reps); done(msg); hint.textContent += then();
-    } else if (returning()) { // back to home or a favourite
-      const p = returnTrip(reps); done('', p, 'log');
-      hint.textContent = (S.home === p.num ? '🏠 Home again: ' : '★ Back on ') + nm(p) + '.' + then();
-    } else if (following()) { // Follow the Signal: the next Meridian world (no visitors there)
-      const { p, fresh } = followSignal(); foundP = fresh ? p : null;
-      done('', p, fresh ? 'story' : 'log');
-      hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (its waypoint is on the planet).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + then();
-    } else { // Explore: a brand-new world
+    const st = seasonStep(reps);
+    if (st.travel) {
       const p = makePlanet((Math.random() * 4294967296) >>> 0, S.nextNum++, false, .05, regionNow());
-      const visit = rollArrival(p); p.visit = visit || 'none'; // one roll: at most one visitor per world
-      S.found.push({ at: Date.now(), p }); S.at = p.num;
-      S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1;
-      award(20 + ({ Uncommon: 10, Rare: 25, Legendary: 60 }[p.rarity] || 0), 0);
-      if (visit === 'derelict') makeDerelict(p);
-      if (visit === 'trade') meetTrader(p, reps);
-      mysFind(p, reps, .12); oddFind(p, reps); wonderCheck(p, reps);
-      if (visit === 'meeting') {
-        const m = txPick('meeting', worldCtx(p)) || { ic: '👋', title: 'A friendly hello', text: 'Someone near {world} waves at the ship.' }, ic = m.ic, title = m.title, t = txFill(m.text, worldCtx(p));
-        p.enc = { ic, title, t }; award(10, 5); S.cnt.enc++;
-        pushEv({ ic, title, t, at: Date.now() });
-      }
+      p.visit = 'none'; S.found.push({ at: Date.now(), p }); S.at = p.num; S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1;
       foundP = p;
-      done('', p, 'new');
-      hint.textContent = visit === 'derelict' ? '🛸 Arrived, and a derelict ship is drifting nearby! Salvage it with one study session (its waypoint is on the planet).' + then() : 'Arrived! Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
     }
+    const msg = st.after ? st.after() : '';
+    done('', foundP, foundP ? 'new' : 'log');
+    hint.textContent = (foundP ? 'Arrived at ' + nm(foundP) + '. ' : '') + msg + then();
+    const ev = null;
     sessionEnd(reps, foundP, ev);
     learnAsk(true); openReport();
   } else {
@@ -77,13 +55,12 @@ function finish(quiet) {
     if (hooks.show) hooks.show();
     const wasLong = mode === 'long';
     setMode('focus');
-    hint.textContent = 'Equipment ready. Pick a mission and press Start.';
+    hint.textContent = 'Break over. The next episode is ready when you are.';
     if (wasLong) { // Full Cycle: every session and break of the cycle finished, nothing skipped
       if (!S.fc.broken && S.fc.n >= S.set.every) {
         S.fcDay = today(); S.cnt.fc++; S.eventNext = true;
-        hint.textContent = '★ Full Cycle! Nothing skipped all cycle: something interesting is waiting on your next trip.';
-        const notes = ['★ Full Cycle: something interesting is waiting on your next trip.'];
-        award(40, 0); gainKp(1, notes); flushXP(notes);
+        hint.textContent = '★ Full Cycle: every session and break, nothing skipped. Well done.';
+        const notes = ['★ Full Cycle: every session and break of the cycle, nothing skipped.'];
         showTrans([{ notes }]); showCard(null); encBox.hidden = true; learnAsk(false); openReport();
       }
       S.fc = { n: 0, broken: false };

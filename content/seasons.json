@@ -1,0 +1,726 @@
+{
+  "_guide": [
+    "Seasons: the voyage's main story. Every finished study session plays the next episode of the current season; a season is a premise played over its beats, then a new one starts.",
+    "A premise: id (never reused), title, spot (a trait tag: the crew member in the spotlight is picked from people with it, if any), beats, twists, endings.",
+    "A beat: variants (a list of texts, or { text, when } for ones that only fit sometimes), travel (true: the ship arrives at a new world first; the first beat always travels), choice (a question for the break: prompt and options of label, flag, reply).",
+    "Choices set flags; texts and endings can check them: \"when\": { \"flags.gave\": \"yes\" }. \"rerun\": \"yes\" is true when this premise has been played before.",
+    "Twists: one per run, picked so repeats differ: id, at (the beat index it joins), variants. Endings: the first whose \"when\" fits is used, so put the plain one last.",
+    "In the text, {Spot} is the spotlight crew member, {Crew} someone else aboard, {world} and {biome} the world, {ship} the ship, {past.world} an earlier world, {past.season} the last season. Pronouns: {spot.they}, {spot.their}, {spot.them}, and {spot:is|are} right after a pronoun."
+  ],
+  "seasons": [
+    {
+      "id": "lighthouse",
+      "title": "The Silent Lighthouse",
+      "spot": "brave",
+      "beats": [
+        {
+          "variants": [
+            {
+              "text": "A message reaches {ship}, very faint: the beacon that guides ships past {world} has gone dark. {Spot} is the first to say what everyone is thinking. Somebody should go and look.",
+              "when": {
+                "rerun": "no"
+              }
+            },
+            {
+              "text": "Another beacon has gone dark, this one above {world}. {Spot} remembers the last time, back around {past.world}, and is already pulling on {spot.their} boots.",
+              "when": {
+                "rerun": "yes"
+              }
+            },
+            "Ships have been getting lost near {world}. The old lighthouse that warns them off the rocks has stopped shining. {Spot} plots the course before anyone asks."
+          ],
+          "travel": true
+        },
+        {
+          "variants": [
+            "The lighthouse stands alone on a spur of {biome}, tall and pale and completely dark. Up close it flickers, once, then nothing. {Spot} counts the seconds and says it is not random.",
+            "From orbit the tower is a tiny white needle. On the ground it is enormous. Its great lamp blinks every few minutes in a pattern {Spot} writes on the back of {spot.their} hand."
+          ]
+        },
+        {
+          "variants": [
+            "The door at the bottom is unlocked. Inside, stairs spiral up into the dark, and the air smells of old oil and something like toast. {Crew} whispers that somebody lives here.",
+            "A small garden grows by the door, recently watered. {Spot} and {crew} look at each other. The lighthouse is not empty."
+          ],
+          "choice": {
+            "prompt": "Go up the tower now, in the dark, or wait for morning?",
+            "options": [
+              {
+                "label": "Go up now",
+                "flag": "rushed",
+                "reply": "{Spot} takes the lead with a lantern. The stairs creak. Somewhere above, something hums to itself."
+              },
+              {
+                "label": "Wait for morning",
+                "flag": "waited",
+                "reply": "The crew camps by the door. In the night, the lamp above them blinks slowly, like it knows they are there."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            {
+              "text": "At the top, in the lamp room, there is a keeper: very old, very surprised, and holding a teapot. \"Oh,\" they say. \"Visitors. You came in the dark, how brave.\"",
+              "when": {
+                "flags.rushed": "yes"
+              }
+            },
+            {
+              "text": "Morning light pours up the stairwell. At the top, a very old keeper is waiting with a pot of tea and four cups. \"I saw your lights last night,\" they say. \"I put the kettle on.\"",
+              "when": {
+                "flags.waited": "yes"
+              }
+            },
+            "At the top of the tower the crew finds the keeper, small and silver-haired and very pleased to have company."
+          ]
+        },
+        {
+          "variants": [
+            "The keeper explains: the great lamp has a cracked lens, and without it the light can only flicker. They have been fixing it alone for months, a little every day.",
+            "Over tea, the keeper shows them the lens: cracked right through. \"I have been patching it,\" they say, \"but my hands are not what they were.\""
+          ]
+        },
+        {
+          "variants": [
+            "{Spot} studies the crack all session. The lens can be fixed, but it needs a light of its own to set the glue, steady for a whole night.",
+            "The glue needs a steady light to set. The keeper's spare lamp burned out years ago. {Spot} looks thoughtfully back at {ship}."
+          ],
+          "choice": {
+            "prompt": "Give the lighthouse a lamp from the ship, or try to make one out of spare parts?",
+            "options": [
+              {
+                "label": "Give it the ship's lamp",
+                "flag": "gave",
+                "reply": "The crew carries the lamp from the galley up all those stairs. The galley is darker tonight. Nobody minds."
+              },
+              {
+                "label": "Build one from spare parts",
+                "flag": "built",
+                "reply": "{Spot} and {crew} spend the night with wire and an old battery. It hums, it smokes a little, and it works."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            "All night the lamp burns steady over the cracked lens while the crew takes turns keeping watch. The keeper tells stories about every ship they ever guided home.",
+            "The glue sets slowly. The keeper falls asleep in a chair, and {Spot} keeps the watch, listening to the sea of {biome} shift in the dark."
+          ]
+        },
+        {
+          "variants": [
+            "At dusk the keeper pulls the great lever. The lamp turns, and a beam of light sweeps out over {world}, as bright as it ever was.",
+            "The lighthouse wakes up. Its beam reaches out across the dark, and far away, a ship that was lost blinks its lights in answer."
+          ]
+        }
+      ],
+      "twists": [
+        {
+          "id": "robot",
+          "at": 4,
+          "variants": [
+            "Later, {Spot} notices the keeper never drinks the tea. The keeper is a very old robot, built to keep the light and keep it company. \"I am not good at being alone,\" it admits. \"I was built for two.\""
+          ]
+        },
+        {
+          "id": "whales",
+          "at": 1,
+          "variants": [
+            "Then {Spot} sees it: something huge and slow passing in the dark beyond the tower, glowing faintly. Maybe the light went out for a reason."
+          ]
+        },
+        {
+          "id": "letter",
+          "at": 3,
+          "variants": [
+            "On the keeper's desk is a letter, never sent, addressed to a ship that stopped coming years ago. The keeper turns it face down when they see {Spot} looking."
+          ]
+        }
+      ],
+      "endings": [
+        {
+          "id": "gave",
+          "variants": [
+            "The ship's own galley lamp now sits in the tower, part of the light that guides ships home. Whenever {ship} passes {world}, the beam seems to linger on it a little longer."
+          ],
+          "when": {
+            "flags.gave": "yes"
+          }
+        },
+        {
+          "id": "built",
+          "variants": [
+            "The patched-up lamp the crew built still hums inside the tower. The keeper has painted {ship}'s name on it. Every ship that passes {world} is guided, a little, by the crew of {ship}."
+          ],
+          "when": {
+            "flags.built": "yes"
+          }
+        },
+        {
+          "id": "plain",
+          "variants": [
+            "The lighthouse shines again over {world}. The keeper waves until the ship is a star among stars."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "festival",
+      "title": "The Festival of Small Moons",
+      "spot": "competitive",
+      "beats": [
+        {
+          "variants": [
+            {
+              "text": "An invitation arrives, written in glitter: the moon colony near {world} is holding its Festival of Small Moons, and {ship} is invited. {Spot} reads it twice and starts training for something.",
+              "when": {
+                "rerun": "no"
+              }
+            },
+            {
+              "text": "The Festival of Small Moons is on again near {world}. {Spot} still talks about the last one, and is determined to win something this time.",
+              "when": {
+                "rerun": "yes"
+              }
+            },
+            "Lanterns are going up all over the little moons around {world}. It is festival season, and {Spot} has already found the list of contests."
+          ],
+          "travel": true
+        },
+        {
+          "variants": [
+            "The festival fills three tiny moons, linked by rope bridges of light. There are stalls of strange food, a band that only plays very slowly, and a lot of bunting.",
+            "Everyone on the moons is busy: painting banners, testing kites, tasting soup. The crew is given ribbons that say GUEST and immediately put to work."
+          ]
+        },
+        {
+          "variants": [
+            "{Spot} studies the contests: a cooking contest judged by the oldest person on the moons, and a kite race across all three moons at once.",
+            "There are two big contests this year. {Spot} cannot decide, so the crew holds a vote. It is a tie. {Crew} says the captain should choose."
+          ],
+          "choice": {
+            "prompt": "Which contest does the crew enter?",
+            "options": [
+              {
+                "label": "The cooking contest",
+                "flag": "cook",
+                "reply": "{Spot} rolls up {spot.their} sleeves. The galley of {ship} is about to become very busy."
+              },
+              {
+                "label": "The kite race",
+                "flag": "kite",
+                "reply": "{Spot} and {crew} start building a kite out of a blanket and two broom handles. It is enormous."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            {
+              "text": "The galley smells of everything at once. {Spot} tastes, adjusts, tastes again, and declares the recipe a secret, even from the crew.",
+              "when": {
+                "flags.cook": "yes"
+              }
+            },
+            {
+              "text": "The kite is finished at last. It is much too big and slightly lopsided, and it already has a name.",
+              "when": {
+                "flags.kite": "yes"
+              }
+            },
+            "Preparation takes the whole session. Nobody aboard gets much rest, and everybody is happy about it."
+          ]
+        },
+        {
+          "variants": [
+            "Contest day. Everything goes wrong at once: something tips, something tears, and {Spot} stands very still in the middle of it.",
+            "Halfway through the contest, disaster: {Spot} makes a mistake nobody else saw. The judges did not notice. {Spot} did."
+          ],
+          "choice": {
+            "prompt": "{Spot} made a mistake the judges missed. Tell them, or let it go?",
+            "options": [
+              {
+                "label": "Tell the judges",
+                "flag": "honest",
+                "reply": "{Spot} walks up to the judges and explains. There is a long pause. Then the oldest judge laughs and shakes {spot.their} hand."
+              },
+              {
+                "label": "Let it go",
+                "flag": "quiet",
+                "reply": "{Spot} says nothing. The contest goes on. It sits a little heavy, all evening."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            "The results are read out under the lanterns. {Ship} does not win. Not quite. But the crowd cheers anyway, because the crowd cheers for everyone.",
+            "Results are announced. Somebody else wins, fair and square, and {Spot} is the first to go and congratulate them."
+          ]
+        },
+        {
+          "variants": [
+            "Festival night: the three moons light up at once, and everybody dances on the rope bridges, very carefully. {Crew} dances with somebody from the colony for a whole song.",
+            "At midnight the colony sets small paper moons drifting off into space, one for every wish. The crew sends one up together."
+          ]
+        },
+        {
+          "variants": [
+            "The festival winds down. Lanterns come down, bunting is folded away, and the crew is given a bag of leftover festival cake for the road.",
+            "In the morning the moons are quiet again. {Spot} keeps {spot.their} GUEST ribbon on, all the way back to the ship."
+          ]
+        }
+      ],
+      "twists": [
+        {
+          "id": "last",
+          "at": 1,
+          "variants": [
+            "An old woman at a stall tells {Spot} that this is the last festival: the colony is moving on after this year, to somewhere new."
+          ]
+        },
+        {
+          "id": "storm",
+          "at": 4,
+          "variants": [
+            "And then the storm hits: a dust squall from {world} that sends hats and stalls and ribbons flying."
+          ]
+        },
+        {
+          "id": "friend",
+          "at": 2,
+          "variants": [
+            "One of the festival organisers recognises {ship}. They were on {past.world} when the crew passed through, and they remember everybody's names."
+          ]
+        }
+      ],
+      "endings": [
+        {
+          "id": "honest",
+          "variants": [
+            "The judges give {Spot} a ribbon nobody has ever been given before: For Honesty, painted by hand. It goes on the galley wall, right in the middle."
+          ],
+          "when": {
+            "flags.honest": "yes"
+          }
+        },
+        {
+          "id": "quiet",
+          "variants": [
+            "On the way out, {Spot} goes back and tells the judges anyway. They laugh and say they knew. {Spot} sleeps better that night than all week."
+          ],
+          "when": {
+            "flags.quiet": "yes"
+          }
+        },
+        {
+          "id": "plain",
+          "variants": [
+            "The festival is over, but the crew talks about it for weeks."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "letters",
+      "title": "Letters for Nobody",
+      "spot": "kind",
+      "beats": [
+        {
+          "variants": [
+            {
+              "text": "Near {world}, {ship} finds a mail ship drifting with its engines off, its hold full of letters that were never delivered. {Spot} picks one up. It is addressed to someone on a world not far from here.",
+              "when": {
+                "rerun": "no"
+              }
+            },
+            {
+              "text": "Another lost mail ship, this one drifting near {world}. After last time, {Spot} does not even ask. {spot.they} {spot:starts|start} sorting.",
+              "when": {
+                "rerun": "yes"
+              }
+            },
+            "A little mail ship hangs silent above {world}, its sacks of letters spilling into the corridors. {Spot} says out loud what everybody is thinking: they should deliver some."
+          ],
+          "travel": true
+        },
+        {
+          "variants": [
+            "The crew spends the session sorting letters into piles by world. Some are years old. One smells of flowers. One has a drawing of a cat on the envelope.",
+            "Sorting the post takes all session. {Crew} makes a chart. {Spot} makes tea. The piles of letters cover the whole galley table."
+          ],
+          "choice": {
+            "prompt": "One letter has come open. Read it, or tape it shut again?",
+            "options": [
+              {
+                "label": "Read it",
+                "flag": "read",
+                "reply": "It is a letter from a grandmother to a grandchild, about nothing much: the weather, the garden, how proud she is. {Spot} reads it twice and tapes it shut very carefully."
+              },
+              {
+                "label": "Tape it shut",
+                "flag": "sealed",
+                "reply": "{Spot} tapes it shut without looking. Some things are not theirs to read."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            "First delivery: a little house on {world}. The person who opens the door reads their letter on the step and has to sit down.",
+            "The first letter goes to a farmer on {world}. They read it, laugh out loud, and insist the whole crew stays for dinner."
+          ],
+          "travel": true
+        },
+        {
+          "variants": [
+            "The second address leads to an empty house on {world}. The neighbours say the person moved away long ago. Nobody knows where.",
+            "Second delivery, {world}: the address is a lighthouse, a bakery, then a field. Whoever this letter is for has moved, more than once."
+          ]
+        },
+        {
+          "variants": [
+            "{Spot} does not give up. Asking around, the crew follows the trail from house to house, and finally to a little boat on a lake.",
+            "It takes the whole session of asking, but the neighbours remember: the person moved to the coast, and they still write every year to nobody in particular."
+          ]
+        },
+        {
+          "variants": [
+            "The letter reaches them at last. It is from a friend they thought had forgotten them. They read it on the jetty, then ask if the crew has paper and a pen.",
+            "At last, the right person. They open the letter and go very quiet. Then they ask {Spot} if {ship} could possibly carry a reply."
+          ],
+          "choice": {
+            "prompt": "They want to send a reply. Carry it, even though it is the wrong way?",
+            "options": [
+              {
+                "label": "Carry the reply",
+                "flag": "carried",
+                "reply": "The reply goes in the safest drawer on the ship. {Spot} checks it is still there twice a day."
+              },
+              {
+                "label": "Find a postal drone",
+                "flag": "drone",
+                "reply": "The crew finds a postal drone heading the right way and tucks the reply inside with a note: please hurry."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            "The rest of the letters go to the post office on {world}, with a note from the crew explaining where they have been. The postmaster salutes.",
+            "The crew hands over the rest of the sacks at the next post office. The postmaster has been waiting years for them, and makes everyone tea."
+          ]
+        }
+      ],
+      "twists": [
+        {
+          "id": "mine",
+          "at": 1,
+          "variants": [
+            "At the bottom of one sack is a letter addressed to {Spot}, in handwriting {spot.they} {spot:knows|know}. {spot.they} {spot:puts|put} it in {spot.their} pocket, unopened, for later."
+          ]
+        },
+        {
+          "id": "pilot",
+          "at": 0,
+          "variants": [
+            "And the mail ship is not empty: its pilot is asleep in a hammock in the back, snoring, completely unaware they have been drifting for days."
+          ]
+        },
+        {
+          "id": "same",
+          "at": 3,
+          "variants": [
+            "Something strange: so many of the letters are in the same handwriting, signed with the same name, sent to people all over the sector."
+          ]
+        }
+      ],
+      "endings": [
+        {
+          "id": "carried",
+          "variants": [
+            "Weeks later, a postcard finds {ship}. It is from the two old friends, together at last, standing on the jetty, waving at the camera."
+          ],
+          "when": {
+            "flags.carried": "yes"
+          }
+        },
+        {
+          "id": "drone",
+          "variants": [
+            "The postal drone makes it. A thank-you message arrives a few days later, addressed simply to \"the kind ship\"."
+          ],
+          "when": {
+            "flags.drone": "yes"
+          }
+        },
+        {
+          "id": "plain",
+          "variants": [
+            "The mail ship is towed home. Its pilot sends the crew a box of stamps."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hum",
+      "title": "The Song Under the Ground",
+      "spot": "curious",
+      "beats": [
+        {
+          "variants": [
+            {
+              "text": "{World} hums. Not loudly: it is a low note under everything, felt in the teeth more than heard. {Spot} puts {spot.their} hand flat on the deck and smiles.",
+              "when": {
+                "rerun": "no"
+              }
+            },
+            {
+              "text": "Another humming world: {world}. {Spot} remembers the last one and is already setting up microphones before the ship has landed.",
+              "when": {
+                "rerun": "yes"
+              }
+            },
+            "The instruments pick it up before anyone else: {world} is singing. One long, slow note, coming from somewhere deep in the {biome}."
+          ],
+          "travel": true
+        },
+        {
+          "variants": [
+            "{Spot} spends the session listening. The hum is not one note. It is many, very slow, changing over hours, like a song played for something with a very long life.",
+            "The crew sets microphones all over the {biome}. The hum is everywhere, but it is loudest in one place: a crack in the ground, like a mouth."
+          ],
+          "choice": {
+            "prompt": "Record the song to study, or just listen?",
+            "options": [
+              {
+                "label": "Record it",
+                "flag": "recorded",
+                "reply": "{Spot} records everything. Back on the ship, played fast, the hum becomes something almost like a melody."
+              },
+              {
+                "label": "Just listen",
+                "flag": "listened",
+                "reply": "The crew lies on the ground and listens until they can hear the song changing. Nobody speaks for a long time."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            "The crack leads down into caves of {biome}. The hum gets louder, and warmer, and the walls glitter where the lights touch them.",
+            "Down in the caves the walls vibrate gently. {Spot} touches one and feels the song move through {spot.their} hands."
+          ]
+        },
+        {
+          "variants": [
+            "Deep in the caves, the crew finds them: creatures like soft stones, hundreds of them, humming together. They are the song.",
+            "At the bottom of the caves is a great hollow, and in it, slow round creatures, glowing faintly, each humming its own small part."
+          ]
+        },
+        {
+          "variants": [
+            "The creatures stop when the crew comes close. The silence is enormous. {Crew} whispers that they are frightened.",
+            "Everything goes quiet. The creatures have noticed the crew. It is the first silence on {world} in who knows how long."
+          ],
+          "choice": {
+            "prompt": "The singers have gone silent. Sing to them, or back away quietly?",
+            "options": [
+              {
+                "label": "Sing back",
+                "flag": "sang",
+                "reply": "{Spot} hums one note, a bit wobbly. A long moment. Then one creature hums it back, and another, and the song starts again with a new note in it."
+              },
+              {
+                "label": "Back away",
+                "flag": "left",
+                "reply": "The crew backs away slowly. Halfway up the caves, the song starts again behind them."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            "Back on the surface, the song sounds different. {Spot} plays the recordings, and finds the song has been the same for a thousand years, until today.",
+            "The hum has changed. It is still slow and deep, but there is something new in it now, something that sounds a little bit like {ship}."
+          ]
+        },
+        {
+          "variants": [
+            "The crew leaves {world} at dusk. As the ship lifts off, the whole planet seems to hum a little louder, like a wave goodbye.",
+            "Leaving orbit, the instruments pick up the song one last time. {Spot} keeps the speaker on until it fades."
+          ]
+        }
+      ],
+      "twists": [
+        {
+          "id": "tide",
+          "at": 1,
+          "variants": [
+            "Then {Spot} notices: the song rises and falls with the tides of the moons above. The whole planet sings along with them."
+          ]
+        },
+        {
+          "id": "sad",
+          "at": 4,
+          "variants": [
+            "{Crew} notices that the creatures hum lower when anyone aboard is sad. They have been listening to the crew, too."
+          ]
+        },
+        {
+          "id": "map",
+          "at": 3,
+          "variants": [
+            "The pattern of the creatures in the hollow matches the stars above exactly. The song is a map."
+          ]
+        }
+      ],
+      "endings": [
+        {
+          "id": "sang",
+          "variants": [
+            "Months later, a ship passing {world} records the song and sends it on, puzzled: in the middle of a thousand-year-old melody, there is a short, wobbly note that sounds very much like {Spot}."
+          ],
+          "when": {
+            "flags.sang": "yes"
+          }
+        },
+        {
+          "id": "left",
+          "variants": [
+            "The song of {world} goes on as it always has. The crew keeps a recording in the galley, and plays it on quiet nights."
+          ],
+          "when": {
+            "flags.left": "yes"
+          }
+        },
+        {
+          "id": "plain",
+          "variants": [
+            "{World} keeps singing. Somewhere aboard, {Spot} still hums it without noticing."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quiet",
+      "title": "The Long Quiet",
+      "spot": "homesick",
+      "beats": [
+        {
+          "variants": [
+            {
+              "text": "The charts say the next stretch is empty: no worlds, no stations, just stars for a long way. {Spot} looks out of the window at {world} as it falls behind, and goes quiet.",
+              "when": {
+                "rerun": "no"
+              }
+            },
+            {
+              "text": "Another long, empty stretch of space after {world}. This time the crew is ready: blankets, games, and a list of things to talk about.",
+              "when": {
+                "rerun": "yes"
+              }
+            },
+            "Past {world} the ship enters the Long Quiet, a stretch with nothing in it for a very long way. The days get very alike."
+          ],
+          "travel": true
+        },
+        {
+          "variants": [
+            "Day three of nothing. {Spot} has reorganised every cupboard on the ship, some twice. {Crew} suggests a game. {Spot} says maybe later.",
+            "The quiet gets into everyone a little. Meals are shorter. {Spot} spends a lot of time at the window."
+          ],
+          "choice": {
+            "prompt": "{Spot} has been quiet for days. Ask what is wrong, or give {spot.them} space?",
+            "options": [
+              {
+                "label": "Ask",
+                "flag": "asked",
+                "reply": "You sit down next to {Spot} at the window. After a while, {spot.they} {spot:talks|talk}: about home, and the people there, and how far away it all feels."
+              },
+              {
+                "label": "Give {spot.them} space",
+                "flag": "space",
+                "reply": "You leave {Spot} be, but put a cup of tea down next to {spot.them} every evening. The cups are always empty in the morning."
+              }
+            ]
+          }
+        },
+        {
+          "variants": [
+            "The crew starts a project to fill the quiet: a giant jigsaw puzzle of a planet none of them has seen, spread over the whole galley floor.",
+            "{Crew} decides the quiet needs a radio show. Every evening at dinner, somebody presents it. The shows are terrible. Everybody listens."
+          ]
+        },
+        {
+          "variants": [
+            "{Spot} joins in at last: first the puzzle edges, then the corners, then the hard bit in the middle that is all sky.",
+            "One evening it is {Spot} presenting the radio show, telling stories about home. Everyone stays up late listening."
+          ]
+        },
+        {
+          "variants": [
+            "A message arrives from far away, slow and crackly: friends and family back home, all talking over each other, sending love to everyone aboard {ship}.",
+            "The relay at the edge of the Quiet catches a message for {Spot}: a recording from home, with a dog barking in the background."
+          ]
+        },
+        {
+          "variants": [
+            "The stars thicken ahead. A world is coming up on the charts at last. {Spot} is the first at the window, and does not look sad at all.",
+            "The Long Quiet ends the way it began: suddenly. There is a world ahead. {Spot} says, a little surprised, that {spot.they} will miss the quiet, a bit."
+          ]
+        }
+      ],
+      "twists": [
+        {
+          "id": "star",
+          "at": 2,
+          "variants": [
+            "Halfway through the Quiet, a single star nobody can find on the charts appears off the bow. {Spot} names it after someone at home."
+          ]
+        },
+        {
+          "id": "stowaway",
+          "at": 3,
+          "variants": [
+            "And in the hold, behind the crates, the crew finds a small fluffy animal from {past.world}, very pleased with itself. It becomes the ship's cat, sort of."
+          ]
+        },
+        {
+          "id": "signal",
+          "at": 4,
+          "variants": [
+            "With the message comes a second voice, very faint, from another ship somewhere in the Quiet: \"We hear you too. Good to know we are not alone out here.\""
+          ]
+        }
+      ],
+      "endings": [
+        {
+          "id": "asked",
+          "variants": [
+            "{Spot} says later that talking about it made home feel closer, not further. On the galley wall there is a new photo now: {spot.their} family, waving."
+          ],
+          "when": {
+            "flags.asked": "yes"
+          }
+        },
+        {
+          "id": "space",
+          "variants": [
+            "On the last night of the Quiet, {Spot} brings everyone a cup of tea, for once. \"Thank you,\" {spot.they} {spot:says|say}. Nobody asks what for."
+          ],
+          "when": {
+            "flags.space": "yes"
+          }
+        },
+        {
+          "id": "plain",
+          "variants": [
+            "The ship comes out of the Long Quiet a little closer than it went in."
+          ]
+        }
+      ]
+    }
+  ]
+}

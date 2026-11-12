@@ -333,6 +333,67 @@ vec3 dfPlanet(vec2 u0, vec2 fc, float px, out float glow){
     float pz = floor(g2 * 4.) / 2.; c = g2 < .625 ? pick3(ca[0], ca[1], ca[2], pz * 2.) : pick3(cb[0], cb[1], cb[2], (pz - 1.) * 2.);
   }
   return c; }
+/* ---------- Solarist's own planet surface ----------
+   The world is a real sphere turning on its axis (ROT radians a second), coloured from the same look as its portrait
+   (js/world/paint.js): pc = its 4 surface colours (light to dark), lc = its 2 land colours. Terrain comes from warped
+   3D noise; colours step through those ramps with ordered dithering, so shading is texture, not new colours. */
+const float ROT = .05;
+vec3 rY(vec3 v, float a){ float c = cos(a), s = sin(a); return vec3(v.x * c + v.z * s, v.y, -v.x * s + v.z * c); }
+vec3 rZ(vec3 v, float a){ float c = cos(a), s = sin(a); return vec3(v.x * c - v.y * s, v.x * s + v.y * c, v.z); }
+// four colours as a ramp from 0 to 3; the dither offset (bd) blends neighbouring steps into each other
+vec3 ramp4(vec3 a, vec3 b, vec3 c, vec3 d, float t, float bd){ t = clamp(t + bd, 0., 3.); return t < .5 ? a : t < 1.5 ? b : t < 2.5 ? c : d; }
+const vec3 SNOW = vec3(1., 1., .894);
+// craters: cells on the sphere, some holding a round crater. Returns distance to the nearest centre / its radius (<1 inside)
+float craterV(vec3 p){
+  vec3 i = floor(p), f = fract(p); float best = 9.;
+  for (int z = -1; z <= 1; z++) for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++){
+    vec3 g = vec3(float(x), float(y), float(z)), cell = i + g;
+    if (h3(cell + seed * 1.3) < .42) continue;
+    vec3 o = vec3(h3(cell + 11.), h3(cell + 23.), h3(cell + 37.));
+    float r = .16 + .3 * h3(cell + 5.), d = length(g + o - f) / r;
+    best = min(best, d); }
+  return best; }
+// the surface colour at view normal n. pB: the point on the body (for effects that stay put on the surface)
+vec3 surf(vec3 n, vec2 fc, out float glow, out vec3 pB){
+  glow = 0.;
+  float a = (fLocked > .5 ? drag : spin) * ROT;
+  vec3 m = rZ(n, tilt), p = rY(m, a); pB = p;
+  vec3 sp = p * 1.15 + vec3(seed * 1.7, seed * .9, seed * 2.3);
+  float bd = bayer(fc) * .5, lat = p.y; // dither only near the borders between colours: solid areas stay solid
+  vec3 col;
+  if (fBands > .5){ // gas and ice giants: bands stirred by turbulence, and maybe a great storm
+    float w = fbm(sp * vec3(1.1, 3.2, 1.1) + 4.), sw = fbm(sp * 2.6 + 9.);
+    float b = sin(lat * 8.5 + w * 3.4 + sw * 1.2) * .5 + .5;
+    col = ramp4(pc[0], pc[1], pc[2], pc[3], b * 3.1 - .05 + (sw - .5) * .5, bd);
+    if (fSpot > .5){ vec3 s = normalize(vec3(sin(seed) * .6, -.32, cos(seed) * .6)); float d = length(p - s) / .24;
+      if (d < 1.){ float sw2 = fbm(vec3(atan(p.x - s.x, p.z - s.z) * 2., d * 3., seed)); col = d + sw2 * .25 < .55 ? pc[3] : d < .85 ? pc[2] : pc[1]; } }
+  } else {
+    float h = fbm(sp * 1.5 + vec3(fbm(sp * 2.3) * 1.1)), det = fbm(sp * 6.5 + 3.);
+    if (fLand > .5){ // seas and continents
+      float sea = .5 + (h3(vec3(seed)) - .5) * .06;
+      if (h < sea){ float dp = (sea - h) * 11. + (det - .5) * .5; col = dp + bd < 1. ? pc[1] : dp + bd < 2.3 ? pc[2] : pc[3]; } // shallows, sea, deep (as the portrait)
+      else { float t = (h - sea) * 7.5 + (det - .5) * .8; col = t + bd < 1.3 ? lc[0] : t + bd < 2.9 ? lc[1] : SNOW; } // lowland, highland, the odd snowy peak
+      if (abs(lat) > .9 - det * .08) col = SNOW; // small ice caps
+    } else if (fLava > .5){ // dark crust cracked by glowing rivers
+      float ridge = abs(fbm(sp * 2.4 + 1.) - .5);
+      col = ramp4(pc[1], pc[2], pc[3], pc[3], 1. + (1. - h) * 2. + (det - .5), bd);
+      if (ridge < .016 + det * .012){ col = ridge < .008 ? pc[0] : pc[1]; glow = 1.; } // thin glowing rivers
+    } else { // rocky, dry and icy worlds: rolling ground in the world's colours, craters where there's no air
+      float t = (1. - h) * 3.2 - .4 + (det - .5) * .7;
+      col = ramp4(pc[0], pc[1], pc[2], pc[3], t, bd);
+      if (fClouds < .5 && fIce < .5){ float cr = craterV(sp * 2.4);
+        if (cr < 1.) col = ramp4(pc[0], pc[1], pc[2], pc[3], t + (cr < .72 ? .9 : -.8), bd); }
+      if (fIce > .5 && abs(lat) > .74 - det * .1) col = SNOW;
+    }
+  }
+  // clouds: their own layer, turning a little faster than the ground, with a soft shadow underneath
+  if (fClouds > .5){
+    vec3 cp = rY(m, a * 1.35 + tt * .004) * 1.6 + vec3(seed * 3.1, 0., seed);
+    float c = fbm(cp * vec3(1., 2.2, 1.) + 7.), cs = fbm(rY(m + vec3(.06, -.05, 0.), a * 1.35 + tt * .004) * 1.6 * vec3(1., 2.2, 1.) + vec3(seed * 3.1, 0., seed) + 7.);
+    if (c > .6) col = c + bd * .1 > .66 ? SNOW : vec3(.75, .76, .78);
+    else if (cs > .62) col = mix(pc[3], col, .7); // the cloud's shadow
+  }
+  return col; }
 void main(){
   vec2 fc = gl_FragCoord.xy; vec3 col = vec3(0.); bool dith = false, flatC = false;
   // a faint nebula behind some worlds: dithered so only a few of its pixels light up
@@ -355,7 +416,8 @@ void main(){
     vec3 L = normalize(fLocked > .5 ? vec3(-1., .1, .25) : vec3(-.55, .35, .75)); float lit = clamp(dot(n, L), 0., 1.);
     if (sil > .5){ col = pal[25] * (.3 + .2 * lit); float rim = pow(1. - n.z, 5.) * lit; if (rim > .08) col = coord > .5 ? pal[24] : pal[4]; }
     else {
-      float glow; col = dfPlanet(vec2(uv.x, -uv.y) * .5 + .5, fc, R * 2., glow); flatC = true;
+      float glow; vec3 pB; col = surf(n, fc, glow, pB); q = pB * 3.2; flatC = true;
+      { float lf = dot(n, L) + bayer(fc) * .16; vec3 nt = mix(pc[3], vec3(.016, .082, .157), .45); if (glow < .5) col = lf > .6 ? col : lf > .28 ? mix(nt, col, .62) : lf > .02 ? mix(nt, col, .32) : mix(nt * .6, col, .14); } // light from the upper left, in steps towards the night colour
       // world-type effects: glowing lava, glittering ice, lightning in storms
       if (glow > .5) col *= .85 + .2 * sin(tt * 1.6 + uv.x * 9. + uv.y * 7.);
       if (fIce > .5){ vec3 cell = floor(q * 34.); float g = h3(cell + seed + 5.); if (g > .978 && lit > .2 && fract(tt * .45 + g * 13.) < .16) col = vec3(1.); }
@@ -408,27 +470,32 @@ void main(){
   const globe = window.SolaristGlobe = {
     drag: 0, zoom: 1, zoomT: 1, hold: false, look: { tilt: 0, st: 0, locked: false }, at: null, onDraw: null, dragging: false,
     reset(L) { this.look = { tilt: (L && L.tilt) || 0, st: 0, locked: !!(L && L.locked) }; this.drag = 0; this.zoomT = 1; },
-    busy() { return this.dragging || Math.abs(this.zoom - this.zoomT) > .002; },
-    step(dt) { if (Math.abs(this.zoom - this.zoomT) > .002) { this.zoom += (this.zoomT - this.zoom) * Math.min(1, dt * 12); lastDraw = 0; } else this.zoom = this.zoomT; },
-    dir() { return this.look.st === 6 ? -1 : 1; }, // gas giant bands slide the other way
-    project(x, y) { // a point on the surface map -> { x, y } on the screen (CSS pixels), with z (0 at the rim, 1 facing you), or null when it's round the back
+    busy() { return this.dragging || this.aim != null || Math.abs(this.zoom - this.zoomT) > .002; },
+    step(dt) { if (Math.abs(this.zoom - this.zoomT) > .002) { this.zoom += (this.zoomT - this.zoom) * Math.min(1, dt * 12); lastDraw = 0; } else this.zoom = this.zoomT;
+      if (this.aim != null) { this.drag += (this.aim - this.drag) * Math.min(1, dt * 5); lastDraw = 0; if (Math.abs(this.aim - this.drag) < .05) { this.drag = this.aim; this.aim = null; } } },
+    aim: null, // a drag value the planet is turning towards (to face a waypoint)
+    project(x, y) { // a point on the surface (x: 0 to 2 around, y: .28 top to .72 bottom) -> { x, y } on screen (CSS pixels) and z (1 facing you), or null round the back
       const a = this.at; if (!a || !a.has || a.sil) return null;
-      let sx = x - this.dir() * a.spin * SPIN; sx = ((sx % 2) + 2) % 2; if (sx > 1.5) sx -= 2;
-      const wx = (sx - .5) * 2, wy = (y - .5) * 2, w2 = wx * wx + wy * wy; if (w2 >= 1) return null;
-      const cx = 2 * wx / (1 + w2), cy = 2 * wy / (1 + w2), t = this.look.tilt, co = Math.cos(t), si = Math.sin(t); // back from the sphere map, then undo the tilt
-      const ux = co * cx - si * cy, uy = si * cx + co * cy;
-      return { x: (a.cx + ux * a.rad) * PX, y: (a.cy + uy * a.rad) * PX, z: Math.sqrt(Math.max(0, 1 - cx * cx - cy * cy)) };
+      const lon = x * Math.PI, lat = (.5 - y) * 2.6, cl = Math.cos(lat), P = [cl * Math.sin(lon), Math.sin(lat), cl * Math.cos(lon)];
+      let c = Math.cos(-a.spin * ROT), s = Math.sin(-a.spin * ROT); const m = [P[0] * c + P[2] * s, P[1], -P[0] * s + P[2] * c]; // undo the turn (rY in the shader)
+      c = Math.cos(-this.look.tilt); s = Math.sin(-this.look.tilt); const n = [m[0] * c - m[1] * s, m[0] * s + m[1] * c, m[2]]; // undo the tilt (rZ)
+      if (n[2] <= 0) return null;
+      return { x: (a.cx + n[0] * a.rad) * PX, y: (a.cy - n[1] * a.rad) * PX, z: n[2] };
+    },
+    face(x) { // turn so the point at x faces you (it lands in the middle)
+      const a = this.at; if (!a) return; const cur = a.spin * ROT; let d = x * Math.PI - cur; d = ((d + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+      this.aim = this.drag + d / ROT; kick();
     },
     orbit(deg, d) { const a = this.at; if (!a) return null; const t = deg * Math.PI / 180; return { x: (a.cx + Math.cos(t) * d * a.rad) * PX, y: (a.cy + Math.sin(t) * d * a.rad) * PX, z: 1 }; }, // a spot beside the planet, at an angle (0 = right, -90 = up)
     over(e) { const a = this.at; if (!a || !a.has || a.sil || root.classList.contains('paged')) return false;
       if (e.target.closest && e.target.closest('button, a, input, select, textarea, label, .sx-breakp, .sx-top, .sx-page, .sx-report, .sx-corner, .sx-storyp, .sl-hint')) return false;
       return Math.hypot(e.clientX / PX - a.cx, e.clientY / PX - a.cy) < a.rad * 1.05; },
   };
-  const SPIN = .025; // the same as in the shader
+  const ROT = .05; // radians a second the planet turns: the same as in the shader
   let dragFrom = null;
   addEventListener('pointerdown', e => { if (e.button !== 0 || !globe.over(e)) return; dragFrom = { x: e.clientX, d: globe.drag, id: e.pointerId }; globe.dragging = true; document.documentElement.classList.add('sx-grabbing'); kick(); });
   addEventListener('pointermove', e => { if (!dragFrom || e.pointerId !== dragFrom.id || !globe.at) return;
-    globe.drag = dragFrom.d - globe.dir() * (e.clientX - dragFrom.x) / (4 * globe.at.rad * PX) / SPIN; lastDraw = 0; kick(); });
+    globe.aim = null; globe.drag = dragFrom.d - (e.clientX - dragFrom.x) / (globe.at.rad * PX) / ROT; lastDraw = 0; kick(); }); // the ground under the pointer follows it
   const dragEnd = () => { if (!dragFrom) return; dragFrom = null; globe.dragging = false; document.documentElement.classList.remove('sx-grabbing'); };
   addEventListener('pointerup', dragEnd); addEventListener('pointercancel', dragEnd);
   addEventListener('wheel', e => { if (!globe.over(e)) return; e.preventDefault();
@@ -463,7 +530,7 @@ void main(){
       cut = { Ocean: .66, Garden: .58, Hycean: .68, Fungal: .55 }[p.type] || .6; clouds = true; }
     else if (st === 1) { const a = land ? land[1] : P[0], b2 = P[1] !== P[0] ? P[1] : P[2]; ca = [shade(a, 1.2), a, b2, shade(b2, .6), P[3]]; cb = p.type === 'Swamp' ? ['#6d8a8d', '#293b49', '#041528'] : ['#77d6c1', '#1c92a7', '#6d8a8d']; cut = .368; clouds = !!L.clouds || p.type === 'Jungle'; }
     else if (st === 2) { ca = [shade(P[0], 1.15), P[0], P[1], P[2], P[3]]; if (p.type === 'Toxic') { clouds = true; ck = ['#ffdaac', '#9cb93b', '#9cb93b', '#458239']; } }
-    else if (st === 3) { const g = P[0]; ca = [shade(g, 1.15), g, shade(g, .8), shade(g, .62), shade(g, .62)]; cb = [shade(g, .72), shade(g, .55), shade(g, .55)]; } // airless: ground and craters from one colour, like a moon (mixed colours looked like a sponge)
+    else if (st === 3) { const lum = h => { const [r, g2, b2] = rgb(h); return r * .3 + g2 * .59 + b2 * .11; }, byL = P.slice().sort((x, y) => lum(y) - lum(x)), g = byL[1]; ca = [byL[0] !== g ? byL[0] : shade(g, 1.2), g, shade(g, .78), shade(g, .6), shade(g, .6)]; cb = [shade(g, .82), shade(g, .62), shade(g, .62)]; } // airless: ground and craters from one colour, like a moon (mixed colours looked like a sponge)
     else if (st === 4) { ca = [shade(P[2], 1.3), P[2], P[3], P[3], P[3]]; cb = [P[3], shade(P[3], .7), P[3]]; ck = [P[0], P[1], shade(P[1], .7), P[3]]; cut = .579; }
     else if (st === 5) { cb = [P[0], P[1], P[2]]; ca = [P[2], P[3], shade(P[3], .7), P[3], P[3]]; cut = .62; clouds = true; }
     else if (st === 6) { ca = [P[0], P[1], P[2], P[3], P[3]]; cb = [P[2], P[3], shade(P[3], .6)]; }
@@ -489,7 +556,6 @@ void main(){
     gl.uniform1f(U.fIce, /^(Ice|Crystal|Ice giant)$/.test(p.type) ? 1 : 0); gl.uniform1f(U.fStorm, /^(Toxic|Glass storm)$/.test(p.type) ? 1 : 0);
     gl.uniform1f(U.fSpot, L.bands && (p.seed % 2) === 0 ? 1 : 0);
     const D = dfLook(p, L); globe.look.st = D.st; gl.uniform1f(U.fStyle, D.st); gl.uniform1f(U.dfCut, D.cut); gl.uniform3fv(U.ca, D.ca.flatMap(rgb)); gl.uniform3fv(U.cb, D.cb.flatMap(rgb)); gl.uniform3fv(U.ck, D.ck.flatMap(rgb)); gl.uniform3fv(U.rc, D.rc.flatMap(rgb));
-    gl.uniform1f(U.fClouds, D.clouds ? 1 : 0);
   }
   function render(now) {
     raf = 0; if (!info) return;

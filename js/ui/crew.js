@@ -15,7 +15,7 @@ let crewSel = 'me'; // who's open in the editor: a person's id, or 'stash'
 /* The editor. opts.create: a first start, where anything can be picked (you're packing for the trip); otherwise
    clothes and gear come from what's aboard (the stash). opts.redraw: draws it again after a change. */
 function crewEditor(opts) {
-  const create = !!opts.create, lock = !create && focusLock(), people = [S.me].concat(S.crew);
+  const create = !!opts.create, free = create || !!opts.free, lock = !create && focusLock(), people = [S.me].concat(S.crew);
   const redraw = () => { save(); opts.redraw(); };
   if (crewSel !== 'stash' || create) { if (!people.some(x => x.id === crewSel)) crewSel = S.me.id; }
   const p = people.find(x => x.id === crewSel) || null, isMe = p === S.me;
@@ -28,7 +28,7 @@ function crewEditor(opts) {
     el('div', { class: 'sx-ed-lh' }, 'Aboard (' + people.length + ')'), ...people.map(who),
     S.crew.length < CREW_MAX ? el('button', { type: 'button', class: 'sx-ed-add', disabled: lock || null, onclick: add }, '+ Add crew (' + S.crew.length + ' of ' + CREW_MAX + ')')
       : el('small', { class: 'sx-ed-full' }, 'The ship is full: five is a crew, six is a crowd.'),
-    create ? null : el('button', { type: 'button', class: 'sx-ed-who sx-ed-stashb' + (crewSel === 'stash' ? ' on' : ''), onclick: () => pick('stash') }, el('b', {}, 'Stash'), el('small', {}, S.stash.length + ' spare thing' + (S.stash.length === 1 ? '' : 's'))));
+    free ? null : el('button', { type: 'button', class: 'sx-ed-who sx-ed-stashb' + (crewSel === 'stash' ? ' on' : ''), onclick: () => pick('stash') }, el('b', {}, 'Stash'), el('small', {}, S.stash.length + ' spare thing' + (S.stash.length === 1 ? '' : 's'))));
   // the stash, when it's picked
   if (!p) {
     const stash = S.stash.map(itemById).filter(Boolean).sort((a, b) => (slotOf(a) || '').localeCompare(slotOf(b) || ''));
@@ -58,10 +58,10 @@ function crewEditor(opts) {
   const slotRow = (slot, label) => {
     const cur = itemById(p[slot]);
     // always in the same order (the order of content/items.json), so the arrows cycle through everything predictably
-    const pool = new Set(create ? slotItems(slot).map(it => it.id) : (cur ? [cur.id] : []).concat(S.stash.filter(id => slotOf(itemById(id)) === slot)));
+    const pool = new Set(free ? slotItems(slot).map(it => it.id) : (cur ? [cur.id] : []).concat(S.stash.filter(id => slotOf(itemById(id)) === slot)));
     const choices = [''].concat(slotItems(slot).map(it => it.id).filter(id => pool.has(id)));
     const at = Math.max(0, choices.indexOf(cur ? cur.id : ''));
-    const go = d => { const id = choices[(at + d + choices.length) % choices.length]; if (create) p[slot] = id; else equip(p, slot, id); redraw(); };
+    const go = d => { const id = choices[(at + d + choices.length) % choices.length]; if (free) p[slot] = id; else equip(p, slot, id); redraw(); };
     const many = choices.length > 1 && !lock;
     return el('div', { class: 'sx-ed-row sx-ed-slot' }, el('span', { class: 'sx-ed-l' }, label),
       el('div', { class: 'sx-ed-v' },
@@ -71,7 +71,7 @@ function crewEditor(opts) {
           el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': 'Next ' + label.toLowerCase(), disabled: !many || null, onclick: () => go(1) }, '▸'),
           el('small', { class: 'sx-ed-n' }, choices.length > 1 ? (at + 1) + ' / ' + choices.length : '')),
         cur ? el('small', { class: 'sx-ed-d' }, capFirst(cur.desc)) : null,
-        !create && choices.length < 2 ? el('small', { class: 'sx-ed-d' }, 'Nothing spare in the stash for this. Make one in the Workshop, Crafting.') : null));
+        !free && choices.length < 2 ? el('small', { class: 'sx-ed-d' }, 'Nothing spare in the stash for this. Make one in the Workshop, Crafting.') : null));
   };
   const rnd = L => L.length ? L[Math.floor(Math.random() * L.length)].id : '';
   const outfit = () => { SLOT_KEYS.forEach(k => { p[k] = (k === 'hat' || k === 'acc') && Math.random() < .5 ? '' : rnd(slotItems(k)); }); p.gear = rnd(slotItems('gear')); redraw(); };
@@ -79,7 +79,7 @@ function crewEditor(opts) {
   const head = el('div', { class: 'sx-ed-head' }, name,
     el('div', { class: 'sx-ed-acts' },
       el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, title: isMe ? 'New pronouns, age, profession and trait (your name stays)' : 'A new name, pronouns, age, profession and trait', onclick: () => { surprise(p); redraw(); } }, 'Surprise me'),
-      create ? el('button', { type: 'button', class: 'btn sx-mini', onclick: outfit }, 'New outfit') : null,
+      free ? el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, onclick: outfit }, 'New outfit') : null,
       isMe ? null : create ? el('button', { type: 'button', class: 'btn sx-mini', onclick: () => { S.crew.splice(idx, 1); crewSel = S.me.id; redraw(); } }, 'Not this one')
         : armBtn('Let go', 'Sure?', () => { crewSel = S.me.id; letGo(idx); }, 'sx-mini')));
   return el('div', { class: 'sx-ed' }, list, el('div', { class: 'sx-ed-main' },
@@ -96,16 +96,16 @@ function crewEditor(opts) {
           st.done.length ? el('p', { class: 'sl-muted' }, 'Finished: ' + st.done.join(', ') + '.') : null); })()),
       el('div', { class: 'sx-ed-col' },
         el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Outfit'), ...WEAR_SLOTS.map(([k, label]) => slotRow(k, label)),
-          create ? null : el('p', { class: 'sx-ed-hint' }, 'Spare clothes wait in the stash. Make more in the Workshop.')),
+          free ? null : el('p', { class: 'sx-ed-hint' }, 'Spare clothes wait in the stash. Make more in the Workshop.')),
         el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Carries'), slotRow('gear', 'Equipment')))),
     profList));
 }
 // the Crew tab of the Ship page
-function crewView() { return [crewEditor({ redraw: drawShip })]; }
+function crewView() { return [crewEditor({ redraw: drawShip, free: true })]; } // anything can be worn: customizing your crew is the point
 // the ship's equipment (on the Ship tab)
 function shipGearView() { // a short line under the decorating: what's aboard (made in the Workshop)
   const gear = S.shipGear.map(itemById).filter(Boolean);
-  return [el('p', { class: 'sx-ed-hint sx-deck-gear' }, gear.length ? 'Aboard: ' + gear.map(it => it.name).join(', ') + '. Make more in the Workshop, Crafting, Ship.' : 'No ship equipment yet. Research Home Comforts, then make some in the Workshop.')];
+  return [el('p', { class: 'sx-ed-hint sx-deck-gear' }, gear.length ? 'Aboard: ' + gear.map(it => it.name).join(', ') + '.' : '')];
 }
 // the Workshop: everything Knowledge points buy. Research (a tech tree), Crafting (make a thing from a blueprint), Made.
 let wsTab = 'Research', craftCat = 'top', resSel = null;

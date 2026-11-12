@@ -38,7 +38,7 @@ const tabAtlas = el('button', { type: 'button', onclick: () => tab(atlasSub) }, 
 const tabJournal = el('button', { type: 'button', onclick: () => tab('journal') }, 'Journal');
 const tabSet = el('button', { type: 'button', onclick: () => tab('settings') }, 'Settings');
 const tabItems = el('button', { type: 'button', hidden: true }), tabMap = el('button', { type: 'button', hidden: true }); // (old names other files still touch)
-const atlasNav = el('div', { class: 'sl-stabs sx-atlasnav', role: 'tablist' }, [['log', 'Worlds'], ['map', 'Map'], ['items', 'Collection']].map(([k, label]) =>
+const atlasNav = el('div', { class: 'sl-stabs sx-atlasnav', role: 'tablist' }, [['log', 'Worlds'], ['map', 'Map']].map(([k, label]) =>
   el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'data-k': k, onclick: () => tab(k) }, label)));
 // H hides the break panel too (the old "hide panels")
 let clean = false;
@@ -49,7 +49,7 @@ const page = el('div', { class: 'sx-page', hidden: true },
   atlasNav, el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, mapPane, journalPane, settingsPane));
 [tabTimer, tabLog, tabShip].forEach(b => b.removeAttribute('role'));
 root.classList.add('sx', 'sx-v2');
-root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabAtlas, tabJournal, tabShip, tabSet)), midCol, el('div', { class: 'sx-rail' }, corner, bpNotes, storyPanel), report, page,
+root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabAtlas, tabJournal, tabShip, tabSet)), midCol, el('div', { class: 'sx-rail' }, corner, storyPanel, bpNotes), report, page,
   el('div', { hidden: true }, skipB, tabTimer, tabLog, tabItems, tabMap, status2, leftCol, feedLine, mission, reportBtn));
 function tab(t) {
   if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Worlds again goes back to the grid

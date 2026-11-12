@@ -4,7 +4,7 @@
 // the right side has two tabs: Research (what Knowledge points unlock) and Transmissions (everything the ship heard and logged)
 let rightTab = 'tx';
 // every kind of log in one place: the ship's log, Meridian logs, Ship Logs from research, achievements, and old Listening Post transmissions
-const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['stay', 'Stays'], ['crew', 'Crew stories'], ['trade', 'Traders'], ['mystery', 'Mysteries'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements'], ['learn', 'Learning']];
+const TXF = [['all', 'All'], ['season', 'Story'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['stay', 'Stays'], ['crew', 'Crew stories'], ['trade', 'Traders'], ['mystery', 'Mysteries'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements'], ['learn', 'Learning']];
 let txFilter = 'all', txQuery = '';
 const txFind = el('input', { type: 'search', class: 'sl-find sx-txfind', placeholder: 'Search the logs...', 'aria-label': 'Search the logs' });
 txFind.addEventListener('input', () => { txQuery = txFind.value; drawRight(); txFind.focus(); });

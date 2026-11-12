@@ -137,7 +137,8 @@ function drawGlobe() {
   globePlace();
 }
 // the card: open, fill, close
-function wpOpen(id) { wpSel = id; globePins.forEach(g => { g.b.classList.toggle('sel', g.w.id === id); g.b.setAttribute('aria-expanded', String(g.w.id === id)); }); if (window.SolaristGlobe) window.SolaristGlobe.hold = true; wpFill(); globePlace(); const f = wpCard.querySelector('button.sx-wp-go:not(:disabled), select'); if (f) f.focus({ preventScroll: true }); }
+let wpTouched = 0; // when the open card was last used: left alone for a while, it closes and the planet turns again
+function wpOpen(id) { wpSel = id; wpTouched = Date.now(); { const g = globePins.find(x => x.w.id === id); if (g && g.orbit == null && window.SolaristGlobe && window.SolaristGlobe.face) window.SolaristGlobe.face(g.x); } globePins.forEach(g => { g.b.classList.toggle('sel', g.w.id === id); g.b.setAttribute('aria-expanded', String(g.w.id === id)); }); if (window.SolaristGlobe) window.SolaristGlobe.hold = true; wpFill(); globePlace(); const f = wpCard.querySelector('button.sx-wp-go:not(:disabled), select'); if (f) f.focus({ preventScroll: true }); }
 function wpClose() { if (!wpSel && wpCard.hidden) return; wpSel = null; wpCard.hidden = true; globePins.forEach(g => { g.b.classList.remove('sel'); g.b.setAttribute('aria-expanded', 'false'); }); if (window.SolaristGlobe) window.SolaristGlobe.hold = false; }
 function wpFill() {
   const g = wpSel && globePins.find(x => x.w.id === wpSel); if (!g) { wpCard.hidden = true; return; }
@@ -146,11 +147,12 @@ function wpFill() {
   wpCard.setAttribute('aria-label', title); wpCard.hidden = false;
 }
 const wpRefresh = () => { globeKey = ''; drawGlobe(); };
-document.addEventListener('pointerdown', e => { if (wpSel && !e.target.closest('.sx-wpcard, .sx-wp')) wpClose(); });
+document.addEventListener('pointerdown', e => { if (wpSel && !e.target.closest('.sx-wpcard, .sx-wp')) wpClose(); else if (wpSel) wpTouched = Date.now(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && wpSel) { e.preventDefault(); wpClose(); } });
 // move the waypoints to where they are on the turning planet (called after every frame the planet is drawn), and the card beside its waypoint
 function globePlace() {
   const G = window.SolaristGlobe; if (!G || globeLayer.hidden) return;
+  if (wpSel && Date.now() - wpTouched > 30000) wpClose();
   const sides = [corner, bpNotes, storyPanel].filter(b => !b.hidden && b.offsetParent).map(b => b.getBoundingClientRect());
   const under = q => sides.some(r => q.x > r.left - 8 && q.x < r.right + 8 && q.y > r.top - 8 && q.y < r.bottom + 8); // a waypoint never hides behind the timer or the story
   let selQ = null;

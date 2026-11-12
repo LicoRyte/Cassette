@@ -1095,3 +1095,31 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 .sx-rooms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); } .sx-rooms button { margin: -1px 0 0 -1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* like the cutaway: two decks of four */
 .sx-ed-st { font: 600 15px var(--ui) !important; color: var(--amber) !important; }
 .sx-wp-m { width: 18px !important; height: 18px !important; left: -9px !important; top: -9px !important; font-size: 15px !important; } .sx-wp::before { left: -18px; top: -18px; width: 36px; height: 36px; } .sx-wp-l { left: 16px; font-size: 14px; } /* bigger waypoints */
+/* session bars: white while you study; the break fills green over the same bar */
+.sx-v2 .sx-corner .sx-cycle .brk::after { background: #9cb93b; }
+/* no level bars on the main screen (they're on Ship, Records); the points stay */
+.sx-v2 .sx-top .sl-lv-i { display: none; }
+/* What happened: calm, roomy, upright text that's easy to read */
+.sx-v2 .sx-storyp .sx-bp-story { padding-right: 14px; }
+.sx-v2 .sx-storyp .sl-trans-i { margin: 0; padding: 0 0 18px; border: 0; }
+.sx-v2 .sx-storyp .sl-trans-i + .sl-trans-i { margin: 0; padding-top: 18px; border-top: 1px solid #0b1a2b; }
+.sx-v2 .sx-storyp .sl-trans-h { margin-bottom: 6px; font: 600 12px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--amber); }
+.sx-v2 .sx-storyp .sl-ev-i { display: none; }
+.sx-v2 .sx-storyp p, .sx-v2 .sx-storyp .sl-trans-i p { margin: 0; font: 15px/1.7 var(--text); font-style: normal; color: #bfc3c6; }
+.sx-v2 .sx-storyp .sl-ev-got { margin-top: 8px !important; font: 600 14px var(--ui) !important; letter-spacing: .02em; color: #9cb93b !important; }
+.sx-v2 .sx-storyp .sl-notes p { font: 600 15px/1.5 var(--ui); color: var(--amber); }
+.sx-v2 .sx-storyp .sl-notes p + p { margin-top: 4px; color: #bfc3c6; font-weight: 400; }
+.sx-v2 .sx-storyp .sl-card { margin-top: 18px; padding-top: 18px; border-top: 1px solid #0b1a2b; }
+.sx-v2 .sx-storyp .sl-name { font: 700 20px var(--ui); }
+.sx-v2 .sx-storyp .sl-code { margin: 2px 0 8px; font-size: 13px; color: var(--mute); }
+.sx-v2 .sx-bp-story::-webkit-scrollbar { width: 4px; } .sx-v2 .sx-bp-story::-webkit-scrollbar-thumb { background: #293b49; }
+
+/* the story-first screen: no points chip; a choice on the break */
+.sx-v2 .sx-kpc { display: none; }
+.sx-v2 .sx-rail .sx-bp-notes { flex: none; }
+.sx-choice { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; background: #030710; border: 1px solid #293b49; border-top: 2px solid var(--amber); }
+.sx-choice p { margin: 0; font: 15px/1.6 var(--text); color: #bfc3c6; }
+.sx-choice .sx-choice-q { font: 600 17px/1.35 var(--ui); color: var(--white); }
+.sx-choice-o { display: flex; flex-direction: column; gap: 6px; }
+.sx-choice-o .btn { width: 100%; padding: 8px 10px; text-align: left; font-size: 16px; }
+@media (min-width: 901px) { .sx-v2 .sx-rail .sx-storyp { flex: 1 1 auto; min-height: 120px; } } /* the story gets the room; the choice sits under it */
