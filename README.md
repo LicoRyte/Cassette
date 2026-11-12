@@ -19,6 +19,7 @@ Your progress is saved in this browser.
 | `js/ui/export.js` | Saving a board as an image, backups of all boards, loading a backup |
 | `js/ui/notes.js` | Rich notes: the formatting toolbar, typing shortcuts, paper colours, text size, and the cleaner that keeps only the tags a note uses |
 | `js/ui/feel.js` | The feel: the chimes and desk sounds (made live with Web Audio), the green edge glow on every second, the desk dimming while you focus |
+| `js/ui/help.js` | The ? card at the top left: every key and gesture |
 | `js/ui/tape.js` | The session strip and the tape-deck keys under the timer |
 | `js/ui/clock.js` | The clock-only Solarist: switches the space game off and adds the console, state colours, power-on, landing and breathing |
 | `js/ui/board.js` | The desk: the pannable, zoomable workspace around the clock, with notes, Polaroid photos, drawings, frames, strings, picking and groups, undo, and number-key bookmarks |
@@ -42,6 +43,8 @@ Your progress is saved in this browser.
 `Space` starts or pauses, `D` draws, `Ctrl+Z` / `Ctrl+Shift+Z` undo and redo, `Ctrl+G` groups, `Delete` removes what's picked, `1`-`9` glide to a bookmark, `Shift`+`1`-`9` bookmarks the selected note or photo, `0` goes back to the clock, `Esc` puts down the note you're writing or closes a page.
 
 ## What's in it
+
+- **How it works:** the ? key at the top left (or ? on the keyboard) opens a card with every key and gesture. The bar along the bottom has the board menu, Note, Photo, Draw, Frame, Undo and Redo, the clock and your bookmarks, all as hollow keys like the timer's.
 
 - **The clock:** one centred clock in a console frame with amber corner brackets, over a slowly drifting grain and faint scanlines, with a single line sweeping down the screen once a minute. Above the digits: Ready, Focus or Paused, and which session of the cycle this is. Under them: one strip for the whole cycle (a long segment for each study session, a short one for each break, a longer one for the long break, filling as you go), then two hollow tape-deck keys, Play/Pause and Rewind (Reset), with the key to press written underneath; Play stays latched down while a session runs, and both play a cassette click. Two little tape reels sit either side of the strip: the left holds what's left of the cycle and the right what's done, they turn while the timer runs, ease to a stop when you pause and spin back on Rewind. Under the keys, today's sessions on a three-wheel tape counter that rolls up when a session ends. At 00:00 the screen's edges darken and lift once, like a breath out.
 - **Colour tells you where you are:** cream while you focus, warmer in the last minute, mint on a break, dimmed and blinking when paused, quiet silver when ready.

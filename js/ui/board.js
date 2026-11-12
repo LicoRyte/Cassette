@@ -126,6 +126,7 @@ function deskMenuOpen() {
     item('Load a backup...', () => deskImportBackup()),
   ].filter(Boolean));
   deskMenu.hidden = false;
+  const mb = deskBar.querySelector('.sx-ws-menub'); if (mb) deskMenu.style.left = Math.max(0, mb.offsetLeft) + 'px'; // over the Board button, not the bar's far end
 }
 addEventListener('pointerdown', e => { if (!deskMenu.hidden && !e.target.closest('.sx-ws-menu, .sx-ws-menub')) deskMenu.hidden = true; }, true);
 function deskBoardTools() { deskSel.replaceChildren(...S.board.boards.map(b => el('option', { value: b.id, selected: b.id === S.board.cur || null }, b.name))); }
@@ -141,7 +142,6 @@ const deskBar = el('div', { class: 'sx-ws-bar' },
   el('div', { class: 'sx-ws-grp' }, undoB, redoB),
   el('div', { class: 'sx-ws-grp' }, deskHomeB, deskKeys),
   deskSelGrp,
-  el('small', { class: 'sx-ws-help' }, 'Drag to move (or right-drag) · scroll to zoom · double-click for a note · D to draw · Shift+drag to pick several · Shift+1-9 to bookmark'),
   deskMenu);
 ws.after(deskBar); deskUndoState();
 
