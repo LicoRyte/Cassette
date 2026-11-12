@@ -1021,3 +1021,76 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 .sx-wp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .sx-wp-two .btn { padding: 9px 0; }
 @media (max-width: 700px) { .sx-wpcard { left: 12px !important; right: 12px; bottom: 12px; top: auto !important; width: auto; max-height: 60vh; } }
+
+/* two traits: the picked ones show their order */
+.sx-ed-chips button.on { position: relative; background: #041528; border-color: var(--amber); color: var(--white); }
+.sx-ed-tn { margin-left: 6px; font: 600 11px var(--ui); font-style: normal; color: var(--amber); }
+.sx-ed-hint-top { margin: -2px 0 8px; }
+.sx-ed-sec > .sx-ed-d2 { margin-top: 4px; }
+
+/* the Workshop: Research (a tech tree), Crafting, Made */
+.sx-ws-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.sx-ws-tabs { display: flex; gap: 4px; }
+.sx-ws-tabs .sl-stab { width: 110px; text-align: center; font-size: 17px; }
+.sx-ws-kp { display: flex; align-items: center; gap: 10px; }
+.sx-ws-kp b { font: 700 30px/1 var(--ui); color: var(--amber); }
+.sx-ws-kp span { display: flex; flex-direction: column; font: 600 15px var(--ui); color: var(--white); }
+.sx-ws-kp small { font: 13px var(--ui); color: var(--mute); max-width: 300px; }
+.sx-tt { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.sx-tt-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.sx-tt-col { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.sx-tt-h { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--dim); font: 600 13px var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.sx-tt-h small { font-size: 12px; letter-spacing: 0; }
+.sx-tt-tier { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
+.sx-tt-tier.joined { position: relative; padding-top: 18px; }
+.sx-tt-tier.joined::before { content: ''; position: absolute; left: 50%; top: 2px; height: 14px; border-left: 2px solid #293b49; }
+.sx-tt-n { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 7px 8px; background: #030710; border: 1px solid #293b49; text-align: left; cursor: pointer; }
+.sx-tt-n b { font: 600 14px/1.15 var(--ui); color: var(--ink); }
+.sx-tt-n small { font: 12px var(--ui); color: var(--mute); }
+.sx-tt-n.open { border-color: #6d8a8d; }
+.sx-tt-n.open b { color: var(--white); }
+.sx-tt-n.open small { color: var(--amber); }
+.sx-tt-n.done { background: #041528; border-color: #458239; }
+.sx-tt-n.done b { color: var(--white); } .sx-tt-n.done small { color: #9cb93b; }
+.sx-tt-n.locked b { color: #6d8a8d; }
+.sx-tt-n.sel { outline: 2px solid var(--amber); outline-offset: 1px; }
+.sx-tt-n:hover b { color: var(--white); }
+.sx-tt-d { position: sticky; top: 56px; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; background: #030710; border: 1px solid #293b49; border-top: 2px solid var(--amber); }
+.sx-tt-d h3 { margin: -4px 0 0; font: 700 24px/1.15 var(--ui); color: var(--white); }
+.sx-tt-d p { margin: 0; font: 15px/1.5 var(--ui); color: var(--ink); }
+.sx-tt-u { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; padding: 6px 0; border-top: 1px solid #041528; font: 14px/1.45 var(--ui); color: var(--ink); }
+.sx-tt-u > span { color: var(--mute); }
+.sx-tt-done { color: #9cb93b !important; font-weight: 600 !important; }
+.sx-ws-cats { margin-bottom: 4px; }
+.sx-ws-cats small { color: var(--mute); }
+.sx-ws-list { display: flex; flex-direction: column; }
+.sx-ws-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 0; border-top: 1px solid #041528; }
+.sx-ws-row > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sx-ws-row b { font: 600 16px var(--ui); color: var(--white); }
+.sx-ws-row small { font: 14px/1.4 var(--ui); color: var(--mute); }
+.sx-ws-row .sx-ws-have { color: #9cb93b; }
+.sx-ws-row.locked b { color: #6d8a8d; }
+.sx-ws-row .btn { flex: none; min-width: 96px; }
+.sx-ws-c { flex: none; font: 14px var(--ui); color: var(--mute); }
+.sx-ws-sur { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 8px; padding: 12px 14px; border: 1px dashed #293b49; }
+.sx-ws-sur > div { display: flex; flex-direction: column; gap: 2px; }
+.sx-ws-sur b { font: 600 16px var(--ui); color: var(--white); } .sx-ws-sur small { font: 14px var(--ui); color: var(--mute); }
+.sx-ws-sum { margin: 0; font: 15px var(--ui); color: var(--ink); }
+@media (max-width: 1100px) { .sx-tt { grid-template-columns: minmax(0, 1fr); } .sx-tt-d { position: static; } }
+@media (max-width: 900px) { .sx-tt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; } }
+
+/* the Ship tab: cutaway on the left, the picked room's settings on the right */
+.sx-deck { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr); gap: 24px; align-items: start; }
+.sx-deck-l { position: sticky; top: 56px; display: flex; flex-direction: column; gap: 12px; }
+.sx-deck-l .sx-incv { max-width: none; margin: 0; }
+.sx-rooms { gap: 0; }
+.sx-rooms button { flex: 1 1 auto; }
+.sx-deck-r { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.sx-deck-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sx-deck-h h3 { margin: 0; font: 700 22px var(--ui); color: var(--white); letter-spacing: 0; text-transform: none; }
+.sx-deck-what { margin: 6px 0 4px; }
+.sx-swatch-i { display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px; }
+.sx-deck-gear { margin-top: 14px; }
+@media (max-width: 1000px) { .sx-deck { grid-template-columns: minmax(0, 1fr); } .sx-deck-l { position: static; } }
+.sx-rooms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); } .sx-rooms button { margin: -1px 0 0 -1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* like the cutaway: two decks of four */
+.sx-ed-st { font: 600 15px var(--ui) !important; color: var(--amber) !important; }

@@ -26,15 +26,7 @@ function medalsView(group) {
   });
   return out;
 }
-function shipView(group) { // the ship: walk-through cutaway with decorating, then the numbers
-  const nameIn = el('input', { type: 'text', class: 'sl-find', value: S.ship.name, maxlength: 28, 'aria-label': 'Ship name' });
-  nameIn.addEventListener('change', () => { S.ship.name = nameIn.value.trim().slice(0, 28) || 'The Lantern'; S.ship.named = true; save(); draw(); });
-  const pilotIn = el('input', { type: 'text', class: 'sl-find', value: (S.pilot && S.pilot.name) || '', placeholder: 'Your name', maxlength: 28, 'aria-label': 'Your name' });
-  pilotIn.addEventListener('change', () => { S.pilot = { name: pilotIn.value.trim().slice(0, 28), asked: true }; save(); draw(); });
-  const rooms = Object.entries(ROOMS).map(([, [ic, name, what]]) => el('tr', {}, el('td', {}, ic + ' ' + name), el('td', {}, what)));
-  return [group('Inside the ' + S.ship.name.replace(/^The /, ''), ...interiorView()), group('Names', el('label', { class: 'sx-namerow' }, 'Ship ', nameIn), el('label', { class: 'sx-namerow' }, 'Captain ', pilotIn)),
-    group('Rooms', el('table', { class: 'sl-rec sl-stats' }, el('tbody', {}, rooms)))];
-}
+function shipView() { return interiorView(); } // the ship: the cutaway and decorating (js/ui/ship-interior.js)
 function statsView(group) { // everything you've done, for bragging rights
   const fmtN = n => (n || 0).toLocaleString(), allP = S.found.map(f => f.p);
   const itemsGot = Object.values(S.items).reduce((a, it) => a + it.n, 0), byR = r => CATS.reduce((a, [c]) => a + catList(c, r).filter((_, i) => S.items[itemId(c, r, i)]).length, 0);

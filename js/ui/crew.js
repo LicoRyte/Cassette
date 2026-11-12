@@ -49,8 +49,11 @@ function crewEditor(opts) {
   const step = d => el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': d < 0 ? 'Younger' : 'Older', disabled: lock || isNaN(ageN) || null, onclick: () => { p.age = String(Math.max(1, ageN + d)); redraw(); } }, d < 0 ? '−' : '+');
   const role = el('input', { type: 'text', class: 'sx-ed-role', maxlength: 24, value: p.role || '', list: 'sx-prof-list', placeholder: 'Profession', 'aria-label': 'Profession', disabled: lock || null });
   role.addEventListener('change', () => { p.role = role.value.trim().slice(0, 24); redraw(); });
-  const tr = itemById(p.trait);
-  const traitChips = el('div', { class: 'sx-ed-chips', role: 'radiogroup', 'aria-label': 'Trait' }, txItems('trait').map(t => el('button', { type: 'button', role: 'radio', 'aria-checked': String(p.trait === t.id), disabled: lock || null, onclick: () => { p.trait = t.id; redraw(); } }, t.name)));
+  const tr = itemById(p.trait), tr2 = itemById(p.trait2);
+  // one or two traits: click to add a second, click a picked one to drop it (the first can't be dropped, only replaced)
+  const tapTrait = id => { if (p.trait === id) { if (p.trait2) { p.trait = p.trait2; p.trait2 = ''; } } else if (p.trait2 === id) p.trait2 = ''; else p.trait2 = id; redraw(); };
+  const traitChips = el('div', { class: 'sx-ed-chips', role: 'group', 'aria-label': 'Traits: pick one or two' }, txItems('trait').map(t => { const n = p.trait === t.id ? 1 : p.trait2 === t.id ? 2 : 0;
+    return el('button', { type: 'button', 'aria-pressed': String(!!n), class: n ? 'on' : '', disabled: lock || null, onclick: () => tapTrait(t.id) }, t.name, n ? el('i', { class: 'sx-ed-tn' }, String(n)) : null); }));
   // a clothing or gear slot: the arrows step through what can go there
   const slotRow = (slot, label) => {
     const cur = itemById(p[slot]);
@@ -82,8 +85,12 @@ function crewEditor(opts) {
     el('div', { class: 'sx-ed-cols' },
       el('div', { class: 'sx-ed-col' },
         el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Who'), row('Pronouns', pron), row('Age', el('div', { class: 'sx-ed-pick' }, step(-1), age, step(1))), row('Profession', role)),
-        el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Nature'), traitChips, tr ? el('p', { class: 'sx-ed-d' }, capFirst(tr.name) + ': ' + tr.desc) : null),
-        el('section', { class: 'sx-ed-sec sx-ed-story' }, el('h3', {}, 'In the stories'), el('p', {}, crewLine(p)), p.quirk ? el('p', { class: 'sl-muted' }, 'Also: ' + firstName(p) + ' ' + p.quirk + '.') : null)),
+        el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Nature'), el('p', { class: 'sx-ed-hint sx-ed-hint-top' }, 'Pick one or two. Click a picked one to drop it.'), traitChips, tr ? el('p', { class: 'sx-ed-d' }, capFirst(tr.name) + ': ' + tr.desc) : null, tr2 ? el('p', { class: 'sx-ed-d sx-ed-d2' }, capFirst(tr2.name) + ': ' + tr2.desc) : null),
+        el('section', { class: 'sx-ed-sec sx-ed-story' }, el('h3', {}, 'In the stories'), el('p', {}, crewLine(p)), p.quirk ? el('p', { class: 'sl-muted' }, 'Also: ' + firstName(p) + ' ' + p.quirk + '.') : null),
+        isMe || create ? null : (() => { const st = storyOf(p); return el('section', { class: 'sx-ed-sec sx-ed-story' }, el('h3', {}, 'Their story'),
+          st.now ? [el('p', { class: 'sx-ed-st' }, st.now.title + ' · ' + st.now.step + ' of ' + st.now.total), ...st.now.log.map(t => el('p', {}, t))]
+            : el('p', { class: 'sl-muted' }, 'Nothing going on right now. A story of their own starts now and then, picked for who they are.'),
+          st.done.length ? el('p', { class: 'sl-muted' }, 'Finished: ' + st.done.join(', ') + '.') : null); })()),
       el('div', { class: 'sx-ed-col' },
         el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Outfit'), ...WEAR_SLOTS.map(([k, label]) => slotRow(k, label)),
           create ? null : el('p', { class: 'sx-ed-hint' }, 'Spare clothes wait in the stash. Make more in the Workshop.')),
@@ -93,17 +100,84 @@ function crewEditor(opts) {
 // the Crew tab of the Ship page
 function crewView() { return [crewEditor({ redraw: drawShip })]; }
 // the ship's equipment (on the Ship tab)
-function shipGearView(group) {
+function shipGearView() { // a short line under the decorating: what's aboard (made in the Workshop)
   const gear = S.shipGear.map(itemById).filter(Boolean);
-  return [group('Ship equipment', el('p', { class: 'sl-muted' }, 'Each piece opens something new to do when you stay on a world. Make more in the Workshop.'),
-    gear.length ? el('div', { class: 'sx-stash' }, gear.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, capFirst(it.desc))))) : el('p', { class: 'sl-muted' }, 'Nothing yet.'))];
+  return [el('p', { class: 'sx-ed-hint sx-deck-gear' }, gear.length ? 'Aboard: ' + gear.map(it => it.name).join(', ') + '. Make more in the Workshop, Crafting, Ship.' : 'No ship equipment yet. Research Home Comforts, then make some in the Workshop.')];
 }
-// the Workshop: everything Knowledge points buy, in one place
-function workshopView(group) {
-  const lock = focusLock(), leftN = txItems('ship').length - S.shipGear.length;
-  const craftB = el('button', { type: 'button', class: 'btn', disabled: lock || (S.kp || 0) < 1 || null, onclick: () => { const it = craft(); craftMsg = it ? 'New: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, 'Make clothes or gear · 1 point');
-  const shipB = el('button', { type: 'button', class: 'btn', disabled: lock || (S.kp || 0) < 4 || !leftN || null, onclick: () => { const it = craftShip(); craftMsg = it ? 'New on the ship: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, leftN ? 'Make ship equipment · 4 points' : 'The ship has everything');
-  return [el('div', { class: 'sx-res sx-kp' }, el('b', {}, String(S.kp || 0)), el('small', {}, 'Knowledge points. You earn one for every finished study session, Full Cycle, solved mystery and Meridian chapter.')),
-    group('Make something', el('p', { class: 'sl-muted' }, 'Clothes and gear are random, and new to you when they can be. Ship equipment opens a new thing to do when you stay on a world.'), el('div', { class: 'sx-row-l' }, craftB, shipB), craftMsg ? el('p', { class: 'sx-craftmsg' }, craftMsg) : null),
-    group('Research', ...researchView().slice(1))];
+// the Workshop: everything Knowledge points buy. Research (a tech tree), Crafting (make a thing from a blueprint), Made.
+let wsTab = 'Research', craftCat = 'top', resSel = null;
+const CRAFT_CATS = WEAR_SLOTS.concat([['gear', 'Equipment'], ['ship', 'Ship']]);
+const kpBox = () => el('div', { class: 'sx-ws-kp' }, el('b', {}, String(S.kp || 0)), el('span', {}, 'Knowledge points', el('small', {}, 'One for every finished study session, Full Cycle, solved mystery and Meridian chapter.')));
+// where something you made is now
+function madeWhere(id) {
+  const who = [S.me].concat(S.crew).find(p => SLOT_KEYS.concat('gear').some(k => p[k] === id));
+  if (who) return who === S.me ? 'You have it' : firstName(who) + ' has it';
+  if (S.stash.includes(id)) return 'In the stash';
+  if (S.shipGear.includes(id)) return 'On the ship';
+  return 'Traded or given away';
+}
+const kindName = it => it.kind === 'ship' ? 'Ship' : it.kind === 'equipment' ? 'Equipment' : (WEAR_SLOTS.find(s => s[0] === slotOf(it)) || [0, 'Clothes'])[1];
+// Research: one column per branch, each upgrade below the ones it needs; click one to see it
+function researchTree() {
+  const lock = focusLock(), state = n => hasT(n[0]) ? 'done' : reqOf(n).every(hasT) ? 'open' : 'locked';
+  if (!resSel || !RES_ALL.some(n => n[0] === resSel)) resSel = (RES_ALL.find(n => state(n) === 'open') || RES_ALL[0])[0];
+  const cols = RESEARCH.map(([branch, list]) => {
+    const depth = new Map(); list.forEach(n => { const inside = reqOf(n).filter(r => list.some(m => m[0] === r)); depth.set(n[0], inside.length ? Math.max(...inside.map(r => depth.get(r) || 0)) + 1 : 0); });
+    const tiers = []; list.forEach(n => { const k = depth.get(n[0]); (tiers[k] = tiers[k] || []).push(n); });
+    const done = list.filter(n => hasT(n[0])).length;
+    return el('div', { class: 'sx-tt-col' }, el('div', { class: 'sx-tt-h' }, branch, el('small', {}, done + ' / ' + list.length)),
+      ...tiers.filter(Boolean).map((row, k) => el('div', { class: 'sx-tt-tier' + (k ? ' joined' : '') }, row.map(n => {
+        const st = state(n);
+        return el('button', { type: 'button', class: 'sx-tt-n ' + st + (resSel === n[0] ? ' sel' : ''), 'aria-pressed': String(resSel === n[0]), onclick: () => { resSel = n[0]; drawShip(); } },
+          el('b', {}, n[1]), el('small', {}, st === 'done' ? 'Done' : rcost(n) + ' pt' + (rcost(n) === 1 ? '' : 's')));
+      }))));
+  });
+  // the picked upgrade
+  const n = RES_ALL.find(x => x[0] === resSel), st = state(n), u = n[4] || {}, cost = rcost(n), md = ACH.filter(a => a.req === n[0]).length;
+  const unl = [];
+  if (u.bp) unl.push(el('div', { class: 'sx-tt-u' }, el('span', {}, 'Blueprints'), el('div', {}, u.bp.map(itemById).filter(Boolean).map(it => capFirst(it.name)).join(', '))));
+  if (u.cat) unl.push(el('div', { class: 'sx-tt-u' }, el('span', {}, 'Collectibles'), el('div', {}, catName(u.cat))));
+  if (u.logs) unl.push(el('div', { class: 'sx-tt-u' }, el('span', {}, 'Ship Logs'), el('div', {}, u.logs.length + ' to read' + (st === 'done' ? ' in the Journal' : ''))));
+  if (md) unl.push(el('div', { class: 'sx-tt-u' }, el('span', {}, 'Achievements'), el('div', {}, md + ' new')));
+  const needs = reqOf(n);
+  const detail = el('div', { class: 'sx-tt-d' },
+    el('small', { class: 'sx-wp-k' }, resBranch(n[0])), el('h3', {}, n[1]), el('p', {}, n[3]),
+    needs.length ? el('div', { class: 'sx-tt-u' }, el('span', {}, 'Needs'), el('div', {}, needs.map(r => resName(r) + (hasT(r) ? ' (done)' : '')).join(', '))) : null,
+    ...unl,
+    st === 'done' ? el('p', { class: 'sx-tt-done' }, 'Researched') :
+      el('button', { type: 'button', class: 'btn sl-go', disabled: lock || st !== 'open' || (S.kp || 0) < cost || null, onclick: () => { doResearch(n[0]); drawShip(); } },
+        st === 'locked' ? 'Needs ' + needs.filter(r => !hasT(r)).map(resName).join(' and ') : 'Research · ' + cost + ' point' + (cost === 1 ? '' : 's')));
+  return [el('div', { class: 'sx-tt' }, el('div', { class: 'sx-tt-grid' }, cols), detail)];
+}
+// Crafting: pick a kind, then make exactly the thing you want from what you know
+function craftingView() {
+  const lock = focusLock(), known = knownBp();
+  const chips = el('div', { class: 'sx-ed-seg sx-ws-cats', role: 'tablist' }, CRAFT_CATS.map(([k, label]) => { const all = k === 'ship' ? txItems('ship') : slotItems(k), n = all.filter(it => known.has(it.id)).length;
+    return el('button', { type: 'button', role: 'tab', 'aria-selected': String(craftCat === k), 'aria-checked': String(craftCat === k), onclick: () => { craftCat = k; craftMsg = ''; drawShip(); } }, label, el('small', {}, ' ' + n + '/' + all.length)); }));
+  const items = craftCat === 'ship' ? txItems('ship') : slotItems(craftCat), have = owned();
+  const rows = items.map(it => {
+    const k = known.has(it.id), cost = craftCost(it), onShip = it.kind === 'ship' && S.shipGear.includes(it.id), n = have.filter(x => x === it.id).length;
+    if (!k) { const node = bpNode(it.id); return el('div', { class: 'sx-ws-row locked' }, el('div', {}, el('b', {}, capFirst(it.name)), el('small', {}, 'Blueprint from research: ' + (node ? node[1] : '?'))), el('span', { class: 'sx-ws-c' }, cost + ' pt' + (cost === 1 ? '' : 's'))); }
+    return el('div', { class: 'sx-ws-row' }, el('div', {}, el('b', {}, capFirst(it.name)), el('small', {}, capFirst(it.desc)), onShip ? el('small', { class: 'sx-ws-have' }, 'On the ship') : n ? el('small', { class: 'sx-ws-have' }, 'You have ' + n) : null),
+      onShip ? el('span', { class: 'sx-ws-c' }, 'Built') : el('button', { type: 'button', class: 'btn sl-go', disabled: lock || (S.kp || 0) < cost || null, onclick: () => { const x = craftItem(it.id); craftMsg = x ? (x.kind === 'ship' ? 'New on the ship: ' : 'Made: ') + x.name + (x.kind === 'ship' ? '. Something new to do when you stay on a world.' : '. It\'s in the stash: dress someone in it on the Crew tab.') : ''; drawShip(); } }, 'Make · ' + cost));
+  });
+  const surprise = el('div', { class: 'sx-ws-sur' }, el('div', {}, el('b', {}, 'Surprise me'), el('small', {}, 'Any clothes or equipment at all, even without a blueprint. New to you when it can be.')),
+    el('button', { type: 'button', class: 'btn', disabled: lock || (S.kp || 0) < 1 || null, onclick: () => { const it = craft(); craftMsg = it ? 'Surprise: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, 'Make · 1'));
+  return [lock ? el('p', { class: 'sl-muted' }, 'Making things waits until the study session is over.') : null, chips, craftMsg ? el('p', { class: 'sx-craftmsg' }, craftMsg) : null, el('div', { class: 'sx-ws-list' }, rows), surprise].filter(Boolean);
+}
+// Made: everything you've made, and every blueprint you know
+function madeView() {
+  const known = knownBp(), all = txItems('clothing').concat(txItems('equipment'), txItems('ship'));
+  const list = S.made.slice().reverse().map(m => ({ m, it: itemById(m.id) })).filter(x => x.it);
+  const byCat = CRAFT_CATS.map(([k, label]) => { const its = (k === 'ship' ? txItems('ship') : slotItems(k)).filter(it => known.has(it.id)); return its.length ? el('div', { class: 'sx-tt-u' }, el('span', {}, label), el('div', {}, its.map(it => capFirst(it.name)).join(', '))) : null; }).filter(Boolean);
+  return [el('p', { class: 'sx-ws-sum' }, 'You know ' + known.size + ' of ' + all.length + ' blueprints and have made ' + S.made.length + ' thing' + (S.made.length === 1 ? '' : 's') + '.'),
+    el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Made so far'), list.length ? el('div', { class: 'sx-ws-list' }, list.slice(0, 200).map(({ m, it }) => el('div', { class: 'sx-ws-row' },
+      el('div', {}, el('b', {}, capFirst(it.name)), el('small', {}, kindName(it) + (m.surprise ? ' · a surprise' : '') + ' · ' + new Date(m.at).toLocaleDateString())), el('span', { class: 'sx-ws-c' }, madeWhere(it.id)))))
+      : el('p', { class: 'sl-muted' }, 'Nothing yet. Research a blueprint, then make it on the Crafting tab.')),
+    el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Blueprints you know'), byCat.length ? el('div', {}, byCat) : el('p', { class: 'sl-muted' }, 'None yet. Mending, Tinkering and Home Comforts in the Research tree are a good start.'))];
+}
+function workshopView() {
+  const tabs = el('div', { class: 'sx-ws-tabs', role: 'tablist' }, ['Research', 'Crafting', 'Made'].map(k => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(wsTab === k), onclick: () => { wsTab = k; craftMsg = ''; drawShip(); } }, k)));
+  const body = wsTab === 'Crafting' ? craftingView() : wsTab === 'Made' ? madeView() : researchTree();
+  return [el('div', { class: 'sx-ws-head' }, tabs, kpBox()), ...body];
 }

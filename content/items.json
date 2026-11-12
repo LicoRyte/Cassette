@@ -2,7 +2,7 @@
   "_guide": [
     "Equipment, clothing and traits. Each one is just a name and a description, plus tags.",
     "To add one: copy an entry, give it a new id (lowercase, dashes, never reused), change the words.",
-    "kind: \"equipment\", \"clothing\" or \"trait\". Crafting makes a random equipment or clothing item; traits are picked on the Crew page.",
+    "kind: \"equipment\", \"clothing\" or \"trait\". Clothing and equipment are crafted from blueprints that research opens (js/game/research.js, \"bp\"); traits are picked in the crew editor.",
     "Clothing also has a slot: \"hat\", \"acc\" (accessory), \"top\", \"bottom\" or \"feet\". Everyone can wear one of each, and carry one piece of equipment.",
     "kind \"ship\": equipment for the ship itself, crafted for 4 Knowledge points. Its tags unlock Stay here activities (activities.json, \"shipTags\") and crew moments.",
     "desc: one or two sentences that help the player imagine it. No numbers or stats.",
@@ -715,6 +715,88 @@
       ]
     },
     {
+      "id": "watercolours",
+      "kind": "equipment",
+      "name": "tin of watercolours",
+      "desc": "Twelve colours, one brush, and a little jar that never quite gets clean.",
+      "tags": [
+        "art",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "binoculars",
+      "kind": "equipment",
+      "name": "pair of binoculars",
+      "desc": "Slightly fogged on the left side. Everybody has learned to close one eye.",
+      "tags": [
+        "far-sight",
+        "old"
+      ]
+    },
+    {
+      "id": "knitting",
+      "kind": "equipment",
+      "name": "knitting needles and wool",
+      "desc": "Always halfway through a scarf. Nobody knows who the scarf is for.",
+      "tags": [
+        "cozy",
+        "soft",
+        "tool"
+      ]
+    },
+    {
+      "id": "card-deck",
+      "kind": "equipment",
+      "name": "deck of worn cards",
+      "desc": "Fifty-one cards. The missing one is the reason for every argument.",
+      "tags": [
+        "games",
+        "silly"
+      ]
+    },
+    {
+      "id": "flower-press",
+      "kind": "equipment",
+      "name": "flower press",
+      "desc": "Two boards and a strap. Between them, a flower from every world that had one.",
+      "tags": [
+        "green",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "fishing-rod",
+      "kind": "equipment",
+      "name": "folding fishing rod",
+      "desc": "Has caught nothing on six worlds. Its owner remains hopeful.",
+      "tags": [
+        "water",
+        "tool"
+      ]
+    },
+    {
+      "id": "riddle-book",
+      "kind": "equipment",
+      "name": "book of riddles",
+      "desc": "Half the answers are torn out, which makes it twice as good.",
+      "tags": [
+        "odd",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "tea-tin",
+      "kind": "equipment",
+      "name": "tin of good tea",
+      "desc": "Saved for special occasions. Every day is starting to count as one.",
+      "tags": [
+        "warm",
+        "food",
+        "cozy"
+      ]
+    },
+    {
       "id": "curious",
       "kind": "trait",
       "name": "curious",
@@ -864,6 +946,126 @@
       ]
     },
     {
+      "id": "night-owl",
+      "kind": "trait",
+      "name": "night owl",
+      "desc": "Comes alive after midnight, ship time. Before noon, communicates mostly in nods.",
+      "tags": [
+        "night-owl",
+        "quiet"
+      ]
+    },
+    {
+      "id": "early-riser",
+      "kind": "trait",
+      "name": "early riser",
+      "desc": "Up before the lights come on, with the kettle already singing.",
+      "tags": [
+        "early-riser",
+        "tidy"
+      ]
+    },
+    {
+      "id": "homesick",
+      "kind": "trait",
+      "name": "homesick",
+      "desc": "Keeps a photo of home in every pocket, and looks at each one in turn.",
+      "tags": [
+        "homesick",
+        "kind"
+      ]
+    },
+    {
+      "id": "competitive",
+      "kind": "trait",
+      "name": "competitive",
+      "desc": "Will turn anything into a contest, including folding laundry. Usually wins.",
+      "tags": [
+        "competitive",
+        "brave"
+      ]
+    },
+    {
+      "id": "patient",
+      "kind": "trait",
+      "name": "patient",
+      "desc": "Can wait out a storm, a sulk or a slow kettle without a single sigh.",
+      "tags": [
+        "patient",
+        "quiet"
+      ]
+    },
+    {
+      "id": "clumsy",
+      "kind": "trait",
+      "name": "clumsy",
+      "desc": "Has knocked over every cup on the ship at least once, and apologised to each of them.",
+      "tags": [
+        "clumsy",
+        "silly"
+      ]
+    },
+    {
+      "id": "forgetful",
+      "kind": "trait",
+      "name": "forgetful",
+      "desc": "Leaves notes for themselves everywhere. Forgets to read them.",
+      "tags": [
+        "forgetful",
+        "dreamy"
+      ]
+    },
+    {
+      "id": "cheerful",
+      "kind": "trait",
+      "name": "cheerful",
+      "desc": "Hums in the corridors. It is very hard to stay in a bad mood around them.",
+      "tags": [
+        "cheerful",
+        "talkative"
+      ]
+    },
+    {
+      "id": "theatrical",
+      "kind": "trait",
+      "name": "theatrical",
+      "desc": "Narrates small events as if they were epic sagas. The crew has started to enjoy it.",
+      "tags": [
+        "theatrical",
+        "talkative"
+      ]
+    },
+    {
+      "id": "bookish",
+      "kind": "trait",
+      "name": "bookish",
+      "desc": "Has read every book aboard twice and is halfway through the ship manual again.",
+      "tags": [
+        "bookish",
+        "curious"
+      ]
+    },
+    {
+      "id": "restless",
+      "kind": "trait",
+      "name": "restless",
+      "desc": "Can never sit still for long. Paces, taps, wanders, and somehow finds things.",
+      "tags": [
+        "restless",
+        "brave"
+      ]
+    },
+    {
+      "id": "soft-hearted",
+      "kind": "trait",
+      "name": "soft-hearted",
+      "desc": "Cries at sunsets, small animals and particularly good soup.",
+      "tags": [
+        "soft-hearted",
+        "kind"
+      ]
+    },
+    {
       "id": "ship-telescope",
       "kind": "ship",
       "name": "brass observatory telescope",
@@ -933,6 +1135,68 @@
         "hammocks",
         "cozy",
         "soft"
+      ]
+    },
+    {
+      "id": "ship-aquarium",
+      "kind": "ship",
+      "name": "aquarium in the lounge",
+      "desc": "A round tank of slow, glowing fish from a world nobody can pronounce.",
+      "tags": [
+        "aquarium",
+        "water",
+        "calm"
+      ]
+    },
+    {
+      "id": "ship-piano",
+      "kind": "ship",
+      "name": "old upright piano",
+      "desc": "Three keys stick and one is a different colour. It sounds wonderful anyway.",
+      "tags": [
+        "piano",
+        "music"
+      ]
+    },
+    {
+      "id": "ship-projector",
+      "kind": "ship",
+      "name": "film projector and a sheet",
+      "desc": "Movie night, every night, if the crew can agree on a film. They never can.",
+      "tags": [
+        "movies",
+        "cozy"
+      ]
+    },
+    {
+      "id": "ship-workbench",
+      "kind": "ship",
+      "name": "proper workbench",
+      "desc": "Vices, drawers and a pegboard where every tool has its outline drawn.",
+      "tags": [
+        "workbench",
+        "tool"
+      ]
+    },
+    {
+      "id": "ship-teaset",
+      "kind": "ship",
+      "name": "tea set and a little table",
+      "desc": "Thin cups, a fat teapot, and a rule that nobody talks about work at the table.",
+      "tags": [
+        "tea",
+        "warm",
+        "cozy"
+      ]
+    },
+    {
+      "id": "ship-darkroom",
+      "kind": "ship",
+      "name": "darkroom for photographs",
+      "desc": "Red light, a line of pegs, and the smell of chemicals that means memories are coming.",
+      "tags": [
+        "photos",
+        "art"
       ]
     }
   ]

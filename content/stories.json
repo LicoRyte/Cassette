@@ -1,0 +1,238 @@
+{
+  "_guide": [
+    "Crew stories: one crew member's own little storyline, a step every few study sessions. A story starts now and then for someone who fits its \"when\" (usually a trait tag, see items.json), runs through its steps, then ends.",
+    "Fields: id (never reused), title, when (like lines.json: \"crew.tags\": \"curious\"), start, steps (two to five), end, and optionally keepsake (an item id from items.json, put in the stash when the story ends).",
+    "In the text, {Crew} is the person (capitalised), {crew.they} / {crew.their} / {crew.them} / {crew.themself} their pronouns, and {crew:is|are} picks the verb for their pronouns. Use the singular verb straight after {Crew}.",
+    "Try your entries in tools/text-preview.html."
+  ],
+  "stories": [
+    {
+      "id": "learning-to-paint",
+      "title": "Learning to paint",
+      "when": {
+        "crew.tags": "dreamy"
+      },
+      "start": "{Crew} has found an old set of paints in a locker and decided, quite suddenly, to become a painter.",
+      "steps": [
+        "{Crew} paints the view from the galley window. It is mostly blue. Everyone says it is very blue, in a nice way.",
+        "{Crew} tries a portrait of the ship. The ship has never looked so lopsided, or so loved.",
+        "{Crew} stops trying to paint what things look like and starts painting what they feel like. Something clicks."
+      ],
+      "end": "The painting goes up in the corridor where everybody passes it. Nobody can say what it is. Everybody stops to look.",
+      "keepsake": "watercolours"
+    },
+    {
+      "id": "the-letter",
+      "title": "The letter",
+      "when": {
+        "crew.tags": "homesick"
+      },
+      "start": "{Crew} has been writing a letter home for weeks. It keeps getting longer instead of finished.",
+      "steps": [
+        "{Crew} reads a page of the letter aloud at dinner, by accident. It is about the soup. The crew agrees the soup deserves it.",
+        "{Crew} adds a pressed leaf from the last world to the envelope, and a drawing of everyone aboard, labelled.",
+        "{Crew} realises the letter is really a list of things worth coming home to tell someone about. The list keeps growing."
+      ],
+      "end": "The letter goes into the mail drone at the next relay. {Crew} watches it go and looks lighter, the way people do after saying a thing out loud."
+    },
+    {
+      "id": "the-recipe",
+      "title": "The perfect soup",
+      "when": {
+        "crew.tags": "hungry"
+      },
+      "start": "{Crew} remembers a soup from childhood and is determined to make it again, out here, with whatever the ship has.",
+      "steps": [
+        "The first try tastes of nothing. {Crew} writes \"more of everything\" on a scrap of paper and pins it to the wall.",
+        "The second try is too much of everything. The crew eats it anyway, slowly, with a lot of water.",
+        "{Crew} adds one strange root from a market on the last world. The galley goes quiet. Somebody has a second bowl, then a third."
+      ],
+      "end": "It is not quite the soup from childhood. {Crew} decides it is better: it is the ship's soup now, and it has a name."
+    },
+    {
+      "id": "night-watch",
+      "title": "The night watch",
+      "when": {
+        "crew.tags": "night-owl"
+      },
+      "start": "{Crew} has started taking the night watch every night, alone on the bridge, and won't say why.",
+      "steps": [
+        "{Crew} keeps a notebook on the bridge at night. In the morning there is a new sketch of the stars in it.",
+        "Somebody finds out: {Crew} has been naming the stars on the night watch, one each night, after people {crew.they} {crew:misses|miss}.",
+        "{Crew} asks if anyone wants to stay up and meet the stars. Three people do. They are very tired the next day and do not regret it."
+      ],
+      "end": "The night watch has become a small club. There are blankets, a flask of tea, and a chart full of names."
+    },
+    {
+      "id": "the-race",
+      "title": "The great corridor race",
+      "when": {
+        "crew.tags": "competitive"
+      },
+      "start": "{Crew} has challenged the whole ship to a race down the main corridor, in socks.",
+      "steps": [
+        "Training begins. {Crew} practises cornering at the galley door and knocks over the same chair four times.",
+        "Rules are argued over for an entire session. Socks are mandatory. Running is not. Sliding is encouraged.",
+        "Race day. Everybody falls over at least once. Somebody wins. Nobody can remember who, which is the best result."
+      ],
+      "end": "{Crew} is already planning next year's race, with a trophy made from a bent spoon."
+    },
+    {
+      "id": "the-fear",
+      "title": "Afraid of the dark",
+      "when": {
+        "crew.tags": "nervous"
+      },
+      "start": "{Crew} admits, very quietly, to being afraid of the dark parts of the ship.",
+      "steps": [
+        "{Crew} carries a glow stick everywhere. Nobody teases. A few people start carrying them too.",
+        "The crew strings little lights along the lower corridor. {Crew} walks it twice, just to see it.",
+        "{Crew} goes into the dark cargo hold alone to fetch something, and comes back holding it up like a trophy."
+      ],
+      "end": "The little lights stay up. Everyone agrees the ship looks better with them, and nobody mentions why they were put there.",
+      "keepsake": "glow-sticks"
+    },
+    {
+      "id": "lost-and-found",
+      "title": "Lost and found",
+      "when": {
+        "crew.tags": "forgetful"
+      },
+      "start": "{Crew} has lost something important and can't remember what it was, only that it was important.",
+      "steps": [
+        "{Crew} searches every drawer on the ship. Things that were lost years ago turn up instead. One of them is a sandwich.",
+        "The crew helps. Nobody knows what they are looking for. It becomes a game: whoever finds the strangest lost thing wins.",
+        "{Crew} finds it in the last place: the inside pocket of a coat {crew.they} {crew:was|were} wearing the whole time."
+      ],
+      "end": "It was a note to {crew.themself}. It says: \"You are doing fine.\" {Crew} keeps it somewhere easy to find now."
+    },
+    {
+      "id": "stage-play",
+      "title": "A play in three acts",
+      "when": {
+        "crew.tags": "theatrical"
+      },
+      "start": "{Crew} has written a play and intends to perform it, with the whole crew in it, whether they like it or not.",
+      "steps": [
+        "Rehearsals in the galley. Nobody can remember their lines, so {Crew} rewrites the play to be mostly shouting.",
+        "Costumes are made from blankets and a lampshade. The lampshade is a crown now. It suits the ship's cat that isn't there.",
+        "Opening night. The audience is the ship's computer and a houseplant. It is a triumph."
+      ],
+      "end": "There will be a sequel. There will, everyone suspects, always be a sequel."
+    },
+    {
+      "id": "the-collection",
+      "title": "The collection",
+      "when": {
+        "crew.tags": "keepsake"
+      },
+      "start": "{Crew} has started collecting one small thing from every world: a pebble, a seed, a scrap of something.",
+      "steps": [
+        "{Crew} builds a little shelf for the collection. It already needs a second shelf.",
+        "Somebody asks which is the favourite. {Crew} thinks for a long time and picks the most boring pebble, and explains why. Everybody understands.",
+        "{Crew} labels every piece with the world it came from and the day. It reads like a diary made of stones."
+      ],
+      "end": "The collection gets its own corner of the ship. The crew adds things to it now too, and asks first."
+    },
+    {
+      "id": "the-book",
+      "title": "The book",
+      "when": {
+        "crew.tags": "bookish"
+      },
+      "start": "{Crew} has decided to write a book about the voyage. It is going to be very long.",
+      "steps": [
+        "Chapter one is about the ship's coffee machine. It is forty pages. {Crew} says it sets the scene.",
+        "{Crew} interviews everyone aboard. The interviews turn into long talks late at night, with tea.",
+        "{Crew} reads the last chapter aloud. It is about all of them. Somebody pretends to have something in their eye."
+      ],
+      "end": "The book is not finished. {Crew} says it never will be, because the voyage isn't, and that is the point.",
+      "keepsake": "field-journal"
+    },
+    {
+      "id": "the-garden",
+      "title": "Something growing",
+      "when": {
+        "crew.tags": "kind"
+      },
+      "start": "{Crew} has planted a seed from the last world in a cup on the windowsill, to see what it does.",
+      "steps": [
+        "Nothing happens. {Crew} talks to the cup every morning anyway, quietly, about the weather.",
+        "A shoot. Very small, very green. The whole crew gathers round to look at it like it is a newborn.",
+        "It flowers: one small, strange, pale blue flower that smells of rain on a world none of them have been to yet."
+      ],
+      "end": "The cup becomes a pot, and the pot becomes a little row of pots. {Crew} has a garden now, sort of.",
+      "keepsake": "seed-pouch"
+    },
+    {
+      "id": "the-instrument",
+      "title": "Learning an instrument",
+      "when": {
+        "crew.tags": "talkative"
+      },
+      "start": "{Crew} has decided to learn the harmonica, and has decided everyone will hear about it.",
+      "steps": [
+        "The first week is very loud. The crew starts a rota for who gets the earmuffs.",
+        "{Crew} learns one song properly. It is a sea shanty. It is played after every meal.",
+        "One night, very late, {Crew} plays something slow and quiet that nobody has heard before. Nobody says anything. Nobody needs to."
+      ],
+      "end": "The harmonica has a little case now, and the crew has started asking for the slow one.",
+      "keepsake": "harmonica"
+    },
+    {
+      "id": "morning-routine",
+      "title": "The morning routine",
+      "when": {
+        "crew.tags": "early-riser"
+      },
+      "start": "{Crew} has started a morning stretching class for the whole crew. Attendance is not optional, says {Crew}.",
+      "steps": [
+        "Day one: {Crew} is the only one there. {Crew} stretches anyway, loudly, so people can hear.",
+        "Day four: two people come, mostly for the tea afterwards. {Crew} counts it as a win.",
+        "Day ten: everybody is there, in pyjamas, half asleep, reaching for the ceiling together."
+      ],
+      "end": "Nobody admits it, but the mornings have become everyone's favourite part of the day."
+    },
+    {
+      "id": "the-apology",
+      "title": "The apology",
+      "when": {
+        "crew.tags": "grumpy"
+      },
+      "start": "{Crew} snapped at somebody over nothing, and has been quietly miserable about it ever since.",
+      "steps": [
+        "{Crew} tries to apologise three times and ends up talking about the weather each time.",
+        "{Crew} bakes something instead. It is lumpy and burnt on one side. It is clearly an apology.",
+        "{Crew} finally says the words. They come out gruff and short. They are accepted immediately."
+      ],
+      "end": "Things are easy between them again, and maybe a little easier than before."
+    },
+    {
+      "id": "the-map",
+      "title": "The secret map",
+      "when": {
+        "crew.tags": "curious"
+      },
+      "start": "{Crew} has found a scrap of an old star map in a second-hand book, with a little drawing of a door on it.",
+      "steps": [
+        "{Crew} compares the scrap to the ship's charts for hours. Some of the stars match. Most don't.",
+        "{Crew} decides the map was drawn by somebody standing on a world, looking up. The question is which world.",
+        "{Crew} finds it: a world the ship passed long ago, where the stars would look exactly like this."
+      ],
+      "end": "There is no door, of course. But {Crew} pins the scrap above {crew.their} bunk and says it was never really about the door."
+    },
+    {
+      "id": "the-friendship",
+      "title": "Making a friend",
+      "when": {},
+      "start": "{Crew} has been sending messages to a radio operator on a far-off relay station. They have never met.",
+      "steps": [
+        "The messages are short at first: weather, coordinates, the usual. Then {Crew} sends a joke. A joke comes back.",
+        "{Crew} and the radio operator start playing a very slow game of chess, one move a day, over thousands of kilometres.",
+        "The radio operator sends a recording of their station's little choir singing. {Crew} plays it for the whole ship."
+      ],
+      "end": "They will probably never meet. {Crew} says that's fine: a friend is a friend however far away they are.",
+      "keepsake": "friendship-bracelet"
+    }
+  ]
+}

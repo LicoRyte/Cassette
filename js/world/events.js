@@ -72,6 +72,22 @@ const EVENTS = [
   ["🎐", "Wind chime", "A wind chime in the galley started ringing in zero gravity. Nobody touched it. Nice sound, though."],
   ["📦", "Mystery package", "A small package was delivered from {post}. Inside: socks, and a note that said \"you'll need these\"."],
   ["💫", "Comet chase", "The ship flew alongside a comet for an hour. {who} waved at it the whole time."],
+  ["🐋", "Space whales", "Something huge and slow drifted past the ship, glowing faintly. It might have been a cloud of ice. Everyone agreed it was a whale."],
+  ["🎈", "Lost balloon", "A little weather balloon from a faraway colony floated past the window with a drawing taped to it. {who} drew one back and let it go."],
+  ["🛰", "Old satellite", "An old satellite drifted by, still blinking hello after a hundred years. The crew blinked the ship's lights back."],
+  ["🌈", "Prism dust", "The ship passed through a cloud of fine dust that split the sunlight into rainbows on every wall."],
+  ["🎵", "Radio song", "A song from somewhere very far away came through the radio, clear as anything, for exactly three minutes."],
+  ["🪐", "Ring crossing", "The ship slipped through the gap in a gas giant's rings. {who} held their breath the whole way."],
+  ["🧊", "Ice field", "The ship glided through a field of slow tumbling ice. Every piece caught the light like a lamp."],
+  ["📡", "Birthday message", "A birthday message came through for someone on another ship entirely. The crew sang along anyway."],
+  ["🕯", "Power dip", "The lights dimmed for an hour. The crew lit candles and told stories until they came back, a little disappointed when they did."],
+  ["🌠", "Shooting star", "A shooting star crossed the bow. {who} made a wish and won't say what it was."],
+  ["🐦", "Stowaway", "A small bird from the last world turned up in the hold. {who} looked after it until it was time to let it go."],
+  ["🧭", "Old route marker", "The ship passed an old route marker, covered in the scratched names of every crew who had passed it. {who} added the ship's."],
+  ["☕", "Perfect cup", "{who} made the perfect cup of coffee. Nobody knows how. It has never happened again."],
+  ["🌫", "Nebula drift", "The ship drifted through the edge of a nebula, and everything outside turned soft pink for a while."],
+  ["📚", "Book swap", "A passing ship hailed to ask if anyone wanted to swap books. Everyone did. The swap took most of the session."],
+  ["🎆", "Fireworks", "A colony on a faraway moon was celebrating something with fireworks. The crew watched from a distance and cheered."],
 ];
 const BOTTLE = ['If you found this, keep going.', 'The view from here is worth the trip.', 'Anyone else out here? Say hi.', 'Took a wrong turn at the last nebula. Worth it.', 'Remember to drink water.', 'The best world is the next one.', "Please feed my plants if you pass {world}.", "I left the lights on. Sorry.", "Space is big. You're doing great.", "If you see a ship called the Meridian, tell them we're still listening.", "Today I saw a comet and thought of you, whoever you are.", "This bottle has been to more worlds than I have.", "Don't forget to look out the window sometimes.", "The coffee at Halfway Station is terrible. Go anyway.", "We were here. It was nice.", "Keep a sock in every jacket pocket. Trust me.", "To whoever finds this: happy birthday, probably.", "I named a star after my dog. It's the blinky one.", "The answer is seven. I forgot the question.", "Go home sometimes. Then come back out.", "Whoever finds this: look up. No, more up.", "I'm on my way home. Hope you are too.", "Don't trust the vending machine at Port Lantern.", "This note was written in zero gravity. Sorry about the handwriting.", "The seven notes go: low, low, high, low, high, high, low.", "Be the kind of explorer you'd want to meet.", "I left a cookie at the next buoy. It's probably gone.", "If you're lonely out here, you're in good company.", "Somebody, somewhere, is proud of you.", "Write things down. You'll forget otherwise.", "I left the stars on for you.", "Next system over has the best sunsets. Go see.", "If found, please return this bottle. It's my favorite.", "Be gentle with the coffee machine. It's trying.", "There's always a next world."];
 const TITLE = ['Captain', 'Pilot', 'Trader', 'Engineer', 'Doctor', 'Old', 'Navigator', 'Cook', 'Miner']; // for {who} in event text

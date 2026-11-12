@@ -167,6 +167,115 @@
       "when": {
         "shipTags": "games"
       }
+    },
+    {
+      "id": "swim",
+      "ic": "🏊",
+      "name": "Swim",
+      "desc": "Find some water that is safe enough and jump in.",
+      "find": 0.25,
+      "souvenir": 0.1,
+      "when": {
+        "ground": true,
+        "water": ">0.3"
+      }
+    },
+    {
+      "id": "climb",
+      "ic": "🧗",
+      "name": "Climb",
+      "desc": "Pick the tallest thing in sight and get to the top of it.",
+      "find": 0.45,
+      "souvenir": 0.1,
+      "when": {
+        "ground": true
+      }
+    },
+    {
+      "id": "nap",
+      "ic": "😴",
+      "name": "Nap outside",
+      "desc": "Lie down somewhere soft and let the world go on without you for a while.",
+      "find": 0.05,
+      "souvenir": 0.05,
+      "when": {
+        "ground": true
+      }
+    },
+    {
+      "id": "letters",
+      "ic": "✉",
+      "name": "Write letters",
+      "desc": "Stay in, make tea and write to people far away.",
+      "find": 0.0,
+      "souvenir": 0.05,
+      "when": null
+    },
+    {
+      "id": "aquarium",
+      "ic": "🐟",
+      "name": "Watch the fish",
+      "desc": "Sit by the aquarium and let the slow fish do the thinking.",
+      "find": 0.0,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "aquarium"
+      }
+    },
+    {
+      "id": "piano",
+      "ic": "🎹",
+      "name": "Piano evening",
+      "desc": "Everybody plays one song on the old piano, well or not.",
+      "find": 0.0,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "piano"
+      }
+    },
+    {
+      "id": "movies",
+      "ic": "🎞",
+      "name": "Movie night",
+      "desc": "Hang the sheet, pick a film, argue about the film, watch a different film.",
+      "find": 0.0,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "movies"
+      }
+    },
+    {
+      "id": "tinker",
+      "ic": "🔩",
+      "name": "Fix things",
+      "desc": "Take the broken things to the workbench and make them less broken.",
+      "find": 0.0,
+      "souvenir": 0.2,
+      "when": {
+        "shipTags": "workbench"
+      }
+    },
+    {
+      "id": "tea",
+      "ic": "🍵",
+      "name": "Tea ceremony",
+      "desc": "Slow, careful tea at the little table, and no talking about work.",
+      "find": 0.0,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "tea"
+      }
+    },
+    {
+      "id": "photos",
+      "ic": "📷",
+      "name": "Develop photos",
+      "desc": "Turn the last world into prints in the red light of the darkroom.",
+      "find": 0.1,
+      "souvenir": 0.1,
+      "when": {
+        "shipTags": "photos"
+      }
     }
   ],
   "lines": {
@@ -377,6 +486,56 @@
           ]
         }
       }
+    ],
+    "act_swim": [
+      "{Crew} jumps into the water first, shrieks at how cold it is, and then refuses to come out.",
+      "The water here is so clear the crew can see their toes, and a few small curious things looking back.",
+      "{Crew} floats on {crew.their} back and watches the {star} sky until somebody calls everyone in."
+    ],
+    "act_climb": [
+      "{Crew} reaches the top first and waves down like the whole {biome} belongs to {crew.them} now.",
+      "The climb takes all session. The view from the top makes it worth every scraped knee.",
+      "Halfway up, {Crew} finds a ledge where someone else once sat and carved a little star."
+    ],
+    "act_nap": [
+      "{Crew} lies down in the {biome} for five minutes and wakes up two hours later, very happy.",
+      "Everyone naps in a row, like seals. Somebody snores. Nobody minds.",
+      "{Crew} dreams about home and wakes up somewhere better."
+    ],
+    "act_letters": [
+      "{Crew} writes six pages and then crosses most of it out, except the last line.",
+      "The galley is quiet except for the scratch of pens and the kettle.",
+      "{Crew} draws a little map of the ship in the margin of every letter, so people at home can find {crew.them}."
+    ],
+    "act_aquarium": [
+      "{Crew} has named every fish. The fish have not been told.",
+      "One of the fish glows brighter whenever {Crew} sits down. Probably a coincidence. Probably.",
+      "The crew sits by the tank in the dark for a whole session, saying nothing at all. It is lovely."
+    ],
+    "act_piano": [
+      "{Crew} plays one song with one finger, very slowly, and gets a standing ovation.",
+      "The three sticky keys turn every song into a new song. Nobody fixes them on purpose.",
+      "{Crew} plays something sad and then something silly, to make up for it."
+    ],
+    "act_movies": [
+      "The film is old and the sound is wrong and everybody cries at the end anyway.",
+      "{Crew} falls asleep in the first ten minutes and claims the next day to have loved it.",
+      "Popcorn goes everywhere. {Crew} says it is part of the experience."
+    ],
+    "act_tinker": [
+      "{Crew} fixes the galley clock. It now runs backwards, which {crew.they} {crew:insists|insist} was a choice.",
+      "A drawer of broken things becomes a drawer of slightly less broken things.",
+      "{Crew} takes apart a radio to fix it and builds a lamp instead. It is a very good lamp."
+    ],
+    "act_tea": [
+      "The tea is poured slowly. {Crew} says it tastes of the last world. It does, a little.",
+      "Nobody talks about work. Somebody tries. They are given more tea.",
+      "{Crew} warms the cups first, the old way, and everyone feels looked after."
+    ],
+    "act_photos": [
+      "A print slowly appears in the tray: {Crew}, laughing, mid-sentence, on a world already far behind.",
+      "{Crew} pegs the photos up in a long row. The darkroom fills up with the last world.",
+      "One photo comes out blurry and turns out to be everyone's favourite."
     ]
   }
 }

@@ -375,6 +375,116 @@
           "shipTags": "hammocks"
         },
         "weight": 2
+      },
+      "{Crew} finds a note under {crew.their} pillow that just says \"good luck today\". Nobody owns up to it.",
+      "{Crew} spends the session teaching the ship's computer a new joke. The computer does not laugh. {Crew} says it is thinking about it.",
+      "{Crew} reorganises the spice rack by colour. The cook is not consulted. There are consequences.",
+      "{Crew} sits by the window and counts stars until losing count, then starts again, happily.",
+      "{Crew} fixes a squeaky door that has squeaked since the ship was built. The silence is almost unbearable.",
+      "{Crew} makes everyone a cup of something warm without being asked.",
+      "{Crew} finds an old photo stuck behind a panel: a crew from long ago, grinning, on this same ship.",
+      "{Crew} practises juggling in the hold. Three apples become two apples and a lot of apple.",
+      "{Crew} writes the date on the galley wall, and one good thing that happened today. The wall is filling up.",
+      "{Crew} spends the session knitting something long and shapeless. It might be a scarf. It might be a snake.",
+      "{Crew} hums the same four notes all session. By the end, half the ship is humming them too.",
+      "{Crew} tidies the stash and finds a mitten everyone thought was lost on another world.",
+      {
+        "text": "{Crew} stays up long after everyone else, reading by a little lamp, perfectly content.",
+        "when": {
+          "crew.tags": "night-owl"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} has the kettle on and the lights up before anyone else is awake. The ship smells of toast.",
+        "when": {
+          "crew.tags": "early-riser"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} looks at a photo of home for a long time, then puts it away and joins the others for dinner.",
+        "when": {
+          "crew.tags": "homesick"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} turns washing up into a timed contest and wins it, then demands a rematch with {crew.themself}.",
+        "when": {
+          "crew.tags": "competitive"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} spends the whole session untangling one enormous knot of cable, one loop at a time, without a single sigh.",
+        "when": {
+          "crew.tags": "patient"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} trips over the same step for the third time this week and apologises to it.",
+        "when": {
+          "crew.tags": "clumsy"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} leaves a note that says \"remember the thing\". {Crew} does not remember the thing.",
+        "when": {
+          "crew.tags": "forgetful"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} whistles down every corridor. The ship feels a little brighter wherever {crew.they} {crew:goes|go}.",
+        "when": {
+          "crew.tags": "cheerful"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} narrates the making of a sandwich as if it were a great battle. The crew cheers at the end.",
+        "when": {
+          "crew.tags": "theatrical"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} reads the ship's manual for fun and finds a button nobody knew about. It turns on a tiny light. That is all it does.",
+        "when": {
+          "crew.tags": "bookish"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} paces the whole ship end to end eleven times and finds three things that needed fixing on the way.",
+        "when": {
+          "crew.tags": "restless"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} cries a little at a sunset through the window, and says it is fine, it is just a very good sunset.",
+        "when": {
+          "crew.tags": "soft-hearted"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} reads a whole book in one sitting and spends the rest of the session staring at the wall, changed.",
+        "when": {
+          "crew.tags": "bookish"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} challenges the ship's computer to chess and loses, and challenges it again.",
+        "when": {
+          "crew.tags": "competitive"
+        },
+        "weight": 2
       }
     ],
     "arrive_crew": [
@@ -493,7 +603,19 @@
         "when": {
           "bond": ">10"
         }
-      }
+      },
+      "{Crew} and {other} build a blanket fort in the galley and refuse to explain it.",
+      "{Crew} teaches {other} a card game with rules that keep changing. {Other} wins anyway.",
+      "{Crew} and {other} sit on the floor of the observation deck and talk about nothing for an hour.",
+      "{Crew} cuts {other}'s hair in the washroom. It is shorter on one side. They agree it is a look.",
+      "{Crew} and {other} race paper boats in the water tank. Both boats sink. They call it a draw.",
+      "{Crew} and {other} write a song together. It has one verse and nineteen choruses.",
+      "{Crew} helps {other} carry something heavy, and they keep talking long after it is put down.",
+      "{Crew} and {other} try to cook the same dish from two different recipes. Neither will admit the other one is better.",
+      "{Crew} reads aloud to {other} while {other} fixes something. Both jobs go better that way.",
+      "{Crew} and {other} watch a storm on the planet below from the window, and count the seconds between flashes.",
+      "{Crew} and {other} have an argument about the best season. It lasts all session and is very enjoyable.",
+      "{Crew} leaves {other} the last biscuit, and {other} pretends not to notice that it was on purpose."
     ],
     "postcard": [
       "Wish you were here. The view over the {biome} is even better than it sounds.",

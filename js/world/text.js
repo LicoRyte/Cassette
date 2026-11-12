@@ -21,7 +21,7 @@
    Each template can also have "weight" (default 1): 2 is picked twice as often. */
 'use strict';
 
-const TEXT = { lines: {}, items: [], acts: [], traders: [], mysteries: [], wonders: [], skies: [], regions: [], warn: [] }; // filled from the content/ files by txLoad
+const TEXT = { lines: {}, items: [], acts: [], traders: [], mysteries: [], wonders: [], skies: [], regions: [], stories: [], warn: [] }; // filled from the content/ files by txLoad
 
 // add one content file. Groups with the same name in different files are joined, so new files can add to old groups
 function txLoad(json) {
@@ -35,6 +35,7 @@ function txLoad(json) {
   if (Array.isArray(json.regions)) TEXT.regions = TEXT.regions.concat(json.regions.filter(g => g && g.id && g.name));
   if (Array.isArray(json.wonders)) TEXT.wonders = TEXT.wonders.concat(json.wonders.filter(w => w && w.id && w.name));
   if (Array.isArray(json.mysteries)) TEXT.mysteries = TEXT.mysteries.concat(json.mysteries.filter(m => m && m.id && Array.isArray(m.steps) && m.steps.length));
+  if (Array.isArray(json.stories)) TEXT.stories = TEXT.stories.concat(json.stories.filter(s => s && s.id && s.start && Array.isArray(s.steps) && s.steps.length));
 }
 
 // read a dotted path out of the context: "crew.trait.name"

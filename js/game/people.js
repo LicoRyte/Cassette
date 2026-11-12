@@ -28,6 +28,7 @@ function fillPerson(p, r) { // give anyone missing a detail something sensible
   if (p.age == null || p.age === '') p.age = 20 + Math.floor((r || Math.random)() * 45);
   if (!p.role) p.role = pk2(PROFESSIONS, r);
   if (!itemById(p.trait)) { const t = txRandomItem(r, 'trait'); p.trait = t ? t.id : ''; }
+  if (p.trait2 === undefined || p.trait2 === p.trait || (p.trait2 && !itemById(p.trait2))) p.trait2 = ''; // a second trait is optional
   if (p.wear !== undefined) { const w = itemById(p.wear); if (w && !p[slotOf(w)]) p[slotOf(w)] = w.id; else if (w) S.stash.push(w.id); delete p.wear; } // one outfit became five slots
   SLOT_KEYS.forEach(k => { if (p[k] !== undefined) return; const L = slotItems(k), rr = r || Math.random;
     p[k] = L.length && !((k === 'hat' || k === 'acc') && rr() < .5) ? L[Math.floor(rr() * L.length)].id : ''; }); // hats and accessories are optional
@@ -40,11 +41,12 @@ if (S.me.role == null) Object.assign(S.me, { role: 'Captain' });
 const meName = () => (S.pilot && S.pilot.name) || 'the captain'; // stories read "the captain" until you give a name
 
 // a brand-new crew member: a random name and everything else, which you can change on the Crew page
+const secondTrait = (p, r) => { const L = txItems('trait').filter(t => t.id !== p.trait); return (r || Math.random)() < .5 && L.length ? pk2(L, r).id : ''; }; // about half of everyone has two
 function newPerson(r) {
-  return fillPerson({ name: pk2(CREW_FIRST, r) + ' ' + pk2(CREW_LAST, r), joined: Date.now() }, r);
+  const p = fillPerson({ name: pk2(CREW_FIRST, r) + ' ' + pk2(CREW_LAST, r), joined: Date.now() }, r); p.trait2 = secondTrait(p, r); return p;
 }
 function surprise(p) { // reroll who someone is (not what they own)
-  const n = newPerson(); ['pronouns', 'age', 'role', 'trait'].forEach(k => { p[k] = n[k]; });
+  const n = newPerson(); ['pronouns', 'age', 'role', 'trait', 'trait2'].forEach(k => { p[k] = n[k]; });
   if (p !== S.me) p.name = n.name;
 }
 function addCrew() {
@@ -55,9 +57,9 @@ function addCrew() {
 }
 const firstName = p => p === S.me ? meName() : String(p.name || '').split(' ')[0] || 'Someone';
 const hasMyName = () => !!(S.pilot && S.pilot.name);
-const crewLine = p => { const t = itemById(p.trait), w = worn(p), g = itemById(p.gear);
+const crewLine = p => { const t = itemById(p.trait), t2 = itemById(p.trait2), w = worn(p), g = itemById(p.gear);
   const you = p === S.me && !hasMyName(); // no name yet: "You are the captain", not "the captain is a captain"
-  return (you ? 'You are ' : firstName(p) + ' is ') + (p.role ? (p === S.me && /^captain$/i.test(p.role) ? 'the captain' : (/^[AEIOU]/i.test(p.role) ? 'an ' : 'a ') + p.role.toLowerCase()) : 'aboard') + (t ? ', ' + t.name : '') + '.' + (w.length ? ' Wears ' + w.map(x => aName(x.name)).join(', ').replace(/, ([^,]*)$/, ' and $1') + '.' : '') + (g ? ' Carries ' + (/^[aeiou]/i.test(g.name) ? 'an ' : 'a ') + g.name + '.' : ''); };
+  return (you ? 'You are ' : firstName(p) + ' is ') + (p.role ? (p === S.me && /^captain$/i.test(p.role) ? 'the captain' : (/^[AEIOU]/i.test(p.role) ? 'an ' : 'a ') + p.role.toLowerCase()) : 'aboard') + (t ? ', ' + t.name + (t2 ? ' and ' + t2.name : '') : '') + '.' + (w.length ? ' Wears ' + w.map(x => aName(x.name)).join(', ').replace(/, ([^,]*)$/, ' and $1') + '.' : '') + (g ? ' Carries ' + (/^[aeiou]/i.test(g.name) ? 'an ' : 'a ') + g.name + '.' : ''); };
 
 // moving things between people and the stash. slot: one of SLOT_KEYS (clothing) or 'gear' (equipment)
 function equip(p, slot, id) {
@@ -68,7 +70,19 @@ function equip(p, slot, id) {
   p[slot] = id || ''; save();
 }
 
-// crafting: 1 Knowledge point, a random clothing or equipment item, new to you when possible
+// crafting: from a blueprint research taught you (clothes 1 point, equipment 2, ship equipment 4), or 1 point for a surprise
+if (!Array.isArray(S.made)) S.made = []; // everything made in the Workshop: [{ id, at }]
+const craftCost = it => it.kind === 'ship' ? 4 : it.kind === 'equipment' ? 2 : 1;
+function craftItem(id) {
+  const it = itemById(id); if (!it || focusLock() || !knownBp().has(id)) return null;
+  const cost = craftCost(it); if ((S.kp || 0) < cost) return null;
+  if (it.kind === 'ship') { if (S.shipGear.includes(id)) return null; S.shipGear.push(id); S.cnt.shipCrafted = (S.cnt.shipCrafted || 0) + 1; }
+  else S.stash.push(id);
+  S.kp -= cost; S.cnt.crafted = (S.cnt.crafted || 0) + 1; S.made.push({ id, at: Date.now() });
+  pushEv({ c: 'ship', ic: '', title: (it.kind === 'ship' ? 'New on the ship: ' : 'Made: ') + it.name, t: capFirst(it.desc), at: Date.now() });
+  save(); return it;
+}
+// the surprise: 1 point, a random clothing or equipment item, new to you when possible
 const owned = () => S.stash.concat([S.me].concat(S.crew).flatMap(p => SLOT_KEYS.map(k => p[k]).concat(p.gear))).filter(Boolean);
 function craft() {
   if (focusLock() || (S.kp || 0) < 1) return null;
@@ -77,15 +91,15 @@ function craft() {
   for (const k of kinds) { const fresh = txItems(k).filter(x => !have.has(x.id)); if (fresh.length) { it = pk2(fresh); break; } }
   if (!it) it = txRandomItem(Math.random, kinds[0]); // you have everything: a second one
   if (!it) return null;
-  S.kp -= 1; S.stash.push(it.id); S.cnt.crafted = (S.cnt.crafted || 0) + 1;
+  S.kp -= 1; S.stash.push(it.id); S.cnt.crafted = (S.cnt.crafted || 0) + 1; S.made.push({ id: it.id, at: Date.now(), surprise: true });
   pushEv({ c: 'ship', ic: '🧵', title: 'Crafted: ' + it.name, t: capFirst(it.desc), at: Date.now() });
   save(); return it;
 }
 
 // what a person brings to a line of text (see content/lines.json)
 function personCtx(p, r) {
-  const t = itemById(p.trait), all = worn(p), w = itemById(p.top) || all[0] || null, g = itemById(p.gear), held = all.concat(g ? [g] : []);
-  return { name: firstName(p), pronouns: p.pronouns, role: p.role, age: p.age, trait: t ? t.name : '', tags: (t ? t.tags : []).concat(p.role ? [p.role.toLowerCase()] : []),
+  const t = itemById(p.trait), t2 = itemById(p.trait2), all = worn(p), w = itemById(p.top) || all[0] || null, g = itemById(p.gear), held = all.concat(g ? [g] : []);
+  return { name: firstName(p), pronouns: p.pronouns, role: p.role, age: p.age, trait: t ? t.name : '', trait2: t2 ? t2.name : '', traits: t ? t.name + (t2 ? ' and ' + t2.name : '') : '', tags: (t ? t.tags : []).concat(t2 ? t2.tags : [], p.role ? [p.role.toLowerCase()] : []),
     wear: w ? w.name : 'clothes', wearTags: [...new Set(all.flatMap(x => x.tags || []))], gear: g ? g.name : 'bag', gearTags: g ? g.tags : [], item: held.length ? pk2(held, r) : null };
 }
 // a world as the text engine sees it (see content/lines.json): numbers go from 0 to 1

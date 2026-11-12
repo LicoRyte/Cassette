@@ -4,7 +4,7 @@
 function sessionEnd(reps, p, ev) {
   const notes = [];
   if (p) checkRecords(p, notes);
-  shipActivity(reps); bumpBonds();
+  shipActivity(reps); bumpBonds(); crewStoryTick(reps); // a crew member's own story might move on
   skyCheck(reps); if (mode === 'long') campfire(reps); // the sky of the day; a campfire before the long break
   { const here = atP(); if (here) here.lastAt = Date.now(); }
   regionCheck(notes);

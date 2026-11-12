@@ -148,6 +148,54 @@
       "ic": "⭐",
       "name": "a perfectly clear sky",
       "text": "Not one cloud, not one light on the ground. More stars than anyone aboard has ever seen at once."
+    },
+    {
+      "id": "zodiac-light",
+      "ic": "🌄",
+      "name": "the zodiacal light",
+      "text": "A soft cone of light rises after sunset, dust from the whole system lit up at once. It is very faint and very wide."
+    },
+    {
+      "id": "blue-moon",
+      "ic": "🔵",
+      "name": "a blue moon",
+      "text": "A moon comes up properly blue tonight, from some dust high in the air. Everybody agrees to do something they have been putting off."
+    },
+    {
+      "id": "twin-moons",
+      "ic": "🌒",
+      "name": "two moons rising together",
+      "text": "Two moons climb the sky side by side, like they arranged to meet."
+    },
+    {
+      "id": "nebula-glow",
+      "ic": "✨",
+      "name": "the nebula glow",
+      "text": "A faint cloud of pink and blue fills half the sky. It has been there for a million years and still looks new."
+    },
+    {
+      "id": "falling-ice",
+      "ic": "🌨",
+      "name": "falling ice crystals",
+      "text": "Tiny ice crystals drift down and catch the light like slow, quiet glitter."
+    },
+    {
+      "id": "comet-tail",
+      "ic": "☄",
+      "name": "a comet's long tail",
+      "text": "A comet's tail stretches right across the sky. Everybody makes the same wish without saying it."
+    },
+    {
+      "id": "starless",
+      "ic": "⚫",
+      "name": "a starless patch",
+      "text": "A patch of sky with no stars in it at all. It is not scary. It is just very, very calm."
+    },
+    {
+      "id": "planet-rise",
+      "ic": "🪐",
+      "name": "a planet rising",
+      "text": "A huge ringed neighbour rises slowly over the horizon and fills a quarter of the sky."
     }
   ],
   "regions": [

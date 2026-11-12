@@ -137,6 +137,68 @@
         "quiet"
       ],
       "plural": false
+    },
+    {
+      "id": "postal-drone",
+      "ic": "📮",
+      "name": "a lost postal drone",
+      "wants": [
+        "keepsake",
+        "soft"
+      ],
+      "plural": false
+    },
+    {
+      "id": "glass-blowers",
+      "ic": "🫧",
+      "name": "a family of glass-blowers",
+      "wants": [
+        "shiny",
+        "warm"
+      ],
+      "plural": true
+    },
+    {
+      "id": "river-traders",
+      "ic": "🛶",
+      "name": "river traders on long boats",
+      "wants": [
+        "waterproof",
+        "food"
+      ],
+      "plural": true
+    },
+    {
+      "id": "old-astronomer",
+      "ic": "🔭",
+      "name": "an old astronomer",
+      "wants": [
+        "far-sight",
+        "science"
+      ],
+      "plural": false
+    },
+    {
+      "id": "circus",
+      "ic": "🎪",
+      "name": "a travelling circus",
+      "wants": [
+        "bright",
+        "silly",
+        "music"
+      ],
+      "plural": false
+    },
+    {
+      "id": "monastery",
+      "ic": "🕯",
+      "name": "the monks of a quiet monastery",
+      "wants": [
+        "quiet",
+        "cozy",
+        "art"
+      ],
+      "plural": true
     }
   ],
   "lines": {

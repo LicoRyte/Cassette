@@ -309,23 +309,37 @@ const inRoomAt = e => { const b = inCv.getBoundingClientRect(), x = (e.clientX -
 inCv.addEventListener('mousemove', e => { const k = inRoomAt(e); if (k !== inHover) { inHover = k; inTip.textContent = plain(inTipFor(k || inSel)); inCv.style.cursor = k ? 'pointer' : ''; } });
 inCv.addEventListener('mouseleave', () => { inHover = null; inTip.textContent = plain(inTipFor(inSel)); });
 inCv.addEventListener('click', e => { const k = inRoomAt(e); if (!k) return; if (!roomAt(k)) { inTip.textContent = plain(inTipFor(k)); return; } inSel = k; drawShip(); });
-function interiorView() { // the Ship page: cutaway on top, decorating below
+const DEC_CATS = ['wall', 'floor', 'window', 'art', 'light', 'plant', 'furn', 'ceil', 'lights'];
+function setRoomDecor(k, cat, id) { S.decor.room[k] = S.decor.room[k] || {}; S.decor.room[k][cat] = id; const key = decKey(cat, id); if (decItem(cat, id)[2] && !S.decor.own[key]) { S.decor.own[key] = Date.now(); S.cnt.decor = (S.cnt.decor || 0) + 1; } }
+/* The Ship tab: the cutaway on the left (click a room, or use the room buttons under it), and on the right the picked
+   room's settings as rows with arrows, then the hull paint and the ship's name. Every change shows straight away. */
+function interiorView() {
   if (!roomAt(inSel)) inSel = 'bridge';
   if (!inRaf) inRaf = requestAnimationFrame(drawInterior);
   inTip.textContent = plain(inTipFor(inSel));
-  const lock = focusLock(), [ic, name] = ROOM_NAME(inSel);
-  const itemBtn = (cat, it, on) => {
-    const b = el('button', { type: 'button', class: 'sx-dec' + (on ? ' on' : ''), disabled: lock || null, onclick: () => decBuy(cat, it[0]) },
-      el('b', {}, it[1]), el('small', {}, on ? 'In use' : 'Use here'));
-    const prev = () => { inPrev = SHIP_DECOR[cat] ? null : [inSel, cat, it[0]]; }, unprev = () => { inPrev = null; };
-    b.addEventListener('mouseenter', prev); b.addEventListener('mouseleave', unprev); b.addEventListener('focus', prev); b.addEventListener('blur', unprev);
-    return b; };
-  const catBtns = ['wall', 'floor', 'window', 'art', 'light', 'plant', 'furn', 'ceil', 'lights'].map(k => [k, DECOR[k]]).map(([k, [label]]) => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === inCat), onclick: () => { inCat = k; drawShip(); } }, label));
-  const colors = Object.entries(HULL_COLORS).map(([k, hex]) => { const on = S.ship.color === k;
-    return el('button', { type: 'button', class: 'sx-swatch' + (on ? ' on' : ''), title: k, disabled: lock || null, onclick: () => buyStyle('color', k) }, el('i', { style: 'background:' + hex }), el('span', {}, k)); });
-  return [el('div', { class: 'sx-interior' }, inCv, inTip),
-    el('div', { class: 'sx-sec' }, el('h3', {}, 'Decorate: ' + ic + ' ' + name), el('p', { class: 'sl-muted' }, lock ? 'Decorating waits until the study session is over. You can still look.' : 'Every decoration is yours to use, in any room. Hover one to preview it. Click a room above to pick it.'),
-      el('div', { class: 'sl-stabs', role: 'tablist' }, catBtns), el('div', { class: 'sx-decs' }, DECOR[inCat][1].map(it => itemBtn(inCat, it, decOf(inSel, inCat) === it[0])))),
-    el('div', { class: 'sx-sec' }, el('h3', {}, 'Whole ship'), el('div', { class: 'sx-decrow' }, el('h4', {}, 'Hull paint'), el('div', { class: 'sx-swatches' }, colors)),
-      el('p', { class: 'sl-muted' }, decOwned() + ' of ' + decTotal() + ' decorations tried so far.'))];
+  const lock = focusLock(), [, name, what] = ROOM_NAME(inSel), who = crewIn(inSel).map(c => firstName(c));
+  const arrows = (label, list, cur, set, swatch) => { const i = Math.max(0, list.findIndex(x => x[0] === cur)), go = d => { if (lock) return; set(list[(i + d + list.length) % list.length][0]); };
+    return el('div', { class: 'sx-ed-row sx-ed-slot' }, el('span', { class: 'sx-ed-l' }, label), el('div', { class: 'sx-ed-v' }, el('div', { class: 'sx-ed-pick' },
+      el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': 'Previous ' + label.toLowerCase(), disabled: lock || null, onclick: () => go(-1) }, '◂'),
+      el('b', { class: 'sx-ed-item' }, swatch ? el('i', { class: 'sx-swatch-i', style: 'background:' + swatch }) : null, list[i][1]),
+      el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': 'Next ' + label.toLowerCase(), disabled: lock || null, onclick: () => go(1) }, '▸'),
+      el('small', { class: 'sx-ed-n' }, (i + 1) + ' / ' + list.length)))); };
+  const rows = DEC_CATS.map(cat => arrows(DECOR[cat][0], DECOR[cat][1], decOf(inSel, cat), id => decBuy(cat, id)));
+  const mix = () => { if (lock) return; DEC_CATS.forEach(cat => { const L = DECOR[cat][1]; setRoomDecor(inSel, cat, L[Math.floor(Math.random() * L.length)][0]); }); save(); draw(); };
+  const everywhere = () => { if (lock) return; ROOM_SPOTS.filter(k => roomAt(k) && k !== inSel).forEach(k => DEC_CATS.forEach(cat => setRoomDecor(k, cat, decOf(inSel, cat)))); save(); draw(); };
+  const hull = Object.entries(HULL_COLORS).map(([k]) => [k, k]);
+  const nameIn = el('input', { type: 'text', class: 'sx-ed-role', value: S.ship.name, maxlength: 28, 'aria-label': 'Ship name', disabled: lock || null });
+  nameIn.addEventListener('change', () => { S.ship.name = nameIn.value.trim().slice(0, 28) || 'The Lantern'; S.ship.named = true; save(); draw(); });
+  const roomBtns = el('div', { class: 'sx-ed-seg sx-rooms' }, DECKS.flat().filter(k => roomAt(k)).map(k => el('button', { type: 'button', role: 'radio', 'aria-checked': String(k === inSel), onclick: () => { inSel = k; drawShip(); } }, ROOM_NAME(k)[1])));
+  return [el('div', { class: 'sx-deck' },
+    el('div', { class: 'sx-deck-l' }, inCv, roomBtns),
+    el('div', { class: 'sx-deck-r' },
+      lock ? el('p', { class: 'sl-muted' }, 'Decorating waits until the study session is over.') : null,
+      el('section', { class: 'sx-ed-sec' }, el('div', { class: 'sx-deck-h' }, el('h3', {}, name), el('div', { class: 'sx-ed-acts' },
+          el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, onclick: mix }, 'Mix it up'),
+          el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, title: 'Every other room gets this look', onclick: everywhere }, 'Use in every room'))),
+        el('p', { class: 'sx-ed-d sx-deck-what' }, capFirst(what) + '.' + (who.length ? ' In here now: ' + who.join(', ') + '.' : '')), ...rows),
+      el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'The whole ship'),
+        arrows('Hull paint', hull, S.ship.color, k => buyStyle('color', k), HULL_COLORS[S.ship.color]),
+        el('div', { class: 'sx-ed-row' }, el('span', { class: 'sx-ed-l' }, 'Name'), el('div', { class: 'sx-ed-v' }, nameIn)))))];
 }
