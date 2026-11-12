@@ -22,6 +22,8 @@ headline = function () {
 const clockLabel = () => { if (!/^(Pause|Resume|Start break|Start)$/.test(startB.textContent)) startB.textContent = 'Start'; };
 new MutationObserver(clockLabel).observe(startB, { childList: true, characterData: true, subtree: true }); clockLabel();
 document.querySelectorAll('.sx-page-h .btn').forEach(b => { if (b.textContent === 'Back to the voyage') b.textContent = 'Back to the clock'; });
+// the browser tab: the time and plain words ("24:53 · Focus"), not the space game's "Traveling"
+if (hooks.title) { const titleBase = hooks.title; hooks.title = t => titleBase(running ? t.replace(/ · .*$/, ' · ' + (mode === 'focus' ? 'Focus' : mode === 'long' ? 'Long break' : 'Break')) : 'Solarist'); }
 // the small tally under the buttons
 const tally = el('p', { class: 'sx-tally' });
 corner.append(tally);

@@ -9,10 +9,11 @@ const stillUI = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motio
 const digits = el('div', { class: 'sx-digits', 'aria-hidden': 'true' });
 timeText.after(digits); timeText.classList.add('sx-sr'); // the plain text stays underneath for screen readers
 let digLast = '';
+const digSpans = () => digits.querySelectorAll(':scope > .sx-dig'); // (the afterglow ghosts sit beside them)
 let digW = 0; // the panel width the digits were last fitted to
 function fitDigits() { // as big as the panel is wide: measure the digits at 100px, then scale to the panel
   const w = corner.clientWidth; if (!w) return; digW = w;
-  digits.style.fontSize = '100px'; const k = digits.children; if (!k.length) return;
+  digits.style.fontSize = '100px'; const k = digSpans(); if (!k.length) return;
   const natural = (k[k.length - 1].getBoundingClientRect().right - k[0].getBoundingClientRect().left) || 1; // the digits themselves, not their box
   digits.style.fontSize = Math.floor(100 * Math.min(w, 560) / natural) + 'px';
 }
@@ -21,11 +22,12 @@ function drawDigits() {
   if (corner.clientWidth && corner.clientWidth !== digW) fitDigits(); // the panel changed size (or wasn't laid out yet)
   const t = Date.now() < digitsHold ? digitsHoldText : timeText.textContent || ''; if (t === digLast) return;
   const old = digLast; digLast = t;
-  if (digits.children.length !== t.length) { digits.replaceChildren(...[...t].map(ch => el('span', { class: ch === ':' ? 'sx-dig sx-colon' : 'sx-dig' }, ch))); fitDigits(); return; }
-  [...t].forEach((ch, i) => { const sp = digits.children[i]; if (sp.firstChild && sp.firstChild.nodeValue === ch) return;
+  const spans = digSpans();
+  if (spans.length !== t.length) { digits.replaceChildren(...[...t].map(ch => el('span', { class: ch === ':' ? 'sx-dig sx-colon' : 'sx-dig' }, ch))); fitDigits(); return; }
+  [...t].forEach((ch, i) => { const sp = spans[i]; if (sp.firstChild && sp.firstChild.nodeValue === ch) return;
     const was = sp.firstChild ? sp.firstChild.nodeValue : ''; sp.textContent = ch; if (!old || stillUI()) return;
     sp.classList.remove('chg'); void sp.offsetWidth; sp.classList.add('chg'); // only the digits that changed fade in
-    if (was) { const g = el('i', { class: 'sx-ghost', 'aria-hidden': 'true' }, was); sp.append(g); setTimeout(() => g.remove(), 900); } }); // the old digit lingers, like phosphor
+    if (was) { const g = el('i', { class: 'sx-ghost', 'aria-hidden': 'true', style: 'left:' + sp.offsetLeft + 'px;top:' + sp.offsetTop + 'px' }, was); digits.append(g); setTimeout(() => g.remove(), 900); } }); // the old digit lingers, like phosphor
 }
 new MutationObserver(drawDigits).observe(timeText, { childList: true, characterData: true, subtree: true });
 addEventListener('resize', fitDigits);
@@ -66,7 +68,7 @@ if (typeof showAboard === 'function') {
 }
 
 /* ---------- the clock ticking: once a second while the timer runs, only when Solarist is the window in front ---------- */
-let tickCtx = null, tickBuf = null;
+let tickCtx = null, tickBuf = null, tickTock = false;
 const tickWanted = () => S.opts.tick !== false && (localStorage.getItem('solarist-sound') !== 'off');
 function tickLoad() { // the browser lets sound start only after you've clicked or pressed a key
   if (tickCtx || !(window.AudioContext || window.webkitAudioContext)) return;
@@ -78,6 +80,7 @@ function tickPlay() {
   if (!tickBuf || !running || mode !== 'focus' || !tickWanted() || document.hidden || !document.hasFocus()) return; // breaks don't tick: they breathe
   if (tickCtx.state === 'suspended') tickCtx.resume();
   const src = tickCtx.createBufferSource(), g = tickCtx.createGain(); src.buffer = tickBuf;
+  tickTock = !tickTock; src.playbackRate.value = (tickTock ? 1 : .89) * (1 + (Math.random() - .5) * .04); // tick, tock, never quite the same twice
   const rem = remaining(), soft = rem < 60000 ? Math.max(.25, rem / 60000) : 1; // the last minute winds down
   g.gain.value = (S.opts.tickVol != null ? S.opts.tickVol : .35) * soft; src.connect(g); g.connect(tickCtx.destination); src.start();
 }

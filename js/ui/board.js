@@ -127,7 +127,7 @@ function setKey(it, n) { // one number, one thing (on this board)
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
   els.clear(); layer.replaceChildren();
-  const remove = it => { B.items = B.items.filter(x => x !== it); B.links = B.links.filter(l => !l.includes(it.id)); if (it.type === 'photo') PHOTOS.del(it.id).catch(() => {}); if (selId === it.id) selId = null; save(); drawBoard(); };
+  const remove = it => { deskSfx('pick'); B.items = B.items.filter(x => x !== it); B.links = B.links.filter(l => !l.includes(it.id)); if (it.type === 'photo') PHOTOS.del(it.id).catch(() => {}); if (selId === it.id) selId = null; save(); drawBoard(); };
   items.forEach(it => {
     const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': it.type === 'photo' ? 'Take the photo down' : 'Take the note down', onclick: () => remove(it) }, '×');
     const txt = el('div', { class: it.type === 'photo' ? 'sx-cap-t' : 'sx-note-t', contenteditable: 'true', 'aria-label': it.type === 'photo' ? 'Caption' : 'Note', 'data-ph': it.type === 'photo' ? 'Write a caption...' : 'Write something...' }, it.text || '');
@@ -149,16 +149,49 @@ function drawBoard() {
   requestAnimationFrame(() => drawStrings());
 }
 const posOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + 10 } : null; };
-const pathD = (a, b) => { const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 + 30 + Math.hypot(b.x - a.x, b.y - a.y) * .12; return 'M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y; };
-function drawStrings(temp) { // a gentle sag between two pins
-  const B = B_(); strings.replaceChildren();
-  B.links.forEach((l, i) => { const a = posOf(l[0]), b = posOf(l[1]); if (!a || !b) return;
-    const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', pathD(a, b)); p.setAttribute('class', 'sx-string');
-    const hit = document.createElementNS(SVGNS, 'path'); hit.setAttribute('d', pathD(a, b)); hit.setAttribute('class', 'sx-string-hit');
+// strings: a gentle sag between two pins, plus a wobble when either end moves
+const wob = new Map(), lk = l => l[0] + '|' + l[1];
+const pathD = (a, b, w) => { const mx = (a.x + b.x) / 2 + (w ? w.x : 0), my = (a.y + b.y) / 2 + 36 + Math.hypot(b.x - a.x, b.y - a.y) * .15 + (w ? w.y : 0); return 'M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y; };
+let strNodes = [], strTemp = null, strTempP = null;
+function drawStrings(temp) {
+  const B = B_(); strings.replaceChildren(); strNodes = []; strTempP = null; strTemp = temp || null;
+  B.links.forEach(l => {
+    const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('class', 'sx-string');
+    const hit = document.createElementNS(SVGNS, 'path'); hit.setAttribute('class', 'sx-string-hit');
     hit.addEventListener('pointerdown', e => e.stopPropagation());
-    hit.addEventListener('click', () => { B.links.splice(i, 1); save(); drawStrings(); });
-    strings.append(hit, p); });
-  if (temp) { const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', pathD(temp.a, temp.b)); p.setAttribute('class', 'sx-string sx-string-temp'); strings.append(p); }
+    hit.addEventListener('click', () => { B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
+    strings.append(hit, p); strNodes.push({ l, p, hit }); });
+  strUpdate();
+}
+function strUpdate() {
+  strNodes.forEach(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); if (!a || !b) return; const d = pathD(a, b, wob.get(lk(n.l))); n.p.setAttribute('d', d); n.hit.setAttribute('d', d); });
+  if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
+  else if (strTempP) { strTempP.remove(); strTempP = null; }
+}
+let wobRaf = 0;
+function wobKick(id, vx, vy) { // the middle of the string lags behind the end you move
+  if (stillUI()) return;
+  B_().links.forEach(l => { if (!l.includes(id)) return; const k = lk(l), w = wob.get(k) || { x: 0, y: 0, vx: 0, vy: 0 }; w.vx -= vx * .2; w.vy -= vy * .2; wob.set(k, w); });
+  if (wob.size && !wobRaf) wobRaf = requestAnimationFrame(wobStep);
+}
+function wobStep() {
+  wobRaf = 0;
+  wob.forEach((w, k) => { w.vx = (w.vx - w.x * .07) * .9; w.vy = (w.vy - w.y * .07) * .9; w.x = Math.max(-60, Math.min(60, w.x + w.vx)); w.y = Math.max(-60, Math.min(60, w.y + w.vy));
+    if (Math.abs(w.x) + Math.abs(w.y) + Math.abs(w.vx) + Math.abs(w.vy) < .1) wob.delete(k); });
+  strUpdate(); if (wob.size) wobRaf = requestAnimationFrame(wobStep);
+}
+// cards swing from their pin while you carry them, and settle when you let go
+const swinging = new Set(); let swingRaf = 0;
+function swingTo(c, target) {
+  if (stillUI()) return;
+  const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.t = target; swinging.add(c); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
+}
+function swingStep() {
+  swingRaf = 0;
+  swinging.forEach(c => { const s = c._sw; s.v = (s.v + (s.t - s.a) * .1) * .87; s.a += s.v; s.t *= .86;
+    if (Math.abs(s.a) + Math.abs(s.v) + Math.abs(s.t) < .06) { s.a = 0; s.v = 0; swinging.delete(c); }
+    c.style.setProperty('--swing', s.a.toFixed(2) + 'deg'); });
+  if (swinging.size) swingRaf = requestAnimationFrame(swingStep);
 }
 
 // a free spot near the middle of the view, never on top of the clock
@@ -169,7 +202,7 @@ function freeSpot() {
   return { x, y };
 }
 function addNoteAt(p) {
-  const id = 'n' + Date.now(); B_().items.push({ id, type: 'note', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); save(); select(id); drawBoard();
+  deskSfx('pin'); const id = 'n' + Date.now(); B_().items.push({ id, type: 'note', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); save(); select(id); drawBoard();
   const t = layer.querySelector('[data-id="' + id + '"] .sx-note-t'); if (t) t.focus({ preventScroll: true });
 }
 async function addPhotos(files, at) {
@@ -179,7 +212,7 @@ async function addPhotos(files, at) {
       const p = at ? { x: at.x - 120 + k * 30, y: at.y - 40 + k * 30 } : freeSpot(); B_().items.push({ id, type: 'photo', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); k++; }
     catch (e) { /* not a picture the browser can read: skip it */ }
   }
-  if (k) { save(); drawBoard(); }
+  if (k) { deskSfx('shutter'); save(); drawBoard(); }
 }
 deskFile.addEventListener('change', () => { addPhotos(deskFile.files); deskFile.value = ''; });
 
@@ -194,16 +227,20 @@ ws.addEventListener('pointerdown', e => {
     const id = c.dataset.id, it = B_().items.find(x => x.id === id), start = { x: e.clientX, y: e.clientY, l: it.x, t: it.y };
     e.preventDefault(); c.setPointerCapture(e.pointerId);
     if (e.target.classList.contains('sx-pin')) {
-      const a = posOf(id), move = ev => drawStrings({ a, b: toWorld(ev.clientX, ev.clientY) });
+      deskSfx('pin'); const a = posOf(id), move = ev => { strTemp = { a, b: toWorld(ev.clientX, ev.clientY) }; strUpdate(); };
       const up = ev => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up);
         const under = document.elementsFromPoint(ev.clientX, ev.clientY).map(n => n.closest && n.closest('.sx-bcard')).find(n => n && n !== c);
-        if (under && !B_().links.some(l => l.includes(id) && l.includes(under.dataset.id))) { B_().links.push([id, under.dataset.id]); save(); }
-        drawStrings(); };
+        strTemp = null;
+        if (under && !B_().links.some(l => l.includes(id) && l.includes(under.dataset.id))) { const l = [id, under.dataset.id]; B_().links.push(l); save(); if (!stillUI()) wob.set(lk(l), { x: 0, y: -34, vx: 0, vy: 0 }); deskSfx('tie'); } // it drops into its sag and bounces
+        drawStrings(); if (wob.size && !wobRaf) wobRaf = requestAnimationFrame(wobStep); };
       c.addEventListener('pointermove', move); c.addEventListener('pointerup', up); return;
     }
-    c.classList.add('lift'); layer.append(c); // the one you pick up comes to the top
-    const move = ev => { it.x = Math.round(start.l + (ev.clientX - start.x) / cam.z); it.y = Math.round(start.t + (ev.clientY - start.y) / cam.z); c.style.left = it.x + 'px'; c.style.top = it.y + 'px'; drawStrings(); };
-    const up = () => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up); c.classList.remove('lift'); B_().items = B_().items.filter(x => x !== it).concat(it); save(); };
+    c.classList.add('lift'); layer.append(c); deskSfx('pick'); // the one you pick up comes to the top
+    let lx = e.clientX, ly = e.clientY;
+    const move = ev => { it.x = Math.round(start.l + (ev.clientX - start.x) / cam.z); it.y = Math.round(start.t + (ev.clientY - start.y) / cam.z); c.style.left = it.x + 'px'; c.style.top = it.y + 'px';
+      const vx = ev.clientX - lx, vy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY;
+      swingTo(c, Math.max(-16, Math.min(16, vx * 1.2))); wobKick(id, vx / cam.z, vy / cam.z); strUpdate(); };
+    const up = () => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up); c.classList.remove('lift'); swingTo(c, 0); deskSfx('drop'); B_().items = B_().items.filter(x => x !== it).concat(it); save(); };
     c.addEventListener('pointermove', move); c.addEventListener('pointerup', up);
     return;
   }

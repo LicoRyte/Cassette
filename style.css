@@ -1332,3 +1332,35 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 .sx-ws-help { display: none; }
 .sx-ws-bar:hover .sx-ws-help { display: block; }
 .sx-ws-bar { width: max-content; }
+
+/* rolling digits: the new one rolls down into place, the old one rolls out underneath and fades like phosphor */
+.sx-clockonly .sx-dig.chg { animation: sx-roll .5s cubic-bezier(.2, .9, .25, 1) both; }
+@keyframes sx-roll { from { opacity: 0; transform: translateY(-.42em); filter: blur(1.5px); } 55% { opacity: 1; filter: none; } to { opacity: 1; transform: none; } }
+.sx-clockonly .sx-ghost { color: inherit; animation: sx-rollout .9s cubic-bezier(.3, .6, .3, 1) forwards; }
+@keyframes sx-rollout { from { opacity: .55; transform: none; } 45% { opacity: .2; transform: translateY(.42em); } to { opacity: 0; transform: translateY(.5em); } }
+.sx-clockonly.sx-ending .sx-dig.chg { animation-duration: 1s; }
+
+/* the edge glow: every second of a focus session */
+.sx-pulse { position: fixed; inset: 0; z-index: 39; pointer-events: none; opacity: 0; box-shadow: inset 0 0 0 1px rgba(156, 185, 59, .55), inset 0 0 22px rgba(156, 185, 59, .28), inset 0 0 90px rgba(156, 185, 59, .12); }
+.sx-pulse.on { animation: sx-pulse .75s cubic-bezier(.1, .7, .3, 1) both; }
+@keyframes sx-pulse { from { opacity: var(--pk, 1); } to { opacity: 0; } }
+
+/* the desk dims while you focus and leave it alone */
+.sx-world .sx-layer, .sx-world .sx-strings, .sx-ws-bar { transition: opacity .35s ease-out, filter .35s; }
+.sx-still[data-clock="focus"] .sx-world .sx-layer, .sx-still[data-clock="last"] .sx-world .sx-layer,
+.sx-still[data-clock="focus"] .sx-world .sx-strings, .sx-still[data-clock="last"] .sx-world .sx-strings { opacity: .3; filter: saturate(.5); transition-duration: 2.4s; }
+.sx-still[data-clock="focus"] .sx-ws-bar, .sx-still[data-clock="last"] .sx-ws-bar { opacity: .06; transition-duration: 2.4s; }
+.sx-still[data-clock="focus"] .sx-top, .sx-still[data-clock="last"] .sx-top { opacity: .15; transition: opacity 2.4s; }
+.sx-top { transition: opacity .35s; }
+
+/* ink: notes are typed, with a little bleed, and a block cursor like a terminal */
+.sx-world .sx-note-t { font: 15px/1.5 var(--text); color: #34111f; text-shadow: 0 0 .5px rgba(52, 17, 31, .7), .3px .2px 1px rgba(52, 17, 31, .25); caret-color: #34111f; caret-shape: block; }
+.sx-world .sx-cap-t { text-shadow: 0 0 .5px rgba(52, 17, 31, .6); caret-color: #34111f; caret-shape: block; }
+
+/* weight: a card hangs from its pin, swings while you carry it, and settles with a little bounce */
+.sx-world .sx-bcard { transform: none; rotate: calc(var(--tilt) + var(--swing, 0deg)); transform-origin: 50% 10px; scale: 1; transition: scale .26s cubic-bezier(.3, 1.8, .5, 1), box-shadow .2s; }
+.sx-world .sx-bcard.lift { transform: none; scale: 1.04; transition: scale .12s ease-out, box-shadow .12s; }
+
+@media (prefers-reduced-motion: reduce) { .sx-pulse.on, .sx-clockonly .sx-dig.chg, .sx-clockonly .sx-ghost { animation: none; } .sx-clockonly .sx-ghost { display: none; } .sx-world .sx-bcard, .sx-world .sx-bcard.lift { transition: none; } }
+.sx-digits { position: relative; isolation: isolate; }
+.sx-digits > .sx-ghost { z-index: -1; }
