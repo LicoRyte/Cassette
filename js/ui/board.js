@@ -50,7 +50,7 @@ const cam = S.board.cam; cam.z = Math.min(1.6, Math.max(.35, +cam.z || 1));
 const view = () => ({ w: ws.clientWidth || innerWidth, h: ws.clientHeight || innerHeight });
 function placeCam() {
   const { w, h } = view(), tx = w / 2 - cam.x * cam.z, ty = h / 2 - cam.y * cam.z;
-  world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + cam.z + ')';
+  world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + cam.z + ')'; world.style.setProperty('--cz', cam.z); // (the note toolbar stays the same size on screen)
   const g = 44 * cam.z; ws.style.backgroundSize = g + 'px ' + g + 'px'; ws.style.backgroundPosition = tx + 'px ' + ty + 'px'; // the dots move with you
   deskHome();
 }
@@ -114,7 +114,7 @@ new MutationObserver(deskHome).observe(timeText, { childList: true, characterDat
 let selId = null;
 const els = new Map();
 const B_ = () => S.board;
-function select(id) { selId = id; layer.querySelectorAll('.sx-bcard').forEach(c => c.classList.toggle('sel', c.dataset.id === id)); }
+function select(id) { selId = id; layer.querySelectorAll('.sx-bcard').forEach(c => c.classList.toggle('sel', c.dataset.id === id)); noteBarTo(id); }
 function deskDrawKeys() {
   const items = B_().items.filter(it => it.board === B_().cur && it.key).sort((a, b) => a.key - b.key);
   deskKeys.replaceChildren(...items.map(it => { const b = deskBtn(String(it.key), () => glideToItem(it)); b.title = (it.text || (it.type === 'photo' ? 'A photo' : 'A note')).slice(0, 60); return b; }));
@@ -134,18 +134,18 @@ function drawBoard() {
     txt.addEventListener('input', () => { it.text = txt.innerText.slice(0, 2000); save(); });
     const pin = el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' });
     const key = it.key ? el('span', { class: 'sx-bkey', title: 'Press ' + it.key + ' to come here' }, String(it.key)) : null;
-    const style = 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + tilt(it.id) + 'deg';
+    const style = 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + tilt(it.id) + 'deg' + (it.type === 'note' ? noteStyle(it) : '');
     let c;
     if (it.type === 'photo') {
       const img = el('img', { alt: it.text || 'A photo', draggable: 'false' });
       PHOTOS.get(it.id).then(src => { if (src) img.src = src; else img.alt = 'This photo is missing (it lives in the browser it was added in).'; drawStrings(); }).catch(() => {});
       img.addEventListener('load', () => drawStrings());
       c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[pin, x, key, el('div', { class: 'sx-pol-img' }, img), txt].filter(Boolean));
-    } else c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, key, txt].filter(Boolean));
+    } else { c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, key, txt].filter(Boolean)); noteSetup(it, txt, c); } // a small document (js/ui/notes.js)
     if (it.id === selId) c.classList.add('sel');
     els.set(it.id, c); layer.append(c);
   });
-  deskBoardTools(); deskDrawKeys();
+  deskBoardTools(); deskDrawKeys(); noteBarTo(selId);
   requestAnimationFrame(() => drawStrings());
 }
 const posOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + 10 } : null; };
@@ -223,9 +223,16 @@ ws.addEventListener('pointerdown', e => {
   const c = e.target.closest('.sx-bcard');
   if (c) {
     select(c.dataset.id);
-    if (e.target.closest('.sx-note-t, .sx-cap-t, .sx-bnote-x')) return; // writing, or taking it down
+    if (e.target.closest('.sx-note-t, .sx-cap-t, .sx-bnote-x, .sx-fmt')) return; // writing, formatting, or taking it down
     const id = c.dataset.id, it = B_().items.find(x => x.id === id), start = { x: e.clientX, y: e.clientY, l: it.x, t: it.y };
     e.preventDefault(); c.setPointerCapture(e.pointerId);
+    if (e.target.classList.contains('sx-resize')) { // the corner: make the note bigger or smaller
+      const w0 = c.offsetWidth, h0 = c.offsetHeight; c.classList.add('sized', 'sizing');
+      const move = ev => { it.w = Math.round(Math.max(160, Math.min(760, w0 + (ev.clientX - start.x) / cam.z))); it.h = Math.round(Math.max(90, Math.min(960, h0 + (ev.clientY - start.y) / cam.z)));
+        c.style.width = it.w + 'px'; c.style.height = it.h + 'px'; strUpdate(); };
+      const up = () => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up); c.classList.remove('sizing'); save(); };
+      c.addEventListener('pointermove', move); c.addEventListener('pointerup', up); return;
+    }
     if (e.target.classList.contains('sx-pin')) {
       deskSfx('pin'); const a = posOf(id), move = ev => { strTemp = { a, b: toWorld(ev.clientX, ev.clientY) }; strUpdate(); };
       const up = ev => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up);
@@ -270,6 +277,7 @@ addEventListener('resize', placeCam);
 addEventListener('keydown', e => {
   const t = e.target;
   if (t && t.isContentEditable) { // writing a note: the keys are yours, Esc puts the pen down
+    noteKeys(e, t);
     if (e.key === 'Escape') { e.preventDefault(); t.blur(); }
     e.stopPropagation(); return;
   }

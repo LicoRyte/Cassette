@@ -1364,3 +1364,48 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 @media (prefers-reduced-motion: reduce) { .sx-pulse.on, .sx-clockonly .sx-dig.chg, .sx-clockonly .sx-ghost { animation: none; } .sx-clockonly .sx-ghost { display: none; } .sx-world .sx-bcard, .sx-world .sx-bcard.lift { transition: none; } }
 .sx-digits { position: relative; isolation: isolate; }
 .sx-digits > .sx-ghost { z-index: -1; }
+
+/* notes worth reading (js/ui/notes.js): paper colours, typography, lists, a corner to resize, a toolbar */
+.sx-world .sx-bnote { width: 220px; background: var(--note, #ffd832); color: var(--ink, #34111f); padding: 20px 16px 16px; }
+.sx-world .sx-bnote.sel { rotate: var(--swing, 0deg); } /* the note you're working on straightens up */
+.sx-world .sx-bnote.sized { display: flex; flex-direction: column; }
+.sx-world .sx-bnote.sized .sx-note-t { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 35%, transparent) transparent; }
+.sx-world .sx-bnote .sx-note-t { font: var(--fs, 15px)/1.5 var(--text); color: var(--ink, #34111f); caret-color: var(--ink, #34111f); text-shadow: 0 0 .5px color-mix(in srgb, var(--ink) 70%, transparent), .3px .2px 1px color-mix(in srgb, var(--ink) 25%, transparent); overflow-wrap: anywhere; }
+.sx-world .sx-bnote .sx-note-t:empty::before { color: color-mix(in srgb, var(--ink) 45%, transparent); }
+.sx-world .sx-bnote .sx-bnote-x { color: color-mix(in srgb, var(--ink) 60%, transparent); }
+.sx-note-t > :first-child { margin-top: 0; }
+.sx-note-t h2 { margin: .5em 0 .25em; font: 700 calc(var(--fs, 15px) * 1.55)/1.1 var(--ui); letter-spacing: .01em; text-shadow: none; }
+.sx-note-t h3 { margin: .7em 0 .2em; padding-bottom: .15em; border-bottom: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent); font: 700 calc(var(--fs, 15px) * 1.12)/1.2 var(--ui); letter-spacing: .06em; text-transform: uppercase; text-shadow: none; }
+.sx-note-t b, .sx-note-t strong { font-weight: 700; }
+.sx-note-t s, .sx-note-t strike, .sx-note-t del { text-decoration-thickness: 2px; opacity: .65; }
+.sx-note-t u { text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+.sx-note-t mark { color: inherit; background: linear-gradient(transparent 52%, rgba(255, 97, 87, .5) 52%, rgba(255, 97, 87, .5) 92%, transparent 92%); padding: 0 1px; }
+.sx-bnote[style*="--note:#ff6157"] .sx-note-t mark { background: linear-gradient(transparent 52%, rgba(255, 255, 228, .65) 52%, rgba(255, 255, 228, .65) 92%, transparent 92%); }
+.sx-bnote[style*="--note:#293b49"] .sx-note-t mark { background: linear-gradient(transparent 52%, rgba(255, 183, 98, .55) 52%, rgba(255, 183, 98, .55) 92%, transparent 92%); }
+.sx-note-t code { padding: .05em .3em; background: color-mix(in srgb, var(--ink) 12%, transparent); font: .92em var(--text); border-radius: 2px; }
+.sx-note-t ul, .sx-note-t ol { margin: .3em 0; padding-left: 1.3em; }
+.sx-note-t li { margin: .12em 0; }
+.sx-note-t li::marker { color: color-mix(in srgb, var(--ink) 60%, transparent); }
+.sx-note-t blockquote { margin: .4em 0; padding: .1em 0 .1em .7em; border-left: 3px solid color-mix(in srgb, var(--ink) 40%, transparent); font-style: italic; opacity: .85; }
+.sx-note-t ul.sx-chk { list-style: none; padding-left: 0; }
+.sx-note-t ul.sx-chk > li { position: relative; padding-left: 22px; }
+.sx-note-t ul.sx-chk > li::before { content: ''; position: absolute; left: 1px; top: .32em; width: 11px; height: 11px; border: 1.5px solid currentColor; border-radius: 2px; cursor: pointer; }
+.sx-note-t ul.sx-chk > li.done { text-decoration: line-through; text-decoration-thickness: 1.5px; opacity: .55; }
+.sx-note-t ul.sx-chk > li.done::before { background: currentColor; box-shadow: inset 0 0 0 2px var(--note, #ffd832); }
+.sx-resize { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; opacity: 0; transition: opacity .15s;
+  background: linear-gradient(135deg, transparent 50%, color-mix(in srgb, var(--ink) 40%, transparent) 50%, color-mix(in srgb, var(--ink) 40%, transparent) 60%, transparent 60%, transparent 72%, color-mix(in srgb, var(--ink) 40%, transparent) 72%, color-mix(in srgb, var(--ink) 40%, transparent) 82%, transparent 82%); }
+.sx-bnote:hover .sx-resize, .sx-bnote.sel .sx-resize, .sx-bnote.sizing .sx-resize { opacity: 1; }
+/* the toolbar: sits above the selected note and keeps its size on screen however far you zoom */
+.sx-fmt { position: absolute; left: -2px; bottom: calc(100% + 12px); z-index: 6; display: none; flex-direction: column; gap: 4px; padding: 6px; background: #030710; border: 1px solid #293b49; box-shadow: 0 6px 18px rgba(3, 7, 16, .6); scale: calc(1 / var(--cz, 1)); transform-origin: 0 100%; cursor: default; color: #ffdaac; text-shadow: none; }
+.sx-bnote.sel > .sx-fmt { display: flex; }
+.sx-fmt-row { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+.sx-fb { min-width: 28px; height: 28px; padding: 0 6px; background: none; border: 1px solid transparent; color: #ffdaac; font: 600 14px/1 var(--ui); cursor: pointer; }
+.sx-fb:hover { border-color: #293b49; color: #ffffe4; }
+.sx-fb.on { background: #293b49; border-color: #ffb762; color: #ffffe4; }
+.sx-fb.b { font-weight: 800; } .sx-fb.i { font-style: italic; } .sx-fb.u { text-decoration: underline; } .sx-fb.s { text-decoration: line-through; }
+.sx-fb.mk { background: linear-gradient(transparent 55%, rgba(255, 97, 87, .55) 55%, rgba(255, 97, 87, .55) 90%, transparent 90%); }
+.sx-fsep { width: 1px; height: 18px; margin: 0 4px; background: #293b49; }
+.sx-sw { width: 20px; height: 20px; padding: 0; border: 2px solid #030710; outline: 1px solid #293b49; cursor: pointer; }
+.sx-sw:hover { outline-color: #ffdaac; }
+.sx-sw.on { outline: 2px solid #ffb762; }
+.sx-world .sx-bnote .sx-note-t h2, .sx-world .sx-bnote .sx-note-t h3, .sx-world .sx-bnote .sx-note-t blockquote, .sx-world .sx-bnote .sx-note-t code, .sx-world .sx-bnote .sx-note-t li { color: inherit; }
