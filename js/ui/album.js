@@ -11,7 +11,7 @@ function setHome(p) { S.home = isHome(p) ? null : p.num; save(); drawLog(); }
 function albumBar() {
   const seen = new Set(S.found.map(f => f.p.type)), types = Object.keys(TYPES);
   const strip = el('div', { class: 'sx-types', title: 'Planet types: ' + types.filter(t => seen.has(t)).length + ' of ' + types.length + ' found' },
-    types.map(t => el('span', { class: 'sx-type' + (seen.has(t) ? ' on' : '') }, seen.has(t) ? t : '?')));
+    types.map(t => el('span', { class: 'sx-ptype' + (seen.has(t) ? ' on' : '') }, seen.has(t) ? t : '?')));
   const favN = S.found.filter(f => f.p.fav).length, home = S.home != null && byNum(S.home);
   return el('div', { class: 'sx-albumbar' }, strip, el('div', { class: 'sx-row-l' },
     el('button', { type: 'button', class: 'btn', onclick: openAlbum }, '📮 Postcards (' + S.cards.length + ')'),

@@ -73,10 +73,11 @@ function drawGlobe() {
 // move the waypoints to where they are on the turning planet (called after every frame the planet is drawn)
 function globePlace() {
   const G = window.SolaristGlobe; if (!G || globeLayer.hidden) return;
-  const side = !breakPanel.hidden && breakPanel.offsetParent ? breakPanel.getBoundingClientRect() : null;
+  const sides = [storyPanel, breakPanel].filter(b => !b.hidden && b.offsetParent).map(b => b.getBoundingClientRect()), side = sides[sides.length - 1] || null;
+  const under = q => sides.some(r => q.x > r.left - 8 && q.x < r.right + 8 && q.y > r.top - 8 && q.y < r.bottom + 8); // a waypoint never hides behind a side column
   globePins.forEach(g => {
     const q = G.project(g.x, g.y);
-    const off = !q || q.z < .18 || (side && q.x > side.left - 8 && q.y > side.top && q.y < side.bottom);
+    const off = !q || q.z < .18 || under(q);
     if (off) { if (!g.b.classList.contains('off')) g.b.classList.add('off'); return; }
     g.b.classList.remove('off');
     g.b.style.transform = 'translate(' + Math.round(q.x) + 'px,' + Math.round(q.y) + 'px)';

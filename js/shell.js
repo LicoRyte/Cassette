@@ -505,12 +505,13 @@ void main(){
       let rad = G.rad * globe.zoom;
       const sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running ? 1 : 0;
       if (sil) rad *= .25 + .75 * info.pct / 100;
+      const ghost = !sil && !info.planet && !info.pv ? 1 : 0; // no world yet: an uncharted one, dark with a lit rim
       if (ok) {
         gl.viewport(0, 0, cv.width, cv.height);
-        setPlanet(info.planet); if (sil) gl.uniform1f(U.hasP, 1);
+        setPlanet(info.planet); if (sil || ghost) gl.uniform1f(U.hasP, 1);
         gl.uniform2f(U.res, cv.width, cv.height); gl.uniform2f(U.ctr, cx, cy); gl.uniform1f(U.R, Math.max(4, rad));
         gl.uniform1f(U.t, now / 1000); gl.uniform1f(U.tt, simT + 40); gl.uniform1f(U.spin, spinT + globe.drag); gl.uniform1f(U.drag, globe.drag); gl.uniform1f(U.pct, info.pct);
-        gl.uniform1f(U.kind, KINDS[info.kind] || 0); gl.uniform1f(U.run, info.running ? 1 : 0); gl.uniform1f(U.coord, info.coord ? 1 : 0); gl.uniform1f(U.sil, sil);
+        gl.uniform1f(U.kind, KINDS[info.kind] || 0); gl.uniform1f(U.run, info.running ? 1 : 0); gl.uniform1f(U.coord, info.coord ? 1 : 0); gl.uniform1f(U.sil, sil || ghost);
         const pl = info.planet, post = pl && pl.post; gl.uniform1f(U.postLv, !post ? 0 : post.tp ? 1 + Math.min(2, (post.tp.pop || 0) / 4000) : .6);
         gl.uniform1f(U.reveal, revealAt ? Math.min(1, (now - revealAt) / 1700) : 1);
         const wt = warpAt ? (now - warpAt) / 1300 : 1; gl.uniform1f(U.warp, wt < 1 ? (wt < .25 ? wt / .25 : 1 - (wt - .25) / .75) : 0);
@@ -534,7 +535,7 @@ void main(){
     const p = info.planet, sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running, still = reduceMotion.matches, t = now / 1000;
     // the planet's own sun, up and to the left where the light comes from
     if (p && !sil && p.type !== 'Rogue') {
-      const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#ffdaac';
+      const sx = bigView ? r.left / PX + Math.max(14, r.width / PX * .12) : cx - rad * 1.45, sy = bigView ? r.top / PX + Math.max(14, r.height / PX * .14) : Math.max(r.top / PX + 10, cy - rad * .9), c = STAR_C[p.star] || '#ffdaac'; // near the planet, where its light comes from
       const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
       // a dithered pixel glow around the sun: bigger for giants, a soft breathing pulse, a strong one for pulsars
       const big = /giant/.test(p.star) ? 1.5 : p.star === 'white dwarf' ? .75 : 1, pulse = still ? 1 : p.star === 'pulsar' ? (blink ? .35 : 1.1) : 1 + Math.sin(t * 1.3) * .08;

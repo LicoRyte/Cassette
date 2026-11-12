@@ -25,7 +25,7 @@ function drawBreak() {
   bpNotes.replaceChildren(...notes); bpNotes.hidden = !notes.length;
   // what happened (the last session's story; the planet card when there's no story yet)
   const empty = trans.hidden && card.hidden && encBox.hidden;
-  bpStoryH.hidden = bpStory.hidden = empty;
+  bpStoryH.hidden = bpStory.hidden = storyPanel.hidden = empty;
   // what next: the cards
   const cards = [];
   const back = returning() && byNum(S.returnTo), reg = regionNow(), regs = regions().filter(regionOpen).length;

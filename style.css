@@ -735,8 +735,8 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 /* the album: planet types to find, postcards */
 .sx-albumbar { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 8px; }
 .sx-types { display: flex; flex-wrap: wrap; gap: 4px; }
-.sx-type { font-size: 12px; padding: 1px 6px; border: 1px dashed var(--line); color: var(--mute); }
-.sx-type.on { border-style: solid; color: var(--soft); }
+.sx-ptype { font-size: 12px; padding: 1px 6px; border: 1px dashed var(--line); color: var(--mute); }
+.sx-ptype.on { border-style: solid; color: var(--soft); }
 .sx-card-in { max-width: 560px; }
 .sx-cardimg { display: block; width: 100%; max-width: 480px; height: auto; image-rendering: pixelated; margin: 8px 0; border: 1px solid var(--line); }
 .sx-album { display: grid; grid-template-columns: 1fr; gap: 14px; max-height: 70vh; overflow-y: auto; }
@@ -771,7 +771,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-v2 .sx-mid { justify-content: flex-start; }
 .sx-v2 .sx-top { align-items: center; }
 .sx-kpc { align-self: center; font: 600 15px var(--ui); color: var(--amber); white-space: nowrap; }
-.sx-atlasnav { margin: 0 0 12px; }
+.sx-atlasnav { width: 100%; max-width: 980px; margin: 0 auto 12px; padding: 0 24px; } /* lined up with the page heading */
 .sx-journal .sx-rhead { position: static; }
 
 .sx-cardpick select.sl-build-sel:not([hidden]) { display: block !important; width: 100%; } /* the pickers inside the choice cards */
@@ -831,3 +831,32 @@ html.sx-grabbing, html.sx-grabbing * { cursor: grabbing !important; user-select:
 @media (max-width: 420px) { .sx-v2 .sx-cards { grid-template-columns: minmax(0, 1fr); } }
 .sx-wp.flip .sx-wp-l { left: auto; right: 12px; }
 .sx-planet { touch-action: pan-y; } /* sideways swipes turn the globe; up and down still scroll the page */
+.sx-page:has(.sx-mappane:not([hidden])) .sx-atlasnav { max-width: 1200px; }
+@media (max-width: 900px) { .sx-atlasnav { padding: 0 16px; } }
+
+/* The planet and the timer are the middle of the screen; on breaks two small columns sit beside them:
+   what happened (left) and what next (right). Phones keep one column (below). */
+@media (min-width: 901px) {
+  #slRoot.sx.sx-v2, #slRoot.sx.sx-v2.sx-lock, #slRoot.sx.sx-v2.sx-nopanel { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "mid"; }
+  .sx-v2 .sx-breakp, .sx-v2 .sx-storyp { position: absolute; top: 92px; z-index: 3; width: clamp(240px, 19vw, 310px); max-height: calc(100% - 124px); display: flex; flex-direction: column; gap: 8px; padding: 0; overflow: visible; }
+  .sx-v2 .sx-breakp { right: max(36px, env(safe-area-inset-right)); }
+  .sx-v2 .sx-storyp { left: max(36px, env(safe-area-inset-left)); }
+  .sx-v2 .sx-storyp .sx-bp-story { flex: 0 1 auto; min-height: 0; max-height: none; overflow-y: auto; scrollbar-width: thin; padding-right: 6px; }
+  .sx-v2 .sx-breakp .sx-bp-detail { max-height: 26vh; }
+  .sx-v2 .sx-cards { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+}
+.sx-storyp[hidden] { display: none !important; }
+.sx-v2.sx-lock .sx-storyp, .sx-v2.sx-nopanel .sx-storyp { display: none; }
+.sx-storyp { text-shadow: 0 0 4px #030710, 0 0 2px #030710; }
+.sx-storyp .sl-picwrap, .sx-storyp .sl-card-h { display: none; } /* the planet is already in the middle of the screen */
+.sx-storyp .sl-pl { display: block; }
+.sx-v2 .sx-storyp p, .sx-v2 .sx-storyp .sl-code, .sx-v2 .sx-storyp li { font-size: 13px; line-height: 1.5; }
+.sx-v2 .sx-storyp .sl-name { font-size: 17px; }
+.sx-v2 .sx-cardc { padding: 8px 10px; }
+.sx-v2 .sx-cardc b { font-size: 15px; }
+.sx-v2 .sx-breakp .sx-bp-detail p, .sx-v2 .sx-breakp .sx-note p { font-size: 13px; }
+@media (max-width: 900px) {
+  #slRoot.sx.sx-v2, #slRoot.sx.sx-v2.sx-lock, #slRoot.sx.sx-v2.sx-nopanel { grid-template-areas: "top" "mid" "story" "side"; }
+  .sx-v2 .sx-storyp { grid-area: story; display: flex; flex-direction: column; gap: 8px; }
+  .sx-v2 .sx-storyp .sx-bp-story { flex: none; max-height: 46vh; overflow-y: auto; }
+}
