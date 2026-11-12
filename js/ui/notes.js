@@ -58,7 +58,7 @@ function noteSetup(it, txt, c) {
 function noteTickAt(txt, x, y) {
   const n = document.elementFromPoint(x, y), li = n && n.closest && n.closest('ul.sx-chk > li');
   if (!li || !txt.contains(li) || x - li.getBoundingClientRect().left >= 22 * cam.z) return false;
-  li.classList.toggle('done'); deskSfx('pin'); txt.dispatchEvent(new Event('input')); return true;
+  deskMark(); li.classList.toggle('done'); deskSfx('pin'); txt.dispatchEvent(new Event('input')); return true;
 }
 function noteClosest(txt, sel) { const s = getSelection(); let n = s && s.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentNode; const hit = n.closest && n.closest(sel); return hit && txt.contains(hit) ? hit : null; }
 
@@ -145,6 +145,7 @@ noteBar.addEventListener('mousedown', e => e.preventDefault()); // keep the pen 
 noteBar.addEventListener('pointerdown', e => e.stopPropagation());
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return; const n = selNote(); if (!n) return;
+  if (b.dataset.c || b.dataset.k === 'smaller' || b.dataset.k === 'bigger' || b.dataset.k === 'fit') deskMark();
   if (b.dataset.c) { n.it.color = b.dataset.c; if (b.dataset.c === 'yellow') delete n.it.color; n.c.setAttribute('style', n.c.getAttribute('style').replace(/;--note:[^;]*;--ink:[^;]*/, '') + ';--note:' + noteColor(n.it)[1] + ';--ink:' + noteColor(n.it)[2]); deskSfx('pick'); save(); noteBarState(); return; }
   const k = b.dataset.k;
   if (k === 'smaller' || k === 'bigger') { n.it.fs = Math.max(12, Math.min(26, (n.it.fs || 15) + (k === 'bigger' ? 1 : -1))); n.c.style.setProperty('--fs', n.it.fs + 'px'); save(); strUpdate(); return; }

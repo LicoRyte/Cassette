@@ -44,6 +44,7 @@ const DESK_SFX = {
   tear: c => { const t = c.currentTime; feelBurst(c, t, { dur: .26, f0: 3200, f1: 800, q: 1.4, vol: .07, grain: 14 }); },
   shutter: c => { const t = c.currentTime; feelBurst(c, t, { dur: .025, type: 'highpass', f0: 2400, vol: .09 }); feelTone(c, t, 160, { dur: .04, vol: .04, to: 90 });
     feelBurst(c, t + .075, { dur: .03, type: 'highpass', f0: 2000, vol: .07 }); feelBurst(c, t + .09, { dur: .12, f0: 4000, f1: 2500, vol: .02 }); },
+  scratch: c => { const t = c.currentTime; feelBurst(c, t, { dur: .07, f0: 3400 + Math.random() * 800, q: 2.2, vol: .018, grain: 3 }); }, // a marker on paper
   key: c => { const t = c.currentTime; feelBurst(c, t, { dur: .018, type: 'highpass', f0: 1800 + Math.random() * 600, vol: .025 }); feelTone(c, t, 180 + Math.random() * 40, { dur: .03, vol: .012, to: 120 }); },
 };
 let deskSfxLast = {};
