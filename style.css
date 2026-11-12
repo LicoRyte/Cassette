@@ -11,7 +11,7 @@
 @font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-400-italic.woff2) format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
 
 :root {
-  --line: #34111f; --dim: #293b49; --mute: #6d8a8d; --soft: #6d8a8d; --ink: #bfc3c6; --white: #ffe0dc;
+  --line: #34111f; --dim: #293b49; --mute: #6d8a8d; --soft: #6d8a8d; --ink: #bfc3c6; --white: #ffffe4;
   --amber: #ffb762; --amber-hi: #ffdaac; --sky: #bfc3c6; --blue: #77d6c1; --indigo: #1c92a7; --violet: #1c92a7;
   --green: #9cb93b; --red: #c76e46; --wine: #73392e; --butter: #ffdaac;
   --ui: 'Barlow C', 'Arial Narrow', sans-serif; --text: 'Courier Prime', 'Courier New', monospace;
@@ -956,3 +956,34 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
   .sx-v2 .sx-corner .sx-clock { align-items: center; text-align: center; }
   .sx-v2 .sx-mid .sx-planet { flex: none; height: 46vh; }
 }
+
+/* the timer panel, rebuilt: as wide as the two level bars, the time filling that width, a 2x2 grid of white session
+   bars, then Start/Pause and Reset side by side. Order: status, time, bars, buttons, telemetry, message. */
+.sx-v2 .sl-lv { gap: 24px; }
+.sx-v2 .sl-lv-i { flex: 0 0 168px; min-width: 0; width: 168px; }
+.sx-v2 .sl-lv-t { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sx-v2 .sx-corner { width: 360px; gap: 0; align-items: stretch; }
+.sx-v2 .sx-corner .sx-clock, .sx-v2 .sx-corner .sl-screen { display: contents; }
+.sx-v2 .sx-corner .sl-big { order: 0; margin-bottom: 2px; }
+.sx-v2 .sx-corner .sl-time { order: 1; margin: 0 0 10px; padding: 0; border: 0; background: none; font-size: 132px; line-height: .9; letter-spacing: 0; text-align: center; }
+.sx-v2 .sx-corner .sl-time::before, .sx-v2 .sx-corner .sl-time::after { display: none; }
+.sx-v2 .sx-corner .sx-cycle { order: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sx-v2 .sx-corner .sx-cycle span { width: auto; height: 16px; background: #293b49; }
+.sx-v2 .sx-corner .sx-cycle .done { background: var(--white); }
+.sx-v2 .sx-corner .sx-cycle .now::after { background: var(--white); }
+.sx-v2 .sx-corner .sx-cycle.broken .done { opacity: .5; }
+.sx-v2 .sx-corner .sx-cmd { order: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.sx-v2 .sx-corner .sx-cmd .btn { min-width: 0; padding: 10px 0; font-size: 19px; color: #030710; background: var(--amber); border-color: var(--amber); }
+.sx-v2 .sx-corner .sx-cmd .btn:hover:not(:disabled) { background: var(--amber-hi); border-color: var(--amber-hi); }
+.sx-v2 .sx-corner .sx-cmd .btn:disabled { color: #6d8a8d; background: none; border-color: var(--dim); }
+.sx-v2 .sx-corner .sx-cap { order: 4; margin-top: 12px; }
+.sx-v2 .sx-corner .sl-hint { order: 5; margin-top: 6px; }
+/* every page the same width, so the header and tabs never move between pages */
+.sl-pane, .sx-page-h, .sx-atlasnav, .sx-mappane, .sx-page:has(.sx-mappane:not([hidden])) .sx-page-h, .sx-page:has(.sx-mappane:not([hidden])) .sx-atlasnav,
+.sx-page:has(.sx-ed) .sx-page-h, .sl-pane:has(.sx-ed) { max-width: 1200px; }
+.sx-atlasnav .sl-stab { width: 120px; text-align: center; }
+@media (max-width: 900px) {
+  .sx-v2 .sx-corner { width: 100%; max-width: 380px; align-self: center; }
+  .sx-v2 .sl-lv-i { flex: 1 1 0; width: auto; }
+}
+@media (min-width: 901px) { .sx-v2 .sx-rail { width: 360px; } } /* the rail is as wide as the timer panel */

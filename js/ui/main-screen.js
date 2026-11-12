@@ -14,13 +14,11 @@ function drawName() {
     : [el('b', {}, 'Uncharted world'), el('span', {}, 'Somewhere ahead')]));
   nameBox.onclick = p ? () => { tab('log'); openWorld(p.num); } : null;
 }
-function drawCycle(pct) { // one segment per study session, a short tick per short break, a long one for the long break
+function drawCycle(pct) { // one bar per study session of the cycle, two to a row: done ones full, the one you're on filling up
   const n = S.set.every, done = mode === 'focus' ? S.cycle % n : (S.cycle % n || n), kids = [];
   for (let i = 0; i < n; i++) {
     const st = i < done ? 'done' : i === done && mode === 'focus' ? 'now' : '';
     kids.push(el('span', { class: 'st ' + st, style: st === 'now' ? '--p:' + pct + '%' : null }));
-    const bst = mode !== 'focus' && i === done - 1 ? 'now' : i < done - 1 ? 'done' : '';
-    kids.push(el('span', { class: (i === n - 1 ? 'lb ' : 'sb ') + bst, style: bst === 'now' ? '--p:' + pct + '%' : null }));
   }
   cycleBar.replaceChildren(...kids);
   cycleBar.classList.toggle('broken', !!S.fc.broken);
