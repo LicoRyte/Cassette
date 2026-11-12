@@ -4,7 +4,7 @@
 // the right side has two tabs: Research (what Knowledge points unlock) and Transmissions (everything the ship heard and logged)
 let rightTab = 'tx';
 // every kind of log in one place: the ship's log, Meridian logs, Ship Logs from research, achievements, and old Listening Post transmissions
-const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['stay', 'Stays'], ['trade', 'Traders'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements']];
+const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['stay', 'Stays'], ['trade', 'Traders'], ['mystery', 'Mysteries'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements']];
 let txFilter = 'all';
 const evCat = e => e.c || (/^Research/.test(e.title || '') ? 'res' : /^Achievement/.test(e.title || '') ? 'ach' : /^Ship activity|joined the crew|left the crew|^New room/.test(e.title || '') ? 'ship' : /^Distress/.test(e.title || '') ? 'quest' : 'ev');
 function txFeed() {

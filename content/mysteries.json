@@ -1,0 +1,95 @@
+{
+  "_guide": [
+    "Mysteries: strange things that take a few study sessions of watching to understand. They're never failed, and they travel",
+    "with the ship, so leaving the world doesn't lose them.",
+    "One entry each: id (lowercase, never reused), ic (an emoji), title, when (optional: where it can start, like line conditions),",
+    "  found: the line when it turns up, steps: one line per study session of observing (2 to 4 of them),",
+    "  answer: what it turns out to be (goes in the Codex), wonder: the name of the Wonder it leaves you with,",
+    "  kp: Knowledge points for solving it (1 or 2).",
+    "In the text: {crew} is whoever is watching (works like in lines.json), {world} the world you're at now, {origin} the world where",
+    "it started, {biome}, {weather}, {time} the world you're at. [a|b] picks one."
+  ],
+  "mysteries": [
+    {
+      "id": "moving-stone", "ic": "🪨", "title": "The stone that moves", "when": { "ground": true }, "kp": 1, "wonder": "A Patient Stone",
+      "found": "Near the landing site on {origin}, a waist-high stone has moved. Not far. About a step. Nobody saw it happen.",
+      "steps": [
+        "{Crew} draws a chalk line around the stone and sits up all night watching it. Nothing moves. In the morning, it's a step further on.",
+        "{Crew} measures the trail. The stone has been walking in a long, slow curve, the same direction, for a very long time.",
+        "{Crew} finds the end of the curve: a ring of other stones, all leaning in, as if they're listening to something in the middle."
+      ],
+      "answer": "The stones are pulled by the slow tide of a moon too faint to see. Over thousands of years they drift into the same ring, where the pulls cancel out, and there they finally rest. The crew left the stone a little further along. It seemed polite."
+    },
+    {
+      "id": "sky-color", "ic": "🌈", "title": "The sky that changes colour", "when": { "ground": true }, "kp": 1, "wonder": "A Sky in Seven Colours",
+      "found": "Above {origin}, the sky turns from blue to deep violet in the time it takes to blink, then back again.",
+      "steps": [
+        "{Crew} times the changes. They come every few minutes, but never quite the same few minutes.",
+        "{Crew} notices the colours follow the wind: when the wind turns, the sky turns with it.",
+        "{Crew} holds up a sample of the air to the light. Tiny crystals in it flash every colour at once."
+      ],
+      "answer": "High in the air float clouds of tiny crystals, too small to see one by one. The wind turns them all at once, like a flock of birds, and with every turn they bend the light into a different colour. The crew named the brightest colour after the cook."
+    },
+    {
+      "id": "seven-notes", "ic": "🎵", "title": "Seven notes", "kp": 2, "wonder": "A Song Across the Dark",
+      "found": "Near {origin}, the radio picks up seven notes, slow and patient. Then silence. Then the same seven notes again.",
+      "steps": [
+        "{Crew} records the notes and plays them back. They're not quite a song. They're more like a question.",
+        "{Crew} finds the notes are a little louder in one direction. Something out there is sending them on purpose.",
+        "{Crew} plays the seven notes back, slower. For a long time, nothing. Then, very faintly: the same notes, slower still.",
+        "{Crew} works it out: whoever sends the song changes it a little each time, to show they heard the last one."
+      ],
+      "answer": "Somewhere out in the dark, an old beacon is still running, built long ago by someone who wanted to know they weren't alone. It sends seven notes and listens. When anyone answers, it slows the song down, to say: I heard you. The crew answers it every now and then. It always slows down."
+    },
+    {
+      "id": "glowing-tracks", "ic": "👣", "title": "Glowing footprints", "when": { "ground": true, "life": ">0.2" }, "kp": 1, "wonder": "A Midnight Parade",
+      "found": "On {origin}, the crew finds footprints that glow softly in the dark, leading away from the ship. None of the crew made them.",
+      "steps": [
+        "{Crew} follows the footprints for an hour. They loop around the ship, twice, as if somebody was curious.",
+        "{Crew} sets out a little bowl of water and a biscuit, then waits. By morning, both are gone, and there are more footprints.",
+        "{Crew} stays very still all night, and finally sees them: small, round, shy creatures, glowing faintly as they walk."
+      ],
+      "answer": "The footprints belong to small night creatures that glow from the inside, so their friends can find them in the dark. They're very curious and very shy, and they had been visiting the ship every night to see if it was alive. The crew decided it was, a little."
+    },
+    {
+      "id": "frozen-voice", "ic": "❄", "title": "The voice in the ice", "when": { "ground": true, "temp": "<0.35" }, "kp": 2, "wonder": "A Voice Kept Safe",
+      "found": "In the ice of {origin}, the crew hears a voice. Muffled, faraway, saying something nobody can quite make out.",
+      "steps": [
+        "{Crew} presses an ear to the ice. The voice is louder at night, when everything else is quiet.",
+        "{Crew} chips out a small piece of ice. As it melts in {crew.their} hand, the voice says one clear word.",
+        "{Crew} melts a little more, slowly, word by word. It's a message, left for whoever came next."
+      ],
+      "answer": "Long ago, someone stood on this ice and spoke a message into it during a storm so cold that their words froze where they fell. As the ice melts, the words come out again, one by one. The message said: \"It's lovely here. You should stay a while.\" The crew did."
+    },
+    {
+      "id": "lights-below", "ic": "💡", "title": "Lights under the clouds", "when": { "ground": false }, "kp": 2, "wonder": "A City in the Clouds",
+      "found": "Deep under the clouds of {origin}, lights blink on and off. Too regular to be lightning. Too many to be one ship.",
+      "steps": [
+        "{Crew} watches the lights for hours. They blink in groups, like windows in a building when people go to bed.",
+        "{Crew} drops the ship a little lower. The lights drift slowly, all together, with the wind.",
+        "{Crew} sees them clearly at last: floating houses, tied together with long ropes, drifting through the clouds like a raft."
+      ],
+      "answer": "A whole town floats deep in the clouds, built on balloons and tied together with rope. The people there have never touched the ground, and see no reason to start. They waved at the ship for a long time, and sent up a basket of cloud-fruit on a string."
+    },
+    {
+      "id": "lost-letter", "ic": "✉", "title": "A letter with no sender", "kp": 1, "wonder": "A Letter Answered",
+      "found": "In the cargo hold, there's a letter nobody remembers bringing aboard. It's addressed to \"whoever reads this\".",
+      "steps": [
+        "{Crew} reads it twice. It's about an ordinary day, a long time ago, on a world that isn't on any map.",
+        "{Crew} notices the paper smells like a flower nobody aboard has ever seen.",
+        "{Crew} finds a second letter folded inside the first, smaller, asking just one question: \"Was it a good day where you are?\""
+      ],
+      "answer": "Long ago, a traveler started leaving letters in ships at every port, hoping they'd be carried somewhere far away and read by a stranger. This one has been riding along in the hold for years. The crew wrote an answer, folded it inside, and will leave both on the next world: yes, it was a good day."
+    },
+    {
+      "id": "second-moon", "ic": "🌘", "title": "A moon that shouldn't be there", "kp": 1, "wonder": "A Borrowed Moon",
+      "found": "Over {origin}, a small moon rises that wasn't there last night. It isn't on any chart either.",
+      "steps": [
+        "{Crew} watches the moon cross the sky. It's faster than a moon should be, and very slightly wobbly.",
+        "{Crew} looks through the telescope. The moon has a long, thin tail, like a comet's, but pointing the wrong way.",
+        "{Crew} sees it leave: it swings past the planet one last time and heads off into the dark, on its way somewhere else."
+      ],
+      "answer": "It was a wandering rock, caught by the planet's pull for a few nights before slipping free again. For a little while, the world had a second moon, and the crew happened to be there to see it. Nobody else ever will. That seemed worth writing down."
+    }
+  ]
+}

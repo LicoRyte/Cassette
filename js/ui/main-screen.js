@@ -5,7 +5,7 @@
 function scenePlanet(kind) {
   return kind === 'campaign' && running ? null : kind === 'explore' && running ? null : atP();
 }
-const sceneKind = () => mode !== 'focus' ? 'break' : following() ? 'campaign' : chaptering() || expediting() || investigating() || salvaging() || staying() ? 'discover' : 'explore';
+const sceneKind = () => mode !== 'focus' ? 'break' : following() ? 'campaign' : chaptering() || expediting() || investigating() || salvaging() || staying() || observing() ? 'discover' : 'explore';
 function drawName() {
   if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, worldLabel(p) + ', ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
   const kind = sceneKind(), p = scenePlanet(kind);
@@ -58,6 +58,11 @@ function hereSec(lock, legBar) {
     out.push(el('div', { class: 'sx-offer' }, el('p', { class: 'sx-visit' }, o.ic + ' ' + o.t),
       el('p', { class: 'sl-muted' }, 'You give: ' + (w ? w.name : '?') + '. You get: ' + (g ? g.name + ' (' + g.desc.charAt(0).toLowerCase() + g.desc.slice(1, -1) + ')' : '?') + '.'),
       el('div', { class: 'sx-row-l' }, el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || null, onclick: () => answerTrade(p, true) }, 'Swap'), el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, onclick: () => answerTrade(p, false) }, 'No thanks')))); }
+  // open mysteries (they travel with the ship)
+  S.mys.filter(o => mysDef(o.id)).forEach(o => { const m = mysDef(o.id), on = observing() && mysPicked() === o;
+    out.push(el('p', { class: 'sx-q-h sx-q-sub' }, '🔎 ' + m.title), el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round(o.step / m.steps.length * 100) + '%' })),
+      el('p', { class: 'sx-story' }, o.log[o.log.length - 1]), el('small', { class: 'sl-muted' }, 'Found on ' + o.origin + ' · ' + o.step + ' of ' + m.steps.length + ' observed'),
+      el('div', { class: 'sx-row-l' }, on ? el('span', { class: 'sl-muted' }, 'Observing next session.') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('mystery', o.id) }, 'Observe it next session'))); });
   // a Meridian chapter on this world
   if (p.story && STD) out.push(...chapterBits(p, lock, legBar));
   // the expedition
