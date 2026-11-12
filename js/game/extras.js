@@ -21,7 +21,7 @@ function returnTrip(reps) {
   const p = byNum(S.returnTo).p, days = Math.max(1, Math.round((Date.now() - (p.lastAt || byNum(p.num).at)) / 86400000));
   const people = S.crew.length ? S.crew : [S.me], c = people[Math.floor(Math.random() * people.length)];
   const t = txLine('return', Object.assign(worldCtx(p), { crew: personCtx(c), days, camped: !!p.camped })) || 'Back on ' + nm(p) + '.';
-  S.at = p.num; S.exploreKind = 'random'; S.cnt.returns = (S.cnt.returns || 0) + 1; award(15, 5);
+  S.at = p.num; S.exploreKind = 'random'; S.cnt.returns = (S.cnt.returns || 0) + 1; award(15, 5); oddFind(p, reps);
   reps.unshift({ ev: { battle: true, ic: S.home === p.num ? '🏠' : '★', title: (S.home === p.num ? 'Home again: ' : 'Back on ') + nm(p), t } });
   pushEv({ c: 'stay', ic: S.home === p.num ? '🏠' : '★', title: 'Back on ' + nm(p), t, at: Date.now() });
   return p;

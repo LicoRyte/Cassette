@@ -7,7 +7,7 @@
 const MYS = -10, MYS_MAX = 3; // S.mission while observing; how many can be open at once
 if (!Array.isArray(S.mys)) S.mys = []; // open mysteries: { id, num, origin, step, at, log: [lines so far] }
 if (!S.mysDone) S.mysDone = {}; if (!S.wonders) S.wonders = {}; // solved mysteries (id: times), Wonders (name: when)
-const mysDef = id => (TEXT.mysteries || []).find(m => m.id === id) || null;
+const mysDef = id => /^odd:/.test(id || '') ? oddDef(+id.slice(4)) : (TEXT.mysteries || []).find(m => m.id === id) || null;
 const mysPicked = () => S.mys.find(m => m.id === S.mysPick && mysDef(m.id)) || S.mys.find(m => mysDef(m.id)) || null;
 const observing = () => S.mission === MYS && !!mysPicked();
 function mysCtx(o, p) { // whoever is watching, and where
@@ -16,7 +16,7 @@ function mysCtx(o, p) { // whoever is watching, and where
 }
 // maybe a new mystery on world p (chance 0 to 1); reps: the session report
 function mysFind(p, reps, chance) {
-  if (!p || p.story || Math.random() >= chance || S.mys.length >= MYS_MAX) return null;
+  if (!p || p.story || Math.random() >= chance || S.mys.filter(m => !/^odd:/.test(m.id)).length >= MYS_MAX) return null; // a world's own oddity doesn't count
   const open = new Set(S.mys.map(m => m.id)), ctx = worldCtx(p);
   const fits = (TEXT.mysteries || []).filter(m => !open.has(m.id) && txFits(m, ctx)), fresh = fits.filter(m => !S.mysDone[m.id]), pool = fresh.length ? fresh : fits;
   if (!pool.length) return null;
@@ -39,10 +39,22 @@ function mysStep(reps) {
   // solved
   const kp = m.kp || 1, answer = txFill(m.answer, ctx);
   gainKp(kp); award(60, 40);
-  S.mys.splice(S.mys.indexOf(o), 1); S.mysDone[m.id] = (S.mysDone[m.id] || 0) + 1; S.cnt.mysSolved = (S.cnt.mysSolved || 0) + 1; S.mission = 0;
+  const find = m.odd ? oddSolved(o, reps) : '';
+  S.mys.splice(S.mys.indexOf(o), 1); if (!m.odd) { S.mysDone[m.id] = (S.mysDone[m.id] || 0) + 1; S.cnt.mysSolved = (S.cnt.mysSolved || 0) + 1; } S.mission = 0;
   if (m.wonder && !S.wonders[m.wonder]) S.wonders[m.wonder] = Date.now();
-  const got = '📘 +' + kp + ' Knowledge point' + (kp === 1 ? '' : 's') + (m.wonder ? ' · ✨ Wonder: ' + m.wonder : '');
-  pushEv({ c: 'codex', ic: m.ic, title: 'Codex: ' + m.title, t: answer, at: Date.now() });
+  const got = '+' + kp + ' Knowledge point' + (kp === 1 ? '' : 's') + (m.wonder ? ' · Wonder: ' + m.wonder : '') + (find ? ' · ' + find : '');
+  pushEv({ c: 'codex', ic: m.ic, title: 'Codex: ' + m.title + (m.odd ? ' (' + o.origin + ')' : ''), t: answer, at: Date.now() });
   reps.unshift({ ev: { battle: true, ic: m.ic, title: '🔎 Solved: ' + m.title, t: t + ' ' + answer, got } });
   return '🔎 Solved: ' + m.title + '. The answer is in the Codex.';
 }
+
+// ---------- once: anomalies become mysteries; old missions become Stay here ----------
+if (!S.rw9) {
+  const here = atP(); if (here) oddFind(here, null);
+  S.found.forEach(({ p }) => { if (p.odd && !p.story && p.inv && !p.inv.done && p.inv.pct > 0) oddFind(p, null); }); // half-investigated ones keep their progress
+  if (S.mission === -8) { S.mission = here && here.odd ? MYS : 0; S.mysPick = here ? 'odd:' + here.num : null; }
+  if (S.mission === -4) { S.mission = STAY; S.stayAct = 'expedition'; }
+  if (S.mission === -7) { S.mission = STAY; S.stayAct = 'salvage'; }
+  S.rw9 = 1; save();
+}
+

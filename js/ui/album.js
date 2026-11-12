@@ -34,16 +34,16 @@ function wrapText(g, text, maxW) { const out = []; let line = ''; text.split(' '
 async function cardCanvas(p, caption, at) { // a 480 x 300 card in the planet palette
   const W = 480, H = 300, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
-  g.fillStyle = '#2e222f'; g.fillRect(0, 0, W, H);
-  const r = rng((p.seed ^ 0xCA4D) >>> 0); for (let i = 0; i < 90; i++) { g.fillStyle = r() < .75 ? '#625565' : '#c7dcd0'; g.fillRect(Math.floor(r() * W), Math.floor(r() * H), 1, 1); }
-  g.strokeStyle = '#fbb954'; g.lineWidth = 2; g.strokeRect(8, 8, W - 16, H - 16);
+  g.fillStyle = '#34111f'; g.fillRect(0, 0, W, H);
+  const r = rng((p.seed ^ 0xCA4D) >>> 0); for (let i = 0; i < 90; i++) { g.fillStyle = r() < .75 ? '#833f34' : '#bfc3c6'; g.fillRect(Math.floor(r() * W), Math.floor(r() * H), 1, 1); }
+  g.strokeStyle = '#ffb762'; g.lineWidth = 2; g.strokeRect(8, 8, W - 16, H - 16);
   const img = await cardImg(paint(p, 64)); if (img) g.drawImage(img, 24, 56, 192, 192);
-  g.fillStyle = '#ffffff'; g.font = '600 30px "Barlow Condensed", sans-serif'; g.fillText(nm(p), 236, 70);
-  g.fillStyle = '#c7dcd0'; g.font = '16px "Barlow Condensed", sans-serif'; g.fillText(worldLabel(p), 236, 94);
-  g.fillStyle = '#fbb954'; g.font = '15px "Courier Prime", monospace'; wrapText(g, caption, W - 260).slice(0, 7).forEach((l, i) => g.fillText(l, 236, 128 + i * 19));
+  g.fillStyle = '#ffffe4'; g.font = '600 30px "Barlow Condensed", sans-serif'; g.fillText(nm(p), 236, 70);
+  g.fillStyle = '#bfc3c6'; g.font = '16px "Barlow Condensed", sans-serif'; g.fillText(worldLabel(p), 236, 94);
+  g.fillStyle = '#ffb762'; g.font = '15px "Courier Prime", monospace'; wrapText(g, caption, W - 260).slice(0, 7).forEach((l, i) => g.fillText(l, 236, 128 + i * 19));
   const names = [meName()].concat(S.crew.map(x => firstName(x))).filter(Boolean), sig = '— ' + (names.length > 4 ? names.slice(0, 4).join(', ') + ' and co.' : names.join(', '));
-  g.fillStyle = '#9babb2'; g.font = '14px "Barlow Condensed", sans-serif'; g.fillText(capFirst(sig.replace('— the captain', '— The captain')), 236, H - 30);
-  g.fillStyle = '#8fd3ff'; g.font = '12px "Barlow Condensed", sans-serif'; g.fillText('SOLARIST · ' + S.ship.name.toUpperCase() + ' · ' + new Date(at || Date.now()).toLocaleDateString(), 24, 36);
+  g.fillStyle = '#bfc3c6'; g.font = '14px "Barlow Condensed", sans-serif'; g.fillText(capFirst(sig.replace('— the captain', '— The captain')), 236, H - 30);
+  g.fillStyle = '#77d6c1'; g.font = '12px "Barlow Condensed", sans-serif'; g.fillText('SOLARIST · ' + S.ship.name.toUpperCase() + ' · ' + new Date(at || Date.now()).toLocaleDateString(), 24, 36);
   return c;
 }
 function cardCaption(p) {

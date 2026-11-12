@@ -11,7 +11,7 @@ const gasWorld = p => !!(TYPES[p.type] || {}).noGround;
 const exOf = p => (p && p.ex) || { step: 0, pick: 0, poi: [] };
 const exDone = p => !!(p && p.ex && p.ex.step >= EX_LEN);
 const canExpedition = p => !!p && !exDone(p) && !p.story;
-const expediting = () => S.mission === -4 && canExpedition(atP());
+const expediting = () => S.mission === STAY && canExpedition(atP()) && (stayAct() || {}).id === 'expedition'; // a Stay here activity now
 const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 // one leg of a world's expedition: [scene, [safe choice, result], [risky choice, result]], the same every time for that world and leg
@@ -64,7 +64,7 @@ function exLegDone(reps) {
 
 // ---------- Derelict ship: a rare arrival encounter. One session of salvage, one find. ----------
 const derelictHere = () => { const p = atP(); return p && p.derelict && !p.derelict.done ? p : null; };
-const salvaging = () => S.mission === -7 && !!derelictHere();
+const salvaging = () => S.mission === STAY && !!derelictHere() && (stayAct() || {}).id === 'salvage';
 function makeDerelict(p) {
   const D = EXD && EXD.derelict, ships = D && D.ships && D.ships.length ? D.ships : ['an old freighter'];
   p.derelict = { ship: ships[Math.floor(Math.random() * ships.length)], leg: D && D.legs ? Math.floor(Math.random() * D.legs.length) : 0, pick: 0, done: false };

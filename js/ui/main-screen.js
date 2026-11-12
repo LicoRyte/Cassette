@@ -5,7 +5,7 @@
 function scenePlanet(kind) {
   return kind === 'campaign' && running ? null : kind === 'explore' && running ? null : atP();
 }
-const sceneKind = () => mode !== 'focus' ? 'break' : following() ? 'campaign' : chaptering() || expediting() || investigating() || salvaging() || staying() || observing() ? 'discover' : 'explore';
+const sceneKind = () => mode !== 'focus' ? 'break' : following() ? 'campaign' : chaptering() || staying() || observing() ? 'discover' : 'explore';
 function drawName() {
   if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, worldLabel(p) + ', ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
   const kind = sceneKind(), p = scenePlanet(kind);
@@ -72,7 +72,7 @@ function hereSec(lock, legBar) {
     const leg = exLeg(p, x.step);
     out.push(el('p', { class: 'sx-q-h sx-q-sub' }, head + ' · ' + EX_PARTS[x.step]), legBar(x.step, x.step, EX_LEN, k => EX_PARTS[k]), el('p', {}, leg[0]),
       pathPick(x.pick, lock, leg, bold => exPathTip(x.step, bold), v => { (p.ex = p.ex || { step: 0, pick: 0, poi: [] }).pick = v; save(); drawLeft(); }),
-      el('div', { class: 'sx-row-l' }, expediting() ? el('span', { class: 'sl-muted' }, 'Next session ' + (x.step ? 'continues it' : 'sets out') + '. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('expedition') }, x.step ? 'Continue next session' : 'Set out next session'),
+      el('div', { class: 'sx-row-l' }, expediting() ? el('span', { class: 'sl-muted' }, 'Next session ' + (x.step ? 'continues it' : 'sets out') + '. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('stay', 'expedition') }, x.step ? 'Continue next session' : 'Set out next session'),
         expediting() ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Not now') : null));
   }
   // places: what's been found here, and staying to find the rest
@@ -83,20 +83,13 @@ function hereSec(lock, legBar) {
     if (a) out.push(el('div', { class: 'sx-row-l' }, staying() ? el('span', { class: 'sl-muted' }, a.ic + ' Staying next session: ' + a.name.toLowerCase() + '. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('stay') }, '🏕 Stay here next session'),
       el('span', { class: 'sl-muted' }, nLeft ? ' ' + nLeft + ' more place' + (nLeft === 1 ? '' : 's') + ' to find by staying' + (onExp ? ', and ' + onExp + ' on the expedition.' : '.') : onExp ? ' The other ' + onExp + ' place' + (onExp === 1 ? ' is' : 's are') + ' on the expedition.' : ' Every place is found.')));
   }
-  // the anomaly
-  if (p.odd && !p.story) {
-    const v = invOf(p);
-    if (v.done) out.push(el('p', { class: 'sx-explored' }, '🔬 Anomaly solved. ', el('button', { type: 'button', class: 'sl-link', onclick: () => { rightTab = 'tx'; txFilter = 'codex'; drawRight(); } }, 'Read it in the Codex')));
-    else if (canInvestigate(p)) out.push(el('p', { class: 'sx-q-h sx-q-sub' }, '🔬 Anomaly: ' + capFirst(p.odd)), el('div', { class: 'sx-camp-bar' }, el('i', { style: 'width:' + Math.round(v.pct * 100) + '%' })),
-      el('div', { class: 'sx-row-l' }, investigating() ? el('span', { class: 'sl-muted' }, Math.round(v.pct * 100) + '% studied. Investigating next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('investigate') }, (v.pct ? 'Keep investigating (' + Math.round(v.pct * 100) + '%)' : 'Investigate it') + ' next session')));
-  }
   // a derelict to salvage
   const d = derelictHere();
   if (d) {
     const leg = derelictLeg(d);
     out.push(el('p', { class: 'sx-q-h sx-q-sub' }, '🛸 Derelict: ' + d.derelict.ship), el('p', {}, leg[0]),
       pathPick(d.derelict.pick, lock, leg, bold => bold ? 'A riskier search, a rarer find' : 'A careful search, a sure find', v => { d.derelict.pick = v; save(); drawLeft(); }),
-      el('div', { class: 'sx-row-l' }, salvaging() ? el('span', { class: 'sl-muted' }, 'Salvaging next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('salvage') }, 'Salvage next session')));
+      el('div', { class: 'sx-row-l' }, salvaging() ? el('span', { class: 'sl-muted' }, 'Salvaging next session. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('stay', 'salvage') }, 'Salvage next session')));
   }
   return sec(null, ...out);
 }

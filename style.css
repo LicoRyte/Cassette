@@ -11,14 +11,14 @@
 @font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-400-italic.woff2) format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
 
 :root {
-  --line: #241527; --dim: #402751; --mute: #577277; --soft: #819796; --ink: #c7cfcc; --white: #ebede9;
-  --amber: #e8c170; --amber-hi: #d0da91; --sky: #a4dddb; --blue: #73bed3; --indigo: #4f8fba; --violet: #4f8fba;
-  --green: #a8ca58; --red: #cf573c; --wine: #752438; --butter: #d0da91;
+  --line: #34111f; --dim: #293b49; --mute: #6d8a8d; --soft: #6d8a8d; --ink: #bfc3c6; --white: #ffe0dc;
+  --amber: #ffb762; --amber-hi: #ffdaac; --sky: #bfc3c6; --blue: #77d6c1; --indigo: #1c92a7; --violet: #1c92a7;
+  --green: #9cb93b; --red: #c76e46; --wine: #73392e; --butter: #ffdaac;
   --ui: 'Barlow C', 'Arial Narrow', sans-serif; --text: 'Courier Prime', 'Courier New', monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: #000; }
+html, body { margin: 0; height: 100%; background: #030710; }
 body { color: var(--ink); font: 17px/1.45 var(--ui); -webkit-font-smoothing: antialiased; }
 button, select, input { font: inherit; color: inherit; }
 img { image-rendering: pixelated; }
@@ -31,14 +31,14 @@ img { image-rendering: pixelated; }
 .btn { padding: 6px 14px; font: 600 17px/1.2 var(--ui); color: var(--amber); background: transparent; border: 1px solid var(--dim); cursor: pointer; white-space: nowrap; }
 .btn:hover:not(:disabled) { border-color: var(--amber); }
 .btn:disabled { color: var(--dim); border-color: var(--line); cursor: default; }
-.sl-go { color: #000 !important; background: var(--amber) !important; border-color: var(--amber) !important; }
+.sl-go { color: #030710 !important; background: var(--amber) !important; border-color: var(--amber) !important; }
 .sl-go:hover:not(:disabled) { background: var(--amber-hi) !important; border-color: var(--amber-hi) !important; }
-.btn.arm, .sl-sell-b.arm { color: #000 !important; background: var(--butter) !important; border-color: var(--butter) !important; }
+.btn.arm, .sl-sell-b.arm { color: #030710 !important; background: var(--butter) !important; border-color: var(--butter) !important; }
 .sl-link { padding: 0; background: none; border: 0; color: var(--amber); font: 500 16px var(--ui); cursor: pointer; text-decoration: underline; text-decoration-color: var(--dim); text-underline-offset: 3px; }
 .sl-link:hover:not(:disabled) { text-decoration-color: var(--amber); }
 .sl-link:disabled { color: var(--mute); text-decoration: none; cursor: default; }
-select, input[type="search"], input[type="text"] { padding: 5px 8px; min-height: 34px; font: 16px var(--ui); color: var(--ink); background: #000; border: 1px solid var(--dim); border-radius: 0; }
-select option, select optgroup { background: #000; color: var(--ink); }
+select, input[type="search"], input[type="text"] { padding: 5px 8px; min-height: 34px; font: 16px var(--ui); color: var(--ink); background: #030710; border: 1px solid var(--dim); border-radius: 0; }
+select option, select optgroup { background: #030710; color: var(--ink); }
 input[type="search"]::placeholder { color: var(--mute); }
 .sl-muted { color: var(--mute); font-size: 15px; }
 h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
@@ -149,7 +149,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-kp b { color: var(--sky) !important; }
 .sx-dot-amber { background: var(--amber) !important; }
 .sx-trader { border-left-color: var(--amber) !important; } .sx-trader .sl-muted { display: block; margin-top: 2px; font-size: 14px; }
-.sx-dot { margin-left: 6px; padding: 0 6px; font: 700 13px/18px var(--ui); font-style: normal; color: #000; background: var(--sky); vertical-align: 2px; }
+.sx-dot { margin-left: 6px; padding: 0 6px; font: 700 13px/18px var(--ui); font-style: normal; color: #030710; background: var(--sky); vertical-align: 2px; }
 .sx-newtx { display: block; width: 100%; margin-bottom: 22px; padding: 8px 0 8px 12px; text-align: left; background: none; border: 0; border-left: 3px solid var(--sky); cursor: pointer; }
 .sx-newtx b { display: block; font: 700 18px var(--ui); color: var(--sky); }
 .sx-newtx span { font-size: 14px; color: var(--mute); }
@@ -182,11 +182,11 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-more { margin-top: 16px; }
 .sx-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
 .sx-danger { color: var(--red) !important; border-color: var(--wine) !important; }
-.sx-danger.arm { color: #000 !important; background: var(--red) !important; border-color: var(--red) !important; }
+.sx-danger.arm { color: #030710 !important; background: var(--red) !important; border-color: var(--red) !important; }
 .sx-vol { display: flex; align-items: center; gap: 8px; color: var(--soft); } .sx-vol input { accent-color: var(--amber); width: 160px; }
 
 /* ---------- full-screen pages (Logbook, Ship, Collection, Settings) ---------- */
-.sx-page { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; background: #000; }
+.sx-page { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; background: #030710; }
 .sx-page-h { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; max-width: 980px; margin: 0 auto; padding: 22px 24px 12px; }
 .sx-page-t { margin: 0; font: 700 34px var(--ui); color: var(--white); }
 .sx-page .sl-body { flex: 1; min-height: 0; overflow-y: auto; }
@@ -200,10 +200,10 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sl-mode:disabled { color: var(--dim); cursor: default; }
 
 /* the session report */
-.sx-report { position: fixed; inset: 0; z-index: 6; display: grid; place-items: center; padding: 20px; background: rgba(0, 0, 0, .72); }
-.sx-report-in { width: min(600px, 100%); max-height: 88vh; overflow-y: auto; padding: 22px 24px 18px; background: #000; border: 1px solid var(--dim); display: flex; flex-direction: column; gap: 16px; }
+.sx-report { position: fixed; inset: 0; z-index: 6; display: grid; place-items: center; padding: 20px; background: rgba(3, 7, 16, .78); }
+.sx-report-in { width: min(600px, 100%); max-height: 88vh; overflow-y: auto; padding: 22px 24px 18px; background: #030710; border: 1px solid var(--dim); display: flex; flex-direction: column; gap: 16px; }
 .sx-report-in h2 { margin: 0; font: 700 26px var(--ui); color: var(--white); }
-.sx-report-ft { display: flex; justify-content: flex-end; position: sticky; bottom: -18px; padding: 10px 0 0; background: #000; }
+.sx-report-ft { display: flex; justify-content: flex-end; position: sticky; bottom: -18px; padding: 10px 0 0; background: #030710; }
 
 /* ---------- messages, encounters, planet cards ---------- */
 .sl-trans p { margin: 0; font: italic 15px/1.45 var(--text); color: var(--ink); }
@@ -315,7 +315,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sl-stats td:last-child { text-align: right; font-weight: 600; color: var(--white); white-space: nowrap; }
 .sl-feed { max-height: 340px; }
 .sl-feedbox { padding: 0 0 6px; overflow: auto; }
-.sl-day { position: sticky; top: 0; z-index: 1; padding: 6px 0; font: 600 15px var(--ui); color: var(--mute); background: #000; border-bottom: 1px solid var(--line); }
+.sl-day { position: sticky; top: 0; z-index: 1; padding: 6px 0; font: 600 15px var(--ui); color: var(--mute); background: #030710; border-bottom: 1px solid var(--line); }
 .sl-msg { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
 .sl-msg-pic { width: 28px; height: 28px; flex-shrink: 0; margin-top: 2px; }
 .sl-msg-ic { width: 28px; flex-shrink: 0; text-align: center; font-size: 16px; line-height: 26px; }
@@ -338,7 +338,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-medal.on { opacity: 1; border-color: var(--dim); }
 .sx-medal-i { grid-row: 1 / span 2; font-size: 20px; line-height: 1.2; filter: grayscale(1); } .sx-medal.on .sx-medal-i { filter: none; }
 .sx-medal b { font: 600 17px var(--ui); color: var(--white); } .sx-medal small { font-size: 14px; color: var(--mute); }
-.sx-toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 7; width: max-content; max-width: min(440px, calc(100% - 32px)); animation: sx-toast-in .35s ease-out; padding: 10px 14px; background: #000; border: 1px solid var(--amber); font: 600 16px/1.4 var(--ui); color: var(--white); }
+.sx-toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 7; width: max-content; max-width: min(440px, calc(100% - 32px)); animation: sx-toast-in .35s ease-out; padding: 10px 14px; background: #030710; border: 1px solid var(--amber); font: 600 16px/1.4 var(--ui); color: var(--white); }
 .sx-toast div + div { font-weight: 500; color: var(--soft); }
 
 /* ---------- star map ---------- */
@@ -347,7 +347,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-maptools .btn { min-width: 40px; }
 .sx-mapwrap { position: relative; border: 1px solid var(--line); }
 .sx-map { display: block; touch-action: none; cursor: grab; } .sx-map:active { cursor: grabbing; }
-.sx-maptip { position: absolute; z-index: 2; display: flex; gap: 12px; width: 330px; padding: 10px 12px; background: #000; border: 1px solid var(--dim); pointer-events: none; }
+.sx-maptip { position: absolute; z-index: 2; display: flex; gap: 12px; width: 330px; padding: 10px 12px; background: #030710; border: 1px solid var(--dim); pointer-events: none; }
 .sx-maptip img { width: 64px; height: 64px; flex-shrink: 0; }
 .sx-maptip b { display: block; font: 700 19px/1.1 var(--ui); color: var(--white); } .sx-maptip span { display: block; font-size: 15px; color: var(--soft); } .sx-maptip i { font-style: normal; font-weight: 600; }
 .sx-maptip small { display: block; font-size: 13px; color: var(--mute); margin-top: 2px; } .sx-maptip p { margin: 6px 0 0; font: 14px/1.4 var(--text); color: var(--ink); }
@@ -417,8 +417,8 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-chips button { padding: 2px 9px; background: none; border: 1px solid var(--dim); font: 600 15px var(--ui); color: var(--soft); cursor: pointer; }
 .sx-chips button small { margin-left: 5px; font-size: 13px; color: var(--mute); }
 .sx-chips button:hover { color: var(--white); border-color: var(--soft); }
-.sx-chips button[aria-selected="true"] { color: #000; background: var(--sky); border-color: var(--sky); }
-.sx-chips button[aria-selected="true"] small { color: #000; }
+.sx-chips button[aria-selected="true"] { color: #030710; background: var(--sky); border-color: var(--sky); }
+.sx-chips button[aria-selected="true"] small { color: #030710; }
 .sx-chips button.new:not([aria-selected="true"]) { border-color: var(--sky); }
 .sx-arc { margin-bottom: 22px; padding-left: 14px; border-left: 3px solid var(--sky); }
 .sx-arc.locked { border-left-color: var(--dim); }
@@ -477,14 +477,14 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 
 /* session report: Survey data opens to the right */
 .sx-report-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 12px; max-width: 100%; }
-.sx-report-side { width: min(380px, 100%); max-height: 88vh; overflow-y: auto; padding: 22px 22px 18px; background: #000; border: 1px solid var(--dim); }
+.sx-report-side { width: min(380px, 100%); max-height: 88vh; overflow-y: auto; padding: 22px 22px 18px; background: #030710; border: 1px solid var(--dim); }
 .sx-report-side h3 { margin: 0 0 12px; font: 700 20px var(--ui); color: var(--white); }
 .sx-svbtn { align-self: flex-start; font: 600 16px var(--ui); }
 @media (max-width: 700px) { .sx-report { place-items: start center; overflow-y: auto; } .sx-report-in, .sx-report-side { max-height: none; } }
 
 /* right-side tabs stay put while the panel scrolls */
-.sx-left .sx-rtabs, .sx-right .sx-rtabs { position: sticky; top: -6px; z-index: 2; margin-top: -6px; padding: 6px 0 10px; margin-bottom: 10px; background: #000; box-shadow: 0 8px 10px -6px #000; }
-.sx-right .sx-rhead { position: sticky; top: -6px; z-index: 2; margin-top: -6px; padding-top: 6px; margin-bottom: 12px; background: #000; box-shadow: 0 8px 10px -6px #000; }
+.sx-left .sx-rtabs, .sx-right .sx-rtabs { position: sticky; top: -6px; z-index: 2; margin-top: -6px; padding: 6px 0 10px; margin-bottom: 10px; background: #030710; box-shadow: 0 8px 10px -6px #030710; }
+.sx-right .sx-rhead { position: sticky; top: -6px; z-index: 2; margin-top: -6px; padding-top: 6px; margin-bottom: 12px; background: #030710; box-shadow: 0 8px 10px -6px #030710; }
 .sx-right .sx-rhead .sx-rtabs { position: static; margin: 0 0 10px; padding: 0; box-shadow: none; }
 .sx-right .sx-rhead .sx-chips { margin: 0; padding-bottom: 10px; }
 
@@ -497,7 +497,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-rt-n { font: 700 34px/1 var(--ui) !important; color: var(--violet) !important; }
 @media (max-width: 520px) { .sl-lv-i .sl-lv-t { display: none; } .sl-lv { gap: 14px; } }
 /* side columns fade out at the bottom instead of cutting text in half */
-.sx-side { -webkit-mask-image: linear-gradient(#000 calc(100% - 28px), transparent); mask-image: linear-gradient(#000 calc(100% - 28px), transparent); padding-bottom: 28px; }
+.sx-side { -webkit-mask-image: linear-gradient(#030710 calc(100% - 28px), transparent); mask-image: linear-gradient(#030710 calc(100% - 28px), transparent); padding-bottom: 28px; }
 
 /* Interstellar Delivery */
 .sx-reqs { margin: 2px 0 6px; padding: 0; list-style: none; }
@@ -539,7 +539,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 
 /* ship interior */
 body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
-.sx-incv { display: block; width: 100%; max-width: 620px; margin: 6px auto 0; image-rendering: pixelated; background: radial-gradient(#090a14, #000 70%); }
+.sx-incv { display: block; width: 100%; max-width: 620px; margin: 6px auto 0; image-rendering: pixelated; background: radial-gradient(#030710, #030710 70%); }
 .sx-intip { min-height: 2.9em; margin: 10px 0 6px; font: 15px/1.45 var(--text); color: var(--soft); }
 .sx-inlist { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 500 15px var(--ui); color: var(--white); }
 .sx-inlist .off { color: var(--dim); }
@@ -566,7 +566,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 
 /* Ship page: the 2D cutaway and decorating */
 .sl-group .sx-interior { margin: 4px 0 10px; }
-.sl-group .sx-incv { display: block; width: 100%; max-width: 980px; margin: 0; image-rendering: pixelated; background: #000; }
+.sl-group .sx-incv { display: block; width: 100%; max-width: 980px; margin: 0; image-rendering: pixelated; background: #030710; }
 .sx-decs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 10px; }
 .sx-dec { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 7px 10px; background: none; border: 1px solid var(--line); color: var(--white); text-align: left; cursor: pointer; font: 500 15px var(--ui); }
 .sx-dec small { font: 13px var(--ui); color: var(--mute); }
@@ -579,7 +579,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-decrow .sx-decs { margin-top: 4px; }
 
 /* page sub-tabs (Ship: Ship / Captain / Achievements ...; Collection categories) stay at the top while the page scrolls */
-.sx-page .sl-pane > .sl-stabs, .sx-page .sl-wpage > .sl-stabs { position: sticky; top: 0; z-index: 4; margin: 0; padding: 10px 0 8px; background: #000; box-shadow: 0 1px 0 var(--line); }
+.sx-page .sl-pane > .sl-stabs, .sx-page .sl-wpage > .sl-stabs { position: sticky; top: 0; z-index: 4; margin: 0; padding: 10px 0 8px; background: #030710; box-shadow: 0 1px 0 var(--line); }
 
 /* exploration: the Here card, the explored meter, Points of Interest, the mission note */
 .sl-mis-note { flex-basis: 100%; margin: 6px 0 0; font: 500 14px var(--ui); color: var(--mute); text-align: center; min-height: 1.2em; }
@@ -591,7 +591,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-exm i { width: 9px; height: 4px; background: var(--line); }
 .sx-exm i.on { background: var(--soft); }
 .sx-exm i.inv { width: 4px; margin-left: 2px; }
-.sx-exm i.inv.on { background: #a4dddb; }
+.sx-exm i.inv.on { background: #bfc3c6; }
 .sl-tile .sx-exm { margin-top: 3px; }
 .sx-pois { margin: 10px 0; }
 .sx-pois-h { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
@@ -602,7 +602,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 /* the Meridian story: chapter text, the door */
 .sx-story { font-family: var(--text); font-size: 15px; color: var(--ink); }
 .sx-story-pick { color: var(--soft); }
-.sx-signal { color: #e8c170; }
+.sx-signal { color: #ffb762; }
 .sx-door { display: flex; gap: 6px; margin: 8px 0; }
 .sx-door-in { flex: 1; min-width: 0; padding: 5px 8px; background: none; border: 1px solid var(--dim); color: var(--white); font: 600 17px var(--ui); letter-spacing: .12em; text-transform: lowercase; }
 .sx-door-msg { color: var(--soft); font-style: italic; }
@@ -614,7 +614,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-chipline { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 
 /* the title sequence */
-.sx-intro { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background: #000; opacity: 0; transition: opacity .6s; cursor: pointer; }
+.sx-intro { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background: #030710; opacity: 0; transition: opacity .6s; cursor: pointer; }
 .sx-intro.on { opacity: 1; }
 .sx-intro-in-w { width: min(640px, 100%); }
 .sx-intro-who { margin: 0 0 10px; font: 600 14px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
@@ -632,7 +632,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-namerow .sl-find { flex: 1; }
 
 /* the Reader: every log, one at a time */
-.sx-rd { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; background: #000; opacity: 0; transition: opacity .3s; }
+.sx-rd { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; background: #030710; opacity: 0; transition: opacity .3s; }
 .sx-rd.on { opacity: 1; }
 .sx-rd-top { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
 .sx-rd-top b { font: 600 20px var(--ui); color: var(--white); }
@@ -644,8 +644,8 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-rd-order { align-self: flex-start; margin-bottom: 8px; }
 .sx-rd-list { flex: 1; min-height: 0; overflow-y: auto; }
 .sx-rd-item { display: flex; gap: 8px; width: 100%; padding: 7px 8px; text-align: left; background: none; border: 0; border-left: 2px solid transparent; color: var(--soft); cursor: pointer; }
-.sx-rd-item:hover { color: var(--white); background: #0c0710; }
-.sx-rd-item.on { color: var(--white); border-left-color: var(--amber); background: #120a16; }
+.sx-rd-item:hover { color: var(--white); background: #030710; }
+.sx-rd-item.on { color: var(--white); border-left-color: var(--amber); background: #030710; }
 .sx-rd-item b { display: block; font: 600 15px/1.2 var(--ui); }
 .sx-rd-item small { font-size: 12px; color: var(--mute); }
 .sx-rd-ic { width: 20px; flex: none; text-align: center; }
@@ -691,8 +691,8 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-bigview .sx-planet, .sx-bigview.sx-clean .sx-mid > .sx-planet { flex: 0 0 auto; height: 2vh; min-height: 0; }
 
 /* big view: the planet runs under the right column and the timer hint, so give them a dark backing to stay readable */
-.sx-bigview .sx-right { background: rgb(9 10 20 / .78); padding-left: 10px; padding-right: 6px; }
-.sx-bigview .sx-mid { text-shadow: 0 0 4px #090a14, 0 0 2px #090a14; }
+.sx-bigview .sx-right { background: rgb(3 7 16 / .8); padding-left: 10px; padding-right: 6px; }
+.sx-bigview .sx-mid { text-shadow: 0 0 4px #030710, 0 0 2px #030710; }
 
 /* the Learning log: one optional line after each study session */
 .sx-learn { flex: 1 1 100%; margin: 0 0 10px; }
@@ -714,7 +714,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-p-ic { font-size: 22px; }
 .sx-p-name { flex: 1 1 160px; min-width: 0; font-weight: 600; }
 .sx-p-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.sx-p-row select, .sx-p-slot select { font: 15px var(--ui); color: var(--white); background: #000; border: 1px solid var(--line); padding: 4px 6px; }
+.sx-p-row select, .sx-p-slot select { font: 15px var(--ui); color: var(--white); background: #030710; border: 1px solid var(--line); padding: 4px 6px; }
 .sx-p-agel { color: var(--mute); font-size: 14px; }
 .sx-p-age { width: 4.5em; }
 .sx-p-role { flex: 1 1 140px; min-width: 0; }
@@ -743,5 +743,5 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-txfind { width: 100%; margin: 4px 0; }
 
 /* today's sky, at the top of the Here card */
-.sx-sky { margin: 0 0 6px; color: var(--sky, #8fd3ff); font-size: 14px; }
+.sx-sky { margin: 0 0 6px; color: var(--sky, #77d6c1); font-size: 14px; }
 

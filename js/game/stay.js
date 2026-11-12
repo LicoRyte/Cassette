@@ -9,7 +9,14 @@ const expLeft = p => p.story || exDone(p) ? 0 : EX_LEN - exOf(p).step; // places
 const placesLeft = p => Math.max(0, placesMax(p) - exOf(p).poi.length - expLeft(p)); // places staying can still find
 const placesUnfound = p => Math.max(0, placesMax(p) - exOf(p).poi.length);
 const placeName = o => o.custom || o.name;
-const actsFor = p => p ? (TEXT.acts || []).filter(a => txFits(a, worldCtx(p))) : [];
+// what you can do when you stay: the world's expedition and a derelict come first, then the activities in content/activities.json
+function actsFor(p) {
+  if (!p) return [];
+  const out = [];
+  if (canExpedition(p)) { const st = exOf(p).step; out.push({ id: 'expedition', ic: '', name: gasWorld(p) ? 'Cloud dive' : 'Explore on foot', desc: (gasWorld(p) ? 'Cloud dive' : 'Expedition') + ', part ' + (st + 1) + ' of ' + EX_LEN + ' (' + EX_PARTS[st].toLowerCase() + '): charts a place, maybe a find.' }); }
+  if (p.derelict && !p.derelict.done && S.at === p.num) out.push({ id: 'salvage', ic: '', name: 'Search the derelict', desc: 'One session, one sure find from ' + p.derelict.ship + '.' });
+  return out.concat((TEXT.acts || []).filter(a => txFits(a, worldCtx(p))));
+}
 function stayAct() { const L = actsFor(atP()); return L.find(a => a.id === S.stayAct) || L[0] || null; }
 const staying = () => S.mission === STAY && !!atP() && !!stayAct();
 

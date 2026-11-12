@@ -38,13 +38,13 @@ Your progress is saved in this browser.
 
 Solarist is about discovery, not grinding: no resources, shops or upgrades to buy. See `docs/cozy-redesign-plan.md` for where it's heading.
 
-- **Main screen:** the planet in the middle with the timer, cycle bar and mission buttons. Only missions possible right now are shown (Explore, the world's Expedition, Investigate, Salvage, Chapter), with one line saying what the chosen one gives.
+- **Main screen:** the planet in the middle with the timer and the mission buttons: **Travel on** (a new world, the Meridian signal, home or a favourite), **Stay here** (explore on foot, search a derelict, or an activity), **Mystery** (observe one), and **Meridian** when a chapter is here.
   Left: **Here** (the world you're at, its visitor, its expedition, its anomaly, a derelict) and the **Meridian**. Right: **Transmissions** (every log) and **Research** (spend Knowledge points on lore, new kinds of collectibles and small perks).
 - **Pages:** Logbook (planet data), Star map, Ship (Ship, Captain, Achievements, Crew, Learning, Discoveries, Stats), Collection, Reader, Settings.
 - **Worlds:** each one starts as a few settings (heat, water, air, life, age); its type is whichever fits, and its temperature, colours (Resurrect 64, mixed from colour families) and description follow from the same numbers. Every world shows them in words: "Cold, wet, young ocean world".
 - **Places:** every world has 5 to 8 places. Its expedition (three study sessions: landing, crossing, finale; gas worlds get a cloud dive) charts three, each with a careful or bold path and maybe a collectible. Staying finds the rest. Every place gets a short description and can be renamed (✎).
 - **Travel on or Stay here:** Travel on finds a new world. Stay here spends the session on this one doing something you pick (wander, camp, stargaze, fish, sketch, collect samples, cook, picnic: `content/activities.json`). It writes a little story with your crew and may turn up a new place or a souvenir.
-- **Anomalies:** a world with an oddity can be investigated: three or four study sessions, then its explanation goes in the Codex (a Transmissions filter), with Knowledge and an Anomalies find.
+- **Anomalies:** a world's oddity is a mystery: observe it for three sessions and its explanation goes in the Codex, with Knowledge and an Anomalies find.
 - **Arrivals:** some new worlds have a visitor: a chance meeting (a small story), a derelict ship to salvage (one session, one find), or someone who trades. Most worlds are quiet.
 - **Traders:** travelers, locals and whole civilizations (`content/traders.json`). They might offer a swap for something of yours (Swap or No thanks, on the Here card), give you something, or a crew member might give something away to someone who needs it. They turn up on arrival and sometimes while you stay.
 - **Crew life:** crew show up in each other's stories, and grow closer the more sessions they share. It's never shown as a number: their lines just change, from polite to inside jokes.

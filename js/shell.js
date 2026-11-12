@@ -214,13 +214,13 @@
     const ambBox = mk('div', { class: 'sx-row' }); amb.settings(ambBox);
     const musBox = mk('div', { class: 'sx-row' }); music.settings(musBox);
     const dcBox = mk('div', { class: 'sx-row' }); discord.settings(dcBox);
-    const credits = mk('p', { class: 'sl-muted sx-credits' }, 'Colour palettes: Apollo by AdamCYounis, Resurrect 64 by Kerrie Lake (planets). Planet shader based on PixelPlanets by Deep-Fold (MIT). Fonts: Barlow Condensed, Courier Prime (OFL). Sounds: NightMargin and the Not-So-Awesome Archive. Break music: "Night Stars" by Hiroki971.');
+    const credits = mk('p', { class: 'sl-muted sx-credits' }, 'Colour palette by BurakoIRL. Planet shader based on PixelPlanets by Deep-Fold (MIT). Fonts: Barlow Condensed, Courier Prime (OFL). Sounds: NightMargin and the Not-So-Awesome Archive. Break music: "Night Stars" by Hiroki971.');
     box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), mk('div', { class: 'sx-row' }, view), ambBox, musBox, dcBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'), credits);
   }
 
   /* ---------- the viewport ---------- */
   const PX = 3; // one art pixel = 3 screen pixels
-  const PAL = ['#000000', '#172038', '#253a5e', '#3c5e8b', '#4f8fba', '#73bed3', '#a4dddb', '#19332d', '#25562e', '#468232', '#75a743', '#a8ca58', '#d0da91', '#4d2b32', '#7a4841', '#ad7757', '#c09473', '#d7b594', '#e7d5b3', '#341c27', '#602c2c', '#884b2b', '#be772b', '#de9e41', '#e8c170', '#241527', '#411d31', '#752438', '#a53030', '#cf573c', '#de9e41', '#1e1d39', '#402751', '#7a367b', '#a23e8c', '#c65197', '#df84a5', '#090a14', '#10141f', '#151d28', '#202e37', '#394a50', '#577277', '#819796', '#a8b5b2', '#c7cfcc', '#ebede9'];
+  const PAL = ['#030710', '#041528', '#293b49', '#6d8a8d', '#1c92a7', '#77d6c1', '#bfc3c6', '#273b2d', '#273b2d', '#458239', '#9cb93b', '#9cb93b', '#ffdaac', '#73392e', '#833f34', '#c76e46', '#eb9c6e', '#eb9c6e', '#ffdaac', '#34111f', '#73392e', '#833f34', '#c76e46', '#eb9c6e', '#ffb762', '#34111f', '#34111f', '#73392e', '#833f34', '#c76e46', '#eb9c6e', '#041528', '#293b49', '#601761', '#c03b94', '#c03b94', '#ff88a9', '#030710', '#041528', '#041528', '#273b2d', '#293b49', '#6d8a8d', '#6d8a8d', '#bfc3c6', '#bfc3c6', '#ffe0dc'];
   const rgb = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
   const KINDS = { explore: 0, campaign: 0, discover: 1, build: 2, charge: 3, fight: 4, distress: 5, break: 6, shipbuild: 7, view: 8 };
   const cv = mk('canvas', { class: 'sx-view', 'aria-hidden': 'true' });
@@ -231,7 +231,7 @@
   const FS = `precision highp float;
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
 uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, reveal, warp, neb, fIce, fStorm, fSpot;
-uniform vec3 pal[47]; uniform vec3 rpal[64]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
+uniform vec3 pal[47]; uniform vec3 rpal[32]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 uniform float fStyle, dfCut; uniform vec3 ca[5]; uniform vec3 cb[3]; uniform vec3 ck[4]; uniform vec3 rc[6];
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
@@ -244,8 +244,8 @@ float bayer(vec2 p){ vec2 q = mod(floor(p), 4.); float x = q.x, y = q.y;
   float w = floor(x / 2.) * 2. + floor(y / 2.) * 3. - floor(x / 2.) * floor(y / 2.) * 4.;
   return (v * 4. + w) / 16. - .47; }
 vec3 snap(vec3 c){ vec3 b = pal[0]; float bd = 1e9; for (int i = 0; i < 47; i++){ vec3 d = c - pal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = pal[i]; } } return b; }
-// planets use Resurrect 64 (see js/world/paint.js); stars, effects and the rest stay on Apollo
-vec3 snapR(vec3 c){ vec3 b = rpal[0]; float bd = 1e9; for (int i = 0; i < 64; i++){ vec3 d = c - rpal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = rpal[i]; } } return b; }
+// planet surfaces snap to the Solarist palette (js/world/paint.js)
+vec3 snapR(vec3 c){ vec3 b = rpal[0]; float bd = 1e9; for (int i = 0; i < 32; i++){ vec3 d = c - rpal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = rpal[i]; } } return b; }
 /* Planet surfaces ported from PixelPlanets by Deep-Fold (MIT License, Copyright (c) 2020 Deep-Fold),
    https://github.com/Deep-Fold/PixelPlanets. uv: 0..1 across the planet, y down. Styles: 0 land and sea, 1 rivers,
    2 dry, 3 airless with craters, 4 lava, 5 ice, 6 gas giant. */
@@ -288,7 +288,7 @@ vec3 dUnder(vec2 su, float dl, bool dith, float db, float sz, int oc, float b1, 
   if (d > b1) c = (d < b1 + db && dith) ? c0 : c1; if (d > b2) c = (d < b2 + db && dith) ? c1 : c2; return c; }
 float dCrater(vec2 uv){ float c = 1.; for (int i = 0; i < 2; i++) c *= dCirc(uv * dSize + float(i + 11) + vec2(dOff(dSize, .04), 0.), 1.); return 1. - c; }
 vec3 dfPlanet(vec2 u0, vec2 fc, float px, out float glow){
-  glow = 0.; bool dith = mod(floor(fc.x) + floor(fc.y), 2.) < 1.; float db = 2. / px;
+  glow = 0.; bool dith = mod(floor(fc.x) + floor(fc.y), 2.) < 1.; float db = 6. / px; // wide dithered bands: shading comes from dither, not extra colours
   vec2 lo = fLocked > .5 ? vec2(.12, .45) : vec2(.39, .39);
   vec2 su = dSph(dRot(u0, tilt)); float dl = distance(u0, lo); dSeed = 1. + mod(seed, 9.);
   vec3 c = ca[0];
@@ -395,7 +395,7 @@ void main(){
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
       ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'rpal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
-      gl.uniform3fv(U.pal, PAL.flatMap(rgb)); gl.uniform3fv(U.rpal, RES64.flatMap(rgb));
+      gl.uniform3fv(U.pal, PAL.flatMap(rgb)); gl.uniform3fv(U.rpal, PAL32.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
   }
@@ -416,21 +416,21 @@ void main(){
   function size() { cv.width = sv.width = Math.max(1, Math.round(innerWidth / PX)); cv.height = sv.height = Math.max(1, Math.round(innerHeight / PX)); }
   size(); addEventListener('resize', () => { size(); lastDraw = 0; kick(); });
   addEventListener('scroll', () => { lastDraw = 0; kick(); }, { passive: true }); // on phones the planet scrolls with the page
-  const STAR_C = { 'red dwarf': '#cf573c', 'orange dwarf': '#e8c170', 'yellow dwarf': '#d0da91', 'white dwarf': '#ebede9', 'blue giant': '#a4dddb', 'red giant': '#cf573c', 'binary pair': '#d0da91', 'pulsar': '#a4dddb' };
+  const STAR_C = { 'red dwarf': '#c76e46', 'orange dwarf': '#ffb762', 'yellow dwarf': '#ffdaac', 'white dwarf': '#ffe0dc', 'blue giant': '#bfc3c6', 'red giant': '#c76e46', 'binary pair': '#ffdaac', 'pulsar': '#bfc3c6' };
   // Deep-Fold styles per planet type, and their colours from the planet's own palette (snapped to the game palette)
   const DF_STYLE = { Ocean: 0, Garden: 0, Hycean: 0, Fungal: 0, Jungle: 1, Swamp: 1, Savanna: 1, Desert: 2, Toxic: 2, Iron: 2, 'Tidally locked': 2,
     Rocky: 3, Dwarf: 3, Carbon: 3, Rogue: 3, Lava: 4, Shattered: 4, Ice: 5, Tundra: 5, Crystal: 5, 'Gas giant': 6, 'Ice giant': 7, 'Glass storm': 7 };
-  // planet colours snap to Resurrect 64
-  const near = h => { const [r, g, b] = rgb(h); let best = RES64[0], bd = 1e9; RES64.forEach(q => { const [x, y, z] = rgb(q), d = (r - x) ** 2 * .3 + (g - y) ** 2 * .59 + (b - z) ** 2 * .11; if (d < bd) { bd = d; best = q; } }); return best; };
+  // planet colours snap to the Solarist palette
+  const near = h => { const [r, g, b] = rgb(h); let best = PAL32[0], bd = 1e9; PAL32.forEach(q => { const [x, y, z] = rgb(q), d = (r - x) ** 2 * .3 + (g - y) ** 2 * .59 + (b - z) ** 2 * .11; if (d < bd) { bd = d; best = q; } }); return best; };
   const shade = (h, f) => { const c = rgb(h).map(v => f >= 1 ? v + (1 - v) * (f - 1) : v * f); return near('#' + c.map(v => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')).join('')); };
   function dfLook(p, L) {
-    const st = DF_STYLE[p.type] != null ? DF_STYLE[p.type] : 3, P = (L.pal || ['#819796', '#7a367b', '#752438', '#402751']).map(near), land = L.land ? L.land.map(near) : null;
-    const WHITE = ['#ebede9', '#c7cfcc', '#819796', '#577277'];
+    const st = DF_STYLE[p.type] != null ? DF_STYLE[p.type] : 3, P = (L.pal || ['#6d8a8d', '#601761', '#73392e', '#293b49']).map(near), land = L.land ? L.land.map(near) : null;
+    const WHITE = ['#ffe0dc', '#bfc3c6', '#6d8a8d', '#6d8a8d'];
     let ca = [P[0], P[1], P[2], P[3], P[3]], cb = [P[1], P[2], P[3]], ck = WHITE, cut = .6, clouds = false;
     if (st === 0) { const w = p.type === 'Fungal' ? P[2] : P[0], l = land || [P[0], P[1]]; cb = [shade(w, 1.25), w, shade(w, .65)]; ca = [shade(l[0], 1.2), l[0], l[1], shade(l[1], .6), P[3]];
       cut = { Ocean: .66, Garden: .58, Hycean: .68, Fungal: .55 }[p.type] || .6; clouds = true; }
-    else if (st === 1) { const a = land ? land[1] : P[0], b2 = P[1] !== P[0] ? P[1] : P[2]; ca = [shade(a, 1.2), a, b2, shade(b2, .6), P[3]]; cb = p.type === 'Swamp' ? ['#3c5e8b', '#253a5e', '#172038'] : ['#73bed3', '#4f8fba', '#3c5e8b']; cut = .368; clouds = !!L.clouds || p.type === 'Jungle'; }
-    else if (st === 2) { ca = [shade(P[0], 1.15), P[0], P[1], P[2], P[3]]; if (p.type === 'Toxic') { clouds = true; ck = ['#d0da91', '#a8ca58', '#75a743', '#468232']; } }
+    else if (st === 1) { const a = land ? land[1] : P[0], b2 = P[1] !== P[0] ? P[1] : P[2]; ca = [shade(a, 1.2), a, b2, shade(b2, .6), P[3]]; cb = p.type === 'Swamp' ? ['#6d8a8d', '#293b49', '#041528'] : ['#77d6c1', '#1c92a7', '#6d8a8d']; cut = .368; clouds = !!L.clouds || p.type === 'Jungle'; }
+    else if (st === 2) { ca = [shade(P[0], 1.15), P[0], P[1], P[2], P[3]]; if (p.type === 'Toxic') { clouds = true; ck = ['#ffdaac', '#9cb93b', '#9cb93b', '#458239']; } }
     else if (st === 3) { ca = [P[0], P[1], P[2], P[3], P[3]]; cb = [shade(P[1], .8), P[3], P[3]]; }
     else if (st === 4) { ca = [shade(P[2], 1.3), P[2], P[3], P[3], P[3]]; cb = [P[3], shade(P[3], .7), P[3]]; ck = [P[0], P[1], shade(P[1], .7), P[3]]; cut = .579; }
     else if (st === 5) { cb = [P[0], P[1], P[2]]; ca = [P[2], P[3], shade(P[3], .7), P[3], P[3]]; cut = .62; clouds = true; }
@@ -448,7 +448,7 @@ void main(){
     const L = window.Solarist.lookOf ? window.Solarist.lookOf(p) : p.look;
     const four = (L.pal || []).concat(L.pal || []).slice(0, 4);
     gl.uniform3fv(U.pc, four.flatMap(rgb)); gl.uniform3fv(U.lc, (L.land || [four[1], four[2]]).slice(0, 2).flatMap(rgb));
-    gl.uniform3fv(U.ringC, rgb(L.ringCol || '#819796'));
+    gl.uniform3fv(U.ringC, rgb(L.ringCol || '#6d8a8d'));
     gl.uniform1f(U.seed, (L.noise % 997) / 37); gl.uniform1f(U.tilt, L.tilt || 0);
     gl.uniform1f(U.fClouds, L.clouds ? 1 : 0); gl.uniform1f(U.fBands, L.bands ? 1 : 0); gl.uniform1f(U.fLava, L.lava ? 1 : 0); gl.uniform1f(U.fLocked, L.locked ? 1 : 0);
     gl.uniform1f(U.neb, (p.seed % 3) === 0 ? 1 : 0);
@@ -484,7 +484,7 @@ void main(){
         if (!pl && !sil) gl.uniform1f(U.neb, 0);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       } else if (g2) {
-        g2.fillStyle = '#000'; g2.fillRect(0, 0, cv.width, cv.height); g2.imageSmoothingEnabled = false;
+        g2.fillStyle = '#030710'; g2.fillRect(0, 0, cv.width, cv.height); g2.imageSmoothingEnabled = false;
         const p = info.planet; if (p) { let im = fallbackImg.get(p.seed); if (!im) { im = new Image(); im.onload = kick; im.src = window.Solarist.paint(p, 64); fallbackImg.set(p.seed, im); }
           if (im.complete) { const s = Math.round(rad * 2.3); g2.drawImage(im, Math.round(cx - s / 2), Math.round(cv.height - cy - s / 2), s, s); } }
       }
@@ -499,7 +499,7 @@ void main(){
     const p = info.planet, sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running, still = reduceMotion.matches, t = now / 1000;
     // the planet's own sun, up and to the left where the light comes from
     if (p && !sil && p.type !== 'Rogue') {
-      const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#d0da91';
+      const sx = r.left / PX + Math.max(14, r.width / PX * .12), sy = r.top / PX + Math.max(14, r.height / PX * .14), c = STAR_C[p.star] || '#ffdaac';
       const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
       // a dithered pixel glow around the sun: bigger for giants, a soft breathing pulse, a strong one for pulsars
       const big = /giant/.test(p.star) ? 1.5 : p.star === 'white dwarf' ? .75 : 1, pulse = still ? 1 : p.star === 'pulsar' ? (blink ? .35 : 1.1) : 1 + Math.sin(t * 1.3) * .08;
@@ -514,9 +514,9 @@ void main(){
       if (!blink) {
         const ray = Math.round((3 + (still ? 0 : Math.sin(t * 2.1) * 1)) * big); // little light spikes
         for (let i = 2; i <= 2 + ray; i++) { gs.globalAlpha = 1 - (i - 2) / (ray + 1) * .8; [[i, 0], [-i, 0], [0, i], [0, -i]].forEach(([dx, dy]) => dot(gx + dx, gy + dy, c)); }
-        gs.globalAlpha = 1; dot(gx - 1, gy - 1, '#ebede9', 3); dot(gx, gy, '#ebede9');
+        gs.globalAlpha = 1; dot(gx - 1, gy - 1, '#ffe0dc', 3); dot(gx, gy, '#ffe0dc');
       }
-      if (p.star === 'binary pair') dot(sx + 6, sy + 3, '#e8c170', 2);
+      if (p.star === 'binary pair') dot(sx + 6, sy + 3, '#ffb762', 2);
     }
     // moons on tilted orbits; the far half of each orbit goes behind the planet
     if (p && !sil) {
@@ -525,12 +525,12 @@ void main(){
         const a = rad * (base + i * .16), b = a * .3, ang = (still ? 0 : t) * (.22 / (1 + i * .45)) + i * 2.1 + (p.seed % 628) / 100;
         const mx = cx + Math.cos(ang) * a, my = cy + Math.sin(ang) * b, behind = Math.sin(ang) < 0;
         if (behind && Math.hypot(mx - cx, my - cy) < rad) continue;
-        const sz = i === 0 ? 3 : 2; dot(mx - 1, my - 1, behind ? '#7a367b' : '#c7cfcc', sz); if (!behind && sz === 3) dot(mx + 1, my + 1, '#7a367b');
+        const sz = i === 0 ? 3 : 2; dot(mx - 1, my - 1, behind ? '#601761' : '#bfc3c6', sz); if (!behind && sz === 3) dot(mx + 1, my + 1, '#601761');
       }
     }
     // now and then a shooting star
     if (!still && now > shootAt && !shoot) { shoot = { x: Math.random() * sv.width * .8, y: Math.random() * sv.height * .35, at: now }; shootAt = now + 45000 + Math.random() * 75000; }
-    if (shoot) { const u = (now - shoot.at) / 900; if (u > 1) shoot = null; else { const hx = shoot.x + u * 70, hy = shoot.y + u * 26; for (let j = 0; j < 9; j++) dot(hx - j * 2.7, hy - j, j < 2 ? '#ebede9' : j < 5 ? '#819796' : '#402751'); } }
+    if (shoot) { const u = (now - shoot.at) / 900; if (u > 1) shoot = null; else { const hx = shoot.x + u * 70, hy = shoot.y + u * 26; for (let j = 0; j < 9; j++) dot(hx - j * 2.7, hy - j, j < 2 ? '#ffe0dc' : j < 5 ? '#6d8a8d' : '#293b49'); } }
   }
   function drawShipSprite(now) { // the scene overlay: the sun, moons and other things around the world
     gs.clearRect(0, 0, sv.width, sv.height);

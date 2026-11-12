@@ -1,38 +1,35 @@
 /* Solarist: Colours and pixel art: the palette, hull colours, the satellite sprite and the planet portrait painter. */
 'use strict';
 
-const HULL_COLORS = { Lilac: '#c7cfcc', White: '#ebede9', Sky: '#a4dddb', Peach: '#e8c170', Rose: '#df84a5', Lime: '#a8ca58', Indigo: '#4f8fba', Crimson: '#cf573c', Steel: '#819796', Copper: '#be772b', Navy: '#3c5e8b' }; // Steel, Copper and Navy are only sold at Interplanetary Stations
+const HULL_COLORS = { Lilac: '#bfc3c6', White: '#ffe0dc', Sky: '#bfc3c6', Peach: '#ffb762', Rose: '#ff88a9', Lime: '#9cb93b', Indigo: '#1c92a7', Crimson: '#c76e46', Steel: '#6d8a8d', Copper: '#c76e46', Navy: '#6d8a8d' }; // Steel, Copper and Navy are only sold at Interplanetary Stations
 const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return snap([(n >> 16 & 255) * f, (n >> 8 & 255) * f, (n & 255) * f]); };
 
 // the ship's satellite: a tiny pixel sprite (made once)
 let satUrl = null;
 function satSprite() {
   if (satUrl) return satUrl;
-  const rows = ['....r....', '....g....', 'bb.ggg.bb', 'bbbgwgbbb', 'bb.ggg.bb', '...g.g...'], col = { b: '#3c5e8b', g: '#c7cfcc', w: '#ebede9', r: '#cf573c' };
+  const rows = ['....r....', '....g....', 'bb.ggg.bb', 'bbbgwgbbb', 'bb.ggg.bb', '...g.g...'], col = { b: '#6d8a8d', g: '#bfc3c6', w: '#ffe0dc', r: '#c76e46' };
   const cv = document.createElement('canvas'); cv.width = 9; cv.height = 6; const x = cv.getContext('2d');
   rows.forEach((row, y) => [...row].forEach((c, i) => { if (col[c]) { x.fillStyle = col[c]; x.fillRect(i, y, 1, 1); } }));
   satUrl = cv.toDataURL(); return satUrl;
 }
 
 // the planet palette: every pixel of every portrait is snapped to one of these 32 colours
-// Resurrect 64 by Kerrie Lake (lospec.com/palette-list/resurrect-64): every planet is painted with these colours
-const RES64 = ['#2e222f', '#3e3546', '#625565', '#966c6c', '#ab947a', '#694f62', '#7f708a', '#9babb2', '#c7dcd0', '#ffffff', '#6e2727', '#b33831', '#ea4f36', '#f57d4a', '#ae2334', '#e83b3b',
-  '#fb6b1d', '#f79617', '#f9c22b', '#7a3045', '#9e4539', '#cd683d', '#e6904e', '#fbb954', '#4c3e24', '#676633', '#a2a947', '#d5e04b', '#fbff86', '#165a4c', '#239063', '#1ebc73',
-  '#91db69', '#cddf6c', '#313638', '#374e4a', '#547e64', '#92a984', '#b2ba90', '#0b5e65', '#0b8a8f', '#0eaf9b', '#30e1b9', '#8ff8e2', '#323353', '#484a77', '#4d65b4', '#4d9be6',
-  '#8fd3ff', '#45293f', '#6b3e75', '#905ea9', '#a884f3', '#eaaded', '#753c54', '#a24b6f', '#cf657f', '#ed8099', '#831c5d', '#c32454', '#f04f78', '#f68181', '#fca790', '#fdcbb0'];
-const PALETTE = RES64.map(h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }); // the portrait painter snaps to this
+// the palette (32 colours by BurakoIRL), for planets and everything else. Shading comes from dithering between them
+const PAL32 = ['#43002a', '#890027', '#d9243c', '#ff6157', '#ffb762', '#c76e46', '#73392e', '#34111f', '#030710', '#273b2d', '#458239', '#9cb93b', '#ffd832', '#ff823b', '#d1401f', '#7c191a', '#310c1b', '#833f34', '#eb9c6e', '#ffdaac', '#ffffe4', '#bfc3c6', '#6d8a8d', '#293b49', '#041528', '#033e5e', '#1c92a7', '#77d6c1', '#ffe0dc', '#ff88a9', '#c03b94', '#601761'];
+const PALETTE = PAL32.map(h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }); // the portrait painter snaps to this
 // the palette as colour families, each a ramp from dark to light. A world picks families its settings like (and sometimes a wild one)
 const FAM = {
-  ash: ['#2e222f', '#3e3546', '#625565', '#966c6c', '#ab947a'], fog: ['#694f62', '#7f708a', '#9babb2', '#c7dcd0', '#ffffff'],
-  ember: ['#6e2727', '#b33831', '#ea4f36', '#f57d4a'], fire: ['#ae2334', '#e83b3b', '#fb6b1d', '#f79617', '#f9c22b'], clay: ['#7a3045', '#9e4539', '#cd683d', '#e6904e', '#fbb954'],
-  moss: ['#4c3e24', '#676633', '#a2a947', '#d5e04b', '#fbff86'], leaf: ['#165a4c', '#239063', '#1ebc73', '#91db69', '#cddf6c'], sage: ['#313638', '#374e4a', '#547e64', '#92a984', '#b2ba90'],
-  sea: ['#0b5e65', '#0b8a8f', '#0eaf9b', '#30e1b9', '#8ff8e2'], sky: ['#323353', '#484a77', '#4d65b4', '#4d9be6', '#8fd3ff'], dusk: ['#45293f', '#6b3e75', '#905ea9', '#a884f3', '#eaaded'],
-  rose: ['#753c54', '#a24b6f', '#cf657f', '#ed8099'], bloom: ['#831c5d', '#c32454', '#f04f78', '#f68181', '#fca790', '#fdcbb0'],
-};
+  ash: ['#030710', '#34111f', '#293b49', '#6d8a8d'], fog: ['#293b49', '#6d8a8d', '#bfc3c6', '#ffffe4'],
+  ember: ['#310c1b', '#7c191a', '#d1401f', '#ff823b'], fire: ['#7c191a', '#d1401f', '#ff823b', '#ffb762', '#ffd832'], clay: ['#73392e', '#833f34', '#c76e46', '#eb9c6e', '#ffdaac'],
+  moss: ['#273b2d', '#458239', '#9cb93b', '#ffd832'], leaf: ['#273b2d', '#458239', '#9cb93b'], sage: ['#273b2d', '#6d8a8d', '#bfc3c6'],
+  sea: ['#041528', '#033e5e', '#1c92a7', '#77d6c1'], sky: ['#033e5e', '#1c92a7', '#77d6c1', '#ffffe4'], dusk: ['#310c1b', '#601761', '#c03b94', '#ff88a9'],
+  rose: ['#43002a', '#890027', '#d9243c', '#ff6157'], bloom: ['#601761', '#c03b94', '#ff88a9', '#ffe0dc'],
+}
 // which families suit a world: s is its settings (heat, water, life, age from 0 to 1)
 function famWeights(s, type) {
   const cold = Math.max(0, .45 - s.heat) * 2.2, hot = Math.max(0, s.heat - .6) * 2.5, mild = 1 - Math.min(1, Math.abs(s.heat - .52) * 4), wet = s.water, dry = 1 - s.water, life = s.life;
-  const w = { ash: .4 + dry * .4 + s.age * .5, fog: .3 + cold * 1.2, ember: hot * 1.2, fire: hot * 1.5, clay: .2 + dry * .8 + hot * .5, moss: .2 + dry * .4 + life * .5,
+  const w = { ash: .15 + dry * .2 + s.age * .3, fog: .3 + cold * 1.2, ember: hot * 1.2, fire: hot * 1.5, clay: .2 + dry * .8 + hot * .5, moss: .2 + dry * .4 + life * .5,
     leaf: life * 2 * mild, sage: .2 + life * 1.2, sea: wet * 1.5 + cold * .5, sky: wet * 1.2 + cold * 1.4, dusk: .35 + cold * .4, rose: .3, bloom: .25 + (type === 'Fungal' || type === 'Crystal' ? 2 : 0) };
   if (type === 'Lava' || type === 'Shattered') { w.fire += 3; w.ember += 2; w.ash += 1; }
   if (type === 'Ice' || type === 'Ice giant' || type === 'Tundra') { w.fog += 1.5; w.sky += 1; w.sea += .8; }
@@ -44,7 +41,7 @@ function pickLook(r, s, type, boost) { // boost: extra weight for some families 
   const fw = famWeights(s, type).map(([k, v]) => [k, v + ((boost || {})[k] || 0)]), wild = r() < .22; // now and then, anything goes
   const one = skip => { const list = fw.filter(([k]) => k !== skip).map(([k, v]) => [k, wild ? 1 : v]); return weighted(r, list); };
   const a = one(), b = one(a), A = FAM[a], B = FAM[b], n = A.length;
-  const top = Math.min(n - 1, 2 + Math.floor(r() * (n - 2))); // how light the brightest colour goes
+  const top = r() < .65 ? n - 1 : n - 2; // the main colour comes from the bright end; dithering does the shading
   const pal = [A[top], A[Math.max(1, top - 1)], r() < .5 ? B[Math.min(B.length - 1, 2)] : A[Math.max(1, top - 2)], r() < .6 ? A[0] : B[0]];
   const land = [B[Math.min(B.length - 1, 3)], B[Math.min(B.length - 1, 2)]];
   const rc = FAM[one()]; return { pal, land, ringCol: rc[Math.min(rc.length - 1, 3)], fam: [a, b] };
@@ -64,7 +61,7 @@ function lookOf(p) { // worlds saved before the palette change: redo their colou
   if (L._nl) return L._nl;
   const T = TYPES[p.type]; let nl = null;
   try { const q = makePlanet(p.seed, p.num, p.lucky, 0); if (q.type === p.type) nl = Object.assign({}, L, { pal: q.look.pal, land: q.look.land, ringCol: q.look.ringCol }); } catch (e) { /* fall through */ }
-  if (!nl) nl = Object.assign({}, L, { pal: T.pal.slice(), land: T.land ? T.land.slice() : L.land, ringCol: '#819796' });
+  if (!nl) nl = Object.assign({}, L, { pal: T.pal.slice(), land: T.land ? T.land.slice() : L.land, ringCol: '#6d8a8d' });
   Object.defineProperty(L, '_nl', { value: nl, enumerable: false }); return nl;
 }
 function paint(p, size) {

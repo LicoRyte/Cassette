@@ -13,7 +13,6 @@ let dotN = 0, dotT = 0;
 function headline() {
   if (expediting() && mode === 'focus') { const a = atP(), w = gasWorld(a) ? 'Cloud dive' : 'Expedition'; return !running ? (left > 0 && left < length(mode) ? 'Holding position' : w + ': ' + EX_PARTS[exOf(a).step].toLowerCase() + ' on ' + nm(a)) : (gasWorld(a) ? 'Diving into the clouds of ' : 'Exploring ') + nm(a); }
   if (salvaging() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to salvage') : 'Salvaging ' + atP().derelict.ship;
-  if (investigating() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to investigate') : 'Studying ' + atP().odd;
   if (observing() && mode === 'focus') { const m = mysDef(mysPicked().id); return !running ? (left > 0 && left < length(mode) ? 'Holding position' : m.ic + ' Ready to observe') : m.ic + ' Observing: ' + m.title.charAt(0).toLowerCase() + m.title.slice(1); }
   if (staying() && mode === 'focus') { const a = stayAct(); return !running ? (left > 0 && left < length(mode) ? 'Holding position' : a.ic + ' Staying: ' + a.name.toLowerCase()) : a.ic + ' ' + a.name + ' on ' + nm(atP()); }
   if (chaptering() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1)) : 'Following the Meridian\'s trail';
@@ -40,20 +39,17 @@ const settings = el('details', { class: 'sl-set' }, el('summary', {}, 'Settings'
     el('label', {}, 'Long break ', sel('long', [10, 15, 20, 30]), ' min'),
     el('label', {}, 'Long break every ', sel('every', [2, 3, 4, 5, 6]), ' study sessions')));
 // the mission: what this study session is for. Exactly one is pressed, and only the ones possible here are shown.
-const MISSIONS = [['explore', '🚀', 'Travel on', 'Travel on to a new world'], ['stay', '🏕', 'Stay here', 'Spend the next session on this world, doing something you pick'], ['mystery', '🔎', 'Mystery', 'Observe one of your open mysteries for a session'], ['expedition', '🗺', 'Expedition', 'Explore the world you\'re at: three parts, each charts a Point of Interest'], ['investigate', '🔬', 'Investigate', 'Study the anomaly here: three or four sessions, then its answer goes in the Codex'], ['salvage', '🛸', 'Salvage', 'Salvage the derelict ship drifting here (one session, one find)'], ['campaign', '📡', 'Chapter', 'The next part of the Meridian chapter on this world']];
-const curMission = () => S.mission === MYS ? 'mystery' : S.mission === STAY ? 'stay' : S.mission === -7 ? 'salvage' : S.mission === -8 ? 'investigate' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : 'explore';
+const MISSIONS = [['explore', '', 'Travel on', 'Travel on to a new world'], ['stay', '', 'Stay here', 'Spend the next session on this world, doing something you pick'], ['mystery', '', 'Mystery', 'Observe one of your open mysteries for a session'], ['campaign', '', 'Meridian', 'The next part of the Meridian chapter on this world']];
+const curMission = () => S.mission === MYS ? 'mystery' : S.mission === STAY ? 'stay' : S.mission === -3 ? 'campaign' : 'explore';
 function setMission(m, num) {
   if (running && mode === 'focus') return;
   if (m === 'explore') { S.mission = 0; if (num === 'signal' || num === 'random') S.exploreKind = signalOn() ? num : 'random'; else if (/^ret:/.test(num || '')) { S.exploreKind = 'return'; S.returnTo = +num.slice(4); } }
   else if (m === 'mystery') { if (num) S.mysPick = num; if (!mysPicked()) return; S.mission = MYS; }
   else if (m === 'stay') { if (!actsFor(atP()).length) return; if (num) S.stayAct = num; S.mission = STAY; }
-  else if (m === 'investigate') { if (!canInvestigate(atP())) return; S.mission = -8; }
-  else if (m === 'salvage') { if (!derelictHere()) return; S.mission = -7; }
   else if (m === 'campaign') { if (!chHere() || atDoor()) return; S.mission = -3; }
-  else if (m === 'expedition') { if (!canExpedition(atP())) return; S.mission = -4; }
   save(); hint.textContent = ''; draw();
 }
-const MIS_ORDER = ['explore', 'stay', 'mystery', 'expedition', 'investigate', 'salvage', 'campaign'];
+const MIS_ORDER = ['explore', 'stay', 'mystery', 'campaign'];
 const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip]) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, role: 'radio', title: tip, onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
 const misNote = el('p', { class: 'sl-mis-note', 'aria-live': 'polite' });
 // Explore picks a random world or, when a Meridian signal is waiting, the signal
@@ -86,9 +82,6 @@ function misGives(k) {
   if (k === 'explore') { const g = regionNow(); return '🚀 A new world' + (g && regions().filter(regionOpen).length > 1 ? ' in ' + g.name + ': ' + g.desc.charAt(0).toLowerCase() + g.desc.slice(1) : '. Now and then something is waiting there.'); }
   if (k === 'mystery' && mysPicked()) { const o = mysPicked(), m = mysDef(o.id); return m.ic + ' ' + m.title + ': ' + o.step + ' of ' + m.steps.length + ' observed. It can\'t go wrong: every session gets closer.'; }
   if (k === 'stay' && a && stayAct()) { const s = stayAct(), n = placesLeft(a); return s.ic + ' ' + s.desc + (n ? ' Might find a new place (' + n + ' still out there).' : placesUnfound(a) ? ' The places left here are on the expedition.' : ' Every place here is found.'); }
-  if (k === 'expedition' && a) return (gasWorld(a) ? '🎈 Cloud dive ' : '🗺 Expedition ') + (exOf(a).step + 1) + '/' + EX_LEN + ': charts a Point of Interest and maybe a collectible' + (exOf(a).step === EX_LEN - 1 ? ' (certain on the finale)' : '') + '.';
-  if (k === 'salvage') return '🛸 One session: a sure find from the derelict.';
-  if (k === 'investigate' && a) return '🔬 ' + Math.round(invOf(a).pct * 100) + '% studied: about a third more each session, then a Codex entry, Knowledge and an Anomalies find.';
   if (k === 'campaign' && chHere()) return '📡 Chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1) + ' of ' + ST_LEGS + '.';
   return '';
 }
