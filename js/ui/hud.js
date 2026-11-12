@@ -18,7 +18,7 @@ function saveTools() {
     if (stage === 0) { stage = 1; wipe.classList.add('arm'); wipe.textContent = 'Erase everything? Click again'; setTimeout(() => { if (stage === 1) { stage = 0; wipe.classList.remove('arm'); wipe.textContent = 'Start over from scratch'; } }, 5000); return; }
     wiping = true; clearInterval(tickT); try { localStorage.removeItem(KEY); localStorage.removeItem(OLD_KEY); } catch (e) {} location.reload();
   });
-  const msg = el('p', { class: 'sl-muted' }, 'Starting over erases every world, item, post, crew member and level. Download a backup first if you might want it back.');
+  const msg = el('p', { class: 'sl-muted' }, 'Starting over erases every world, item, note, crew member and level. Download a backup first if you might want it back.');
   box.append(el('div', { class: 'sx-row' }, dl, up, wipe, file), msg);
   return box;
 }
@@ -28,8 +28,8 @@ const nameBox = el('button', { type: 'button', class: 'sx-name', title: 'Open in
 const planetSpot = el('div', { class: 'sx-planet', 'aria-hidden': 'true' });
 const pvBar = el('div', { class: 'sx-pvbar', hidden: true, role: 'region', 'aria-label': 'Planetarium' });
 let pv = null; // Planetarium: { list: [found entries], i }
-const leftCol = el('section', { class: 'sx-side sx-left', 'aria-label': 'Quests' });
-const rightCol = el('section', { class: 'sx-side sx-right', 'aria-label': 'Resources and upgrades' });
+const leftCol = el('section', { class: 'sx-side sx-left', 'aria-label': 'Where you are' });
+const rightCol = el('section', { class: 'sx-side sx-right', 'aria-label': 'Transmissions and research' });
 const feedLine = el('button', { type: 'button', class: 'sx-feed', title: 'All transmissions and the ship\'s log', onclick: () => { rightTab = 'tx'; txFilter = 'all'; tab('timer'); drawRight(); } });
 const reportBtn = el('button', { type: 'button', class: 'sl-link sx-replay', hidden: true, onclick: () => openReport(true) }, 'Last session report');
 const reportSide = el('aside', { class: 'sx-report-side', hidden: true, 'aria-label': 'Survey data' });
@@ -49,4 +49,4 @@ function typeOut() { // Meridian legs and transmissions print like an old ship t
   typeT = setInterval(() => { if (i >= ps.length) return done(); k += 2; ps[i].textContent = full[i].slice(0, k); typeSnd(); if (k >= full[i].length) { ps[i].classList.remove('sx-type'); i++; k = 0; } }, 22);
 }
 function openReport(replay) { if (trans.hidden && card.hidden && encBox.hidden) return; report.hidden = false; reportBtn.hidden = false; if (!replay) typeOut(); const b = report.querySelector('.sx-report-ft .btn'); if (b) b.focus({ preventScroll: true }); }
-function closeReport() { report.hidden = true; }
+function closeReport() { learnCommit(); report.hidden = true; }

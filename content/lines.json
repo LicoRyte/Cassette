@@ -1,0 +1,367 @@
+{
+  "_guide": [
+    "Lines the game builds sentences from. Lines live in named groups; the game asks a group for a line.",
+    "A line is either plain text, or { \"text\": ..., \"when\": {...}, \"weight\": 2 }.",
+    "",
+    "Inside the text:",
+    "  {crew}          the crew member in this scene (shows their name). {place}, {item}, {biome}, {weather}, {time} work the same way.",
+    "  In crew lines, {crew} is one crew member (or you). {crew.role} is their profession, {crew.trait} their trait, {crew.wear} what they wear, {crew.gear} what they carry, {ship} the ship's name.",
+    "  {crew.name}     a part of it. {Crew} = capital first letter.",
+    "  {crew.they} {crew.them} {crew.their} {crew.theirs} {crew.themself}   pronouns that follow the person.",
+    "  {crew.they} {crew:laughs|laugh}   after a pronoun: 'she laughs', 'they laugh'. After a name just write the verb: '{Crew} laughs'.",
+    "  {a:item}        adds 'a' or 'an': 'a brass lantern', 'an old map'.",
+    "  {@smell}        drops in a line from the group called smell, so you can build sentences from small pieces.",
+    "  [soft|quiet|still]   picks one of these at random.",
+    "",
+    "when (optional): the line is only used when everything in it matches.",
+    "  \"biome\": \"desert\"        only on deserts.  [\"desert\", \"salt\"] = any of them.  \"!rain\" = anything but rain.",
+    "  \"temp\": \">0.6\"          numbers: above 0.6 (or \"<0.3\" for below). temp, water, life go from 0 to 1.",
+    "  \"crew.tags\": \"nervous\"  a part of something: here, the crew member's trait tags.",
+    "weight (optional): 2 = picked twice as often, 0.5 = half as often.",
+    "",
+    "Groups with the same name in different files are joined, so you can make a new file in content/ for your own lines",
+    "(add it to CONTENT_FILES in js/boot.js). Try lines in tools/text-preview.html."
+  ],
+  "lines": {
+    "arrive": [
+      "The ship settles onto {a:biome}. Everything is [quiet|still|hushed] for a moment.",
+      "{Place} looks [smaller|bigger|stranger] than it did from orbit.",
+      {
+        "text": "At {time} the {biome} turns [pink|gold|violet]. {@smell}",
+        "when": {
+          "time": [
+            "dusk",
+            "dawn"
+          ]
+        },
+        "weight": 2
+      },
+      {
+        "text": "Rain drums on the hull. Nobody is in a hurry to step outside.",
+        "when": {
+          "weather": "rain"
+        }
+      },
+      {
+        "text": "Frost creeps across the windows as soon as the engines go quiet.",
+        "when": {
+          "temp": "<0.3"
+        }
+      },
+      {
+        "text": "The air shimmers with heat. {Crew} fans {crew.themself} with a map.",
+        "when": {
+          "temp": ">0.7"
+        }
+      }
+    ],
+    "smell": [
+      "It smells like home, {crew} says.",
+      "The air smells of [rain on stone|burnt sugar|old books|cold metal].",
+      {
+        "text": "Something here smells like salt and lightning.",
+        "when": {
+          "biome": [
+            "salt",
+            "ocean"
+          ]
+        }
+      }
+    ],
+    "crew_notice": [
+      "{Crew} [spots|notices|points at] something [glinting|moving|humming] near the {biome}.",
+      {
+        "text": "{Crew} jumps at a noise, then laughs at {crew.themself}.",
+        "when": {
+          "crew.tags": "nervous"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} turns over every stone in sight. Most of them are just stones.",
+        "when": {
+          "crew.tags": "curious"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} says this planet is too [cold|loud|purple] and then writes three pages about it.",
+        "when": {
+          "crew.tags": "grumpy"
+        },
+        "weight": 2
+      }
+    ],
+    "item_moment": [
+      "{Crew} holds up {crew.their} {item} to get a better look.",
+      {
+        "text": "{Crew}'s {item} catches the light. Something out on the {biome} seems to notice.",
+        "when": {
+          "item.tags": "shiny"
+        }
+      },
+      {
+        "text": "{Crew} pulls {crew.their} {item} a little tighter against the wind.",
+        "when": {
+          "item.tags": [
+            "warm",
+            "cozy"
+          ],
+          "temp": "<0.4"
+        }
+      },
+      {
+        "text": "{Crew} lights {crew.their} {item}, and the dark steps back a little.",
+        "when": {
+          "item.tags": "light"
+        }
+      },
+      {
+        "text": "{Crew}'s {item} keeps {crew.them} dry while everyone else gets soaked.",
+        "when": {
+          "item.tags": "waterproof",
+          "weather": "rain"
+        }
+      }
+    ],
+    "ship_life": [
+      "{Crew} spends the session reorganising {crew.their} bunk. It looks exactly the same afterwards.",
+      "{Crew} writes a long letter to someone back home and doesn't send it. Not yet.",
+      "{Crew} [hums|whistles|sings] something old in the corridor. Nobody asks what it is. Everybody knows the tune by the end.",
+      "{Crew} falls asleep in the observation deck with a book open on {crew.their} chest.",
+      "{Crew} makes tea for everyone. It's slightly too strong, which is how the {ship} likes it.",
+      "{Crew} spends an hour watching the stars slide past the window and calls it work.",
+      {
+        "text": "{Crew} polishes {crew.their} {crew.gear} until {crew.they} can see {crew.their} own face in it.",
+        "when": {
+          "crew.gearTags": "shiny"
+        }
+      },
+      {
+        "text": "{Crew} plays a few notes on {crew.their} {crew.gear}. The engines seem to hum along.",
+        "when": {
+          "crew.gearTags": "music"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} sketches the corridor, the galley and the back of somebody's head.",
+        "when": {
+          "crew.gearTags": "art"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} pours everyone something warm from {crew.their} {crew.gear}.",
+        "when": {
+          "crew.gearTags": "food"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} fixes a squeaky hinge with {crew.their} {crew.gear} and then fixes three more out of momentum.",
+        "when": {
+          "crew.gearTags": "tool"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} pulls {crew.their} {crew.wear} a little tighter. The ship is cold tonight.",
+        "when": {
+          "crew.wearTags": [
+            "warm",
+            "cozy"
+          ]
+        }
+      },
+      {
+        "text": "Someone compliments {crew}'s {crew.wear}. {Crew.they} {crew:pretends|pretend} not to be pleased.",
+        "when": {
+          "crew.wearTags": [
+            "fancy",
+            "shiny",
+            "bright"
+          ]
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} tunes the engines by ear and declares them \"happy\".",
+        "when": {
+          "crew.role": [
+            "Engineer",
+            "Mechanic"
+          ]
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} cooks something new. It is purple. It is delicious. Nobody asks.",
+        "when": {
+          "crew.role": [
+            "Cook",
+            "Chef"
+          ]
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} runs the same test three times and gets three different answers. {Crew.they} {crew:looks|look} delighted.",
+        "when": {
+          "crew.role": [
+            "Scientist",
+            "Astronomer",
+            "Geologist"
+          ]
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} flies a little loop just because the stars look nice from upside down.",
+        "when": {
+          "crew.role": "Pilot"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} talks a passing freighter into swapping a bag of apples for a song.",
+        "when": {
+          "crew.role": "Trader"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} checks everyone's temperature. Prescription: more naps.",
+        "when": {
+          "crew.role": "Medic"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} tells the story of the last world over dinner, and makes it sound even better than it was.",
+        "when": {
+          "crew.role": "Storyteller"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} waters the little plants in the galley and tells each of them it's doing well.",
+        "when": {
+          "crew.role": "Botanist"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} redraws the last map from memory. It's better than the real one.",
+        "when": {
+          "crew.role": [
+            "Cartographer",
+            "Navigator"
+          ]
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} paints a tiny planet on the galley door. Then another. It's turning into a solar system.",
+        "when": {
+          "crew.role": "Artist"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} practises one song over and over until the whole crew can hum it.",
+        "when": {
+          "crew.role": "Musician"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} jumps at the sound of the coffee machine, then pretends {crew.they} meant to.",
+        "when": {
+          "crew.tags": "nervous"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} grumbles about the noise, the cold and the soup, then helps with all three.",
+        "when": {
+          "crew.tags": "grumpy"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} naps through an entire course correction. Twice.",
+        "when": {
+          "crew.tags": "sleepy"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} finds a snack nobody knew the ship had.",
+        "when": {
+          "crew.tags": "hungry"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} tells a joke so bad that the whole galley groans, then laughs for ten minutes.",
+        "when": {
+          "crew.tags": "funny"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} labels the spice rack. And the labels. And the drawer the labels came from.",
+        "when": {
+          "crew.tags": "tidy"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} spends the session at the window, watching nothing in particular, very happily.",
+        "when": {
+          "crew.tags": "dreamy"
+        },
+        "weight": 2
+      }
+    ],
+    "arrive_crew": [
+      {
+        "text": "{@crew_notice}",
+        "weight": 2
+      },
+      {
+        "text": "{@item_moment}"
+      },
+      "{Crew} is first to the window when {place} comes into view.",
+      {
+        "text": "{Crew} is out of the airlock before the ramp is all the way down.",
+        "when": {
+          "crew.tags": "brave"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} takes one look at {place} and starts drawing it.",
+        "when": {
+          "crew.gearTags": "art"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} fills a sample jar before anyone else has their boots on.",
+        "when": {
+          "crew.gearTags": "science"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} lifts {crew.their} {crew.gear} for a better look at the {biome}.",
+        "when": {
+          "crew.gearTags": "far-sight"
+        },
+        "weight": 2
+      }
+    ]
+  }
+}

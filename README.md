@@ -15,11 +15,11 @@ Your progress is saved in this browser.
 | File | What it is |
 |---|---|
 | `index.html`, `style.css` | The page and its look: black space, floating text, colours from the 46-colour Apollo palette (see `CREDITS.md`) |
-| `js/shell.js` | Sounds, notifications, install, offline support, and the planet viewport: a WebGL shader that draws each world as a dithered, palette-snapped 3D sphere (radar sweep while surveying, construction lights while building, and so on) |
-| `js/world/`, `js/boot.js`, `js/game/`, `js/ui/` | The game: planets, missions, posts, collectibles, levels, Distress Runs, stats. See **Code layout** below |
-| `economy.json` | Every resource income and price. Edit, commit, reload. Notes inside explain each number |
+| `js/shell.js` | Sounds, notifications, install, offline support, and the planet viewport: a WebGL shader that draws each world as a dithered, palette-snapped 3D sphere (radar sweep while surveying, and so on) |
+| `js/world/`, `js/boot.js`, `js/game/`, `js/ui/` | The game: planets, missions, the Meridian, collectibles, research, levels, the Learning log, stats. See **Code layout** below |
+| `economy.json` | Tuning numbers (levels, expedition and anomaly odds, arrival chances). Some entries are left over from the old economy and no longer used |
 | `art/decor/` | Your own decoration art. Drop PNGs in and list them in `decor.json` to replace built-in decorations or add new ones. See `art/decor/README.md` |
-| `expeditions.json` | The text of planet expeditions (landing, crossing and finale parts for every planet type), Point of Interest name parts, derelict salvage scenes, the Codex (an explanation for every anomaly), Manhunt legs and Most Wanted names. Edit freely |
+| `expeditions.json` | The text of planet expeditions (landing, crossing and finale parts for every planet type), Point of Interest name parts, derelict salvage scenes and the Codex (an explanation for every anomaly). Edit freely |
 | `items.json` | The collectibles, 8 categories with 4 rarities each. Add new ones at the end of a list only (saves remember items by position) |
 | `story.json` | **Spoilers.** The Meridian story: fifteen chapters, one world each. Opening it spoils the story and its puzzle |
 | `sw.js` | Offline support. Files are always fetched fresh when online, so edits show up on the next reload. Bump `VERSION` and update its file list if you add, rename or remove files |
@@ -36,18 +36,20 @@ Your progress is saved in this browser.
 
 ## What's in it
 
-- **Main screen:** the planet in the middle with the timer, cycle bar and mission buttons. Only missions possible right now are shown (Explore, the world's Expedition, Investigate, Salvage, Manhunt, Chapter, Charge, plus Build when chosen), with one line saying what the chosen one gives.
-  Left: **Here** (the world you're at, its visitor, its expedition, its anomaly and any Manhunt), Distress Run, Deliveries you carry, your Most Wanted poster, the Guild contract, bounties, the Meridian, the Coordinator and hyperdrive. Right: Upgrades, Build (posts, facilities and your ship's rooms), Research, Sell, Trade (when a Trade Station is docked) and Transmissions.
-- **Pages:** Logbook (planet data), Star map, Ship (Captain, Medals, Crew, Meridian logs, Hangar, Goals, Logs, Stats), Collection, Settings (sound, ambient sound, timer lengths).
-- **Exploring a world:** every world has its own expedition, three study sessions long (landing, crossing, finale; gas worlds get a cloud dive). Each part has a safe or risky path, pays resources, may find a collectible (the finale always does) and charts a named Point of Interest. Each Point of Interest adds about 8% to the world's sale price. A world with all three is **Fully explored**.
+Solarist is about discovery, not grinding: no resources, shops or upgrades to buy. See `docs/cozy-redesign-plan.md` for where it's heading.
+
+- **Main screen:** the planet in the middle with the timer, cycle bar and mission buttons. Only missions possible right now are shown (Explore, the world's Expedition, Investigate, Salvage, Chapter), with one line saying what the chosen one gives.
+  Left: **Here** (the world you're at, its visitor, its expedition, its anomaly, a derelict) and the **Meridian**. Right: **Transmissions** (every log) and **Research** (spend Knowledge points on lore, new kinds of collectibles and small perks).
+- **Pages:** Logbook (planet data), Star map, Ship (Ship, Captain, Achievements, Crew, Learning, Discoveries, Stats), Collection, Reader, Settings.
+- **Exploring a world:** every world has its own expedition, three study sessions long (landing, crossing, finale; gas worlds get a cloud dive). Each part has a careful or bold path, may find a collectible (the finale always does) and charts a named Point of Interest. A world with all three is **Fully explored**.
 - **Anomalies:** a world with an oddity can be investigated: three or four study sessions, then its explanation goes in the Codex (a Transmissions filter), with Knowledge and an Anomalies find.
-- **Arrivals:** each new world rolls once for a visitor (3 in 10): a chance meeting, a Postal office, a Trade Station, outlaws, a Cassini Federation Post, a derelict ship to salvage (one session, one find) or an Interplanetary Station. Most worlds are quiet.
-- **Deliveries:** take jobs from Postal offices and carry up to 2. They wait until you deliver or drop them; a perfect match delivers itself when you arrive.
-- **Most Wanted:** a Cassini Federation Post gives you a poster. Every trip might bring a sighting (more likely the longer it takes), and a sighting opens a 3-session Manhunt on that world that ends in the capture and the bounty.
-- **Hyperdrive:** Charge either the Coordinator or the hyperdrive. A hyperdrive charge (up to 3) jumps you to any world you've visited, from the Star map (click a world) or its Logbook page.
+- **Arrivals:** some new worlds have a visitor: a chance meeting (a small story) or a derelict ship to salvage (one session, one find). Most worlds are quiet.
 - **The Meridian:** five people left on a small survey ship and never came back. When their signal is waiting, Explore can Follow the Signal instead of finding a random world. It leads to one of fifteen worlds they left their mark on, each a chapter of five study sessions. Leave mid-chapter and the signal brings you back. Read it all under Transmissions, Meridian.
-- **Travelers' Posts:** build any facility, even the same one twice, while there are free slots. Each facility levels up to 10, and every upgrade picks one of its two paths (both cost the same), like a Greenhouse's Research or Aesthetic. Paths feed five Post stats: Comfort (settlers move in faster), Fun (XP), Science (Knowledge), Industry (trade income) and Culture (Rating). The two paths for each facility are in `FAC_PATHS` in `js/world/posts.js`.
-- **Your ship:** rooms are built with a study session and upgraded with resources. Crew live in the Crew Quarters; each adds a Ship Activity (a small story and bonus every session). Name, hull color and design are in Ship, Hangar.
+- **Learning log:** after each study session, write one optional line about what you learned (with a subject). It's saved with the world you were at: see it on that world's Logbook page, or all of it under Ship, Learning.
+- **Your ship:** every room is aboard from the start, and every decoration and hull colour is free to use.
+- **You and your crew:** under Ship, Crew. You and up to five crew each have a name, pronouns, an age, a profession, a trait, something to wear and something to carry. All of it is words (from `content/items.json`), never stats: it changes the little stories the crew bring to every session. Spare things wait in the stash.
+- **Knowledge points:** one for every finished study session, Full Cycle, solved anomaly and Meridian chapter. Spend them on Research (1 to 8 points) or on crafting (1 point: a random piece of clothing or gear, new to you when it can be).
+- **Full Cycle:** finish every session and break of a cycle without skipping, and something interesting waits on your next trip.
 
 ## Code layout
 
@@ -57,9 +59,11 @@ No build step: plain JavaScript files that the browser loads in a fixed order. T
 | Folder | What's in it |
 |---|---|
 | `js/world/` | Pure content and generators, loaded by `index.html`: `random.js`, `planet-data.js` (the lists planets are made from), `planet.js` (`makePlanet`), `posts.js` (post transmissions and facilities), `events.js`, `items.js` (collectibles), `paint.js` (palette and pixel art), `economy.js` (default numbers) |
+| `js/world/text.js` | The text engine: fills sentence templates from `content/` (slots, pronouns, conditions). How-to for writers at the top of `content/lines.json` |
+| `content/` | JSON the text engine uses: `items.json` (equipment, clothing, traits), `lines.json` (sentence pieces). Listed in `CONTENT_FILES` in `js/boot.js`. Try them in `tools/text-preview.html` |
 | `js/boot.js` | Start-up. Holds `GAME_FILES`, the load order of everything below |
-| `js/game/` | Rules and saved state, one file per feature: `core.js` (the save `S`, `save()`, `el()`), `build.js`, `encounters.js`, `research.js`, `ship.js`, `levels.js`, `distress.js`, `quests.js`, `delivery.js`, `station.js`, `coordinator.js`, `worlds.js`, `trade.js`, `session.js`, `timer.js` (`finish()`, the end of every session, and `draw()`), `achievements.js` (medals and Side Quests) |
-| `js/ui/` | The screen: `controls.js`, `layout.js` (pages and tabs), `main-screen.js`, `right-panel.js`, `panels.js` (Build, Sell, Research, Trade), `reports.js`, `ship-interior.js`, `ship-page.js`, `ship-views.js`, `star-map.js`, `logbook.js`, `keyboard.js`, `planetarium.js` |
+| `js/game/` | Rules and saved state, one file per feature: `core.js` (the save `S`, `save()`, `el()`), `voyage.js`, `encounters.js` (arrivals and deep-space events), `research.js`, `ship.js`, `levels.js` (levels, records, save migrations), `people.js` (you, the crew, the stash and crafting), `expedition.js`, `investigate.js`, `story.js` (the Meridian), `session.js`, `timer.js` (`finish()`, the end of every session, and `draw()`), `achievements.js` (achievements and Side Quests), `start.js` |
+| `js/ui/` | The screen: `controls.js`, `hud.js` (layout pieces and the session report), `learning.js` (the Learning log), `ship-interior.js`, `layout.js` (pages and tabs), `main-screen.js`, `right-panel.js`, `panels.js` (Research), `keyboard.js`, `planetarium.js`, `reports.js`, `ship-page.js`, `star-map.js`, `ship-views.js`, `crew.js` (the Crew page), `logbook.js`, `reader.js`, `intro.js` |
 | `tools/discord-presence/` | Optional helper that shows what you're doing and your planet as your Discord status (see its README). Not loaded by the game |
 
 Rules that keep it working:

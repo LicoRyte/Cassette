@@ -65,26 +65,20 @@ fetch('art/decor/decor.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() :
     DEC_ALL[o.cat][1].push([o.id, o.name || o.id, Math.max(1, Math.min(5, o.tier | 0 || 1)), o.station ? 1 : 0, 'img', o.cat === 'light' || o.cat === 'lights' ? (o.glow || '#e8c170') : undefined]); load(o.cat + ':' + o.id, o.file || o.cat + '/' + o.id + '.png', o); });
   if (typeof drawShip === 'function' && !shipPane.hidden) drawShip();
 }).catch(() => { });
-const decTier = t => [0, E.decorCost.t1, E.decorCost.t2, E.decorCost.t3, E.decorCost.t4, E.decorCost.station][t] || 0;
 const decItem = (cat, id) => DEC_ALL[cat][1].find(x => x[0] === id) || DEC_ALL[cat][1][0];
 const decKey = (cat, id) => cat + ':' + id;
 if (!S.decor) S.decor = { own: {}, room: {}, ship: {} };
-const decOwn = (cat, id) => { const it = decItem(cat, id); return !it[2] || !!S.decor.own[decKey(cat, it[0])]; };
+const decOwn = () => true; // every decoration is free to use
 const decOf = (k, cat) => (S.decor.room[k] && S.decor.room[k][cat]) || DECOR[cat][1][0][0];
 if (S.decor.ship && (S.decor.ship.ceil || S.decor.ship.lights)) { ROOM_SPOTS.forEach(r => { S.decor.room[r] = S.decor.room[r] || {}; ['ceil', 'lights'].forEach(c => { if (S.decor.ship[c] && !S.decor.room[r][c]) S.decor.room[r][c] = S.decor.ship[c]; }); }); S.decor.ship = {}; }
 const decOwned = () => Object.keys(S.decor.own).length;
 const decTotal = () => Object.values(DEC_ALL).reduce((a, [, L]) => a + L.filter(x => x[2]).length, 0);
 const decStOwned = () => Object.entries(DEC_ALL).reduce((a, [c, [, L]]) => a + L.filter(x => x[3] && S.decor.own[decKey(c, x[0])]).length, 0);
-const decStation = () => { const out = []; Object.entries(DEC_ALL).forEach(([c, [, L]]) => L.forEach(x => { if (x[3] && !S.decor.own[decKey(c, x[0])]) out.push([c, x[0]]); })); return out; };
 const decFull = k => Object.keys(DECOR).every(c => decOf(k, c) !== DECOR[c][1][0][0]);
-// one-time move off ship designs: designs you bought are refunded, hull colors stay as the ship's paint
-if (S.ship.designs && !S.ship.desRefund) { const paid = S.ship.designs.filter(d => d !== 'Scout').reduce((a, d) => a + (d === 'Ring Runner' ? E.station.design : E.shipStyleCost.design), 0);
-  S.ship.desRefund = true; if (paid) { S.dust += paid; pushEv({ ic: '🛠', title: 'Ship designs retired', t: 'The ship is decorated room by room now. The designs you bought were refunded: +' + paid + ' ✦.', at: Date.now() }); } }
-function decBuy(cat, id, cost, roomK) { // buy (if needed) and use
+function decBuy(cat, id, cost, roomK) { // use a decoration (the first time counts as a new one for your stats)
   const ship = !!SHIP_DECOR[cat], k = decKey(cat, id), it = decItem(cat, id);
-  if (focusLock() && cost == null) return;
-  if (it[2] && !S.decor.own[k]) { const c = cost != null ? cost : decTier(it[2]); if (S.dust < c || (it[3] && cost == null)) return; S.dust -= c; S.decor.own[k] = Date.now(); S.cnt.decor = (S.cnt.decor || 0) + 1; shopXP(8);
-    pushEv({ ic: '🛋', title: 'New decoration: ' + it[1], t: 'Bought for ' + c.toLocaleString() + ' ✦. It works in every room (Ship page).', at: Date.now() }); }
+  if (focusLock()) return;
+  if (it[2] && !S.decor.own[k]) { S.decor.own[k] = Date.now(); S.cnt.decor = (S.cnt.decor || 0) + 1; }
   if (roomK !== false) { if (ship) S.decor.ship[cat] = id; else { const r = roomK || inSel; S.decor.room[r] = S.decor.room[r] || {}; S.decor.room[r][cat] = id; } }
   save(); draw();
 }
@@ -320,18 +314,18 @@ function interiorView() { // the Ship page: cutaway on top, decorating below
   if (!inRaf) inRaf = requestAnimationFrame(drawInterior);
   inTip.textContent = inTipFor(inSel);
   const lock = focusLock(), [ic, name] = ROOM_NAME(inSel);
-  const itemBtn = (cat, it, on) => { const own = decOwn(cat, it[0]), cost = decTier(it[2]);
-    const b = el('button', { type: 'button', class: 'sx-dec' + (on ? ' on' : '') + (it[3] ? ' st' : ''), disabled: lock || (!own && (S.dust < cost || it[3])) || null, onclick: () => decBuy(cat, it[0]) },
-      el('b', {}, it[1]), el('small', {}, on ? 'In use' : own ? (it[3] ? '🛰 Station find' : 'Owned') : it[3] ? '🛰 Stations only' : '✦ ' + cost.toLocaleString()));
+  const itemBtn = (cat, it, on) => {
+    const b = el('button', { type: 'button', class: 'sx-dec' + (on ? ' on' : ''), disabled: lock || null, onclick: () => decBuy(cat, it[0]) },
+      el('b', {}, it[1]), el('small', {}, on ? 'In use' : 'Use here'));
     const prev = () => { inPrev = SHIP_DECOR[cat] ? null : [inSel, cat, it[0]]; }, unprev = () => { inPrev = null; };
     b.addEventListener('mouseenter', prev); b.addEventListener('mouseleave', unprev); b.addEventListener('focus', prev); b.addEventListener('blur', unprev);
     return b; };
   const catBtns = ['wall', 'floor', 'window', 'art', 'light', 'plant', 'furn', 'ceil', 'lights'].map(k => [k, DECOR[k]]).map(([k, [label]]) => el('button', { type: 'button', role: 'tab', class: 'sl-stab', 'aria-selected': String(k === inCat), onclick: () => { inCat = k; drawShip(); } }, label));
-  const colors = Object.entries(HULL_COLORS).filter(([k]) => !STATION_ONLY.colors.includes(k) || S.ship.colors.includes(k)).map(([k, hex]) => { const own = S.ship.colors.includes(k), on = S.ship.color === k;
-    return el('button', { type: 'button', class: 'sx-swatch' + (on ? ' on' : ''), title: k + (own ? '' : ' (✦ ' + E.shipStyleCost.color + ')'), disabled: lock || (!own && S.dust < E.shipStyleCost.color) || null, onclick: () => buyStyle('color', k) }, el('i', { style: 'background:' + hex }), el('span', {}, k)); });
+  const colors = Object.entries(HULL_COLORS).map(([k, hex]) => { const on = S.ship.color === k;
+    return el('button', { type: 'button', class: 'sx-swatch' + (on ? ' on' : ''), title: k, disabled: lock || null, onclick: () => buyStyle('color', k) }, el('i', { style: 'background:' + hex }), el('span', {}, k)); });
   return [el('div', { class: 'sx-interior' }, inCv, inTip),
-    el('div', { class: 'sx-sec' }, el('h3', {}, 'Decorate: ' + ic + ' ' + name, el('small', { class: 'sx-h-n' }, '  ✦ ' + S.dust.toLocaleString())), el('p', { class: 'sl-muted' }, lock ? 'Decorating waits until the study session is over. You can still look.' : 'Buy a decoration once and use it in every room. Hover one to preview it. Click a room above to pick it.'),
+    el('div', { class: 'sx-sec' }, el('h3', {}, 'Decorate: ' + ic + ' ' + name), el('p', { class: 'sl-muted' }, lock ? 'Decorating waits until the study session is over. You can still look.' : 'Every decoration is yours to use, in any room. Hover one to preview it. Click a room above to pick it.'),
       el('div', { class: 'sl-stabs', role: 'tablist' }, catBtns), el('div', { class: 'sx-decs' }, DECOR[inCat][1].map(it => itemBtn(inCat, it, decOf(inSel, inCat) === it[0])))),
     el('div', { class: 'sx-sec' }, el('h3', {}, 'Whole ship'), el('div', { class: 'sx-decrow' }, el('h4', {}, 'Hull paint'), el('div', { class: 'sx-swatches' }, colors)),
-      el('p', { class: 'sl-muted' }, decOwned() + ' of ' + decTotal() + ' decorations owned. The 🛰 ones only turn up at Interplanetary Stations.'))];
+      el('p', { class: 'sl-muted' }, decOwned() + ' of ' + decTotal() + ' decorations tried so far.'))];
 }

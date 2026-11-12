@@ -27,4 +27,8 @@ function gainItem(it, fromP) {
   return !cur; // true = new to the collection
 }
 const itemCount = () => Object.keys(S.items).filter(k => itemName(k) !== '???').length;
-const posts = () => S.found.filter(f => f.p.post);
+const posts = () => S.found.filter(f => f.p.post); // worlds that had a Listening Post (from before the cozy redesign): their transmissions stay readable
+const roman = n => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n - 1] || String(n);
+const RANKI = r => ITEM_RARS.indexOf(r);
+const rareFind = (p, kind) => { for (let k = 0; k < 40; k++) { const r = rollItem(p, true, kind); if (RANKI(r.rar) >= 2) return r; } return rollItem(p, true, kind); };
+const dayKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');

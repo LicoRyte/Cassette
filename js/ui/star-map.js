@@ -25,10 +25,10 @@ function drawMap() {
       const hp = hit ? hit.p : null;
       if (hp !== mapHover) { mapHover = hp; if (hp) { const x = hp.x || (hp.x = makeExtra(hp)), first = (hp.log.match(/^[^.!?]*[.!?]/) || [hp.log])[0];
         tip.replaceChildren(el('img', { src: paint(hp, 64), alt: '' }), el('div', {}, el('b', {}, nm(hp)), el('span', {}, hp.type + ' world, ', el('i', { class: 'sx-r-' + hp.rarity.toLowerCase() }, hp.rarity)),
-          el('small', {}, x.hab + '% habitable, ' + hp.dist.toLocaleString() + ' light-years from Earth' + (hp.post ? (hp.post.tp ? '. Travelers\' Post' : '. Listening Post') : '') + (held(hp) ? '. Held by outlaws' : '') + (S.at === hp.num ? '. You are here' : '')), el('p', {}, first))); } }
+          el('small', {}, x.hab + '% habitable, ' + hp.dist.toLocaleString() + ' light-years from Earth' + (S.at === hp.num ? '. You are here' : '')), el('p', {}, first))); } }
       tip.hidden = !hit; if (hit) { tip.style.left = Math.max(8, Math.min(r.width - 340, mx + 16)) + 'px'; tip.style.top = Math.max(8, Math.min(r.height - 150, my + 12)) + 'px'; }
     });
-    mapCv.addEventListener('pointerup', () => { const click = drag && !drag.moved; drag = null; if (click && mapHover) { tab('log'); openWorld(mapHover.num); } }); // click a world: open its page (and its jump button)
+    mapCv.addEventListener('pointerup', () => { const click = drag && !drag.moved; drag = null; if (click && mapHover) { tab('log'); openWorld(mapHover.num); } }); // click a world: open its page
     mapCv.addEventListener('pointerleave', () => { tip.hidden = true; mapHover = null; });
     mapCv.addEventListener('wheel', e => { e.preventDefault(); mapView.zoom = Math.min(12, Math.max(.6, mapView.zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); renderMap(); }, { passive: false });
     addEventListener('resize', () => { if (!mapPane.hidden) renderMap(); });
@@ -51,7 +51,7 @@ function renderMap() {
   list.forEach(p => {
     const [x, y] = P(p); mapPts.push({ x, y, p });
     const big = p.rarity === 'Legendary' ? 4 : p.rarity === 'Rare' ? 3 : 2.5;
-    g.fillStyle = held(p) ? '#cf573c' : RCOL[p.rarity] || '#819796';
+    g.fillStyle = RCOL[p.rarity] || '#819796';
     if (p.post) { g.fillStyle = '#e8c170'; g.fillRect(x - big - 1, y - big - 1, (big + 1) * 2, (big + 1) * 2); if (p.post.tp) { g.strokeStyle = '#e8c170'; g.strokeRect(x - big - 4, y - big - 4, (big + 4) * 2, (big + 4) * 2); } }
     else { g.beginPath(); g.arc(x, y, big, 0, Math.PI * 2); g.fill(); }
     if (p.story) { g.strokeStyle = '#e8c170'; g.globalAlpha = S.story.done && p.story.ch === ST_N - 1 ? 1 : .55; g.beginPath(); g.arc(x, y, big + 4, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; } // the Meridian's worlds keep a light

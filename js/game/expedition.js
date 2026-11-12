@@ -10,8 +10,8 @@ const EXP = E.expedition;
 const gasWorld = p => !!(TYPES[p.type] || {}).noGround;
 const exOf = p => (p && p.ex) || { step: 0, pick: 0, poi: [] };
 const exDone = p => !!(p && p.ex && p.ex.step >= EX_LEN);
-const canExpedition = p => !!p && !held(p) && !exDone(p) && !p.story;
-const expediting = () => S.mission === -4 && canExpedition(atP()) && !S.dr;
+const canExpedition = p => !!p && !exDone(p) && !p.story;
+const expediting = () => S.mission === -4 && canExpedition(atP());
 const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 // one leg of a world's expedition: [scene, [safe choice, result], [risky choice, result]], the same every time for that world and leg
@@ -41,13 +41,12 @@ function poiName(p, step) {
   return n + ' ' + roman((S.cnt.poi || 0) % 9 + 2);
 }
 // what a leg pays and might find, shown on the path buttons
-const exPathTip = (step, bold) => step === EX_LEN - 1 ? (bold ? 'A guaranteed find, better odds of a rare one' : 'A guaranteed find and ✦ ' + Math.round((EXP.pay + EXP.finale) * INCOME))
-  : bold ? 'Less ✦, better odds of a find' : '✦ ' + Math.round(EXP.pay * INCOME) + ', maybe a find';
-// a finished expedition session: pay, maybe a collectible, and a new Point of Interest
+const exPathTip = (step, bold) => step === EX_LEN - 1 ? (bold ? 'A guaranteed find, better odds of a rare one' : 'A guaranteed find')
+  : bold ? 'The bold way: better odds of a find' : 'The careful way: maybe a find';
+// a finished expedition session: maybe a collectible, and a new Point of Interest
 function exLegDone(reps) {
   const p = atP(), x = p.ex = p.ex || { step: 0, pick: 0, poi: [] }, step = x.step, leg = exLeg(p, step), bold = x.pick === 1, opt = leg[bold ? 2 : 1], fin = step === EX_LEN - 1, gas = gasWorld(p);
   S.cnt.expSteps = (S.cnt.expSteps || 0) + 1; S.cnt.poi = (S.cnt.poi || 0) + 1;
-  const dust = addDust(EXP.pay * (bold ? EXP.boldPay : 1) + (fin ? EXP.finale : 0));
   const better = bold || (hasT('scan3') && Math.random() < 1 / 3), got = [];
   if (fin || Math.random() < (bold ? EXP.findBold : EXP.findSafe) + (hasT('scan1') ? .15 : 0)) got.push(rollItem(p, better, 'survey'));
   if (hasT('scan4') && Math.random() < .2) got.push(rollItem(p, better, 'survey'));
@@ -57,15 +56,15 @@ function exLegDone(reps) {
   x.poi.push(poi); x.bold = (x.bold || 0) + (bold ? 1 : 0); x.step++; x.pick = 0;
   if (fin) { S.expDone = (S.expDone || 0) + 1; if (x.bold === EX_LEN) S.cnt.allBold = (S.cnt.allBold || 0) + 1; else if (!x.bold) S.cnt.allSafe = (S.cnt.allSafe || 0) + 1; S.mission = 0; }
   const ic = gas ? '🎈' : '🗺', head = (gas ? 'Cloud dive' : 'Expedition') + ' on ' + nm(p) + ' · ' + EX_PARTS[step] + ' (' + x.step + ' of ' + EX_LEN + ')';
-  const gotTxt = '📍 ' + poi.name + ' · +' + dust + ' ✦' + (got.length ? ' · 🎒 ' + got.map((it, i) => it.name + ' (' + it.rar + (fresh[i] ? ', new!' : '') + ')').join(', ') : '');
+  const gotTxt = '📍 ' + poi.name + (got.length ? ' · 🎒 ' + got.map((it, i) => it.name + ' (' + it.rar + (fresh[i] ? ', new!' : '') + ')').join(', ') : '');
   reps.unshift({ ev: { battle: true, ic, title: head, t: leg[0] + ' ' + opt[1], got: gotTxt } });
   pushEv({ c: 'quest', ic, title: head, t: leg[0] + ' (' + opt[0] + ') ' + opt[1], got: gotTxt, at: Date.now() });
   return fin ? ic + ' ' + nm(p) + ' is fully explored! You charted ' + x.poi.length + ' Points of Interest.' : '📍 Charted ' + poi.name + '. ' + (EX_LEN - x.step) + ' part' + (EX_LEN - x.step === 1 ? '' : 's') + ' to go.';
 }
 
 // ---------- Derelict ship: a rare arrival encounter. One session of salvage, one find. ----------
-const derelictHere = () => { const p = atP(); return p && p.derelict && !p.derelict.done && !held(p) ? p : null; };
-const salvaging = () => S.mission === -7 && !!derelictHere() && !S.dr;
+const derelictHere = () => { const p = atP(); return p && p.derelict && !p.derelict.done ? p : null; };
+const salvaging = () => S.mission === -7 && !!derelictHere();
 function makeDerelict(p) {
   const D = EXD && EXD.derelict, ships = D && D.ships && D.ships.length ? D.ships : ['an old freighter'];
   p.derelict = { ship: ships[Math.floor(Math.random() * ships.length)], leg: D && D.legs ? Math.floor(Math.random() * D.legs.length) : 0, pick: 0, done: false };
@@ -78,9 +77,9 @@ function derelictLeg(p) {
 }
 function salvageDone(reps) {
   const p = derelictHere(), d = p.derelict, leg = derelictLeg(p), bold = d.pick === 1, opt = leg[bold ? 2 : 1];
-  const it = bold ? rareFind(p, 'loot') : rollItem(p, false, 'loot'), nw = gainItem(it, p), dust = addDust(EXP.salvage * (bold ? EXP.boldPay : 1));
+  const it = bold ? rareFind(p, 'loot') : rollItem(p, false, 'loot'), nw = gainItem(it, p);
   d.done = true; S.mission = 0; S.cnt.salvage = (S.cnt.salvage || 0) + 1; award(30 + (nw ? 10 : 0), 10 + (nw ? 12 : 0));
-  const got = '+' + dust + ' ✦ · 🎒 ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ')', title = 'Salvage: ' + capFirst(d.ship.replace(/^the /, ''));
+  const got = '🎒 ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ')', title = 'Salvage: ' + capFirst(d.ship.replace(/^the /, ''));
   reps.unshift({ ev: { battle: true, ic: '🛸', title, t: leg[0] + ' ' + opt[1], got } });
   pushEv({ c: 'quest', ic: '🛸', title, t: leg[0] + ' (' + opt[0] + ') ' + opt[1], got, at: Date.now() });
   return '🛸 Salvage done: ' + it.name + '.';
@@ -89,8 +88,8 @@ function salvageDone(reps) {
 // ---------- once: the switch from daily expeditions and Discover to planet expeditions ----------
 if (!S.rw1) {
   if (S.exp) {
-    const legs = S.exp.step || 0, pay = legs ? addDust(EXP.pay * legs) : 0;
-    pushEv({ c: 'quest', ic: '🗺', title: 'Expeditions belong to worlds now', t: 'Every world has its own expedition, three study sessions long, and each part charts a Point of Interest. Discover is gone: its finds, Knowledge and pay come from expeditions now. Your daily expedition was closed' + (legs ? ' and its ' + legs + ' finished part' + (legs === 1 ? ' was' : 's were') + ' paid out.' : '.'), got: pay ? '+' + pay + ' ✦' : null, at: Date.now() });
+    const legs = S.exp.step || 0;
+    pushEv({ c: 'quest', ic: '🗺', title: 'Expeditions belong to worlds now', t: 'Every world has its own expedition, three study sessions long, and each part charts a Point of Interest. Discover is gone: its finds, Knowledge and pay come from expeditions now. Your daily expedition was closed' + (legs ? ' and its ' + legs + ' finished part' + (legs === 1 ? ' was' : 's were') + ' logged.' : '.'), at: Date.now() });
     S.exp = null;
   }
   if (S.mission === -2 || S.mission === -4) S.mission = 0;

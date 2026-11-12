@@ -1,10 +1,10 @@
-/* Solarist: The right column: Upgrades and Transmissions. */
+/* Solarist: The right column: Research and Transmissions. */
 'use strict';
 
-// the right side has two tabs: Upgrades (what resources buy) and Transmissions (everything your posts and the ship heard)
-let rightTab = 'up';
-// every kind of log in one place: post transmissions, the ship's log, Meridian logs, Ship Logs from research, medals
-const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Medals']];
+// the right side has two tabs: Research (what Knowledge points unlock) and Transmissions (everything the ship heard and logged)
+let rightTab = 'tx';
+// every kind of log in one place: the ship's log, Meridian logs, Ship Logs from research, achievements, and old Listening Post transmissions
+const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements']];
 let txFilter = 'all';
 const evCat = e => e.c || (/^Research/.test(e.title || '') ? 'res' : /^Achievement/.test(e.title || '') ? 'ach' : /^Ship activity|joined the crew|left the crew|^New room/.test(e.title || '') ? 'ship' : /^Distress/.test(e.title || '') ? 'quest' : 'ev');
 function txFeed() {
@@ -45,20 +45,10 @@ function drawRight() {
   if (rightTab === 'tx' && unread) { S.txPrev = S.txSeen || 0; S.txSeen = Date.now(); save(); }
   const rt = (k, label, extra) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(rightTab === k), onclick: () => { rightTab = k; drawRight(); } }, label, extra || null);
   const tabsR = focusLock() ? el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('tx', 'Transmissions'), el('span', { class: 'sx-locknote' }, '🔒 Everything else is back at the break'))
-    : el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('up', 'Upgrades'), rt('build', 'Build'), rt('coord', 'Coordinator'), rt('research', 'Research'), rt('hangar', 'Crew'), rt('sell', 'Sell'),
-    el('i', { class: 'sx-rbreak', 'aria-hidden': 'true' }), rt('tx', '📡 Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null),
-    S.trader ? rt('trade', '🏪 Trade', rightTab !== 'trade' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null,
-    S.station ? rt('station', '🛰 Station', rightTab !== 'station' ? el('i', { class: 'sx-dot sx-dot-amber' }, '!') : null) : null);
-  if (rightTab === 'build') { rightCol.replaceChildren(tabsR, ...buildView()); return; }
-  if (rightTab === 'sell') { rightCol.replaceChildren(tabsR, ...sellView()); return; }
+    : el('div', { class: 'sx-rtabs', role: 'tablist' }, rt('tx', '📡 Transmissions', rightTab !== 'tx' && unread ? el('i', { class: 'sx-dot', 'aria-label': unread + ' new' }, String(unread)) : null), rt('research', 'Research'));
   if (rightTab === 'research') { rightCol.replaceChildren(tabsR, ...researchView()); return; }
-  if (rightTab === 'coord') { rightCol.replaceChildren(tabsR, ...coordView()); return; }
-  if (rightTab === 'hangar') { rightCol.replaceChildren(tabsR, ...hangarView()); return; }
-  if (rightTab === 'station' && S.station) { rightCol.replaceChildren(tabsR, ...stationView()); return; }
-  if (rightTab === 'station') rightTab = 'up';
-  if (rightTab === 'trade' && S.trader) { rightCol.replaceChildren(tabsR, ...tradeView()); return; }
-  if (rightTab === 'trade') rightTab = 'up';
-  if (rightTab === 'tx') {
+  rightTab = 'tx';
+  {
     const feed = txFeed(), seen = S.txPrev || 0, cnt = {}, fresh = {};
     feed.forEach(it => { cnt[it.c] = (cnt[it.c] || 0) + 1; if (it.at > seen) fresh[it.c] = 1; });
     const chips = el('div', { class: 'sx-chips', role: 'tablist' }, TXF.filter(([k]) => k === 'all' || cnt[k] || k === 'camp' || k === 'arc').map(([k, label]) =>
@@ -68,18 +58,10 @@ function drawRight() {
     else if (txFilter === 'arc') body = shipLogsView();
     else { const list = txFilter === 'all' ? feed : feed.filter(it => it.c === txFilter);
       body = [list.length ? el('div', { class: 'sx-tx' }, renderFeed(list, 'rtx' + txFilter, true, drawRight))
-        : el('p', { class: 'sl-muted' }, txFilter === 'all' ? 'Nothing yet. Build a Listening Post on a world and it sends a transmission every study session. Deep-space events, crew chatter, Meridian logs and medals all land here too.' : 'Nothing here yet.')]; }
+        : el('p', { class: 'sl-muted' }, txFilter === 'all' ? 'Nothing yet. Deep-space events, crew chatter, Meridian logs, research and achievements all land here.' : 'Nothing here yet.')]; }
     rightCol.replaceChildren(el('div', { class: 'sx-rhead' }, tabsR, chips), ...body);
     return;
   }
-  const newTx = unread ? el('button', { type: 'button', class: 'sx-newtx', onclick: () => { rightTab = 'tx'; drawRight(); } }, el('b', {}, 'New transmission received'), el('span', {}, unread === 1 ? '1 new message' : unread + ' new messages')) : null;
-  const trade = Math.round(tradeIncome() * INCOME);
-  const up = (name, small, btn) => el('div', { class: 'sx-up' }, el('b', {}, name), el('small', {}, small), btn);
-  const buy = (cost, onclick, label) => el('button', { type: 'button', class: 'btn sx-buy', disabled: S.dust < cost || null, onclick }, label || '✦ ' + cost.toLocaleString());
-  const mods = Object.entries(MODS).map(([k, [, name, eff, what]]) => { const l = lvl(k), c = modCost(k), mx = l >= modMax(k); return up(name + ' ' + l + ' / ' + modMax(k), eff(l) + ' ' + what + (mx ? ' (max level)' : ' (next ' + eff(l + 1) + ')'), mx ? el('span', { class: 'sx-done' }, 'Max') : buy(c, () => upgradeMod(k))); });
-  rightCol.replaceChildren(...[tabsR, newTx].filter(Boolean),
-    el('div', { class: 'sx-res' }, el('b', {}, '✦ ' + S.dust.toLocaleString()), el('small', {}, 'resources' + (trade ? ', +' + trade + ' trade per session' : ''))),
-    sec('Ship modules', ...mods));
 }
 // two-click buttons for things that can't be undone
 const armBtn = (label, armed, act, cls) => { const b = el('button', { type: 'button', class: 'btn ' + (cls || '') }, label);

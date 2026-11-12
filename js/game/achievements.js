@@ -1,12 +1,11 @@
-/* Solarist: Medals and Side Quests. */
+/* Solarist: Achievements and Side Quests. */
 'use strict';
 
 // ---------- achievements ----------
 if (!S.ach) S.ach = {};
 const ACH = [];
-const A = (grp, id, ic, name, desc, test, req) => ACH.push({ grp, id, ic, name, desc, test, req }); // req: a research that reveals the medal
+const A = (grp, id, ic, name, desc, test, req) => ACH.push({ grp, id, ic, name, desc, test, req }); // req: a research that reveals the achievement
 const tiers = (grp, key, ic, list, val, fmt) => list.forEach(([n, name]) => A(grp, key + n, ic, name, fmt(n), () => val() >= n));
-const facAll = () => posts().reduce((a, f) => a.concat(f.p.post.tp ? f.p.post.tp.fac : []), []);
 const charted = () => Object.values(S.cnt.rar).reduce((a, n) => a + n, 0);
 tiers('Study', 'ses', '⏱', [[1, 'First Light'], [10, 'Getting Started'], [50, 'Regular'], [100, 'Centurion'], [250, 'Devoted'], [500, 'Unstoppable'], [1000, 'Legend of Focus']], () => S.total, n => 'Finish ' + n + ' study session' + (n === 1 ? '' : 's'));
 tiers('Study', 'hrs', '⌛', [[10, 'Ten Hours In'], [50, 'Fifty Hours'], [100, 'Hundred Hours'], [250, 'Deep Space Scholar'], [500, 'Five Hundred Hours']], () => S.minutes / 60, n => 'Study for ' + n + ' hours in total');
@@ -20,27 +19,11 @@ A('Worlds', 'earth', '🌍', 'Home Away from Home', 'Find a world at least 80% h
 A('Worlds', 'intel', '👽', 'We Are Not Alone', 'Find a world with signs of intelligence', () => S.found.some(f => (f.p.lifeLvl || 0) >= 6));
 A('Worlds', 'far', '🔭', 'The Far Edge', 'Find a world more than 10,000 light-years from Earth', () => S.rec.far && S.rec.far.v >= 10000);
 A('Worlds', 'allrec', '🏆', 'Record Keeper', 'Hold every world record at once, with 25 or more worlds charted', () => S.found.length >= 25 && REC.every(([k]) => S.rec[k]) && REC.every(([k]) => byNum(S.rec[k].num)));
-tiers('Worlds', 'luck', '🧭', [[1, 'Lucky Break'], [10, 'Fortune Favors']], () => S.cnt.lucky, n => 'Make ' + n + ' lucky Coordinator trip' + (n === 1 ? '' : 's'));
-tiers('Worlds', 'sold', '💰', [[1, 'First Sale'], [25, 'Guild Regular'], [100, 'Real Estate Mogul']], () => S.sold.n, n => 'Sell ' + n + ' world' + (n === 1 ? '' : 's'));
-tiers('Posts', 'post', '🗼', [[1, 'Listening In'], [3, 'Network'], [5, 'Wide Net'], [10, 'Everywhere at Once']], () => posts().length, n => 'Own ' + n + ' Listening Post' + (n === 1 ? '' : 's'));
-tiers('Posts', 'tp', '🏘', [[1, 'Settler'], [3, 'Founder'], [5, 'Colonial Office']], () => posts().filter(f => f.p.post.tp).length, n => 'Own ' + n + ' Travelers\' Post' + (n === 1 ? '' : 's'));
-tiers('Posts', 'fac', '🏗', [[1, 'Open for Business'], [14, 'Fully Built'], [42, 'Three Full Posts']], () => facAll().length, n => 'Build ' + n + ' facilit' + (n === 1 ? 'y' : 'ies'));
-tiers('Posts', 'max', '⭐', [[1, 'Top Shelf'], [14, 'Five Star Post']], () => facAll().filter(f => facLvN(f) >= FAC_MAX).length, n => 'Upgrade ' + n + ' facilit' + (n === 1 ? 'y' : 'ies') + ' to the max level');
-tiers('Posts', 'city', '🏙', [[1, 'City Lights']], () => posts().filter(f => f.p.post.tp && (f.p.post.tp.pop || 0) >= 5000).length, () => 'Grow a Travelers\' Post to 5,000 settlers');
-tiers('Adventure', 'bty', '🎯', [[1, 'Bounty Hunter'], [10, 'Contract Work'], [50, 'Professional'], [100, 'Most Wanted List']], () => S.bDone, n => 'Complete ' + n + ' bount' + (n === 1 ? 'y' : 'ies'));
-tiers('Adventure', 'fight', '⚔', [[1, 'Sheriff'], [10, 'Outlaw Bane'], [50, 'Peacekeeper']], () => S.fights || 0, n => 'Drive out ' + n + ' outlaw gang' + (n === 1 ? '' : 's'));
-tiers('Adventure', 'dr', '🆘', [[1, 'First Responder'], [10, 'Search and Rescue'], [30, 'Guardian']], () => S.drN || 0, n => 'Complete ' + n + ' Distress Run' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'exp', '🗺', [[1, 'Into the Unknown'], [10, 'Seasoned Explorer'], [30, 'Mapmaker of Legend']], () => S.expDone || 0, n => 'Fully explore ' + n + ' world' + (n === 1 ? '' : 's'));
-tiers('Adventure', 'wk', '📜', [[1, 'Guild Member'], [10, 'Guild Favorite'], [26, 'Half a Year of Contracts']], () => S.cnt.wk || 0, n => 'Get paid for ' + n + ' Guild contract' + (n === 1 ? '' : 's'));
-tiers('Adventure', 'mw', '🎯', [[1, 'Wanted: Caught'], [5, 'Bounty Legend'], [15, 'The Last Sheriff']], () => S.mwDone || 0, n => 'Catch ' + n + ' Most Wanted boss' + (n === 1 ? '' : 'es'));
-tiers('Worlds', 'chip', '🎛', [[10, 'Fine Tuner'], [25, 'Control Freak'], [60, 'Master of Chance']], () => S.chips.own, n => 'Own ' + n + ' Coordinator chips');
-A('Worlds', 'chipfull', '🎚', 'Turned to Eleven', 'Fill one Coordinator field with all ' + 10 + ' chips', () => Object.values(S.chips.put).some(n => n >= 10));
-A('Worlds', 'nudge', '🎯', 'Exactly What I Ordered', 'Find a world the Coordinator chips steered you to', () => S.found.some(f => f.p.nudged && f.p.nudged.length));
 
 // Side Quests: silly little challenges, just for fun
 const SQ = (id, ic, name, desc, test) => A('Side Quests', 'sq-' + id, ic, name, desc, test);
 const anyW = f => S.found.some(x => f(x.p)), seen = t => (S.cnt.seen && S.cnt.seen[t]) || 0;
-const postHas = (...ks) => posts().some(x => x.p.post.tp && ks.every(k => x.p.post.tp.fac.some(f => f.k === k)));
 const lastN = (n, f) => S.found.length >= n && S.found.slice(-n).every(x => f(x.p, S.found[S.found.length - 1].p));
 SQ('swim', '🐟', 'There Goes Swimmer', 'Find a world with swimming creatures', () => anyW(p => p.lifeLvl === 4));
 SQ('herd', '🦬', 'Big Herd Energy', 'Find a world with large animal herds', () => anyW(p => p.lifeLvl === 5));
@@ -53,13 +36,8 @@ SQ('rings', '💍', 'Put a Ring on It', 'Have 5 ringed worlds in your Logbook', 
 SQ('rogue', '🪨', 'Lone Wanderer', 'Find a rogue world drifting with no star', () => anyW(p => p.type === 'Rogue'));
 SQ('tour', '🧳', 'Tourist', 'Discover worlds of 10 different classes', () => new Set(S.found.map(x => x.p.type)).size >= 10);
 SQ('same', '🫠', 'Déjà View', 'Discover 3 worlds of the same class in a row', () => lastN(3, (p, q) => p.type === q.type));
-SQ('rough', '🏴', 'Rough Neighborhood', 'Arrive at 2 outlaw-held worlds in a row', () => lastN(2, p => !!p.outlaw));
 SQ('name', '✏', 'I Name Thee', 'Give a world a name of your own', () => anyW(p => !!p.custom));
 SQ('ship', '🏷', 'Main Character', 'Rename your ship', () => S.ship.name !== 'The Lantern');
-SQ('diner', '🍜', 'Diner First!', 'Upgrade the Diner 3 times in a row', () => !!S.cnt.facRow && (S.cnt.facRow.best.diner || 0) >= 3);
-SQ('arcade', '🕹', 'High Score', 'Get an Arcade to level 5', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'arcade' && facLvN(f) >= 5)));
-SQ('spa', '♨', 'Spa Day', 'Have a Hot Spring Bath and a Lounge at the same post', () => postHas('bathhouse', 'lounge'));
-SQ('noise', '📻', 'Noise Complaint', 'Have a Radio Shack and a Library at the same post', () => postHas('radio', 'library'));
 SQ('whale', '🐋', 'Whale Watcher', 'See a space whale', () => seen('Space whale') >= 1);
 SQ('meteor', '🌠', 'Make a Wish', 'Fly through a meteor storm', () => seen('Meteor storm') >= 1);
 SQ('hello', '🛸', 'Hello Neighbor', 'Pass a fellow explorer 3 times', () => seen('Fellow explorer') >= 3);
@@ -71,11 +49,8 @@ SQ('early', '🐓', 'Early Bird', 'Finish a study session between 4 and 7 AM', (
 SQ('binge', '📼', 'Binge Watcher', 'Follow 5 Meridian chapter parts in one day', () => !!S.cnt.campDay && S.cnt.campDay.best >= 5);
 SQ('bold', '🎲', 'Fortune Favors the Bold', 'Take the risky path on every part of an expedition', () => (S.cnt.allBold || 0) >= 1);
 SQ('safe', '🐢', 'Slow and Steady', 'Take the safe path on every part of an expedition', () => (S.cnt.allSafe || 0) >= 1);
-SQ('broke', '💸', 'Big Spender', 'Spend every last resource (have exactly 0)', () => S.dust === 0 && S.dustTotal > 0);
-SQ('hoard', '🐉', 'Dragon\'s Hoard', 'Hold 10,000 resources at once', () => S.dust >= 10000);
 SQ('sale', '🧹', 'Spring Cleaning', 'Sell 10 or more worlds in one go', () => (S.cnt.bigSale || 0) >= 1);
 SQ('dupe', '🔁', 'Not Another One', 'Own 5 copies of the same collectible', () => Object.values(S.items).some(it => it.n >= 5));
-SQ('mad', '🧪', 'Mad Science', 'Have 3 Scientists aboard at once', () => crewN('Scientist') >= 3);
 SQ('fired', '👋', 'You\'re Fired', 'Let a crew member go', () => (S.cnt.fired || 0) >= 1);
 SQ('feather', '🪶', 'Featherweight', 'Find a world with less than 0.3 g of gravity', () => anyW(p => p.gravity < .3));
 SQ('legday', '🏋', 'Never Skip Leg Day', 'Find a world with more than 3 g of gravity', () => anyW(p => p.gravity > 3));
@@ -93,24 +68,12 @@ SQ('mid', '😐', 'Mid', 'Find 5 Common worlds in a row', () => lastN(5, p => p.
 SQ('quiet', '🔇', 'Dead Quiet', 'Find 5 lifeless worlds in a row', () => lastN(5, p => !p.lifeLvl));
 SQ('lava', '🌋', 'The Floor Is Lava', 'Have 3 Lava worlds in your Logbook', () => S.found.filter(x => x.p.type === 'Lava').length >= 3);
 SQ('shroom', '🍄', 'Shroom Room', 'Find a Fungal world with life on it', () => anyW(p => p.type === 'Fungal' && p.lifeLvl > 0));
-SQ('steer3', '🎛', 'Overachiever', 'Get a world steered by 3 Coordinator fields at once', () => anyW(p => p.nudged && p.nudged.length >= 3));
-SQ('city', '🏙', 'Big City Lights', 'Grow a Travelers\' Post to 10,000 settlers', () => posts().some(x => x.p.post.tp && (x.p.post.tp.pop || 0) >= 10000));
-SQ('dinermax', '🧑‍🍳', 'Diner Supremacy', 'Get a Diner to the max level', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.some(f => f.k === 'diner' && facLvN(f) >= FAC_MAX)));
-SQ('mall', '🛍', 'No Vacancy', 'Fill every facility slot at a post', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= facSlots(x.p)));
-SQ('theme', '🎪', 'Theme Park', 'Give a post a theme by building its facilities around one idea', () => posts().some(x => x.p.post.tp && !!postTheme(x.p)));
-SQ('city10', '🌆', 'Skyline', 'Have a Travelers\' Post with 10 facilities', () => posts().some(x => x.p.post.tp && x.p.post.tp.fac.length >= 10));
-tiers('Worlds', 'node', '⚡', [[1, 'Shortcut'], [5, 'Network Engineer'], [15, 'Hyperlane Architect']], () => Math.max(S.cnt.jumps || 0, S.cnt.nodes || 0), n => 'Make ' + n + ' hyperdrive jump' + (n === 1 ? '' : 's'));
-SQ('jumpy', '🐇', 'Jumpy', 'Make 25 hyperdrive jumps', () => (S.cnt.jumps || 0) >= 25);
-SQ('named', '🪧', 'Grand Opening', 'Give a Travelers\' Post its own name', () => posts().some(x => x.p.post.tp && !!x.p.post.tp.name));
-SQ('cooks', '🍳', 'Too Many Cooks', 'Have 3 Cooks aboard at once', () => crewN('Cook') >= 3);
-SQ('house', '🎭', 'Full House', 'Have one of every crew role aboard', () => Object.keys(ROLES).every(r => crewN(r) > 0));
 SQ('fashion', '🖌', 'Fashionista', 'Own every hull color', () => Object.keys(HULL_COLORS).every(k => S.ship.colors.includes(k)));
 SQ('overtime', '☕', 'Overtime', 'Finish 16 study sessions in one day', () => !!S.rec.dayN && S.rec.dayN.v >= 16);
 SQ('weekend', '📆', 'Weekend Warrior', 'Study on a Saturday and on a Sunday', () => !!S.cnt.dow && S.cnt.dow[6] && S.cnt.dow[0]);
 SQ('nap', '🛌', 'Professional Napper', 'Finish 25 breaks without skipping them', () => (S.cnt.breaks || 0) >= 25);
 SQ('skip', '⏭', 'Speedrunner', 'Skip 10 times (we saw that)', () => (S.cnt.skips || 0) >= 10);
 SQ('miles', '🗺', 'Frequent Flyer', 'Travel 100,000 light-years in total', () => S.found.reduce((a, x) => a + x.p.dist, 0) + (S.sold.ly || 0) >= 100000);
-SQ('firesale', '💥', 'Fire Sale', 'Sell a Legendary world (are you sure?)', () => (S.cnt.soldLeg || 0) >= 1);
 const typeN = t => S.found.filter(x => x.p.type === t).length, catN = c => Object.keys(S.items).filter(k => parseId(k).c === c && itemName(k) !== '???').length;
 SQ('ocean', '🌊', 'Water World', 'Have 3 Ocean worlds in your Logbook', () => typeN('Ocean') >= 3);
 SQ('snow', '☃', 'Snowball Fight', 'Find life on an Ice world', () => anyW(p => p.type === 'Ice' && p.lifeLvl > 0));
@@ -132,9 +95,6 @@ SQ('rainbow', '🌈', 'Taste the Rainbow', 'Have a world of every rarity in your
 SQ('snob', '🧐', 'Rarity Snob', 'Have 10 Rare or Legendary worlds in your Logbook', () => S.found.filter(x => x.p.rarity === 'Rare' || x.p.rarity === 'Legendary').length >= 10);
 SQ('hundred', '💯', 'Centennial', 'Discover world #0100', () => anyW(p => p.num === 100));
 SQ('records', '🏆', 'Record Breaker', 'Hold 5 records at once', () => Object.keys(S.rec).length >= 5);
-SQ('lucky2', '🍀', 'Lucky Streak', 'Make 2 lucky Coordinator trips in a row', () => lastN(2, p => !!p.lucky));
-SQ('allin', '🎰', 'All In', 'Have the Coordinator charged with every chip placed', () => S.coord && S.chips.own > 0 && chipsFree() === 0);
-SQ('chatter', '📡', 'Chatterbox', 'Hear 100 transmissions from your posts', () => posts().reduce((a, x) => a + x.p.post.reports.length, 0) >= 100);
 SQ('mug', '☕', 'Found It!', 'Find Dave\'s Lost Coffee Mug (he\'s been looking everywhere)', () => Object.keys(S.items).some(k => itemName(k) === 'Dave\'s Lost Coffee Mug'));
 SQ('hoarder', '🧺', 'Hoarder', 'Receive 300 collectibles, duplicates included', () => Object.values(S.items).reduce((a, it) => a + it.n, 0) >= 300);
 SQ('variety', '🗃', 'A Bit of Everything', 'Own a collectible from every category you can find', () => CATS.filter(([c]) => catOpen(c)).every(([c]) => catN(c) > 0));
@@ -144,51 +104,12 @@ SQ('purse', '🪙', 'Coin Purse', 'Own 5 different Coins', () => catN('coin') >=
 SQ('weird', '📦', 'Box of Weird', 'Own 5 different Anomalies', () => catN('ano') >= 5);
 SQ('nerd', '🤓', 'Book Smart', 'Reach Knowledge Level 15 while it is 5 above your Captain Level', () => lvInfo(S.kn).L >= 15 && lvInfo(S.kn).L - lvInfo(S.xp).L >= 5);
 SQ('jock', '💪', 'Street Smart', 'Reach Captain Level 30 with a Knowledge Level half as high (or less)', () => lvInfo(S.xp).L >= 30 && lvInfo(S.kn).L * 2 <= lvInfo(S.xp).L);
-SQ('rack', '🎖', 'Medal Rack', 'Unlock 50 medals', () => Object.keys(S.ach).length >= 50);
+SQ('rack', '🎖', 'Trophy Shelf', 'Unlock 50 achievements', () => Object.keys(S.ach).length >= 50);
 SQ('ride', '🛋', 'Home Sweet Home', 'Change every decoration in one room', () => ROOM_SPOTS.some(k => roomAt(k) && decFull(k)));
 SQ('deep', '🧘', 'Deep Work', 'Finish a 60-minute study session', () => (S.cnt.maxFocus || 0) >= 60);
 SQ('habit', '📈', 'Habit Forming', 'Study 7 days in a row', () => !!S.cnt.streak && S.cnt.streak.best >= 7);
-tiers('Adventure', 'dl', '📦', [[1, 'First Delivery'], [10, 'Courier'], [50, 'Express Service'], [150, 'Postmaster of the Stars']], () => (S.dl && S.dl.done) || 0, n => 'Finish ' + n + ' deliver' + (n === 1 ? 'y' : 'ies'));
-SQ('perfect', '📬', 'Signed, Sealed, Delivered', 'Make 10 perfect deliveries', () => (S.cnt.dlPerfect || 0) >= 10);
-SQ('closeenough', '🤷', 'Close Enough', 'Deliver early at a world that is less than half of what they asked for', () => (S.cnt.dlClose || 0) >= 1);
-// facility and post side quests
-const tps = () => posts().filter(x => x.p.post.tp).map(x => x.p), facAt = (p, k) => p.post.tp.fac.some(f => f.k === k);
-const themeN = (p, t) => p.post.tp.fac.filter(f => FAC_THEME[f.k] === t).length, cargoN = c => (S.cnt.cargo && S.cnt.cargo[c]) || 0;
-SQ('openmic', '🎤', 'Open Mic Night', 'Have a Karaoke Bar and a Music Hall at the same post', () => tps().some(p => facAt(p, 'karaoke') && facAt(p, 'music')));
-SQ('freeze', '🍦', 'Brain Freeze', 'Build an Ice Cream Parlor on a world colder than −50 °C', () => tps().some(p => facAt(p, 'icecream') && p.temp < -50));
-SQ('catch', '🐟', 'Fresh Catch', 'Build a Fish Market on an Ocean world', () => tps().some(p => facAt(p, 'fishmarket') && p.type === 'Ocean'));
-SQ('gold', '⛏', 'Strike It Rich', 'Build a Mine on an Iron or Crystal world', () => tps().some(p => facAt(p, 'mine') && (p.type === 'Iron' || p.type === 'Crystal')));
-SQ('liftoff', '🚀', 'Easy Liftoff', 'Build a Launch Pad on a world under 0.5 g', () => tps().some(p => facAt(p, 'launchpad') && p.gravity < .5));
-SQ('soldout', '🏟', 'Sold Out', 'Have a Stadium in a City of 10,000 settlers', () => tps().some(p => facAt(p, 'stadium') && (p.post.tp.pop || 0) >= 10000));
-SQ('peace', '🧘', 'Inner Peace', 'Have a Meditation Garden, a Shrine and a Spa at one post', () => tps().some(p => facAt(p, 'zen') && facAt(p, 'shrine') && facAt(p, 'spa')));
-SQ('movie', '🍿', 'Movie Night', 'Have a Cinema and an Ice Cream Parlor at one post', () => tps().some(p => facAt(p, 'cinema') && facAt(p, 'icecream')));
-SQ('court', '🍱', 'Food Court', 'Have 5 food facilities at one post', () => tps().some(p => themeN(p, 'food') >= 5));
-SQ('brains', '🧠', 'Brain Trust', 'Have 5 science facilities at one post', () => tps().some(p => themeN(p, 'sci') >= 5));
-SQ('party', '🎉', 'Party Planet', 'Have 5 fun facilities at one post', () => tps().some(p => themeN(p, 'fun') >= 5));
-SQ('retreat', '🛀', 'Wellness Retreat', 'Have 5 rest facilities at one post', () => tps().some(p => themeN(p, 'rest') >= 5));
-SQ('industry', '🏭', 'Industrial Revolution', 'Have 5 work facilities at one post', () => tps().some(p => themeN(p, 'work') >= 5));
-SQ('renaissance', '🖼', 'Renaissance', 'Have 5 culture facilities at one post', () => tps().some(p => themeN(p, 'art') >= 5));
-SQ('everyone', '🌐', 'Something for Everyone', 'Have a facility from every theme at one post', () => tps().some(p => Object.keys(THEMES).every(t => themeN(p, t) > 0)));
-SQ('twins', '👯', 'Twin Cities', 'Have two posts with the same theme', () => { const t = tps().map(p => postTheme(p)).filter(Boolean).map(x => x[1]); return new Set(t).size < t.length; });
-SQ('tour6', '🗺', 'Grand Tour', 'Have posts of all six themes', () => new Set(tps().map(p => postTheme(p)).filter(Boolean).map(x => x[1])).size >= 6);
-SQ('names5', '🏷', 'Name Dropper', 'Give 5 facilities names of your own', () => tps().reduce((a, p) => a + p.post.tp.fac.filter(f => f.name).length, 0) >= 5);
-SQ('brochure', '📝', 'Glossy Brochure', 'Write a description for a Travelers\' Post', () => tps().some(p => !!p.post.tp.desc));
-SQ('planner', '🏗', 'Urban Planner', 'Buy all the extra land at one post', () => tps().some(p => (p.post.tp.extra || 0) >= slotBuyMax()));
-SQ('wrecking', '🧹', 'Wrecking Ball', 'Tear down 3 facilities', () => (S.cnt.torn || 0) >= 3);
 SQ('stargaze', '🔭', 'Stargazer', 'Open the Planetarium 10 times', () => (S.cnt.pv || 0) >= 10);
-SQ('hyperlane', '🌀', 'Hyperlane Tourist', 'Jump to worlds of 5 different classes', () => Object.keys(S.cnt.jumpTypes || {}).length >= 5);
 tiers('Knowledge', 'inv', '🔬', [[1, 'Curious'], [10, 'Anomaly Hunter'], [40, 'Keeper of the Codex']], () => S.cnt.inv || 0, n => 'Solve ' + n + ' anomal' + (n === 1 ? 'y' : 'ies'));
-SQ('station', '🛰', 'Big City in Space', 'Find an Interplanetary Station', () => (S.cnt.stations || 0) >= 1);
-SQ('shopper', '🛍', 'Last-Minute Shopper', 'Buy 5 things at Interplanetary Stations', () => (S.cnt.stBuys || 0) >= 5);
-SQ('shift', '🛠', 'Odd Jobs', 'Work 3 shifts at Interplanetary Stations', () => (S.cnt.shifts || 0) >= 3);
-SQ('museum', '🏛', 'Patron of the Arts', 'Donate 10 collectibles to station museums', () => (S.cnt.donated || 0) >= 10);
-SQ('vet', '★', 'Old Hand', 'Hire a veteran at an Interplanetary Station', () => (S.cnt.vets || 0) >= 1);
-SQ('ringrunner', '🛰', 'Station Chic', 'Own 5 station-only decorations', () => decStOwned() >= 5);
-SQ('loan', '🎛', 'Borrowed Power', 'Take the loaner chips from a station', () => (S.cnt.loaned || 0) >= 1);
-SQ('ducks', '🦆', 'Rubber Duck Express', 'Perfectly deliver ten thousand rubber ducks', () => cargoN('ten thousand rubber ducks') > 0);
-SQ('cake', '🎂', 'Special Delivery', 'Perfectly deliver a three-tier wedding cake', () => cargoN('a three-tier wedding cake') > 0);
-SQ('cat', '🐈', 'Cat Courier', 'Perfectly deliver a very patient cat', () => cargoN('a very patient cat') > 0);
-tiers('Rating', 'rt', '◆', RANKS.slice(2).map(([at, name]) => [at, name]), () => rating(), n => 'Reach a Rating of ' + n.toLocaleString());
 tiers('Adventure', 'enc', '✨', [[1, 'Fancy Meeting You'], [10, 'Well Connected'], [50, 'Everyone Knows You']], () => S.cnt.enc, n => 'Have ' + n + ' arrival encounter' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'ev', '☄', [[1, 'Strange Skies'], [25, 'Seen It All']], () => S.cnt.ev, n => 'Witness ' + n + ' deep-space event' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'srv', '📍', [[1, 'Surveyor'], [25, 'Field Researcher'], [100, 'Planetary Scientist']], () => (S.surveys || 0) + (S.cnt.poi || 0), n => 'Chart ' + n + ' Point' + (n === 1 ? '' : 's') + ' of Interest');
@@ -202,17 +123,12 @@ STARS.forEach(([st]) => A('Stars', 'star-' + st.replace(' ', '-'), '☀', STAR_M
 A('Stars', 'star-all', '🌌', 'Every Kind of Light', 'Discover a world around every kind of star', () => STARS.every(([st]) => S.found.some(f => f.p.star === st)), 'nav4');
 A('Knowledge', 'story', '📖', 'The Whole Story', 'Read every Ship Log and finish the Meridian story', () => !!STD && S.story.done && Object.keys(SHIP_LOGS).every(k => S.slog[k]), 'arc5');
 A('Collection', 'legit', '🌟', 'Legendary Curator', 'Own 10 Legendary collectibles', () => Object.keys(S.items).filter(k => parseId(k).r === 'Legendary' && itemName(k) !== '???').length >= 10);
-tiers('Collection', 'trade', '🏪', [[1, 'Window Shopper'], [10, 'Haggler']], () => (S.cnt.bought || 0) + (S.cnt.swaps || 0), n => 'Buy or swap ' + n + ' item' + (n === 1 ? '' : 's') + ' at Trade Stations');
-tiers('Ship', 'room', '🛠', [[1, 'Home Improvement'], [7, 'Fully Fitted']], () => Object.keys(S.rooms).length, n => 'Build ' + n + ' room' + (n === 1 ? '' : 's') + ' on your ship');
-A('Ship', 'roommax', '🏰', 'Luxury Liner', 'Upgrade every room to the max level', () => Object.keys(ROOMS).every(k => roomLv(k) >= ROOM_MAX));
-tiers('Ship', 'crew', '👥', [[1, 'Not Alone Anymore'], [4, 'Full Table'], [8, 'Big Family']], () => S.crew.length, n => 'Have ' + n + ' crew aboard');
-A('Ship', 'roles', '🎭', 'A Bit of Everyone', 'Have one crew member of every role aboard', () => Object.keys(ROLES).every(r => crewN(r) > 0));
+tiers('Ship', 'crew', '👥', [[1, 'Not Alone Anymore'], [3, 'Full Table'], [5, 'Big Family']], () => S.crew.length, n => 'Have ' + n + ' crew aboard');
+tiers('Ship', 'craft', '🧵', [[1, 'Handmade'], [10, 'Tailor'], [30, 'Workshop Legend']], () => S.cnt.crafted || 0, n => 'Craft ' + n + ' thing' + (n === 1 ? '' : 's'));
 A('Ship', 'color', '🎨', 'Fresh Paint', 'Paint your ship a new color', () => S.ship.colors.length > 1);
-A('Ship', 'design', '🛋', 'Interior Designer', 'Buy your first decoration', () => decOwned() > 0);
-A('Ship', 'designs', '🏠', 'Show Home', 'Own every decoration', () => decOwned() >= decTotal()); A('Ship', 'decor50', '🖼', 'Nesting', 'Own 50 decorations', () => decOwned() >= 50);
-tiers('Ship', 'mods', '⚙', [[10, 'Tinkerer'], [30, 'Overclocked'], [60, 'Ship of Theseus']], () => Object.keys(MODS).reduce((a, k) => a + lvl(k) - 1, 0), n => 'Buy ' + n + ' ship module upgrades');
+A('Ship', 'design', '🛋', 'Interior Designer', 'Use your first decoration', () => decOwned() > 0);
+A('Ship', 'designs', '🏠', 'Show Home', 'Try every decoration', () => decOwned() >= decTotal()); A('Ship', 'decor50', '🖼', 'Nesting', 'Try 50 decorations', () => decOwned() >= 50);
 tiers('Knowledge', 'tech', '🔬', [[1, 'Eureka'], [6, 'Lab Coat'], [12, 'Department Head'], [RES_ALL.length, 'Everything Researched']], () => Object.keys(S.tech).length, n => 'Finish ' + n + ' research' + (n === 1 ? '' : 'es'));
 tiers('Knowledge', 'cap', '⭐', [[10, 'Ensign'], [25, 'Seasoned'], [50, 'Veteran'], [100, 'Star Legend']], () => lvInfo(S.xp).L, n => 'Reach Captain Level ' + n);
 tiers('Knowledge', 'kn', '📚', [[10, 'Bookworm'], [25, 'Well Read'], [50, 'Sage of the Stars'], [100, 'Keeper of the Cosmos']], () => lvInfo(S.kn).L, n => 'Reach Knowledge Level ' + n);
 tiers('Knowledge', 'camp', '📡', [[1, 'The First Log'], [3, 'The Signal'], [6, 'The Long Way'], [9, 'The Quiet Zone'], [12, 'Echoes'], [15, 'The Light Is On']], () => S.story.done ? ST_N : S.story.ch, n => n === 1 ? 'Finish the first Meridian chapter' : 'Finish ' + n + ' Meridian chapters');
-tiers('Knowledge', 'dust', '✦', [[1000, 'Pocket Money'], [10000, 'Well Funded'], [100000, 'Rich Beyond Measure']], () => S.dustTotal, n => 'Earn ' + n.toLocaleString() + ' resources in total');

@@ -16,7 +16,7 @@ function drawPv() {
   pvBar.replaceChildren(
     el('button', { type: 'button', class: 'btn sx-pv-arrow', 'aria-label': 'Previous world', onclick: () => pvStep(-1) }, '◂'),
     el('div', { class: 'sx-pv-info' }, el('b', {}, '🔭 ' + pad(p.num) + ' · ' + (pv.i + 1) + ' of ' + pv.list.length), el('small', {}, bits.join(' · ')),
-      el('div', { class: 'sx-row-l' }, S.at !== p.num ? el('button', { type: 'button', class: 'sl-link', disabled: !canJump(p) || null, title: jumpTip(p), onclick: () => { pvClose(true); jumpTo(p); } }, '⚡ Jump here (' + S.hyper + ')') : null, el('button', { type: 'button', class: 'sl-link', onclick: () => { const n = p.num; pvClose(true); tab('log'); openWorld(n); } }, 'Open in the Logbook'),
+      el('div', { class: 'sx-row-l' }, el('button', { type: 'button', class: 'sl-link', onclick: () => { const n = p.num; pvClose(true); tab('log'); openWorld(n); } }, 'Open in the Logbook'),
         el('button', { type: 'button', class: 'sl-link', onclick: () => pvClose() }, 'Back to the voyage (Esc)'), el('span', { class: 'sx-pv-time' }))),
     el('button', { type: 'button', class: 'btn sx-pv-arrow', 'aria-label': 'Next world', onclick: () => pvStep(1) }, '▸'));
 }

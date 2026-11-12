@@ -14,11 +14,11 @@ const isLastCh = i => i === ST_N - 1;
 // the signal leads to the current chapter's world: made the first time you follow it, and back there if you left mid-chapter
 const signalOn = () => !!STD && !S.story.done && S.at !== S.story.nums[S.story.ch];
 const signalText = () => !STD ? '' : S.story.ch === 0 ? STD.firstSignal : STD.chapters[S.story.ch - 1].signal;
-const following = () => S.mission === 0 && S.exploreKind === 'signal' && signalOn() && !heldP() && !S.dr;
+const following = () => S.mission === 0 && S.exploreKind === 'signal' && signalOn();
 // the chapter on the world you're at, and its next leg (the door doesn't need a study session)
 const chHere = () => { const p = atP(); return STD && !S.story.done && p && p.story && p.story.ch === S.story.ch ? p : null; };
 const atDoor = () => { const p = chHere(); return !!p && isLastCh(p.story.ch) && p.story.step === ST_LEGS - 1; };
-const chaptering = () => S.mission === -3 && !!chHere() && !atDoor() && !S.dr;
+const chaptering = () => S.mission === -3 && !!chHere() && !atDoor();
 const chLeg = p => STD.chapters[p.story.ch].legs[p.story.step];
 
 function makeStoryPlanet(i) { // the chapter's world, looking exactly as written
@@ -38,23 +38,23 @@ function makeStoryPlanet(i) { // the chapter's world, looking exactly as written
 function followSignal() { // arrive at the current chapter's world
   let p = stP(S.story.ch), fresh = false;
   if (!p) { p = makeStoryPlanet(S.story.ch); S.found.push({ at: Date.now(), p }); S.story.nums[S.story.ch] = p.num; fresh = true; S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1; }
-  S.at = p.num; S.exploreKind = 'random'; dlArrive(p);
+  S.at = p.num; S.exploreKind = 'random';
   award(fresh ? 40 : 15, fresh ? 15 : 0);
   return { p, fresh };
 }
 function chLegDone(reps) {
   const p = chHere(), st = p.story, ch = st.ch, leg = chLeg(p), pick = st.pick ? 'b' : 'a', c = STD.chapters[ch];
-  const dust = addDust(E.story.pay * (hasT('shp4') ? 1.25 : 1)); award(25, 20);
+  const kn = 20 + (hasT('shp4') ? 10 : 0); award(25, kn);
   S.story.log.push({ ch, leg: st.step, pick, at: Date.now() }); S.cnt.storyLegs = (S.cnt.storyLegs || 0) + 1;
   { const cd = S.cnt.campDay = S.cnt.campDay || { d: '', n: 0, best: 0 }; if (cd.d !== today()) { cd.d = today(); cd.n = 0; } cd.n++; cd.best = Math.max(cd.best, cd.n); }
   st.step++; st.pick = 0;
   let msg, extra = '';
   if (st.step >= ST_LEGS) { // chapter done: the next signal
-    S.story.ch++; S.mission = 0; const bonus = addDust(E.story.chapter); award(60, 30); extra = ' · Chapter complete: +' + bonus + ' ✦';
+    S.story.ch++; S.mission = 0; award(60, 30); gainKp(1); extra = ' · Chapter complete: +30 Knowledge, 📘 +1 Knowledge point';
     msg = '📡 Chapter ' + (ch + 1) + ' complete. A new signal is waiting: Follow the Signal from Explore.';
   } else if (isLastCh(ch) && st.step === ST_LEGS - 1) { S.mission = 0; msg = '📡 Only one thing is left on ' + nm(p) + '. It\'s on the left, under Here.'; }
   else msg = '📡 Chapter ' + (ch + 1) + ', part ' + st.step + ' of ' + ST_LEGS + ' done.';
-  reps.unshift({ story: { ch, leg: st.step - 1, pick, got: '+' + dust + ' ✦' + extra, signal: st.step >= ST_LEGS ? c.signal : null } });
+  reps.unshift({ story: { ch, leg: st.step - 1, pick, got: '+' + kn + ' Knowledge' + extra, signal: st.step >= ST_LEGS ? c.signal : null } });
   pushEv({ c: 'camp', ic: '📡', title: 'Chapter ' + (ch + 1) + ' · ' + leg.title, t: leg.text.join(' ') + ' (' + leg[pick][0] + ') ' + leg[pick][1], at: Date.now() });
   return msg;
 }
@@ -77,8 +77,8 @@ function storyEnd(pick) { // the last choice after the door opens
   const leg = chLeg(p), k = pick ? 'b' : 'a';
   S.story.log.push({ ch: p.story.ch, leg: p.story.step, pick: k, at: Date.now() }); p.story.step++;
   S.story.done = true; S.story.ending = k; S.cnt.storyLegs = (S.cnt.storyLegs || 0) + 1;
-  const dust = addDust(E.story.ending), it = rareFind(p, 'gift'), nw = gainItem(it, p); award(300, 150);
-  const got = '+' + dust + ' ✦ · 🎒 ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ')';
+  const it = rareFind(p, 'gift'), nw = gainItem(it, p); award(300, 150);
+  const got = '+150 Knowledge · 🎒 ' + it.name + ' (' + it.rar + (nw ? ', new!' : '') + ')';
   pushEv({ c: 'camp', ic: '📡', title: 'The Meridian story is complete', t: '(' + leg[k][0] + ') ' + leg[k][1], got, at: Date.now() });
   hint.textContent = '📡 ' + leg[k][1] + ' The Meridian story is complete. ' + got; save(); flushXP([]); draw();
 }

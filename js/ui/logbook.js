@@ -16,23 +16,20 @@ function drawLog() {
   openNum = null;
   const ly = S.found.reduce((a, f) => a + f.p.dist, 0);
   const counts = {}; S.found.forEach(f => { counts[f.p.rarity] = (counts[f.p.rarity] || 0) + 1; });
-  const tp = tunedP(), pc = posts().length;
   logHead.replaceChildren(
     el('div', { class: 'sx-loghead' }, el('b', {}, S.found.length + ' world' + (S.found.length === 1 ? '' : 's') + ' charted'), S.found.length ? el('button', { type: 'button', class: 'btn', title: 'Flip through the worlds shown below in 3D', onclick: () => pvOpen(shownList) }, '🔭 Planetarium') : null),
-    el('div', { class: 'sl-muted' }, (ly + S.sold.ly).toLocaleString() + ' light-years of travel · ' + Math.round(S.minutes / 60 * 10) / 10 + ' hours studying' + (S.sold.n ? ' · 💰 ' + S.sold.n + ' sold for ✦ ' + S.sold.dust.toLocaleString() : '')),
-    el('div', { class: 'sl-rarcount' }, RARITY.map(([k]) => el('span', { class: 'sl-rar sl-r-' + k.toLowerCase() }, k + ' ' + (counts[k] || 0)))),
-    el('div', { class: 'sl-muted' }, pc ? pc + ' post' + (pc === 1 ? '' : 's') + (tp ? '. Satellite tuned to ' + nm(tp) : '. Satellite not tuned') + '. Manage them under Build on the main screen.' : 'No posts yet. Use Build on the right side of the main screen.'));
+    el('div', { class: 'sl-muted' }, (ly + S.sold.ly).toLocaleString() + ' light-years of travel · ' + Math.round(S.minutes / 60 * 10) / 10 + ' hours studying'),
+    el('div', { class: 'sl-rarcount' }, RARITY.map(([k]) => el('span', { class: 'sl-rar sl-r-' + k.toLowerCase() }, k + ' ' + (counts[k] || 0)))));
   logList.className = 'sl-list';
   if (!S.found.length) { logList.replaceChildren(el('p', { class: 'sl-empty' }, 'No worlds yet. Finish a trip on the Voyage tab to discover your first planet.')); return; }
   const q = find.value.trim().toLowerCase(), ty = typeSel.value, ra = rarSel.value;
-  shownList = S.found.slice().reverse().filter(f => (!ty || (ty === '@post' ? !!f.p.post : f.p.type === ty)) && (!ra || f.p.rarity === ra) && (!q || ((f.p.custom || '') + ' ' + f.p.name + ' ' + f.p.code + ' ' + f.p.log + ' ' + f.p.biomes.join(' ')).toLowerCase().includes(q)));
+  shownList = S.found.slice().reverse().filter(f => (!ty || f.p.type === ty) && (!ra || f.p.rarity === ra) && (!q || ((f.p.custom || '') + ' ' + f.p.name + ' ' + f.p.code + ' ' + f.p.log + ' ' + f.p.biomes.join(' ')).toLowerCase().includes(q)));
   if (!shownList.length) { logList.replaceChildren(el('p', { class: 'sl-empty' }, 'No worlds match.')); return; }
   logList.className = 'sl-grid';
   const plain = !q && !ty && !ra, ROW = 12, blanks = plain ? Math.max(ROW, Math.ceil((shownList.length + 1) / ROW) * ROW) - shownList.length : 0;
   const unknown = () => el('span', { class: 'sl-tile sl-unknown', title: 'Still out there. Finish a study session to find it.' }, el('span', { class: 'sl-tile-pic' }, '???'), el('b', {}, '???'), el('small', {}, 'uncharted'));
   logList.replaceChildren(...shownList.slice(0, 400).map(f => {
-    const p = f.p, tuned = S.tuned === p.num && !!p.post;
-    const marks = (held(p) ? '🏴' : '') + (p.post ? (p.post.tp ? '🏘' : '🗼') : '') + (tuned ? '📡' : '');
+    const p = f.p, marks = S.at === p.num ? '📍' : '';
     return el('button', { type: 'button', class: 'sl-tile sl-t-' + p.rarity.toLowerCase(), title: nm(p) + ' · ' + p.type + ' · ' + p.rarity, onclick: () => openWorld(p.num) },
       el('span', { class: 'sl-tile-pic' }, el('img', { src: paint(p, 32), alt: '' }), marks ? el('span', { class: 'sl-tile-m' }, marks) : null),
       el('b', {}, nm(p)), el('small', {}, pad(p.num) + ' · ' + p.type), exMeter(p));
@@ -62,7 +59,6 @@ function drawWorld(f) {
   const nav = el('div', { class: 'sl-wnav' },
     el('button', { type: 'button', class: 'btn', onclick: closeWorld }, '◂ Logbook'),
     el('button', { type: 'button', class: 'btn', onclick: () => pvOpen(shownList, p.num) }, '🔭 View in 3D'),
-    jumpBtn(p),
     el('span', { class: 'sl-muted' }, i >= 0 ? (i + 1) + ' of ' + list.length : ''),
     el('span', { class: 'sl-wnav-r' },
       el('button', { type: 'button', class: 'btn', title: prev ? 'Previous: ' + nm(prev.p) : '', disabled: !prev || null, onclick: () => prev && openWorld(prev.p.num) }, '◂'),
@@ -70,7 +66,7 @@ function drawWorld(f) {
   const cardEl = el('div', { class: 'sl-card sl-world' }, ...planetCard(p, 'log'));
   const sv = cardEl.querySelector('details.sl-more'); if (sv) sv.open = true;
   logList.className = 'sl-wpage';
-  logList.replaceChildren(nav, el('div', { class: 'sl-muted sl-found-on' }, (S.at === p.num ? '📍 You are here · ' : '') + 'Discovered ' + new Date(f.at).toLocaleString()), cardEl);
+  logList.replaceChildren(nav, el('div', { class: 'sl-muted sl-found-on' }, (S.at === p.num ? '📍 You are here · ' : '') + 'Discovered ' + new Date(f.at).toLocaleString()), cardEl, learnedHere(p.num) || '');
 }
 logPane.addEventListener('keydown', e => { if (openNum == null || e.target.closest('input, select')) return; if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); closeWorld(); } });
 function rename(p) {

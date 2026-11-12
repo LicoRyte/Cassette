@@ -2,7 +2,6 @@
 'use strict';
 
 const HULL_COLORS = { Lilac: '#c7cfcc', White: '#ebede9', Sky: '#a4dddb', Peach: '#e8c170', Rose: '#df84a5', Lime: '#a8ca58', Indigo: '#4f8fba', Crimson: '#cf573c', Steel: '#819796', Copper: '#be772b', Navy: '#3c5e8b' }; // Steel, Copper and Navy are only sold at Interplanetary Stations
-const STATION_ONLY = { colors: ['Steel', 'Copper', 'Navy'] };
 const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return snap([(n >> 16 & 255) * f, (n >> 8 & 255) * f, (n & 255) * f]); };
 
 // the ship's satellite: a tiny pixel sprite (made once)

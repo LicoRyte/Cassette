@@ -578,7 +578,7 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-decrow { margin-top: 14px; } .sx-decrow h4 { margin: 0 0 4px; font: 600 15px var(--ui); color: var(--violet); letter-spacing: .04em; text-transform: uppercase; }
 .sx-decrow .sx-decs { margin-top: 4px; }
 
-/* page sub-tabs (Ship: Ship / Captain / Medals ...; Collection categories) stay at the top while the page scrolls */
+/* page sub-tabs (Ship: Ship / Captain / Achievements ...; Collection categories) stay at the top while the page scrolls */
 .sx-page .sl-pane > .sl-stabs, .sx-page .sl-wpage > .sl-stabs { position: sticky; top: 0; z-index: 4; margin: 0; padding: 10px 0 8px; background: #000; box-shadow: 0 1px 0 var(--line); }
 
 /* exploration: the Here card, the explored meter, Points of Interest, the mission note */
@@ -693,3 +693,37 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 /* big view: the planet runs under the right column and the timer hint, so give them a dark backing to stay readable */
 .sx-bigview .sx-right { background: rgb(9 10 20 / .78); padding-left: 10px; padding-right: 6px; }
 .sx-bigview .sx-mid { text-shadow: 0 0 4px #090a14, 0 0 2px #090a14; }
+
+/* the Learning log: one optional line after each study session */
+.sx-learn { flex: 1 1 100%; margin: 0 0 10px; }
+.sx-learn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.sx-learn-t { flex: 3 1 220px; min-width: 0; }
+.sx-learn-s { flex: 1 1 110px; min-width: 0; }
+.sx-learn input { font: 15px var(--ui); color: var(--white); background: transparent; border: 1px solid var(--line); padding: 6px 8px; }
+.sx-learn input:focus { outline: none; border-color: var(--amber); }
+.sx-learn-m { display: block; margin-top: 4px; }
+.sx-learn-i { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.sx-learn-i b { display: block; font: 500 16px var(--ui); color: var(--white); }
+.sx-learn-here { margin-top: 14px; }
+
+.sx-report-ft { flex-wrap: wrap; }
+
+/* the Crew page: one card per person */
+.sx-person { padding: 10px 0 12px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.sx-p-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sx-p-ic { font-size: 22px; }
+.sx-p-name { flex: 1 1 160px; min-width: 0; font-weight: 600; }
+.sx-p-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sx-p-row select, .sx-p-slot select { font: 15px var(--ui); color: var(--white); background: #000; border: 1px solid var(--line); padding: 4px 6px; }
+.sx-p-agel { color: var(--mute); font-size: 14px; }
+.sx-p-age { width: 4.5em; }
+.sx-p-role { flex: 1 1 140px; min-width: 0; }
+.sx-p-slot { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 2px 8px; align-items: center; }
+.sx-p-slot small { grid-column: 2; }
+.sx-p-l { color: var(--mute); font-size: 14px; }
+.sx-craftmsg { color: var(--amber); }
+.sx-stash { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
+.sx-stash-i { border: 1px solid var(--line); padding: 6px 8px; }
+.sx-stash-i b { display: block; color: var(--white); }
+.sx-stash-i small { color: var(--mute); }
+

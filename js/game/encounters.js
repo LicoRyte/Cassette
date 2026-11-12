@@ -1,24 +1,23 @@
-/* Solarist: Outlaws, arrival encounters and deep-space events. */
+/* Solarist: Arrival encounters and deep-space events. */
+
 'use strict';
 
-// Outlaws: some new worlds are held by a gang. While one is, Explore turns into Fight: one study session drives them out.
-const GANG_A = ['Rust', 'Void', 'Red Comet', 'Dust', 'Iron', 'Grinning', 'Black Sun', 'Scrap', 'Howling', 'Neon'], GANG_B = ['Jackals', 'Raiders', 'Vultures', 'Syndicate', 'Rats', 'Wolves', 'Pirates', 'Crows', 'Gang', 'Marauders'];
-const FIGHT = ['{G} put up a fight, but the crew drove them off the {b}.', 'A long standoff over the {b}. {G} blinked first and fled.', '{G} tried an ambush in the {b}. It did not go well for them.', 'After a tense chase through the {b}, {g} gave up and jumped away.', '{G} surrendered once the ship\'s floodlights hit their camp in the {b}.', "{G} tried to bluff their way out over the {b}. The crew called the bluff.", "{G} hid in the {b} and waited. The crew waited longer.", "The crew cut {g}'s fuel line in the {b}. They had to walk home.", "{G} threw everything they had at the ship over the {b}. It wasn't enough.", "A short, loud fight over the {b}. Then a long, quiet retreat from {g}.", "{G} ran out of ammunition before the crew ran out of patience.", "{G} tried to outrun the ship through the {b}. They tripped over a rock.", "{G} set up a trap in the {b}. The crew stepped around it.", "The crew lit up the {b} like a stage, and {g} lost their nerve.", "{G} called for backup. Backup didn't come.", "A tense game of hide-and-seek in the {b}. The crew won. {G} went home.", "{G} gave up as soon as the ship's cook started yelling.", "{G} tried to sneak up on the ship in the {b}. They sneezed.", "{G} made a stand in the {b} and lost it fast.", "The crew offered {g} a deal: leave now, keep your ship. They took it."];
+const EV_CHANCE = 1 / 10; // how often a study session brings a deep-space event
+
 // The arrival roll: one roll per new world (economy.json "encounter"). chance = the chance of any visitor; the weights pick which one,
-// so a world never gets two. Coordinator chips and perks add straight to one visitor's chance.
-const ENC_BUILT = { meeting: 1, postal: 1, trade: 1, outlaw: 1, cassini: 1, derelict: 1, station: 1 }; // a weight left out of this list stays quiet
-function rollArrival(p, amp) {
-  const EN = E.encounter, W = EN.weights, tot = Object.values(W).reduce((a, n) => a + n, 0) || 1;
-  const bonus = { meeting: chipP('lantern', amp) + (hasT('nav1') ? .05 : 0) + .02 * roomPow('deck') + .03 * crewN('Scout'), outlaw: chipP('siren', amp) - chipP('hush', amp), trade: chipP('market', amp) };
+// so a world never gets two. Only chance meetings and derelicts turn up now.
+const ENC_BUILT = { meeting: 1, derelict: 1 }; // a weight left out of this list stays quiet
+function rollArrival(p) {
+  const EN = E.encounter, W = EN.weights, tot = Object.keys(W).filter(k => ENC_BUILT[k]).reduce((a, k) => a + W[k], 0) || 1;
+  const bonus = { meeting: hasT('nav1') ? .05 : 0 };
   const ch = {};
-  Object.keys(W).forEach(k => { if (!ENC_BUILT[k]) return; const base = EN.chance * W[k] / tot * (k === 'trade' && hasT('nav3') ? 2 : 1); ch[k] = Math.max(0, base + (bonus[k] || 0)); });
-  if (p.type === 'Rogue') ch.outlaw = 0; // nobody to hold a world with no sun
+  Object.keys(W).forEach(k => { if (!ENC_BUILT[k]) return; ch[k] = Math.max(0, EN.chance * W[k] / tot + (bonus[k] || 0)); });
   const sum = Object.values(ch).reduce((a, n) => a + n, 0);
   if (Math.random() >= Math.min(.9, sum)) return null; // most worlds are quiet
   let x = Math.random() * sum; for (const k of Object.keys(ch)) { x -= ch[k]; if (x < 0) return k; }
   return null;
 }
-// Chance meetings: something near the new world pays out a little stardust. {p} = the world's name.
+// Chance meetings: a small story near the new world. {p} = the world's name. (The two numbers are left over from when they paid out.)
 const ENCOUNTERS = [
   ['🔬', 'Intergalactic Research Station Nearby!', 'You settled near an Intergalactic Research Station, reported your findings on {p} and traded a few spare parts.', 40, 90],
   ['🐫', 'Trading Caravan Passing By!', 'A long caravan of cargo haulers drifted past {p}. You swapped star charts for a crate of supplies.', 30, 70],
@@ -76,21 +75,17 @@ const ENCOUNTERS = [
   ["🎤", "Talent Show Prize!", "The crew entered a talent show near {p}. The cook's juggling won second place.", 20, 70],
   ["🧳", "Courier Job!", "A courier near {p} paid you to carry a small envelope. It was very important. Probably.", 30, 80],
 ];
-let encGot = null, traderNew = null;
-const heldP = () => { const f = S.outlaw && byNum(S.outlaw); return f && f.p.outlaw && !f.p.outlaw.cleared ? f.p : null; };
-const held = p => !!(p.outlaw && !p.outlaw.cleared);
 if (!S.events) S.events = []; if (!S.fc) S.fc = { n: 0, broken: false };
 function rollEvent(force) {
-  if (!force && Math.random() >= evChance(lvl('comms')) + chipP('storm', chipAmp())) return null;
+  if (!force && Math.random() >= EV_CHANCE * (hasT('shp3') ? 1.5 : 1)) return null;
   const pk = a => a[Math.floor(Math.random() * a.length)];
   const nameBit = () => { let n = ''; for (let i = 0; i < 2; i++) n += pk(SYL); return n.charAt(0).toUpperCase() + n.slice(1); };
   const pl = posts(); const pool = EVENTS.filter(e => !e[2].includes('{post}') || pl.length);
   const [ic, title, tpl, reward] = pk(pool);
   let t = tpl.replace('{who}', pk(TITLE) + ' ' + nameBit()).replace('{msg}', pk(BOTTLE)).replace('{fix}', pk(FIX))
     .replace('{post}', pl.length ? nm(pk(pl).p) : 'nowhere').replace('{world}', S.found.length ? nm(pk(S.found).p) : nameBit());
-  let got = null;
-  if (reward === 'charge') { if (!S.coord) { S.coord = true; got = '🧭 The Interplanetary Coordinator is charged!'; } else t += ' (The Coordinator was already full.)'; }
-  const ev = { ic, title, t, got, at: Date.now() };
+  void reward;
+  const ev = { ic, title, t, at: Date.now() };
   pushEv(ev); S.cnt.ev++;
   return ev;
 }
