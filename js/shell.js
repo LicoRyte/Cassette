@@ -201,7 +201,7 @@
     const ambBox = mk('div', { class: 'sx-row' }); amb.settings(ambBox);
     const musBox = mk('div', { class: 'sx-row' }); music.settings(musBox);
     const dcBox = mk('div', { class: 'sx-row' }); discord.settings(dcBox);
-    const credits = mk('p', { class: 'sl-muted sx-credits' }, 'Colour palette: Apollo by AdamCYounis. Planet shader based on PixelPlanets by Deep-Fold (MIT). Fonts: Barlow Condensed, Courier Prime (OFL). Sounds: NightMargin and the Not-So-Awesome Archive. Break music: "Night Stars" by Hiroki971.');
+    const credits = mk('p', { class: 'sl-muted sx-credits' }, 'Colour palettes: Apollo by AdamCYounis, Resurrect 64 by Kerrie Lake (planets). Planet shader based on PixelPlanets by Deep-Fold (MIT). Fonts: Barlow Condensed, Courier Prime (OFL). Sounds: NightMargin and the Not-So-Awesome Archive. Break music: "Night Stars" by Hiroki971.');
     box.replaceChildren(mk('div', { class: 'sx-row' }, snd, inst || ''), mk('div', { class: 'sx-row' }, view), ambBox, musBox, dcBox, mk('p', { class: 'sl-muted' }, installEv ? 'Installing gives Solarist its own window and icon. It works offline either way.' : 'Solarist works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'), credits);
   }
 
@@ -218,7 +218,7 @@
   const FS = `precision highp float;
 uniform vec2 res, ctr; uniform float R, t, tt, spin, pct, kind, run, coord;
 uniform float hasP, seed, fClouds, fBands, fLava, fLocked, fSpark, fRings, fLand, tilt, sil, postLv, reveal, warp, neb, fIce, fStorm, fSpot;
-uniform vec3 pal[47]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
+uniform vec3 pal[47]; uniform vec3 rpal[64]; uniform vec3 pc[4]; uniform vec3 lc[2]; uniform vec3 ringC;
 uniform float fStyle, dfCut; uniform vec3 ca[5]; uniform vec3 cb[3]; uniform vec3 ck[4]; uniform vec3 rc[6];
 float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
@@ -231,6 +231,8 @@ float bayer(vec2 p){ vec2 q = mod(floor(p), 4.); float x = q.x, y = q.y;
   float w = floor(x / 2.) * 2. + floor(y / 2.) * 3. - floor(x / 2.) * floor(y / 2.) * 4.;
   return (v * 4. + w) / 16. - .47; }
 vec3 snap(vec3 c){ vec3 b = pal[0]; float bd = 1e9; for (int i = 0; i < 47; i++){ vec3 d = c - pal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = pal[i]; } } return b; }
+// planets use Resurrect 64 (see js/world/paint.js); stars, effects and the rest stay on Apollo
+vec3 snapR(vec3 c){ vec3 b = rpal[0]; float bd = 1e9; for (int i = 0; i < 64; i++){ vec3 d = c - rpal[i]; float e = dot(d * d, vec3(.3, .59, .11)); if (e < bd){ bd = e; b = rpal[i]; } } return b; }
 /* Planet surfaces ported from PixelPlanets by Deep-Fold (MIT License, Copyright (c) 2020 Deep-Fold),
    https://github.com/Deep-Fold/PixelPlanets. uv: 0..1 across the planet, y down. Styles: 0 land and sea, 1 rivers,
    2 dry, 3 airless with craters, 4 lava, 5 ice, 6 gas giant. */
@@ -368,7 +370,7 @@ void main(){
   // outlaws: raider blips circling
   if (kind == 4.){ for (int k = 0; k < 4; k++){ float fk = float(k), an = tt * (.5 + fk * .13) * (run * .9 + .1) + fk * 1.7;
       vec2 bp = vec2(cos(an) * 1.45, sin(an) * .55); if (length((uv - bp) * R) < 2.2) { col = pal[29]; dith = false; } } }
-  gl_FragColor = vec4(dith ? snap(col + bayer(fc) * .16) : flatC ? snap(col) : col, 1.);
+  gl_FragColor = vec4(dith ? snap(col + bayer(fc) * .16) : flatC ? snapR(col) : col, 1.);
 }`;
   let prog = null, U = {}, ok = false;
   if (gl) {
@@ -379,8 +381,8 @@ void main(){
       gl.useProgram(prog);
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
-      gl.uniform3fv(U.pal, PAL.flatMap(rgb));
+      ['res', 'ctr', 'R', 't', 'tt', 'spin', 'pct', 'kind', 'run', 'coord', 'hasP', 'seed', 'fClouds', 'fBands', 'fLava', 'fLocked', 'fSpark', 'fRings', 'fLand', 'tilt', 'sil', 'pal', 'rpal', 'pc', 'lc', 'ringC', 'postLv', 'fIce', 'fStorm', 'fSpot', 'reveal', 'warp', 'neb', 'fStyle', 'dfCut', 'ca', 'cb', 'ck', 'rc'].forEach(k => { U[k] = gl.getUniformLocation(prog, k); });
+      gl.uniform3fv(U.pal, PAL.flatMap(rgb)); gl.uniform3fv(U.rpal, RES64.flatMap(rgb));
       ok = true;
     } catch (e) { ok = false; }
   }
@@ -405,7 +407,8 @@ void main(){
   // Deep-Fold styles per planet type, and their colours from the planet's own palette (snapped to the game palette)
   const DF_STYLE = { Ocean: 0, Garden: 0, Hycean: 0, Fungal: 0, Jungle: 1, Swamp: 1, Savanna: 1, Desert: 2, Toxic: 2, Iron: 2, 'Tidally locked': 2,
     Rocky: 3, Dwarf: 3, Carbon: 3, Rogue: 3, Lava: 4, Shattered: 4, Ice: 5, Tundra: 5, Crystal: 5, 'Gas giant': 6, 'Ice giant': 7, 'Glass storm': 7 };
-  const near = h => { const [r, g, b] = rgb(h); let best = PAL[0], bd = 1e9; PAL.forEach(q => { const [x, y, z] = rgb(q), d = (r - x) ** 2 * .3 + (g - y) ** 2 * .59 + (b - z) ** 2 * .11; if (d < bd) { bd = d; best = q; } }); return best; };
+  // planet colours snap to Resurrect 64
+  const near = h => { const [r, g, b] = rgb(h); let best = RES64[0], bd = 1e9; RES64.forEach(q => { const [x, y, z] = rgb(q), d = (r - x) ** 2 * .3 + (g - y) ** 2 * .59 + (b - z) ** 2 * .11; if (d < bd) { bd = d; best = q; } }); return best; };
   const shade = (h, f) => { const c = rgb(h).map(v => f >= 1 ? v + (1 - v) * (f - 1) : v * f); return near('#' + c.map(v => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')).join('')); };
   function dfLook(p, L) {
     const st = DF_STYLE[p.type] != null ? DF_STYLE[p.type] : 3, P = (L.pal || ['#819796', '#7a367b', '#752438', '#402751']).map(near), land = L.land ? L.land.map(near) : null;

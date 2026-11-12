@@ -1,0 +1,260 @@
+{
+  "_guide": [
+    "Things you can do when you Stay here on a world, and the lines that tell how it went.",
+    "activities: one entry each. id (lowercase, never reused), ic (an emoji), name, desc (one line for the Stay menu),",
+    "  find: the chance (0 to 1) that the session turns up a new place on the world,",
+    "  souvenir: the chance it brings back a collectible,",
+    "  when (optional): only offered when the world matches, written like line conditions. ground: true / false, water, temp, life go from 0 to 1.",
+    "Its story lines go in the group called act_<id> below, written like content/lines.json. {crew} is whoever went, {place} a spot on the world",
+    "(one you found, or the world's name), plus {biome}, {weather}, {time}, {world}. Try them in tools/text-preview.html.",
+    "Biomes are often plural (\"rust plains\"), so don't put a verb or \"a\" straight after {biome}: write \"the ground of the {biome} dips\", not \"the {biome} dips\"."
+  ],
+  "activities": [
+    {
+      "id": "wander",
+      "ic": "🥾",
+      "name": "Wander",
+      "desc": "Walk somewhere nobody has been and see what's there.",
+      "find": 0.6,
+      "souvenir": 0.15,
+      "when": {
+        "ground": true
+      }
+    },
+    {
+      "id": "drift",
+      "ic": "🎈",
+      "name": "Drift",
+      "desc": "Let the ship drift through the clouds and see where it ends up.",
+      "find": 0.55,
+      "souvenir": 0.1,
+      "when": {
+        "ground": false
+      }
+    },
+    {
+      "id": "camp",
+      "ic": "🏕",
+      "name": "Camp",
+      "desc": "Set up camp, light a fire, stay up too late.",
+      "find": 0.15,
+      "souvenir": 0.2,
+      "when": {
+        "ground": true
+      }
+    },
+    {
+      "id": "stargaze",
+      "ic": "🔭",
+      "name": "Stargaze",
+      "desc": "Find a quiet spot and look up for a while.",
+      "find": 0.1,
+      "souvenir": 0.1
+    },
+    {
+      "id": "fish",
+      "ic": "🎣",
+      "name": "Fish",
+      "desc": "Cast a line into whatever this world has instead of water.",
+      "find": 0.15,
+      "souvenir": 0.3,
+      "when": {
+        "ground": true,
+        "water": ">0.08"
+      }
+    },
+    {
+      "id": "sketch",
+      "ic": "✏",
+      "name": "Sketch",
+      "desc": "Draw the view, slowly, until you really see it.",
+      "find": 0.2,
+      "souvenir": 0.15
+    },
+    {
+      "id": "samples",
+      "ic": "🧪",
+      "name": "Collect samples",
+      "desc": "Fill a few jars with rocks, air, dirt or something stranger.",
+      "find": 0.2,
+      "souvenir": 0.45
+    },
+    {
+      "id": "cook",
+      "ic": "🍲",
+      "name": "Cook",
+      "desc": "Make something with what grows, swims or crawls here.",
+      "find": 0.05,
+      "souvenir": 0.15,
+      "when": {
+        "life": ">0"
+      }
+    },
+    {
+      "id": "picnic",
+      "ic": "🧺",
+      "name": "Crew picnic",
+      "desc": "Everybody outside, one big blanket, too much food.",
+      "find": 0.1,
+      "souvenir": 0.15,
+      "when": {
+        "ground": true
+      }
+    }
+  ],
+  "lines": {
+    "place": [
+      "A [quiet|wide|narrow|hidden] stretch of {biome}, [half in shadow|bright with {star} light|cut through by old tracks].",
+      "Here the ground of the {biome} [dips|rises|folds] into something that looks almost built on purpose.",
+      "[Wind|Silence|A low hum] fills this part of the {biome}. Nothing else seems to move.",
+      "A place where the edge of the {biome} meets something stranger, and neither seems sure who was here first.",
+      "[Rocks|Spires|Dunes|Ridges] in the {biome}, worn smooth by a very long time.",
+      {
+        "text": "Pools of still water lie here, mirroring the sky [perfectly|almost perfectly].",
+        "when": {
+          "water": ">0.3"
+        }
+      },
+      {
+        "text": "Frost [lace|feathers|ferns] covers everything here, even the shadows.",
+        "when": {
+          "temp": "<0.25"
+        }
+      },
+      {
+        "text": "The ground here is warm to the touch, and smells faintly of [smoke|metal|sulfur].",
+        "when": {
+          "temp": ">0.75"
+        }
+      },
+      {
+        "text": "Small living things [crowd|hum|glow] in every crack here.",
+        "when": {
+          "life": ">0.4"
+        }
+      },
+      {
+        "text": "Clouds [pile up|swirl|part] here like a slow staircase going nowhere.",
+        "when": {
+          "ground": false
+        },
+        "weight": 3
+      },
+      {
+        "text": "A calm patch inside the storms, where the air goes [silver|pale gold|soft blue].",
+        "when": {
+          "ground": false
+        },
+        "weight": 3
+      }
+    ],
+    "act_wander": [
+      "{Crew} walks out across the {biome} with no plan at all, which turns out to be a good plan.",
+      "{Crew} follows a trail that might be animal tracks, might be wind, and might be nothing.",
+      "{Crew} climbs the nearest high point to see what's on the other side. More {biome}. And then, something else.",
+      {
+        "text": "{Crew} walks until the ship is a little dot, then turns around and walks back, slowly.",
+        "when": {
+          "crew.tags": [
+            "dreamy",
+            "quiet"
+          ]
+        }
+      },
+      {
+        "text": "{Crew} insists on taking the long way. {Crew.they} {crew:is|are} right.",
+        "when": {
+          "crew.tags": "stubborn"
+        }
+      }
+    ],
+    "act_drift": [
+      "The ship drifts for hours through layers of cloud. {Crew} keeps the window open and doesn't talk much.",
+      "{Crew} cuts the engines and lets the wind take the ship. It goes somewhere it wanted to go.",
+      "Lightning flickers far below. {Crew} counts the seconds and loses count."
+    ],
+    "act_camp": [
+      "{Crew} lights a fire at the edge of the {biome}. Everybody stays up later than they meant to.",
+      "The tent goes up crooked. Nobody minds. {Crew} tells a ghost story that isn't scary at all.",
+      "{Crew} falls asleep under the sky of {world} and wakes up with frost in {crew.their} hair.",
+      {
+        "text": "{Crew} makes something warm in {crew.their} {crew.gear}, and it's the best thing anyone has eaten in weeks.",
+        "when": {
+          "crew.gearTags": "food"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew}'s {crew.gear} is the only light for kilometres. It's enough.",
+        "when": {
+          "crew.gearTags": "light"
+        },
+        "weight": 2
+      }
+    ],
+    "act_stargaze": [
+      "{Crew} lies back and counts the moons. Then counts them again, to be sure.",
+      "From {world}, the stars are [too many|strange|close|very far]. {Crew} picks one and gives it a name.",
+      "{Crew} points out a constellation that looks like a teapot. It definitely does.",
+      {
+        "text": "{Crew} looks for a long time through {crew.their} {crew.gear}, and says nothing, which says a lot.",
+        "when": {
+          "crew.gearTags": "far-sight"
+        },
+        "weight": 2
+      }
+    ],
+    "act_fish": [
+      "{Crew} casts a line into the water of {world}. Something nibbles. Something leaves.",
+      "{Crew} catches a fish with too many fins and lets it go with an apology.",
+      "No fish at all. {Crew} calls it a good day anyway, and means it."
+    ],
+    "act_sketch": [
+      "{Crew} draws the {biome} with fast, scratchy lines, then slow careful ones.",
+      "{Crew}'s drawing of {place} is better than the real thing, everybody agrees. Except {crew.them}.",
+      {
+        "text": "{Crew} fills three pages of {crew.their} {crew.gear} before the light goes.",
+        "when": {
+          "crew.gearTags": "art"
+        },
+        "weight": 2
+      }
+    ],
+    "act_samples": [
+      "{Crew} fills one jar with dust, one with air, and one with something that won't stay still.",
+      "{Crew} labels every jar carefully. One label just says \"???\".",
+      {
+        "text": "{Crew} chips a sample from the {biome} with {crew.their} {crew.gear}.",
+        "when": {
+          "crew.gearTags": [
+            "tool",
+            "science"
+          ]
+        },
+        "weight": 2
+      }
+    ],
+    "act_cook": [
+      "{Crew} cooks something with a local plant. It tastes like {world} smells.",
+      "{Crew} invents a soup. It's blue. It's good. It will never be made the same way again.",
+      {
+        "text": "{Crew} eats most of it before anyone else gets a bowl.",
+        "when": {
+          "crew.tags": "hungry"
+        },
+        "weight": 2
+      }
+    ],
+    "act_picnic": [
+      "The whole crew spreads out on the {biome}. Somebody brought too much bread. Nobody complains.",
+      "{Crew} starts a game nobody quite understands, and everybody plays it anyway.",
+      {
+        "text": "{Crew} unrolls {crew.their} {crew.gear} and everybody piles on.",
+        "when": {
+          "crew.gearTags": "cozy"
+        },
+        "weight": 2
+      }
+    ]
+  }
+}

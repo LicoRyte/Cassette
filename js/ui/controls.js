@@ -14,6 +14,7 @@ function headline() {
   if (expediting() && mode === 'focus') { const a = atP(), w = gasWorld(a) ? 'Cloud dive' : 'Expedition'; return !running ? (left > 0 && left < length(mode) ? 'Holding position' : w + ': ' + EX_PARTS[exOf(a).step].toLowerCase() + ' on ' + nm(a)) : (gasWorld(a) ? 'Diving into the clouds of ' : 'Exploring ') + nm(a); }
   if (salvaging() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to salvage') : 'Salvaging ' + atP().derelict.ship;
   if (investigating() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to investigate') : 'Studying ' + atP().odd;
+  if (staying() && mode === 'focus') { const a = stayAct(); return !running ? (left > 0 && left < length(mode) ? 'Holding position' : a.ic + ' Staying: ' + a.name.toLowerCase()) : a.ic + ' ' + a.name + ' on ' + nm(atP()); }
   if (chaptering() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Chapter ' + (chHere().story.ch + 1) + ', part ' + (chHere().story.step + 1)) : 'Following the Meridian\'s trail';
   if (following() && mode === 'focus') return !running ? (left > 0 && left < length(mode) ? 'Holding position' : 'Ready to follow the signal') : 'Following the signal';
   if (!running) return left > 0 && left < length(mode) ? 'Holding position' : mode === 'focus' ? 'Ready for launch' : 'Docked. Take a breather';
@@ -37,18 +38,19 @@ const settings = el('details', { class: 'sl-set' }, el('summary', {}, 'Settings'
     el('label', {}, 'Long break ', sel('long', [10, 15, 20, 30]), ' min'),
     el('label', {}, 'Long break every ', sel('every', [2, 3, 4, 5, 6]), ' study sessions')));
 // the mission: what this study session is for. Exactly one is pressed, and only the ones possible here are shown.
-const MISSIONS = [['explore', '🚀', 'Explore', 'Find a new world'], ['expedition', '🗺', 'Expedition', 'Explore the world you\'re at: three parts, each charts a Point of Interest'], ['investigate', '🔬', 'Investigate', 'Study the anomaly here: three or four sessions, then its answer goes in the Codex'], ['salvage', '🛸', 'Salvage', 'Salvage the derelict ship drifting here (one session, one find)'], ['campaign', '📡', 'Chapter', 'The next part of the Meridian chapter on this world']];
-const curMission = () => S.mission === -7 ? 'salvage' : S.mission === -8 ? 'investigate' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : 'explore';
+const MISSIONS = [['explore', '🚀', 'Travel on', 'Travel on to a new world'], ['stay', '🏕', 'Stay here', 'Spend the next session on this world, doing something you pick'], ['expedition', '🗺', 'Expedition', 'Explore the world you\'re at: three parts, each charts a Point of Interest'], ['investigate', '🔬', 'Investigate', 'Study the anomaly here: three or four sessions, then its answer goes in the Codex'], ['salvage', '🛸', 'Salvage', 'Salvage the derelict ship drifting here (one session, one find)'], ['campaign', '📡', 'Chapter', 'The next part of the Meridian chapter on this world']];
+const curMission = () => S.mission === STAY ? 'stay' : S.mission === -7 ? 'salvage' : S.mission === -8 ? 'investigate' : S.mission === -3 ? 'campaign' : S.mission === -4 ? 'expedition' : 'explore';
 function setMission(m, num) {
   if (running && mode === 'focus') return;
   if (m === 'explore') { S.mission = 0; if (num === 'signal' || num === 'random') S.exploreKind = signalOn() ? num : 'random'; }
+  else if (m === 'stay') { if (!actsFor(atP()).length) return; if (num) S.stayAct = num; S.mission = STAY; }
   else if (m === 'investigate') { if (!canInvestigate(atP())) return; S.mission = -8; }
   else if (m === 'salvage') { if (!derelictHere()) return; S.mission = -7; }
   else if (m === 'campaign') { if (!chHere() || atDoor()) return; S.mission = -3; }
   else if (m === 'expedition') { if (!canExpedition(atP())) return; S.mission = -4; }
   save(); hint.textContent = ''; draw();
 }
-const MIS_ORDER = ['explore', 'expedition', 'investigate', 'salvage', 'campaign'];
+const MIS_ORDER = ['explore', 'stay', 'expedition', 'investigate', 'salvage', 'campaign'];
 const misBtns = MIS_ORDER.map(k => MISSIONS.find(m => m[0] === k)).map(([k, ic, label, tip]) => el('button', { type: 'button', class: 'sl-mis', 'data-m': k, role: 'radio', title: tip, onclick: () => setMission(k) }, el('span', { class: 'sl-mis-i', 'aria-hidden': 'true' }, ic), label));
 const misNote = el('p', { class: 'sl-mis-note', 'aria-live': 'polite' });
 // Explore picks a random world or, when a Meridian signal is waiting, the signal
@@ -58,12 +60,17 @@ function fillExploreSel() {
   exploreSel.replaceChildren(el('option', { value: 'random' }, '🚀 A random world'), el('option', { value: 'signal' }, '📡 Follow the Signal'));
   exploreSel.value = S.exploreKind === 'signal' ? 'signal' : 'random';
 }
-const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), exploreSel, misNote);
+// Stay here picks what to do
+const staySel = el('select', { class: 'sl-build-sel', 'aria-label': 'What to do here' });
+staySel.addEventListener('change', () => setMission('stay', staySel.value));
+function fillStaySel() { const L = actsFor(atP()), a = stayAct(); staySel.replaceChildren(...L.map(x => el('option', { value: x.id }, x.ic + ' ' + x.name))); if (a) staySel.value = a.id; }
+const mission = el('div', { class: 'sl-missions' }, el('span', { class: 'sl-mis-l' }, 'Mission:'), el('div', { class: 'sl-mis-g', role: 'radiogroup', 'aria-label': 'Mission' }, misBtns), exploreSel, staySel, misNote);
 // one line under the mission buttons: what the chosen mission gives
 function misGives(k) {
   const a = atP();
   if (k === 'explore' && following()) return '📡 Follow the Signal to the next Meridian world. No visitors there, just the story.';
   if (k === 'explore') return '🚀 A new world. Now and then something is waiting there.';
+  if (k === 'stay' && a && stayAct()) { const s = stayAct(), n = placesLeft(a); return s.ic + ' ' + s.desc + (n ? ' Might find a new place (' + n + ' still out there).' : placesUnfound(a) ? ' The places left here are on the expedition.' : ' Every place here is found.'); }
   if (k === 'expedition' && a) return (gasWorld(a) ? '🎈 Cloud dive ' : '🗺 Expedition ') + (exOf(a).step + 1) + '/' + EX_LEN + ': charts a Point of Interest and maybe a collectible' + (exOf(a).step === EX_LEN - 1 ? ' (certain on the finale)' : '') + '.';
   if (k === 'salvage') return '🛸 One session: a sure find from the derelict.';
   if (k === 'investigate' && a) return '🔬 ' + Math.round(invOf(a).pct * 100) + '% studied: about a third more each session, then a Codex entry, Knowledge and an Anomalies find.';

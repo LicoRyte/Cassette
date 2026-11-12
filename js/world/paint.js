@@ -15,8 +15,40 @@ function satSprite() {
 }
 
 // the planet palette: every pixel of every portrait is snapped to one of these 32 colours
-const PALETTE = ['#75a743', '#a8ca58', '#a8ca58', '#d0da91', '#e8c170', '#cf573c', '#cf573c', '#a53030', '#752438', '#402751', '#402751', '#752438', '#a53030', '#ad7757', '#d7b594', '#c7cfcc',
-  '#df84a5', '#c65197', '#7a367b', '#241527', '#402751', '#7a367b', '#819796', '#c7cfcc', '#ebede9', '#a4dddb', '#73bed3', '#4f8fba', '#4f8fba', '#a23e8c', '#7a367b', '#402751'].map(h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; });
+// Resurrect 64 by Kerrie Lake (lospec.com/palette-list/resurrect-64): every planet is painted with these colours
+const RES64 = ['#2e222f', '#3e3546', '#625565', '#966c6c', '#ab947a', '#694f62', '#7f708a', '#9babb2', '#c7dcd0', '#ffffff', '#6e2727', '#b33831', '#ea4f36', '#f57d4a', '#ae2334', '#e83b3b',
+  '#fb6b1d', '#f79617', '#f9c22b', '#7a3045', '#9e4539', '#cd683d', '#e6904e', '#fbb954', '#4c3e24', '#676633', '#a2a947', '#d5e04b', '#fbff86', '#165a4c', '#239063', '#1ebc73',
+  '#91db69', '#cddf6c', '#313638', '#374e4a', '#547e64', '#92a984', '#b2ba90', '#0b5e65', '#0b8a8f', '#0eaf9b', '#30e1b9', '#8ff8e2', '#323353', '#484a77', '#4d65b4', '#4d9be6',
+  '#8fd3ff', '#45293f', '#6b3e75', '#905ea9', '#a884f3', '#eaaded', '#753c54', '#a24b6f', '#cf657f', '#ed8099', '#831c5d', '#c32454', '#f04f78', '#f68181', '#fca790', '#fdcbb0'];
+const PALETTE = RES64.map(h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }); // the portrait painter snaps to this
+// the palette as colour families, each a ramp from dark to light. A world picks families its settings like (and sometimes a wild one)
+const FAM = {
+  ash: ['#2e222f', '#3e3546', '#625565', '#966c6c', '#ab947a'], fog: ['#694f62', '#7f708a', '#9babb2', '#c7dcd0', '#ffffff'],
+  ember: ['#6e2727', '#b33831', '#ea4f36', '#f57d4a'], fire: ['#ae2334', '#e83b3b', '#fb6b1d', '#f79617', '#f9c22b'], clay: ['#7a3045', '#9e4539', '#cd683d', '#e6904e', '#fbb954'],
+  moss: ['#4c3e24', '#676633', '#a2a947', '#d5e04b', '#fbff86'], leaf: ['#165a4c', '#239063', '#1ebc73', '#91db69', '#cddf6c'], sage: ['#313638', '#374e4a', '#547e64', '#92a984', '#b2ba90'],
+  sea: ['#0b5e65', '#0b8a8f', '#0eaf9b', '#30e1b9', '#8ff8e2'], sky: ['#323353', '#484a77', '#4d65b4', '#4d9be6', '#8fd3ff'], dusk: ['#45293f', '#6b3e75', '#905ea9', '#a884f3', '#eaaded'],
+  rose: ['#753c54', '#a24b6f', '#cf657f', '#ed8099'], bloom: ['#831c5d', '#c32454', '#f04f78', '#f68181', '#fca790', '#fdcbb0'],
+};
+// which families suit a world: s is its settings (heat, water, life, age from 0 to 1)
+function famWeights(s, type) {
+  const cold = Math.max(0, .45 - s.heat) * 2.2, hot = Math.max(0, s.heat - .6) * 2.5, mild = 1 - Math.min(1, Math.abs(s.heat - .52) * 4), wet = s.water, dry = 1 - s.water, life = s.life;
+  const w = { ash: .4 + dry * .4 + s.age * .5, fog: .3 + cold * 1.2, ember: hot * 1.2, fire: hot * 1.5, clay: .2 + dry * .8 + hot * .5, moss: .2 + dry * .4 + life * .5,
+    leaf: life * 2 * mild, sage: .2 + life * 1.2, sea: wet * 1.5 + cold * .5, sky: wet * 1.2 + cold * 1.4, dusk: .35 + cold * .4, rose: .3, bloom: .25 + (type === 'Fungal' || type === 'Crystal' ? 2 : 0) };
+  if (type === 'Lava' || type === 'Shattered') { w.fire += 3; w.ember += 2; w.ash += 1; }
+  if (type === 'Ice' || type === 'Ice giant' || type === 'Tundra') { w.fog += 1.5; w.sky += 1; w.sea += .8; }
+  if (type === 'Toxic') { w.moss += 2; w.leaf += 1; }
+  return Object.entries(w).map(([k, v]) => [k, Math.max(.05, v)]);
+}
+// a world's colours: 4 for its surface (light to dark), 2 for its land, and a ring colour
+function pickLook(r, s, type) {
+  const fw = famWeights(s, type), wild = r() < .22; // now and then, anything goes
+  const one = skip => { const list = fw.filter(([k]) => k !== skip).map(([k, v]) => [k, wild ? 1 : v]); return weighted(r, list); };
+  const a = one(), b = one(a), A = FAM[a], B = FAM[b], n = A.length;
+  const top = Math.min(n - 1, 2 + Math.floor(r() * (n - 2))); // how light the brightest colour goes
+  const pal = [A[top], A[Math.max(1, top - 1)], r() < .5 ? B[Math.min(B.length - 1, 2)] : A[Math.max(1, top - 2)], r() < .6 ? A[0] : B[0]];
+  const land = [B[Math.min(B.length - 1, 3)], B[Math.min(B.length - 1, 2)]];
+  const rc = FAM[one()]; return { pal, land, ringCol: rc[Math.min(rc.length - 1, 3)], fam: [a, b] };
+}
 const snapCache = new Map();
 function snap(c) { // nearest palette colour (weighted RGB distance, close to how eyes see it)
   const r = Math.max(0, Math.min(255, c[0] | 0)), g = Math.max(0, Math.min(255, c[1] | 0)), b = Math.max(0, Math.min(255, c[2] | 0)), key = (r >> 2) << 12 | (g >> 2) << 6 | (b >> 2);

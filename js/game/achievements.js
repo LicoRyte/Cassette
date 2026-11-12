@@ -124,6 +124,8 @@ A('Stars', 'star-all', '🌌', 'Every Kind of Light', 'Discover a world around e
 A('Knowledge', 'story', '📖', 'The Whole Story', 'Read every Ship Log and finish the Meridian story', () => !!STD && S.story.done && Object.keys(SHIP_LOGS).every(k => S.slog[k]), 'arc5');
 A('Collection', 'legit', '🌟', 'Legendary Curator', 'Own 10 Legendary collectibles', () => Object.keys(S.items).filter(k => parseId(k).r === 'Legendary' && itemName(k) !== '???').length >= 10);
 tiers('Ship', 'crew', '👥', [[1, 'Not Alone Anymore'], [3, 'Full Table'], [5, 'Big Family']], () => S.crew.length, n => 'Have ' + n + ' crew aboard');
+tiers('Adventure', 'stay', '🏕', [[1, 'Making Camp'], [10, 'Slow Traveler'], [50, 'Nowhere to Be']], () => S.cnt.stays || 0, n => 'Stay on a world for ' + n + ' session' + (n === 1 ? '' : 's'));
+tiers('Adventure', 'places', '📍', [[1, 'Off the Map'], [10, 'Local Expert'], [40, 'Atlas']], () => S.cnt.staysFound || 0, n => 'Find ' + n + ' place' + (n === 1 ? '' : 's') + ' by staying');
 tiers('Ship', 'craft', '🧵', [[1, 'Handmade'], [10, 'Tailor'], [30, 'Workshop Legend']], () => S.cnt.crafted || 0, n => 'Craft ' + n + ' thing' + (n === 1 ? '' : 's'));
 A('Ship', 'color', '🎨', 'Fresh Paint', 'Paint your ship a new color', () => S.ship.colors.length > 1);
 A('Ship', 'design', '🛋', 'Interior Designer', 'Use your first decoration', () => decOwned() > 0);

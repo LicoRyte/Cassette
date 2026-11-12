@@ -20,14 +20,15 @@
     "weight (optional): 2 = picked twice as often, 0.5 = half as often.",
     "",
     "Groups with the same name in different files are joined, so you can make a new file in content/ for your own lines",
-    "(add it to CONTENT_FILES in js/boot.js). Try lines in tools/text-preview.html."
+    "(add it to CONTENT_FILES in js/boot.js). Try lines in tools/text-preview.html.",
+    "Biomes are often plural (\"rust plains\"), so don't put a verb or \"a\" straight after {biome}: write \"the light over the {biome} turns\", not \"the {biome} turns\"."
   ],
   "lines": {
     "arrive": [
-      "The ship settles onto {a:biome}. Everything is [quiet|still|hushed] for a moment.",
+      "The ship settles down on the {biome}. Everything is [quiet|still|hushed] for a moment.",
       "{Place} looks [smaller|bigger|stranger] than it did from orbit.",
       {
-        "text": "At {time} the {biome} turns [pink|gold|violet]. {@smell}",
+        "text": "At {time} the light over the {biome} turns [pink|gold|violet]. {@smell}",
         "when": {
           "time": [
             "dusk",

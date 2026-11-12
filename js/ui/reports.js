@@ -69,8 +69,10 @@ function postLog(p) {
 // the Points of Interest charted on a world's expedition, with the explored meter
 function poiList(p) {
   const x = exOf(p); if (!x.poi.length && (p.story || !p.ex)) return null;
-  return el('div', { class: 'sx-pois' }, el('div', { class: 'sx-pois-h' }, el('b', {}, '📍 Points of Interest'), exMeter(p)),
-    x.poi.length ? el('ul', {}, x.poi.map(o => el('li', {}, el('b', {}, o.name), el('small', {}, ' ' + EX_PARTS[o.leg] + ' · ' + o.note)))) : el('p', { class: 'sl-muted' }, 'None charted yet. Run an expedition here to find some.'));
+  return el('div', { class: 'sx-pois' }, el('div', { class: 'sx-pois-h' }, el('b', {}, '📍 Places'), exMeter(p)),
+    x.poi.length ? el('ul', {}, x.poi.map(o => el('li', {}, el('b', {}, placeName(o)), ' ', el('button', { type: 'button', class: 'sl-link sx-ren', title: 'Rename this place', onclick: () => renamePlace(p, o) }, '✎'),
+      el('small', {}, ' ' + (o.leg >= 0 ? EX_PARTS[o.leg] : 'Found while staying') + (o.note ? ' · ' + o.note : '')), placeDesc(p, o) ? el('small', { class: 'sx-place-d' }, placeDesc(p, o)) : null))) : el('p', { class: 'sl-muted' }, 'None found yet. Run an expedition here, or stay a while.'),
+    el('small', { class: 'sl-muted' }, x.poi.length + ' of ' + placesMax(p) + ' places found'));
 }
 const exMeter = p => { const n = exOf(p).step, odd = !!p.odd && !p.story, inv = invOf(p).done;
   return el('span', { class: 'sx-exm', title: 'Explored: ' + n + ' of ' + EX_LEN + ' expedition parts' + (odd ? (inv ? ', anomaly solved' : ', anomaly not solved yet') : ''), 'aria-label': 'Explored ' + n + ' of ' + EX_LEN + (odd ? (inv ? ', anomaly solved' : ', anomaly unsolved') : '') },
@@ -83,7 +85,7 @@ function planetCard(p, kind) {
     el('div', { class: 'sl-card-h' }, el('span', {}, (HEAD[kind] || '') + pad(p.num)), el('span', { class: 'sl-rar sl-r-' + p.rarity.toLowerCase() }, p.rarity)),
     el('div', { class: 'sl-pl' }, pic,
       el('div', { class: 'sl-pl-t' }, el('b', { class: 'sl-name' }, nm(p), invOf(p).done ? el('span', { class: 'sl-tag', title: 'Its anomaly is in your Codex' }, '🔬 Solved') : null, exDone(p) ? el('span', { class: 'sl-tag', title: 'Every part of its expedition is done' }, '✓ Explored') : null, p.story ? el('span', { class: 'sl-tag sl-tag-coord', title: 'A world from the Meridian story' }, '📡 Meridian') : null, p.post ? el('span', { class: 'sl-tag off', title: 'You had a Listening Post here; its old transmissions are below' }, '🗼 Old post') : null),
-        el('div', { class: 'sl-code' }, p.code + ' · ' + p.type + ' · ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable'), el('p', {}, logText(p)))),
+        el('div', { class: 'sl-code' }, p.code + ' · ' + worldLabel(p) + ' · ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable'), el('p', {}, logText(p)))),
     el('details', { class: 'sl-more' }, el('summary', {}, 'Survey data'), facts(p)),
     poiList(p),
     p.post ? postLog(p) : null,

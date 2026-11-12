@@ -73,12 +73,17 @@ function personCtx(p, r) {
   return { name: firstName(p), pronouns: p.pronouns, role: p.role, age: p.age, trait: t ? t.name : '', tags: (t ? t.tags : []).concat(p.role ? [p.role.toLowerCase()] : []),
     wear: w ? w.name : 'clothes', wearTags: w ? w.tags : [], gear: g ? g.name : 'bag', gearTags: g ? g.tags : [], item: held.length ? pk2(held, r) : null };
 }
-// a line about someone, with the world around them when there is one
-function crewMoment(p, group, world) {
+// a world as the text engine sees it (see content/lines.json): numbers go from 0 to 1
+function worldCtx(p) {
+  const hrs = new Date().getHours(), x = p.x || (p.x = makeExtra(p));
+  return { world: nm(p), place: nm(p), biome: (p.biomes[0] || 'plain').toLowerCase(), temp: Math.max(0, Math.min(1, (p.temp + 100) / 250)), water: (x.water || 0) / 100,
+    life: Math.min(1, (p.lifeLvl || 0) / 6), ground: !gasWorld(p), weather: /rain|storm|drizzle|shower/i.test(p.weather || '') ? 'rain' : 'clear', time: hrs < 7 ? 'dawn' : hrs < 17 ? 'noon' : hrs < 21 ? 'dusk' : 'night',
+    star: p.star.startsWith('none') ? 'faraway' : p.star, type: p.type };
+}
+// a line about someone, with the world around them when there is one (extra: more context, like { place })
+function crewMoment(p, group, world, extra) {
   const r = Math.random, c = personCtx(p, r), it = c.item;
-  const ctx = { crew: c, item: it ? { name: it.name, tags: it.tags } : null, ship: S.ship.name.replace(/^The /, 'the ') };
-  if (world) { const temp = Math.max(0, Math.min(1, (world.temp + 100) / 250)), hrs = new Date().getHours();
-    Object.assign(ctx, { place: nm(world), biome: (world.biomes[0] || 'plain').toLowerCase(), temp, weather: /rain|storm|drizzle|shower/i.test(world.weather || '') ? 'rain' : 'clear', time: hrs < 7 ? 'dawn' : hrs < 17 ? 'noon' : hrs < 21 ? 'dusk' : 'night' }); }
+  const ctx = Object.assign({ crew: c, item: it ? { name: it.name, tags: it.tags } : null, ship: S.ship.name.replace(/^The /, 'the ') }, world ? worldCtx(world) : {}, extra || {});
   if (!it) delete ctx.item;
   return txLine(group, ctx, r);
 }

@@ -5,12 +5,12 @@
 function scenePlanet(kind) {
   return kind === 'campaign' && running ? null : kind === 'explore' && running ? null : atP();
 }
-const sceneKind = () => mode !== 'focus' ? 'break' : following() ? 'campaign' : chaptering() || expediting() || investigating() || salvaging() ? 'discover' : 'explore';
+const sceneKind = () => mode !== 'focus' ? 'break' : following() ? 'campaign' : chaptering() || expediting() || investigating() || salvaging() || staying() ? 'discover' : 'explore';
 function drawName() {
-  if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
+  if (pv && pvP()) { const p = pvP(); nameBox.disabled = false; nameBox.replaceChildren(el('b', {}, nm(p)), el('span', {}, worldLabel(p) + ', ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')); nameBox.onclick = () => { pvClose(true); tab('log'); openWorld(p.num); }; return; }
   const kind = sceneKind(), p = scenePlanet(kind);
   nameBox.disabled = !p;
-  nameBox.replaceChildren(...(p ? [el('b', {}, nm(p)), el('span', {}, p.type + ' world, ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')]
+  nameBox.replaceChildren(...(p ? [el('b', {}, nm(p)), el('span', {}, worldLabel(p) + ', ', el('i', { class: 'sx-r-' + p.rarity.toLowerCase() }, p.rarity), ', ' + (p.x || (p.x = makeExtra(p))).hab + '% habitable')]
     : [el('b', {}, 'Uncharted world'), el('span', {}, 'Somewhere ahead')]));
   nameBox.onclick = p ? () => { tab('log'); openWorld(p.num); } : null;
 }
@@ -49,7 +49,7 @@ function hereSec(lock, legBar) {
   if (!p) return sec(null, el('p', { class: 'sl-muted' }, 'Deep space. Explore to find your first world.'));
   const x = exOf(p), gas = gasWorld(p), out = [];
   out.push(el('p', { class: 'sx-q-h' }, el('button', { type: 'button', class: 'sl-link sx-here-n', onclick: () => { tab('log'); openWorld(p.num); } }, nm(p))),
-    el('p', { class: 'sl-muted' }, p.type + ' · ' + p.rarity + (p.odd ? ' · ' + p.odd : '')));
+    el('p', { class: 'sl-muted' }, worldLabel(p) + ' · ' + p.rarity + (p.odd ? ' · ' + p.odd : '')));
   // the visitor, if there is one
   if (p.enc) out.push(el('p', { class: 'sx-visit' }, p.enc.ic + ' ' + p.enc.title.replace(/!$/, '')));
   else if (p.visit === 'none' && !derelictHere()) out.push(el('p', { class: 'sx-visit' }, 'No visitors here. Just you and the world.'));
@@ -65,7 +65,14 @@ function hereSec(lock, legBar) {
       el('div', { class: 'sx-row-l' }, expediting() ? el('span', { class: 'sl-muted' }, 'Next session ' + (x.step ? 'continues it' : 'sets out') + '. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('expedition') }, x.step ? 'Continue next session' : 'Set out next session'),
         expediting() ? el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => { S.mission = 0; save(); hint.textContent = ''; draw(); } }, 'Not now') : null));
   }
-  if (x.poi.length && !exDone(p)) out.push(el('p', { class: 'sl-muted' }, 'Charted: ' + x.poi.map(o => o.name).join(', ') + '.'));
+  // places: what's been found here, and staying to find the rest
+  if (!p.story) {
+    const nLeft = placesLeft(p), onExp = placesUnfound(p) - nLeft, a = stayAct();
+    out.push(el('p', { class: 'sx-q-h sx-q-sub' }, '📍 Places · ' + x.poi.length + ' of ' + placesMax(p) + ' found'));
+    if (x.poi.length) out.push(el('ul', { class: 'sx-places' }, x.poi.map(o => el('li', {}, el('b', {}, placeName(o)), ' ', el('button', { type: 'button', class: 'sl-link sx-ren', title: 'Rename this place', disabled: lock || null, onclick: () => renamePlace(p, o) }, '✎')))));
+    if (a) out.push(el('div', { class: 'sx-row-l' }, staying() ? el('span', { class: 'sl-muted' }, a.ic + ' Staying next session: ' + a.name.toLowerCase() + '. ') : el('button', { type: 'button', class: 'sl-link', disabled: lock || null, onclick: () => setMission('stay') }, '🏕 Stay here next session'),
+      el('span', { class: 'sl-muted' }, nLeft ? ' ' + nLeft + ' more place' + (nLeft === 1 ? '' : 's') + ' to find by staying' + (onExp ? ', and ' + onExp + ' on the expedition.' : '.') : onExp ? ' The other ' + onExp + ' place' + (onExp === 1 ? ' is' : 's are') + ' on the expedition.' : ' Every place is found.')));
+  }
   // the anomaly
   if (p.odd && !p.story) {
     const v = invOf(p);

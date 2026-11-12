@@ -52,7 +52,7 @@ function exLegDone(reps) {
   if (hasT('scan4') && Math.random() < .2) got.push(rollItem(p, better, 'survey'));
   const fresh = got.map(it => gainItem(it, p)), nNew = fresh.filter(Boolean).length;
   award(25 + 10 * nNew + (fin ? 40 : 0), 12 + 12 * nNew + (hasT('scan2') ? 10 : 0) + (hasT('scan4') ? 15 : 0) + (fin ? 20 : 0));
-  const poi = { name: poiName(p, step), note: opt[1], leg: step, at: Date.now() };
+  const poi = { name: poiName(p, step), note: opt[1], leg: step, at: Date.now() }; placeDesc(p, poi);
   x.poi.push(poi); x.bold = (x.bold || 0) + (bold ? 1 : 0); x.step++; x.pick = 0;
   if (fin) { S.expDone = (S.expDone || 0) + 1; if (x.bold === EX_LEN) S.cnt.allBold = (S.cnt.allBold || 0) + 1; else if (!x.bold) S.cnt.allSafe = (S.cnt.allSafe || 0) + 1; S.mission = 0; }
   const ic = gas ? '🎈' : '🗺', head = (gas ? 'Cloud dive' : 'Expedition') + ' on ' + nm(p) + ' · ' + EX_PARTS[step] + ' (' + x.step + ' of ' + EX_LEN + ')';

@@ -21,7 +21,7 @@
    Each template can also have "weight" (default 1): 2 is picked twice as often. */
 'use strict';
 
-const TEXT = { lines: {}, items: [], warn: [] }; // filled from the content/ files by txLoad
+const TEXT = { lines: {}, items: [], acts: [], warn: [] }; // filled from the content/ files by txLoad
 
 // add one content file. Groups with the same name in different files are joined, so new files can add to old groups
 function txLoad(json) {
@@ -29,6 +29,7 @@ function txLoad(json) {
   const L = json.lines;
   if (L && typeof L === 'object') Object.keys(L).forEach(g => { if (Array.isArray(L[g])) TEXT.lines[g] = (TEXT.lines[g] || []).concat(L[g]); });
   if (Array.isArray(json.items)) TEXT.items = TEXT.items.concat(json.items.filter(it => it && it.name));
+  if (Array.isArray(json.activities)) TEXT.acts = TEXT.acts.concat(json.activities.filter(a => a && a.id && a.name));
 }
 
 // read a dotted path out of the context: "crew.trait.name"

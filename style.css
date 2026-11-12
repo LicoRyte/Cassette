@@ -727,3 +727,8 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-stash-i b { display: block; color: var(--white); }
 .sx-stash-i small { color: var(--mute); }
 
+/* places: found on a world, renameable, each with a short description */
+.sx-places { margin: 2px 0 6px; padding-left: 18px; }
+.sx-places li { margin: 1px 0; }
+.sx-place-d { display: block; color: var(--soft); font-style: italic; }
+
