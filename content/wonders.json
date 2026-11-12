@@ -1,0 +1,30 @@
+{
+  "_guide": [
+    "Wonders: sights worth seeing. Each one unlocks the first time you find a world that matches it, and shows on the",
+    "Ship page, under Achievements. (Solving a mystery gives a Wonder too: that's written in mysteries.json.)",
+    "One entry each: id (lowercase, never reused), ic (an emoji), name, desc (shown as a hint before you've seen it), when:",
+    "  type (\"Ocean\"), rarity, star (\"binary pair\"), rings (true), moons, lifeLvl (0 to 6), temp (degrees C), hab (0 to 100),",
+    "  water (percent), gravity (in g), weatherWords and biomeWords (single words from the weather or biomes, like \"glass\").",
+    "  Numbers can be \">9\" or \"<0.3\". Every key in when must match."
+  ],
+  "wonders": [
+    { "id": "ringed-ocean", "ic": "🌊", "name": "Rings over the sea", "desc": "Find an ocean world with rings.", "when": { "type": "Ocean", "rings": true } },
+    { "id": "ringed-garden", "ic": "🌷", "name": "A garden under rings", "desc": "Find a garden world with rings.", "when": { "type": "Garden", "rings": true } },
+    { "id": "glass-rain", "ic": "🔮", "name": "Rain made of glass", "desc": "Find a world where the rain is glass.", "when": { "weatherWords": "glass" } },
+    { "id": "many-moons", "ic": "🌙", "name": "A sky full of moons", "desc": "Find a world with ten or more moons.", "when": { "moons": ">9" } },
+    { "id": "someone-home", "ic": "👋", "name": "Someone is home", "desc": "Find a world with signs of intelligence.", "when": { "lifeLvl": ">5" } },
+    { "id": "two-suns", "ic": "🌅", "name": "Two suns setting", "desc": "Find a world with two suns.", "when": { "star": "binary pair" } },
+    { "id": "no-sun", "ic": "🌑", "name": "A world with no sun", "desc": "Find a world drifting alone, with no star at all.", "when": { "type": "Rogue" } },
+    { "id": "diamonds", "ic": "💎", "name": "Diamonds everywhere", "desc": "Find a world with diamonds in its biomes.", "when": { "biomeWords": "diamond" } },
+    { "id": "almost-home", "ic": "🏡", "name": "Almost Earth", "desc": "Find a world at least 90% habitable.", "when": { "hab": ">89" } },
+    { "id": "endless-sunset", "ic": "🌇", "name": "The sunset that never ends", "desc": "Find a world where the sun never moves.", "when": { "biomeWords": "sunset" } },
+    { "id": "pulsar", "ic": "💫", "name": "A star that blinks", "desc": "Find a world around a pulsar.", "when": { "star": "pulsar" } },
+    { "id": "featherweight", "ic": "🪶", "name": "Light as a feather", "desc": "Find a world with gravity under a third of Earth's.", "when": { "gravity": "<0.33" } },
+    { "id": "singing", "ic": "🎶", "name": "A world that sings", "desc": "Find a world with singing crystals.", "when": { "biomeWords": "singing" } },
+    { "id": "glowing", "ic": "✨", "name": "Things that glow", "desc": "Find a world where something glows.", "when": { "biomeWords": "glowing" } },
+    { "id": "legendary", "ic": "🏆", "name": "A legend", "desc": "Find a Legendary world.", "when": { "rarity": "Legendary" } },
+    { "id": "frozen-blue", "ic": "🧊", "name": "Ice under a blue giant", "desc": "Find a frozen world around a blue giant.", "when": { "star": "blue giant", "temp": "<-50" } },
+    { "id": "blue-whale", "ic": "🐋", "name": "Something big in the water", "desc": "Find an ocean world with swimming creatures (or more).", "when": { "type": ["Ocean", "Hycean"], "lifeLvl": ">3" } },
+    { "id": "mushrooms", "ic": "🍄", "name": "Mushrooms taller than towers", "desc": "Find a fungal world.", "when": { "type": "Fungal" } }
+  ]
+}

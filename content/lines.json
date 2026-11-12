@@ -22,7 +22,8 @@
     "Groups with the same name in different files are joined, so you can make a new file in content/ for your own lines",
     "(add it to CONTENT_FILES in js/boot.js). Try lines in tools/text-preview.html.",
     "Biomes are often plural (\"rust plains\"), so don't put a verb or \"a\" straight after {biome}: write \"the light over the {biome} turns\", not \"the {biome} turns\".",
-    "crew_pair lines have two people: {crew} and {other} (both work like {crew}). bond is how many study sessions they've shared: \"bond\": \"<4\" for near-strangers, \">15\" for old friends."
+    "crew_pair lines have two people: {crew} and {other} (both work like {crew}). bond is how many study sessions they've shared: \"bond\": \"<4\" for near-strangers, \">15\" for old friends.",
+    "postcard: the caption on a postcard of {world}, written by {crew} (lines work like the others)."
   ],
   "lines": {
     "arrive": [
@@ -492,6 +493,46 @@
         "when": {
           "bond": ">10"
         }
+      }
+    ],
+    "postcard": [
+      "Wish you were here. The {biome} is even better than it sounds.",
+      "Greetings from {world}! The weather is {weather} and the crew is in a good mood.",
+      "{Crew} says hello. {Crew} also says the food here is very strange, in a good way.",
+      "Arrived safely. Nobody has fallen in anything yet. Fingers crossed.",
+      "Dear whoever reads this: we found a place called {world}. It's quiet, and we like it.",
+      "This is the view from the ship this morning. The photo doesn't do it justice. Nothing would.",
+      "{Crew} wanted to write something clever here. This is what we got.",
+      {
+        "text": "It's freezing here. {Crew} hasn't taken off {crew.their} {crew.wear} in two days.",
+        "when": {
+          "temp": "<0.3"
+        }
+      },
+      {
+        "text": "Hot, hot, hot. {Crew} is fanning {crew.themself} with this postcard as we speak.",
+        "when": {
+          "temp": ">0.7"
+        }
+      },
+      {
+        "text": "So much water! {Crew} wants to learn to swim. We're not sure it's that kind of water.",
+        "when": {
+          "water": ">0.6"
+        }
+      },
+      {
+        "text": "There's life everywhere here. {Crew} keeps waving at things that might be waving back.",
+        "when": {
+          "life": ">0.5"
+        }
+      },
+      {
+        "text": "No ground at all, just clouds all the way down. {Crew} is pretending to be a bird.",
+        "when": {
+          "ground": false
+        },
+        "weight": 2
       }
     ]
   }

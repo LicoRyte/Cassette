@@ -732,3 +732,13 @@ body.sx-shiphover, body.sx-shiphover * { cursor: pointer; }
 .sx-places li { margin: 1px 0; }
 .sx-place-d { display: block; color: var(--soft); font-style: italic; }
 
+/* the album: planet types to find, postcards */
+.sx-albumbar { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 8px; }
+.sx-types { display: flex; flex-wrap: wrap; gap: 4px; }
+.sx-type { font-size: 12px; padding: 1px 6px; border: 1px dashed var(--line); color: var(--mute); }
+.sx-type.on { border-style: solid; color: var(--soft); }
+.sx-card-in { max-width: 560px; }
+.sx-cardimg { display: block; width: 100%; max-width: 480px; height: auto; image-rendering: pixelated; margin: 8px 0; border: 1px solid var(--line); }
+.sx-album { display: grid; grid-template-columns: 1fr; gap: 14px; max-height: 70vh; overflow-y: auto; }
+.sx-txfind { width: 100%; margin: 4px 0; }
+

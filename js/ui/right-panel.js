@@ -5,7 +5,9 @@
 let rightTab = 'tx';
 // every kind of log in one place: the ship's log, Meridian logs, Ship Logs from research, achievements, and old Listening Post transmissions
 const TXF = [['all', 'All'], ['post', 'Posts'], ['camp', 'Meridian'], ['arc', 'Ship Logs'], ['quest', 'Quests'], ['ship', 'Ship'], ['ev', 'Events'], ['stay', 'Stays'], ['trade', 'Traders'], ['mystery', 'Mysteries'], ['codex', 'Codex'], ['res', 'Research'], ['ach', 'Achievements']];
-let txFilter = 'all';
+let txFilter = 'all', txQuery = '';
+const txFind = el('input', { type: 'search', class: 'sl-find sx-txfind', placeholder: 'Search the logs...', 'aria-label': 'Search the logs' });
+txFind.addEventListener('input', () => { txQuery = txFind.value; drawRight(); txFind.focus(); });
 const evCat = e => e.c || (/^Research/.test(e.title || '') ? 'res' : /^Achievement/.test(e.title || '') ? 'ach' : /^Ship activity|joined the crew|left the crew|^New room/.test(e.title || '') ? 'ship' : /^Distress/.test(e.title || '') ? 'quest' : 'ev');
 function txFeed() {
   const feed = [];
@@ -56,10 +58,10 @@ function drawRight() {
     let body;
     if (txFilter === 'camp') body = meridianView();
     else if (txFilter === 'arc') body = shipLogsView();
-    else { const list = txFilter === 'all' ? feed : feed.filter(it => it.c === txFilter);
+    else { const q = txQuery.trim().toLowerCase(), list = (txFilter === 'all' ? feed : feed.filter(it => it.c === txFilter)).filter(it => !q || ((it.title || '') + ' ' + (it.t || '') + ' ' + (it.extra || '')).toLowerCase().includes(q));
       body = [list.length ? el('div', { class: 'sx-tx' }, renderFeed(list, 'rtx' + txFilter, true, drawRight))
-        : el('p', { class: 'sl-muted' }, txFilter === 'all' ? 'Nothing yet. Deep-space events, crew chatter, Meridian logs, research and achievements all land here.' : 'Nothing here yet.')]; }
-    rightCol.replaceChildren(el('div', { class: 'sx-rhead' }, tabsR, chips), ...body);
+        : el('p', { class: 'sl-muted' }, txQuery.trim() ? 'Nothing matches "' + txQuery.trim() + '".' : txFilter === 'all' ? 'Nothing yet. Deep-space events, crew chatter, Meridian logs, research and achievements all land here.' : 'Nothing here yet.')]; }
+    rightCol.replaceChildren(el('div', { class: 'sx-rhead' }, tabsR, focusLock() ? null : txFind, chips), ...body);
     return;
   }
 }

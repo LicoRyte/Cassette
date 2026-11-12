@@ -16,6 +16,11 @@ function checkAch() {
 function medalsView(group) {
   const VIS = ACH.filter(a => !a.req || hasT(a.req) || S.ach[a.id]), hid = ACH.length - VIS.length, got = VIS.filter(a => S.ach[a.id]).length;
   const out = [el('p', { class: 'sl-muted' }, got + ' of ' + VIS.length + ' unlocked.' + (hid ? ' ' + hid + ' more are hidden until you research the right things.' : ''))];
+  // Wonders: sights you've found (and the ones still out there), then the ones mysteries leave you
+  const at = n => { const f = S.wonderAt && byNum(S.wonderAt[n]); return f ? ' on ' + nm(f.p) : ''; };
+  const wl = wonderDefs().map(w => [w.ic, w.name, w.desc, !!S.wonders[w.name]]).concat((TEXT.mysteries || []).filter(m => m.wonder).map(m => [m.ic, m.wonder, 'Solve a mystery to find this one.', !!S.wonders[m.wonder]]));
+  out.push(group('✨ Wonders (' + wl.filter(w => w[3]).length + ' / ' + wl.length + ')', el('div', { class: 'sx-medals' }, wl.map(([ic, name, desc, on]) => el('div', { class: 'sx-medal' + (on ? ' on' : '') },
+    el('span', { class: 'sx-medal-i' }, on ? ic : '?'), el('b', {}, on || !/^Solve/.test(desc) ? name : '???'), el('small', {}, on ? 'Seen ' + new Date(S.wonders[name]).toLocaleDateString() + at(name) : desc))))));
   [...new Set(VIS.map(a => a.grp))].forEach(g => { const list = VIS.filter(a => a.grp === g);
     out.push(group(g + ' (' + list.filter(a => S.ach[a.id]).length + ' / ' + list.length + ')', el('div', { class: 'sx-medals' }, list.map(a => el('div', { class: 'sx-medal' + (S.ach[a.id] ? ' on' : '') }, el('span', { class: 'sx-medal-i' }, a.ic), el('b', {}, a.name), el('small', {}, a.desc + (S.ach[a.id] ? '. ' + new Date(S.ach[a.id]).toLocaleDateString() : '')))))));
   });

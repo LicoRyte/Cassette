@@ -1,15 +1,15 @@
 /* Solarist offline support. Every file is fetched fresh when online (so updates show up on the next reload)
    and saved, so the app also works offline. VERSION only needs bumping when this list of files changes. */
-const VERSION = 'solarist-30';
+const VERSION = 'solarist-31';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest', 'expeditions.json',
-  'js/world/random.js', 'js/world/text.js', 'content/items.json', 'content/lines.json', 'content/activities.json', 'content/traders.json', 'content/mysteries.json', 'js/world/planet-data.js', 'js/world/planet.js', 'js/world/events.js', 'js/world/items.js',
+  'js/world/random.js', 'js/world/text.js', 'content/items.json', 'content/lines.json', 'content/activities.json', 'content/traders.json', 'content/mysteries.json', 'content/wonders.json', 'js/world/planet-data.js', 'js/world/planet.js', 'js/world/events.js', 'js/world/items.js',
   'js/world/paint.js', 'js/world/economy.js', 'js/boot.js', 'js/shell.js', 'js/game/core.js',
   'js/game/voyage.js', 'js/game/encounters.js', 'js/game/research.js', 'js/game/ship.js', 'js/game/levels.js', 'js/game/people.js',
-  'js/game/expedition.js', 'js/game/investigate.js', 'js/game/stay.js', 'js/game/traders.js', 'js/game/mysteries.js', 'js/game/story.js',
+  'js/game/expedition.js', 'js/game/investigate.js', 'js/game/stay.js', 'js/game/traders.js', 'js/game/mysteries.js', 'js/game/wonders.js', 'js/game/story.js',
   'js/game/session.js', 'js/ui/controls.js', 'js/ui/hud.js', 'js/ui/learning.js', 'js/ui/ship-interior.js', 'js/ui/layout.js',
   'js/ui/main-screen.js', 'js/ui/right-panel.js', 'js/ui/panels.js', 'js/ui/keyboard.js', 'js/ui/planetarium.js', 'js/ui/reports.js',
-  'js/game/timer.js', 'js/ui/ship-page.js', 'js/ui/star-map.js', 'js/game/achievements.js', 'js/ui/ship-views.js', 'js/ui/crew.js', 'js/ui/logbook.js',
+  'js/game/timer.js', 'js/ui/ship-page.js', 'js/ui/star-map.js', 'js/game/achievements.js', 'js/ui/ship-views.js', 'js/ui/crew.js', 'js/ui/logbook.js', 'js/ui/album.js',
   'js/ui/reader.js', 'js/ui/intro.js', 'js/game/start.js', 'economy.json', 'items.json', 'story.json', 'music.json', 'CREDITS.md',
   'fonts/barlow-condensed-latin-400-normal.woff2', 'fonts/barlow-condensed-latin-500-normal.woff2', 'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2',
   'fonts/courier-prime-latin-400-normal.woff2', 'fonts/courier-prime-latin-700-normal.woff2', 'fonts/courier-prime-latin-400-italic.woff2',

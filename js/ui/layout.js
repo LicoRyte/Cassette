@@ -9,7 +9,7 @@ const appSettings = el('div', { class: 'sx-appset' });
 const settingsPane = el('div', { class: 'sl-pane', hidden: true },
   sec('Timer', settings), sec('Your save', saveTools()), sec('Switch the timer by hand', el('p', { class: 'sl-muted' }, 'Normally Solarist moves between study and breaks for you.'), el('div', { class: 'sl-modes' }, modeBtns)), sec('App', appSettings));
 const find = el('input', { type: 'search', class: 'sl-find', placeholder: 'Search worlds...', 'aria-label': 'Search your logbook' });
-const typeSel = el('select', { 'aria-label': 'Planet class' }, el('option', { value: '' }, 'All classes'), ...Object.keys(TYPES).map(t => el('option', { value: t }, t)));
+const typeSel = el('select', { 'aria-label': 'Planet class' }, el('option', { value: '' }, 'All classes'), el('option', { value: '@fav' }, '★ Favourites'), ...Object.keys(TYPES).map(t => el('option', { value: t }, t)));
 const rarSel = el('select', { 'aria-label': 'Rarity' }, el('option', { value: '' }, 'Any rarity'), ...RARITY.map(([k]) => el('option', { value: k }, k)));
 const logHead = el('div', { class: 'sl-ahead' });
 const logList = el('div', { class: 'sl-list' });
