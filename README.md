@@ -19,6 +19,7 @@ Your progress is saved in this browser.
 | `js/ui/export.js` | Saving a board as an image, backups of all boards, loading a backup |
 | `js/ui/notes.js` | Rich notes: the formatting toolbar, typing shortcuts, paper colours, text size, and the cleaner that keeps only the tags a note uses |
 | `js/ui/feel.js` | The feel: the chimes and desk sounds (made live with Web Audio), the green edge glow on every second, the desk dimming while you focus |
+| `js/ui/tape.js` | The session strip and the tape-deck keys under the timer |
 | `js/ui/clock.js` | The clock-only Solarist: switches the space game off and adds the console, state colours, power-on, landing and breathing |
 | `js/ui/board.js` | The desk: the pannable, zoomable workspace around the clock, with notes, Polaroid photos, drawings, frames, strings, picking and groups, undo, and number-key bookmarks |
 | `js/shell.js` | Sounds, notifications, install, offline support, and the planet viewport: a WebGL shader that draws each world as a dithered, palette-snapped 3D sphere (radar sweep while surveying, and so on) |
@@ -42,7 +43,7 @@ Your progress is saved in this browser.
 
 ## What's in it
 
-- **The clock:** one centred clock in a console frame with amber corner brackets, over a slowly drifting grain and faint scanlines, with a single line sweeping down the screen once a minute. Above the digits: Ready, Focus or Paused, and which session of the cycle this is. Under them: the session bars, Start/Pause and Reset, and how many sessions you've done today.
+- **The clock:** one centred clock in a console frame with amber corner brackets, over a slowly drifting grain and faint scanlines, with a single line sweeping down the screen once a minute. Above the digits: Ready, Focus or Paused, and which session of the cycle this is. Under them: one strip for the whole cycle (a long segment for each study session, a short one for each break, a longer one for the long break, filling as you go), then two hollow tape-deck keys, Play/Pause and Rewind (Reset), with the key to press written underneath; Play stays latched down while a session runs, and both play a cassette click. Then how many sessions you've done today.
 - **Colour tells you where you are:** cream while you focus, warmer in the last minute, mint on a break, dimmed and blinking when paused, quiet silver when ready.
 - **The feel:** each digit rolls down into place as it changes, like an odometer, while the old one rolls out underneath and lingers for a moment like phosphor. The colon glows on every second, and the edge of the screen glows green once with it, so you can feel the clock without watching it. Pressing Start switches the digits on like an old screen. In the last ten seconds the roll slows down. At 00:00 the digits hold and glow while a soft, low chime plays, like a bell through a wall (a lighter one ends a break). Breaks don't tick: the digits breathe. Reduced motion keeps all of it still.
 - **The tick:** while you focus and Solarist is the window in front, the clock goes tick, tock, never quite the same twice, and softer through the last minute (Settings, Clock: on or off and how loud).

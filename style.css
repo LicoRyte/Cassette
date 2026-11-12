@@ -1486,3 +1486,34 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 /* frames and drawings dim with the notes while you focus */
 .sx-world .sx-flayer { transition: opacity .35s ease-out, filter .35s; }
 .sx-still[data-clock="focus"] .sx-world .sx-flayer, .sx-still[data-clock="last"] .sx-world .sx-flayer { opacity: .3; filter: saturate(.5); transition-duration: 2.4s; }
+
+/* ---------- the tape deck (js/ui/tape.js) ---------- */
+/* the strip: long segments for study sessions, short ones for breaks, a longer one for the long break */
+#slRoot .sx-corner .sx-cycle.sx-tape-strip { display: flex; align-items: center; gap: 5px; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .sg { position: relative; overflow: hidden; flex: 3 1 0; width: auto; height: 14px; background: #041528; box-shadow: inset 0 0 0 1px #0b1a2b; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .sb { flex-grow: 1; height: 9px; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .lb { flex-grow: 1.8; height: 9px; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .fs.done { background: #ffffe4; box-shadow: none; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .sb.done, #slRoot .sx-corner .sx-cycle.sx-tape-strip .lb.done { background: #77d6c1; box-shadow: none; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .now::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: #ffffe4; transition: width .3s linear; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .sb.now::after, #slRoot .sx-corner .sx-cycle.sx-tape-strip .lb.now::after { background: #77d6c1; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip.broken .done { opacity: .5; }
+#slRoot .sx-corner .sx-cycle.sx-tape-strip .flash { animation: sx-segflash .9s ease-out; }
+@keyframes sx-segflash { from { filter: brightness(1.8); box-shadow: 0 0 12px rgba(255, 255, 228, .7); } to { filter: none; box-shadow: none; } }
+/* the keys: hollow, like a cassette deck's, with the key to press underneath */
+#slRoot .sx-corner .sx-cmd { display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-top: 22px; }
+#slRoot .sx-corner .sx-cmd .btn.sx-tape { display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; padding: 0; background: none; border: 0; box-shadow: none; color: #ffb762; cursor: pointer; transition: color .8s; }
+#slRoot .sx-corner .sx-cmd .btn.sx-tape:hover:not(:disabled) { background: none; border: 0; }
+.sx-tk { display: grid; place-items: center; width: 68px; height: 60px; border: 2px solid currentColor; border-radius: 3px; box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 15%, transparent), 0 4px 0 color-mix(in srgb, currentColor 28%, transparent); transition: transform .08s ease-out, box-shadow .08s ease-out, background .15s; }
+.sx-tk svg { width: 26px; height: 26px; fill: currentColor; }
+.sx-tape[data-act="pause"] .ic-play, .sx-tape:not([data-act="pause"]) .ic-pause { display: none; }
+.sx-tl { font: 700 15px/1 var(--ui); letter-spacing: .16em; text-transform: uppercase; }
+.sx-th { margin-top: -3px; font: 600 10px/1 var(--ui); letter-spacing: .24em; text-transform: uppercase; opacity: .5; }
+.sx-tape:hover:not(:disabled) .sx-tk { background: color-mix(in srgb, currentColor 8%, transparent); }
+.sx-tape:active:not(:disabled) .sx-tk, .sx-tape.press .sx-tk { transform: translateY(4px); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 15%, transparent), 0 0 0 transparent; background: color-mix(in srgb, currentColor 16%, transparent); }
+/* while a session runs, Play stays latched down */
+[data-clock="focus"] .sx-tape.go .sx-tk, [data-clock="last"] .sx-tape.go .sx-tk, [data-clock="break"] .sx-tape.go .sx-tk { transform: translateY(3px); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 15%, transparent), 0 1px 0 color-mix(in srgb, currentColor 28%, transparent); background: color-mix(in srgb, currentColor 12%, transparent); }
+#slRoot[data-clock="break"] .sx-corner .sx-cmd .btn.sx-tape { color: #77d6c1; }
+#slRoot[data-clock="paused"] .sx-corner .sx-cmd .btn.sx-tape.go { color: #ffd832; }
+#slRoot .sx-corner .sx-cmd .btn.sx-tape:disabled { color: #293b49; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .sx-tk { transition: none; } #slRoot .sx-corner .sx-cycle.sx-tape-strip .flash { animation: none; } }

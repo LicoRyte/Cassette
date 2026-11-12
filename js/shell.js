@@ -143,7 +143,7 @@
 
   // interface sounds, same as the archive: a click for buttons, a softer tick for tabs and options
   document.addEventListener('click', e => {
-    const b = e.target.closest('button, select, summary'); if (!b || b.disabled) return;
+    const b = e.target.closest('button, select, summary'); if (!b || b.disabled || b.classList.contains('sx-tape')) return; // (the tape keys have their own sound)
     play(b.matches('.sx-nav button, .sx-rtabs button, .sl-stab, .sl-mis, .sl-mode, .sx-swatch, .sx-design, summary, select') ? 'ui' : 'click');
   }, true);
 

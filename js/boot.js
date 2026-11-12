@@ -21,7 +21,7 @@ const GAME_FILES = [
   'js/ui/panels.js', 'js/ui/keyboard.js', 'js/ui/planetarium.js', 'js/ui/reports.js', 'js/game/timer.js', 'js/ui/ship-page.js',
   'js/ui/star-map.js', 'js/game/achievements.js', 'js/ui/ship-views.js', 'js/ui/crew.js', 'js/ui/logbook.js', 'js/ui/album.js', 'js/ui/reader.js', 'js/ui/intro.js', 'js/ui/aboard.js',
   // last: resume a running timer and draw the first frame
-  'js/ui/season-ui.js', 'js/ui/polish.js', 'js/ui/feel.js', 'js/ui/notes.js', 'js/ui/draw.js', 'js/ui/board.js', 'js/ui/draw-mode.js', 'js/ui/export.js', 'js/ui/clock.js', 'js/game/start.js',
+  'js/ui/season-ui.js', 'js/ui/polish.js', 'js/ui/feel.js', 'js/ui/notes.js', 'js/ui/draw.js', 'js/ui/board.js', 'js/ui/draw-mode.js', 'js/ui/export.js', 'js/ui/clock.js', 'js/ui/tape.js', 'js/game/start.js',
 ];
 
 // content/: the JSON the text engine (js/world/text.js) builds sentences from. Add your own files here; a missing or broken one is skipped

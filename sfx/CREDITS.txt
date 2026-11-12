@@ -12,3 +12,6 @@ Interface sounds (from the Not-So-Awesome Archive):
 
 By virtual_vibes (Pixabay, Pixabay Content License):
   clock-tick.mp3   the clock ticking while a session runs
+
+Provided by the project owner:
+  cassette-play.mp3   the tape-deck keys under the timer (Play/Pause, Rewind)
