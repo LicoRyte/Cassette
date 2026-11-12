@@ -1,11 +1,24 @@
 /* Solarist: Pages and tabs: puts every part of the screen together.
-   The planet and the timer in the middle of the screen; on breaks, two small columns beside them: what happened on the
-   left, what next on the right. While you study, both step aside and only the planet and the timer stay. Pages: Atlas, Journal, Ship, Settings. */
+   The planet fills the middle of the screen. The timer is an instrument panel in the top-left corner, under the levels;
+   on breaks, what happened sits under it and what next on the right. While you study, only the planet and the timer stay. Pages: Atlas, Journal, Ship, Settings. */
 'use strict';
 
 const status = el('span', { class: 'sx-cap' }), status2 = el('span', { hidden: true });
 const timeBlock = el('div', { class: 'sx-clock' }, screen, cycleBar, status);
-const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, pvBar, timeBlock, el('div', { class: 'sl-btns' }, startB, resetB, skipB), hint);
+const midCol = el('section', { class: 'sx-mid' }, nameBox, planetSpot, pvBar);
+// the timer panel: a status line, the framed readout, the cycle, a telemetry line, then one command bar.
+// Reset and Skip wait in the "more" menu (and on the R and S keys).
+resetB.classList.add('sx-more-i'); skipB.classList.add('sx-more-i');
+resetB.append(el('kbd', {}, 'R')); skipB.append(el('kbd', {}, 'S'));
+const moreMenu = el('div', { class: 'sx-more', role: 'menu', hidden: true }, resetB, skipB);
+const moreB = el('button', { type: 'button', class: 'btn sx-moreb', 'aria-label': 'More: reset or skip', 'aria-haspopup': 'menu', 'aria-expanded': 'false' }, '⋯');
+const setMore = on => { moreMenu.hidden = !on; moreB.setAttribute('aria-expanded', String(on)); };
+moreB.addEventListener('click', e => { e.stopPropagation(); setMore(moreMenu.hidden); });
+moreMenu.addEventListener('click', () => setMore(false));
+document.addEventListener('click', e => { if (!moreMenu.hidden && !e.target.closest('.sx-cmd')) setMore(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !moreMenu.hidden) setMore(false); });
+const cmdBar = el('div', { class: 'sx-cmd' }, startB, moreB, moreMenu);
+const corner = el('section', { class: 'sx-corner', 'aria-label': 'Timer' }, timeBlock, cmdBar, hint);
 // the break panel: js/ui/breakpanel.js fills it
 const bpNotes = el('div', { class: 'sx-bp-notes' });
 const bpStoryH = el('h3', { class: 'sx-bp-h' }, 'What happened');
@@ -45,7 +58,7 @@ const page = el('div', { class: 'sx-page', hidden: true },
   atlasNav, el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, mapPane, journalPane, settingsPane));
 [tabTimer, tabLog, tabShip].forEach(b => b.removeAttribute('role'));
 root.classList.add('sx', 'sx-v2');
-root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabAtlas, tabJournal, tabShip, tabSet)), midCol, storyPanel, breakPanel, report, page,
+root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabAtlas, tabJournal, tabShip, tabSet)), midCol, el('div', { class: 'sx-rail' }, corner, storyPanel), breakPanel, report, page,
   el('div', { hidden: true }, tabTimer, tabLog, tabItems, tabMap, status2, leftCol, feedLine, mission, reportBtn));
 function tab(t) {
   if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Worlds again goes back to the grid

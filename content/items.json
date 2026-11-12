@@ -3,6 +3,7 @@
     "Equipment, clothing and traits. Each one is just a name and a description, plus tags.",
     "To add one: copy an entry, give it a new id (lowercase, dashes, never reused), change the words.",
     "kind: \"equipment\", \"clothing\" or \"trait\". Crafting makes a random equipment or clothing item; traits are picked on the Crew page.",
+    "Clothing also has a slot: \"hat\", \"acc\" (accessory), \"top\", \"bottom\" or \"feet\". Everyone can wear one of each, and carry one piece of equipment.",
     "kind \"ship\": equipment for the ship itself, crafted for 4 Knowledge points. Its tags unlock Stay here activities (activities.json, \"shipTags\") and crew moments.",
     "desc: one or two sentences that help the player imagine it. No numbers or stats.",
     "tags: short words that events and lines can look for, like warm, light, shiny, loud, brave, keepsake.",
@@ -13,6 +14,7 @@
     {
       "id": "patched-scarf",
       "kind": "clothing",
+      "slot": "acc",
       "name": "patched scarf",
       "desc": "Knitted by someone who loved you, mended by someone who didn't know how.",
       "tags": [
@@ -24,6 +26,7 @@
     {
       "id": "yellow-raincoat",
       "kind": "clothing",
+      "slot": "top",
       "name": "yellow raincoat",
       "desc": "Bright enough to find you in any storm. The pockets are full of old wrappers.",
       "tags": [
@@ -34,6 +37,7 @@
     {
       "id": "mirror-visor",
       "kind": "clothing",
+      "slot": "hat",
       "name": "mirrored visor",
       "desc": "Everyone you talk to sees themselves in it, which makes some of them nervous.",
       "tags": [
@@ -44,6 +48,7 @@
     {
       "id": "moss-boots",
       "kind": "clothing",
+      "slot": "feet",
       "name": "moss-green boots",
       "desc": "Soft soles that never squeak. Small plants keep trying to grow on them.",
       "tags": [
@@ -54,6 +59,7 @@
     {
       "id": "flight-jacket",
       "kind": "clothing",
+      "slot": "top",
       "name": "old flight jacket",
       "desc": "Cracked leather and a patch from a squadron nobody remembers. It still smells faintly of engine oil.",
       "tags": [
@@ -64,6 +70,7 @@
     {
       "id": "star-sweater",
       "kind": "clothing",
+      "slot": "top",
       "name": "sweater with stars on it",
       "desc": "Hand-knitted. The constellations are wrong, but they're wrong in a very confident way.",
       "tags": [
@@ -75,6 +82,7 @@
     {
       "id": "bucket-hat",
       "kind": "clothing",
+      "slot": "hat",
       "name": "floppy bucket hat",
       "desc": "Keeps the sun off and the dignity low. Has a small pin shaped like a mushroom.",
       "tags": [
@@ -85,6 +93,7 @@
     {
       "id": "mechanic-overalls",
       "kind": "clothing",
+      "slot": "bottom",
       "name": "grease-stained overalls",
       "desc": "More pockets than anyone could need. One of them rattles and nobody knows why.",
       "tags": [
@@ -95,6 +104,7 @@
     {
       "id": "silver-cloak",
       "kind": "clothing",
+      "slot": "top",
       "name": "silver travel cloak",
       "desc": "It ripples even when there's no wind, and catches starlight like water.",
       "tags": [
@@ -105,6 +115,7 @@
     {
       "id": "knit-mittens",
       "kind": "clothing",
+      "slot": "acc",
       "name": "mismatched mittens",
       "desc": "One red, one blue. The other two are out there somewhere, also mismatched.",
       "tags": [
@@ -116,6 +127,7 @@
     {
       "id": "lab-coat",
       "kind": "clothing",
+      "slot": "top",
       "name": "lab coat with a coffee stain",
       "desc": "The stain is shaped like a small continent. It has been named.",
       "tags": [
@@ -126,6 +138,7 @@
     {
       "id": "rain-poncho",
       "kind": "clothing",
+      "slot": "top",
       "name": "see-through poncho",
       "desc": "Folds into a pouch the size of an apple. Unfolding it takes ten minutes and a lot of patience.",
       "tags": [
@@ -136,6 +149,7 @@
     {
       "id": "beaded-necklace",
       "kind": "clothing",
+      "slot": "acc",
       "name": "beaded necklace",
       "desc": "Every bead is from a different world. A few of them are probably just candy.",
       "tags": [
@@ -146,6 +160,7 @@
     {
       "id": "thick-goggles",
       "kind": "clothing",
+      "slot": "acc",
       "name": "thick brass goggles",
       "desc": "Make everything look slightly orange and slightly more dramatic.",
       "tags": [
@@ -157,6 +172,7 @@
     {
       "id": "spacer-boots",
       "kind": "clothing",
+      "slot": "feet",
       "name": "magnetic spacer boots",
       "desc": "Clunk. Clunk. Clunk. You can always hear them coming down the corridor.",
       "tags": [
@@ -167,6 +183,7 @@
     {
       "id": "flower-crown",
       "kind": "clothing",
+      "slot": "hat",
       "name": "flower crown",
       "desc": "Woven from flowers of three different planets. They keep blooming, somehow.",
       "tags": [
@@ -178,6 +195,7 @@
     {
       "id": "night-cap",
       "kind": "clothing",
+      "slot": "hat",
       "name": "striped night cap",
       "desc": "Worn at all hours, not only at night. There's a little bell on the end.",
       "tags": [
@@ -189,6 +207,7 @@
     {
       "id": "diving-suit",
       "kind": "clothing",
+      "slot": "top",
       "name": "patched diving suit",
       "desc": "Built for oceans on worlds where the water is something else entirely.",
       "tags": [
@@ -199,6 +218,7 @@
     {
       "id": "poet-shirt",
       "kind": "clothing",
+      "slot": "top",
       "name": "billowy poet's shirt",
       "desc": "Far too dramatic for the ship. Perfect for standing on cliffs.",
       "tags": [
@@ -208,12 +228,282 @@
     {
       "id": "reflective-vest",
       "kind": "clothing",
+      "slot": "top",
       "name": "reflective safety vest",
       "desc": "Bright orange with silver stripes. Nobody has ever been run over while wearing it.",
       "tags": [
         "bright",
         "shiny",
         "work"
+      ]
+    },
+    {
+      "id": "knit-beanie",
+      "kind": "clothing",
+      "slot": "hat",
+      "name": "lumpy knitted beanie",
+      "desc": "The first thing anyone aboard ever knitted. It has one ear flap and a lot of heart.",
+      "tags": [
+        "warm",
+        "soft",
+        "cozy"
+      ]
+    },
+    {
+      "id": "explorer-hat",
+      "kind": "clothing",
+      "slot": "hat",
+      "name": "wide-brimmed explorer hat",
+      "desc": "Sun-bleached and sweat-stained. It has been to more worlds than most captains.",
+      "tags": [
+        "sunny",
+        "old"
+      ]
+    },
+    {
+      "id": "pilot-cap",
+      "kind": "clothing",
+      "slot": "hat",
+      "name": "pilot's cap",
+      "desc": "Stiff peak, faded badge. It makes people sit up straighter when you walk in.",
+      "tags": [
+        "work",
+        "old"
+      ]
+    },
+    {
+      "id": "antenna-band",
+      "kind": "clothing",
+      "slot": "hat",
+      "name": "headband with antennae",
+      "desc": "Two springy antennae with little balls on the ends. Purely for morale.",
+      "tags": [
+        "silly",
+        "bright"
+      ]
+    },
+    {
+      "id": "straw-hat",
+      "kind": "clothing",
+      "slot": "hat",
+      "name": "straw sun hat",
+      "desc": "Woven loosely enough to let the breeze through and a few seeds in.",
+      "tags": [
+        "sunny",
+        "green",
+        "light-weight"
+      ]
+    },
+    {
+      "id": "round-glasses",
+      "kind": "clothing",
+      "slot": "acc",
+      "name": "round wire glasses",
+      "desc": "Slightly bent from being sat on. Everything through them looks a little more interesting.",
+      "tags": [
+        "science",
+        "far-sight"
+      ]
+    },
+    {
+      "id": "star-bandana",
+      "kind": "clothing",
+      "slot": "acc",
+      "name": "bandana printed with a star map",
+      "desc": "Handy for wiping a visor, or for finding your way home in a pinch.",
+      "tags": [
+        "bright",
+        "work"
+      ]
+    },
+    {
+      "id": "friendship-bracelet",
+      "kind": "clothing",
+      "slot": "acc",
+      "name": "friendship bracelet",
+      "desc": "Braided from five colours of thread, one for each person who helped make it.",
+      "tags": [
+        "keepsake",
+        "soft"
+      ]
+    },
+    {
+      "id": "moon-earrings",
+      "kind": "clothing",
+      "slot": "acc",
+      "name": "earrings shaped like moons",
+      "desc": "One full, one crescent. They catch the light whenever you laugh.",
+      "tags": [
+        "shiny",
+        "fancy"
+      ]
+    },
+    {
+      "id": "pin-collection",
+      "kind": "clothing",
+      "slot": "acc",
+      "name": "jacket full of enamel pins",
+      "desc": "A pin from every port. The oldest one is a little rocket missing a fin.",
+      "tags": [
+        "keepsake",
+        "shiny"
+      ]
+    },
+    {
+      "id": "thumbhole-hoodie",
+      "kind": "clothing",
+      "slot": "top",
+      "name": "hoodie with thumb holes",
+      "desc": "Washed so many times it has become the softest thing on the ship.",
+      "tags": [
+        "warm",
+        "soft",
+        "cozy"
+      ]
+    },
+    {
+      "id": "flannel-shirt",
+      "kind": "clothing",
+      "slot": "top",
+      "name": "checked flannel shirt",
+      "desc": "Red and black checks, sleeves always rolled up, a pen always in the pocket.",
+      "tags": [
+        "warm",
+        "work"
+      ]
+    },
+    {
+      "id": "crew-uniform",
+      "kind": "clothing",
+      "slot": "top",
+      "name": "crisp crew uniform",
+      "desc": "Pressed, buttoned and badged. Nobody else aboard bothers, which is exactly why you do.",
+      "tags": [
+        "work",
+        "fancy"
+      ]
+    },
+    {
+      "id": "cargo-trousers",
+      "kind": "clothing",
+      "slot": "bottom",
+      "name": "cargo trousers",
+      "desc": "Six pockets per leg. One of them definitely has a snack in it.",
+      "tags": [
+        "work",
+        "pockets"
+      ]
+    },
+    {
+      "id": "patched-jeans",
+      "kind": "clothing",
+      "slot": "bottom",
+      "name": "patched jeans",
+      "desc": "More patch than jeans by now. Every patch came from a different world.",
+      "tags": [
+        "old",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "pleated-skirt",
+      "kind": "clothing",
+      "slot": "bottom",
+      "name": "pleated skirt",
+      "desc": "Swishes when you turn around. Surprisingly good for climbing ladders.",
+      "tags": [
+        "fancy",
+        "light-weight"
+      ]
+    },
+    {
+      "id": "pyjama-bottoms",
+      "kind": "clothing",
+      "slot": "bottom",
+      "name": "pyjama bottoms with moons on",
+      "desc": "Worn at all hours. The moons glow faintly when the lights go out.",
+      "tags": [
+        "cozy",
+        "soft",
+        "silly"
+      ]
+    },
+    {
+      "id": "pocket-shorts",
+      "kind": "clothing",
+      "slot": "bottom",
+      "name": "shorts with too many pockets",
+      "desc": "Built for hot worlds and people who can never find their keys.",
+      "tags": [
+        "sunny",
+        "pockets"
+      ]
+    },
+    {
+      "id": "wool-leggings",
+      "kind": "clothing",
+      "slot": "bottom",
+      "name": "thick wool leggings",
+      "desc": "Itchy for the first hour, then the warmest thing you own.",
+      "tags": [
+        "warm",
+        "soft"
+      ]
+    },
+    {
+      "id": "corduroy-trousers",
+      "kind": "clothing",
+      "slot": "bottom",
+      "name": "corduroy trousers",
+      "desc": "Brown, ribbed and loud: they whisper with every step.",
+      "tags": [
+        "old",
+        "loud"
+      ]
+    },
+    {
+      "id": "fuzzy-slippers",
+      "kind": "clothing",
+      "slot": "feet",
+      "name": "fuzzy slippers",
+      "desc": "Not regulation. Never leaving.",
+      "tags": [
+        "cozy",
+        "soft",
+        "quiet"
+      ]
+    },
+    {
+      "id": "worn-sneakers",
+      "kind": "clothing",
+      "slot": "feet",
+      "name": "worn-out sneakers",
+      "desc": "The laces are two different colours and the soles are held on by hope.",
+      "tags": [
+        "old",
+        "light-weight"
+      ]
+    },
+    {
+      "id": "sandals-socks",
+      "kind": "clothing",
+      "slot": "feet",
+      "name": "sandals with socks",
+      "desc": "A bold choice, worn with complete confidence.",
+      "tags": [
+        "silly",
+        "cozy"
+      ]
+    },
+    {
+      "id": "hiking-boots",
+      "kind": "clothing",
+      "slot": "feet",
+      "name": "heavy hiking boots",
+      "desc": "Broken in on three worlds. They know the way better than you do.",
+      "tags": [
+        "work",
+        "old"
       ]
     },
     {

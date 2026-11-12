@@ -1,56 +1,97 @@
-/* Solarist: the Crew page (Ship → Crew): you and up to five crew, each a little card you can change any time,
-   plus the stash of spare clothes and gear, and crafting. Everything here is words: nothing changes the numbers. */
+/* Solarist: the crew editor (Ship → Crew, and "Who's aboard?" on a first start). On the left, everyone aboard; in the
+   main area, everything about the one you picked: who they are, their nature, and what they wear and carry, one
+   slot at a time. Everything here is words: nothing changes the numbers. */
 'use strict';
 
 let craftMsg = '';
 const profList = el('datalist', { id: 'sx-prof-list' }, PROFESSIONS.map(p => el('option', { value: p })));
 function letGo(i) { // their things go back in the stash
   const c = S.crew[i]; if (!c || focusLock()) return;
-  [c.wear, c.gear].filter(Boolean).forEach(id => S.stash.push(id));
+  SLOT_KEYS.map(k => c[k]).concat(c.gear).filter(Boolean).forEach(id => S.stash.push(id));
   dismiss(i); drawShip();
 }
-function personCard(p, isMe, i) {
-  const lock = focusLock(), redraw = () => { save(); drawShip(); };
-  const name = el('input', { type: 'text', class: 'sl-find sx-p-name', maxlength: 28, value: isMe ? (hasMyName() ? meName() : '') : p.name, placeholder: isMe ? 'Your name' : 'Name', 'aria-label': 'Name', disabled: lock || null });
-  name.addEventListener('change', () => { const v = name.value.trim().slice(0, 28); if (isMe) { S.pilot = Object.assign(S.pilot || {}, { name: v, asked: true }); } else if (v) p.name = v; redraw(); });
-  const pron = el('select', { 'aria-label': 'Pronouns', disabled: lock || null }, PRONOUNS.map(x => el('option', { value: x, selected: p.pronouns === x || null }, x === 'they' ? 'they / them' : x === 'she' ? 'she / her' : 'he / him')));
-  pron.addEventListener('change', () => { p.pronouns = pron.value; redraw(); });
-  const age = el('input', { type: 'text', inputmode: 'numeric', class: 'sl-find sx-p-age', maxlength: 4, value: String(p.age || ''), 'aria-label': 'Age', disabled: lock || null });
+const PRON_LABEL = { she: 'she / her', he: 'he / him', they: 'they / them' };
+let crewSel = 'me'; // who's open in the editor: a person's id, or 'stash'
+/* The editor. opts.create: a first start, where anything can be picked (you're packing for the trip); otherwise
+   clothes and gear come from what's aboard (the stash). opts.redraw: draws it again after a change. */
+function crewEditor(opts) {
+  const create = !!opts.create, lock = !create && focusLock(), people = [S.me].concat(S.crew);
+  const redraw = () => { save(); opts.redraw(); };
+  if (crewSel !== 'stash' || create) { if (!people.some(x => x.id === crewSel)) crewSel = S.me.id; }
+  const p = people.find(x => x.id === crewSel) || null, isMe = p === S.me;
+  // the list on the left
+  const pick = id => { crewSel = id; opts.redraw(); };
+  const who = x => el('button', { type: 'button', class: 'sx-ed-who' + (x.id === crewSel ? ' on' : ''), 'aria-current': x.id === crewSel ? 'true' : null, onclick: () => pick(x.id) },
+    el('b', {}, x === S.me ? (hasMyName() ? meName() : 'You') : x.name), el('small', {}, (x === S.me ? 'You · ' : '') + (x.role || 'Crew')));
+  const add = () => { const c = create ? newPerson() : addCrew(); if (!c) return; if (create) S.crew.push(c); crewSel = c.id; redraw(); };
+  const list = el('nav', { class: 'sx-ed-list', 'aria-label': 'Everyone aboard' },
+    el('div', { class: 'sx-ed-lh' }, 'Aboard (' + people.length + ')'), ...people.map(who),
+    S.crew.length < CREW_MAX ? el('button', { type: 'button', class: 'sx-ed-add', disabled: lock || null, onclick: add }, '+ Add crew (' + S.crew.length + ' of ' + CREW_MAX + ')')
+      : el('small', { class: 'sx-ed-full' }, 'The ship is full: five is a crew, six is a crowd.'),
+    create ? null : el('button', { type: 'button', class: 'sx-ed-who sx-ed-stashb' + (crewSel === 'stash' ? ' on' : ''), onclick: () => pick('stash') }, el('b', {}, 'Stash'), el('small', {}, S.stash.length + ' spare thing' + (S.stash.length === 1 ? '' : 's'))));
+  // the stash, when it's picked
+  if (!p) {
+    const stash = S.stash.map(itemById).filter(Boolean).sort((a, b) => (slotOf(a) || '').localeCompare(slotOf(b) || ''));
+    const slotName = it => it.kind === 'equipment' ? 'Carry' : (WEAR_SLOTS.find(s => s[0] === slotOf(it)) || [0, 'Wear'])[1];
+    return el('div', { class: 'sx-ed' }, list, el('div', { class: 'sx-ed-main' }, el('h2', { class: 'sx-ed-title' }, 'Stash'),
+      el('p', { class: 'sl-muted' }, 'Anything nobody is wearing or carrying waits here. Make more in the Workshop, or trade with travelers.'),
+      stash.length ? el('section', { class: 'sx-ed-sec' }, ...stash.map(it => el('div', { class: 'sx-ed-row' }, el('span', { class: 'sx-ed-l' }, slotName(it)), el('div', { class: 'sx-ed-v' }, el('b', {}, capFirst(it.name)), el('small', { class: 'sx-ed-d' }, capFirst(it.desc))))))
+        : el('p', { class: 'sl-muted' }, 'The stash is empty.')));
+  }
+  // one setting row: a label, then the control
+  const row = (label, ...kids) => el('div', { class: 'sx-ed-row' }, el('span', { class: 'sx-ed-l' }, label), el('div', { class: 'sx-ed-v' }, ...kids));
+  const name = el('input', { type: 'text', class: 'sx-ed-name', maxlength: 28, value: isMe ? (hasMyName() ? meName() : '') : p.name, placeholder: isMe ? 'Your name' : 'Name', 'aria-label': 'Name', disabled: lock || null });
+  name.addEventListener('change', () => { const v = name.value.trim().slice(0, 28); if (isMe) S.pilot = Object.assign(S.pilot || {}, { name: v, asked: true }); else if (v) p.name = v; redraw(); });
+  const pron = el('div', { class: 'sx-ed-seg', role: 'radiogroup', 'aria-label': 'Pronouns' }, PRONOUNS.map(x => el('button', { type: 'button', role: 'radio', 'aria-checked': String(p.pronouns === x), disabled: lock || null, onclick: () => { p.pronouns = x; redraw(); } }, PRON_LABEL[x])));
+  const ageN = parseInt(p.age, 10);
+  const age = el('input', { type: 'text', inputmode: 'numeric', class: 'sx-ed-age', maxlength: 4, value: String(p.age || ''), 'aria-label': 'Age', disabled: lock || null });
   age.addEventListener('change', () => { p.age = age.value.trim().slice(0, 4); redraw(); });
-  const role = el('input', { type: 'text', class: 'sl-find sx-p-role', maxlength: 24, value: p.role || '', list: 'sx-prof-list', placeholder: 'Profession', 'aria-label': 'Profession', disabled: lock || null });
+  const step = d => el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': d < 0 ? 'Younger' : 'Older', disabled: lock || isNaN(ageN) || null, onclick: () => { p.age = String(Math.max(1, ageN + d)); redraw(); } }, d < 0 ? '−' : '+');
+  const role = el('input', { type: 'text', class: 'sx-ed-role', maxlength: 24, value: p.role || '', list: 'sx-prof-list', placeholder: 'Profession', 'aria-label': 'Profession', disabled: lock || null });
   role.addEventListener('change', () => { p.role = role.value.trim().slice(0, 24); redraw(); });
-  const traits = txItems('trait'), tr = itemById(p.trait);
-  const trait = el('select', { 'aria-label': 'Trait', disabled: lock || null }, traits.map(t => el('option', { value: t.id, selected: p.trait === t.id || null }, t.name)));
-  trait.addEventListener('change', () => { p.trait = trait.value; redraw(); });
-  // what they wear and carry: their own item, or anything of that kind in the stash
-  const slotRow = (slot, kind, label) => {
-    const cur = itemById(p[slot]), opts = [...new Set(S.stash)].map(itemById).filter(it => it && it.kind === kind && it.id !== p[slot]);
-    const s = el('select', { 'aria-label': label, disabled: lock || null }, el('option', { value: '' }, '(nothing)'), cur ? el('option', { value: cur.id, selected: true }, cur.name) : null, opts.map(it => el('option', { value: it.id }, it.name + ' (stash)')));
-    if (!cur) s.value = '';
-    s.addEventListener('change', () => { equip(p, slot, s.value); drawShip(); });
-    return el('div', { class: 'sx-p-slot' }, el('span', { class: 'sx-p-l' }, label), s, cur ? el('small', { class: 'sl-muted' }, capFirst(cur.desc)) : null);
+  const tr = itemById(p.trait);
+  const traitChips = el('div', { class: 'sx-ed-chips', role: 'radiogroup', 'aria-label': 'Trait' }, txItems('trait').map(t => el('button', { type: 'button', role: 'radio', 'aria-checked': String(p.trait === t.id), disabled: lock || null, onclick: () => { p.trait = t.id; redraw(); } }, t.name)));
+  // a clothing or gear slot: the arrows step through what can go there
+  const slotRow = (slot, label) => {
+    const cur = itemById(p[slot]);
+    const choices = create ? [''].concat(slotItems(slot).map(it => it.id)) : [''].concat(cur ? [cur.id] : [], [...new Set(S.stash)].filter(id => slotOf(itemById(id)) === slot));
+    const at = Math.max(0, choices.indexOf(cur ? cur.id : ''));
+    const go = d => { const id = choices[(at + d + choices.length) % choices.length]; if (create) p[slot] = id; else equip(p, slot, id); redraw(); };
+    const many = choices.length > 1 && !lock;
+    return el('div', { class: 'sx-ed-row sx-ed-slot' }, el('span', { class: 'sx-ed-l' }, label),
+      el('div', { class: 'sx-ed-v' },
+        el('div', { class: 'sx-ed-pick' },
+          el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': 'Previous ' + label.toLowerCase(), disabled: !many || null, onclick: () => go(-1) }, '◂'),
+          el('b', { class: 'sx-ed-item' + (cur ? '' : ' none') }, cur ? capFirst(cur.name) : 'nothing'),
+          el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': 'Next ' + label.toLowerCase(), disabled: !many || null, onclick: () => go(1) }, '▸'),
+          el('small', { class: 'sx-ed-n' }, choices.length > 1 ? (at + 1) + ' / ' + choices.length : '')),
+        cur ? el('small', { class: 'sx-ed-d' }, capFirst(cur.desc)) : null));
   };
-  const reroll = el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, title: isMe ? 'New pronouns, age, profession and trait (your name stays)' : 'A new name, pronouns, age, profession and trait (they keep their things)', onclick: () => { surprise(p); redraw(); } }, 'Surprise me');
-  return el('div', { class: 'sx-person' },
-    el('div', { class: 'sx-p-head' }, el('span', { class: 'sx-p-ic', 'aria-hidden': 'true' }, isMe ? '🧑‍🚀' : (ROLES[p.role] || ['🙂'])[0]), name, reroll, isMe ? null : armBtn('Let go', 'Sure?', () => letGo(i), 'sx-mini')),
-    el('div', { class: 'sx-p-row' }, pron, el('label', { class: 'sx-p-agel' }, 'Age ', age), role),
-    el('div', { class: 'sx-p-slot' }, el('span', { class: 'sx-p-l' }, 'Trait'), trait, tr ? el('small', { class: 'sl-muted' }, capFirst(tr.desc)) : null),
-    slotRow('wear', 'clothing', 'Wears'), slotRow('gear', 'equipment', 'Carries'),
-    p.quirk ? el('small', { class: 'sl-muted' }, 'Also: ' + firstName(p) + ' ' + p.quirk + '.') : null);
+  const rnd = L => L.length ? L[Math.floor(Math.random() * L.length)].id : '';
+  const outfit = () => { SLOT_KEYS.forEach(k => { p[k] = (k === 'hat' || k === 'acc') && Math.random() < .5 ? '' : rnd(slotItems(k)); }); p.gear = rnd(slotItems('gear')); redraw(); };
+  const idx = S.crew.indexOf(p);
+  const head = el('div', { class: 'sx-ed-head' }, name,
+    el('div', { class: 'sx-ed-acts' },
+      el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, title: isMe ? 'New pronouns, age, profession and trait (your name stays)' : 'A new name, pronouns, age, profession and trait', onclick: () => { surprise(p); redraw(); } }, 'Surprise me'),
+      create ? el('button', { type: 'button', class: 'btn sx-mini', onclick: outfit }, 'New outfit') : null,
+      isMe ? null : create ? el('button', { type: 'button', class: 'btn sx-mini', onclick: () => { S.crew.splice(idx, 1); crewSel = S.me.id; redraw(); } }, 'Not this one')
+        : armBtn('Let go', 'Sure?', () => { crewSel = S.me.id; letGo(idx); }, 'sx-mini')));
+  return el('div', { class: 'sx-ed' }, list, el('div', { class: 'sx-ed-main' },
+    lock ? el('p', { class: 'sl-muted' }, 'Changes wait until the study session is over. You can still look.') : null,
+    head,
+    el('div', { class: 'sx-ed-cols' },
+      el('div', { class: 'sx-ed-col' },
+        el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Who'), row('Pronouns', pron), row('Age', el('div', { class: 'sx-ed-pick' }, step(-1), age, step(1))), row('Profession', role)),
+        el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Nature'), traitChips, tr ? el('p', { class: 'sx-ed-d' }, capFirst(tr.name) + ': ' + tr.desc) : null),
+        el('section', { class: 'sx-ed-sec sx-ed-story' }, el('h3', {}, 'In the stories'), el('p', {}, crewLine(p)), p.quirk ? el('p', { class: 'sl-muted' }, 'Also: ' + firstName(p) + ' ' + p.quirk + '.') : null)),
+      el('div', { class: 'sx-ed-col' },
+        el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Outfit'), ...WEAR_SLOTS.map(([k, label]) => slotRow(k, label)),
+          create ? null : el('p', { class: 'sx-ed-hint' }, 'Spare clothes wait in the stash. Make more in the Workshop.')),
+        el('section', { class: 'sx-ed-sec' }, el('h3', {}, 'Carries'), slotRow('gear', 'Equipment')))),
+    profList));
 }
-// Crew: you, the crew, and the stash
-function crewView(group) {
-  const lock = focusLock(), out = [];
-  out.push(group('You', personCard(S.me, true)));
-  const add = el('button', { type: 'button', class: 'btn', disabled: lock || S.crew.length >= CREW_MAX || null, onclick: () => { addCrew(); drawShip(); } }, '+ Add a crew member');
-  out.push(group('Crew (' + S.crew.length + ' / ' + CREW_MAX + ')', el('p', { class: 'sl-muted' }, 'Each crew member brings a little story to every study session, shaped by who they are and what they carry. Change anything, any time.'),
-    ...S.crew.map((c, i) => personCard(c, false, i)), S.crew.length < CREW_MAX ? add : el('p', { class: 'sl-muted' }, 'The ship is full: five is a crew, six is a crowd.'), profList));
-  const stash = S.stash.map(itemById).filter(Boolean);
-  out.push(group('Stash', stash.length ? el('div', { class: 'sx-stash' }, stash.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, it.kind + ' · ' + capFirst(it.desc)))))
-    : el('p', { class: 'sl-muted' }, 'The stash is empty. Anything nobody is wearing or carrying waits here. Make new things in the Workshop.')));
-  if (lock) out.unshift(el('p', { class: 'sl-muted' }, 'Changes wait until the study session is over. You can still look.'));
-  return out;
-}
+// the Crew tab of the Ship page
+function crewView() { return [crewEditor({ redraw: drawShip })]; }
 // the ship's equipment (on the Ship tab)
 function shipGearView(group) {
   const gear = S.shipGear.map(itemById).filter(Boolean);

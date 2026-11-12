@@ -420,7 +420,7 @@ void main(){
       return { x: (a.cx + ux * a.rad) * PX, y: (a.cy + uy * a.rad) * PX, z: Math.sqrt(Math.max(0, 1 - cx * cx - cy * cy)) };
     },
     over(e) { const a = this.at; if (!a || !a.has || a.sil || root.classList.contains('paged')) return false;
-      if (e.target.closest && e.target.closest('button, a, input, select, textarea, label, .sx-breakp, .sx-top, .sx-page, .sx-report, .sx-clock, .sl-btns, .sl-hint')) return false;
+      if (e.target.closest && e.target.closest('button, a, input, select, textarea, label, .sx-breakp, .sx-top, .sx-page, .sx-report, .sx-corner, .sx-storyp, .sl-hint')) return false;
       return Math.hypot(e.clientX / PX - a.cx, e.clientY / PX - a.cy) < a.rad * 1.05; },
   };
   const SPIN = .025; // the same as in the shader
@@ -535,7 +535,7 @@ void main(){
     const p = info.planet, sil = (info.kind === 'explore' || info.kind === 'campaign') && info.running, still = reduceMotion.matches, t = now / 1000;
     // the planet's own sun, up and to the left where the light comes from
     if (p && !sil && p.type !== 'Rogue') {
-      const sx = bigView ? r.left / PX + Math.max(14, r.width / PX * .12) : cx - rad * 1.45, sy = bigView ? r.top / PX + Math.max(14, r.height / PX * .14) : Math.max(r.top / PX + 10, cy - rad * .9), c = STAR_C[p.star] || '#ffdaac'; // near the planet, where its light comes from
+      const sx = bigView ? r.left / PX + Math.max(14, r.width / PX * .12) : cx - rad * .98, sy = bigView ? r.top / PX + Math.max(14, r.height / PX * .14) : Math.max(r.top / PX + 10, cy - rad * .88), c = STAR_C[p.star] || '#ffdaac'; // near the planet, where its light comes from
       const blink = p.star === 'pulsar' && !still && Math.floor(t * 3) % 3 === 0;
       // a dithered pixel glow around the sun: bigger for giants, a soft breathing pulse, a strong one for pulsars
       const big = /giant/.test(p.star) ? 1.5 : p.star === 'white dwarf' ? .75 : 1, pulse = still ? 1 : p.star === 'pulsar' ? (blink ? .35 : 1.1) : 1 + Math.sin(t * 1.3) * .08;

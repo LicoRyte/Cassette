@@ -799,20 +799,8 @@ html.sx-grabbing, html.sx-grabbing * { cursor: grabbing !important; user-select:
 .sx-v2 .sx-mid, .sx-v2 .sx-top { text-shadow: 0 0 4px #030710, 0 0 2px #030710; } /* readable over a zoomed planet */
 .sx-v2 .sx-cardc, .sx-v2 .sx-bp-detail, .sx-v2 .sx-bp-notes .sx-note { background: #030710; } .sx-v2 .sx-breakp { text-shadow: 0 0 4px #030710, 0 0 2px #030710; } /* readable over the big planet view */
 
-/* Who's aboard? (js/ui/aboard.js): the title sequence's black screen, with a short form */
+/* Who's aboard? (js/ui/aboard.js): the title sequence's black screen, with the crew editor */
 .sx-aboard { align-items: flex-start; overflow-y: auto; }
-.sx-ab-w { width: min(760px, 100%); margin: auto; padding: 32px 0; display: flex; flex-direction: column; gap: 14px; text-align: left; }
-.sx-ab-w h2 { margin: 0; font: 600 30px var(--ui); color: #ffffe4; }
-.sx-ab-list { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-.sx-ab-p { width: 100%; display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #293b49; background: #030710; }
-.sx-ab-who { font: 600 13px var(--ui); color: #6d8a8d; text-transform: uppercase; }
-.sx-ab-f { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.sx-ab-f .sl-find { width: auto; min-width: 0; flex: 1 1 120px; }
-.sx-ab-f .sx-ab-age { flex: 0 0 52px; }
-.sx-ab-agel { display: flex; align-items: center; gap: 4px; color: #6d8a8d; font-size: 13px; }
-.sx-ab-btns { display: flex; flex-direction: column; gap: 4px; }
-.sx-ab-ft { display: flex; justify-content: flex-end; }
-@media (max-width: 600px) { .sx-ab-p { grid-template-columns: 1fr; } .sx-ab-btns { flex-direction: row; } }
 /* calm motion: the choice cards fade in when a break starts */
 @keyframes sx-fadein { from { opacity: 0; } to { opacity: 1; } }
 .sx-v2 .sx-cards.sx-fade > * { animation: sx-fadein .45s ease-out both; }
@@ -859,4 +847,112 @@ html.sx-grabbing, html.sx-grabbing * { cursor: grabbing !important; user-select:
   #slRoot.sx.sx-v2, #slRoot.sx.sx-v2.sx-lock, #slRoot.sx.sx-v2.sx-nopanel { grid-template-areas: "top" "mid" "story" "side"; }
   .sx-v2 .sx-storyp { grid-area: story; display: flex; flex-direction: column; gap: 8px; }
   .sx-v2 .sx-storyp .sx-bp-story { flex: none; max-height: 46vh; overflow-y: auto; }
+}
+/* the crew editor (js/ui/crew.js): everyone aboard on the left, the one you picked filling the rest */
+.sx-page:has(.sx-ed) .sx-page-h, .sl-pane:has(.sx-ed) { max-width: 1240px; }
+.sx-ed { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; align-items: start; }
+.sx-ed-list { position: sticky; top: 56px; display: flex; flex-direction: column; border-right: 1px solid var(--dim); padding-right: 14px; }
+.sx-ed-lh, .sx-ed-sec h3 { margin: 0 0 8px; font: 600 13px var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.sx-ed-who { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 10px; background: none; border: 0; border-left: 2px solid transparent; text-align: left; cursor: pointer; }
+.sx-ed-who b { font: 600 17px var(--ui); color: var(--ink); }
+.sx-ed-who small { font: 14px var(--ui); color: var(--mute); }
+.sx-ed-who:hover b { color: var(--white); }
+.sx-ed-who.on { border-left-color: var(--amber); background: #041528; }
+.sx-ed-who.on b { color: var(--white); }
+.sx-ed-stashb { margin-top: 12px; border-top: 1px solid var(--dim); }
+.sx-ed-add { margin: 8px 0 0; padding: 7px 10px; background: none; border: 1px dashed var(--dim); color: var(--amber); font: 600 15px var(--ui); text-align: left; cursor: pointer; }
+.sx-ed-add:disabled { color: var(--dim); cursor: default; }
+.sx-ed-full { padding: 8px 10px; color: var(--mute); font: 14px var(--ui); }
+.sx-ed-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.sx-ed-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--dim); }
+input.sx-ed-name { flex: 1 1 260px; min-width: 0; padding: 2px 0; background: none; border: 0; border-bottom: 1px dashed transparent; font: 700 34px/1.1 var(--ui); color: var(--white); }
+input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim); outline: none; }
+.sx-ed-title { margin: 0; font: 700 34px/1.1 var(--ui); color: var(--white); }
+.sx-ed-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.sx-ed-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.sx-ed-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.sx-ed-sec { margin: 0; padding: 12px 16px 14px; background: #030710; border: 1px solid var(--dim); }
+.sx-ed-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 12px; align-items: center; padding: 8px 0; }
+.sx-ed-row + .sx-ed-row { border-top: 1px solid #041528; }
+.sx-ed-slot { align-items: start; } .sx-ed-slot .sx-ed-l { padding-top: 4px; }
+.sx-ed-l { font: 15px var(--ui); color: var(--mute); }
+.sx-ed-v { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.sx-ed-v > b { font: 600 16px var(--ui); color: var(--white); }
+.sx-ed-pick { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.sx-ed-arr { flex: none; width: 28px; height: 28px; display: grid; place-items: center; padding: 0; background: none; border: 1px solid var(--dim); color: var(--amber); font: 600 16px var(--ui); cursor: pointer; }
+.sx-ed-arr:hover:not(:disabled) { border-color: var(--amber); }
+.sx-ed-arr:disabled { color: var(--dim); cursor: default; }
+.sx-ed-item { flex: 1 1 auto; min-width: 0; font: 600 16px var(--ui); color: var(--white); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx-ed-item.none { color: var(--mute); font-weight: 400; }
+.sx-ed-n { flex: none; width: 46px; text-align: right; font: 13px var(--ui); color: var(--mute); font-variant-numeric: tabular-nums; }
+.sx-ed-d { display: block; font: 14px/1.4 var(--ui); color: var(--mute); }
+.sx-ed-sec > .sx-ed-d { margin: 10px 0 0; }
+.sx-ed-age { width: 64px; text-align: center; }
+.sx-ed-age, .sx-ed-role { padding: 4px 8px; background: #030710; border: 1px solid var(--dim); font: 16px var(--ui); color: var(--white); }
+.sx-ed-role { width: 100%; }
+.sx-ed-seg { display: flex; flex-wrap: wrap; }
+.sx-ed-seg button { padding: 4px 12px; background: none; border: 1px solid var(--dim); margin-left: -1px; font: 15px var(--ui); color: var(--ink); cursor: pointer; }
+.sx-ed-seg button[aria-checked="true"], .sx-ed-chips button[aria-checked="true"] { position: relative; background: #041528; border-color: var(--amber); color: var(--white); }
+.sx-ed-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sx-ed-chips button { padding: 4px 10px; background: none; border: 1px solid var(--dim); font: 15px var(--ui); color: var(--ink); cursor: pointer; }
+.sx-ed-chips button:hover:not(:disabled), .sx-ed-seg button:hover:not(:disabled) { color: var(--white); }
+.sx-ed-story p { margin: 0 0 6px; font: 15px/1.5 var(--text); color: var(--ink); }
+.sx-ed-hint { margin: 8px 0 0; font: 14px var(--ui); color: var(--mute); }
+.sx-ed button:focus-visible, .sx-ed input:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+/* Who's aboard? uses the same editor, filling the screen */
+.sx-aboard .sx-ab-w { width: min(1240px, 100%); margin: 0 auto; padding: 28px 24px 40px; display: flex; flex-direction: column; gap: 20px; text-align: left; }
+.sx-ab-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+.sx-ab-top h2 { margin: 0 0 4px; font: 700 40px var(--ui); color: var(--white); }
+.sx-ab-top p { margin: 0; max-width: 640px; }
+.sx-aboard .sx-ed-list { top: 0; }
+@media (max-width: 1000px) { .sx-ed-cols { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) {
+  .sx-ed { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .sx-ed-list { position: static; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--dim); padding: 0 0 8px; }
+  .sx-ed-lh { display: none; }
+  .sx-ed-who { flex: none; border-left: 0; border-bottom: 2px solid transparent; }
+  .sx-ed-who.on { border-bottom-color: var(--amber); }
+  .sx-ed-stashb { margin: 0; border-top: 0; }
+  .sx-ed-add { flex: none; margin: 0; }
+  input.sx-ed-name { font-size: 28px; }
+}
+
+/* The timer panel (js/ui/layout.js): top-left, under the levels. A status line in caps, the readout in a frame with
+   amber corner brackets, the cycle, a telemetry line, and one command bar. The planet gets the whole middle. */
+.sx-v2 .sx-corner { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; text-shadow: 0 0 4px #030710, 0 0 2px #030710; }
+.sx-v2 .sx-corner .sx-clock { align-items: flex-start; text-align: left; }
+.sx-v2 .sx-corner .sl-big { font: 600 13px/1.3 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.sx-v2[data-mode="short"] .sx-corner .sl-big, .sx-v2[data-mode="long"] .sx-corner .sl-big { color: var(--green); }
+.sx-v2 .sx-corner .sl-time { position: relative; margin: 8px 0 12px; padding: 6px 18px 4px; border: 1px solid var(--dim); background: #030710; font-size: clamp(52px, 4.6vw, 72px); letter-spacing: .02em; }
+.sx-v2 .sx-corner .sl-time::before, .sx-v2 .sx-corner .sl-time::after { content: ''; position: absolute; width: 10px; height: 10px; border: 0 solid var(--amber); }
+.sx-v2 .sx-corner .sl-time::before { left: -1px; top: -1px; border-left-width: 2px; border-top-width: 2px; }
+.sx-v2 .sx-corner .sl-time::after { right: -1px; bottom: -1px; border-right-width: 2px; border-bottom-width: 2px; }
+.sx-v2[data-mode="short"] .sx-corner .sl-time::before, .sx-v2[data-mode="short"] .sx-corner .sl-time::after,
+.sx-v2[data-mode="long"] .sx-corner .sl-time::before, .sx-v2[data-mode="long"] .sx-corner .sl-time::after { border-color: var(--green); }
+.sx-v2 .sx-corner .sx-cap { margin-top: 8px; font: 12px/1.4 var(--text); letter-spacing: .04em; text-transform: uppercase; color: var(--mute); }
+.sx-cmd { position: relative; display: flex; align-items: stretch; }
+.sx-cmd .sl-go { min-width: 170px; padding: 8px 20px; font-size: 18px; }
+.sx-moreb { width: 42px; padding: 0; border-left: 0; border-color: var(--amber); color: var(--amber); font-size: 20px; line-height: 1; }
+.sx-moreb[aria-expanded="true"], .sx-moreb:hover { background: #041528; }
+.sx-more { position: absolute; left: 0; top: calc(100% + 6px); z-index: 8; min-width: 212px; display: flex; flex-direction: column; padding: 4px; background: #030710; border: 1px solid var(--dim); }
+.sx-more[hidden] { display: none; }
+.sx-more .sx-more-i { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-width: 0; padding: 7px 10px; border: 0; background: none; color: var(--ink); font-size: 16px; text-align: left; }
+.sx-more .sx-more-i:hover:not(:disabled) { background: #041528; color: var(--white); }
+.sx-more kbd { font: 12px var(--text); color: var(--mute); border: 1px solid var(--dim); padding: 0 5px; }
+.sx-v2 .sx-corner .sl-hint { margin: 0; max-width: 100%; min-height: 0; font: 13px/1.45 var(--text); color: var(--mute); }
+.sx-pv .sx-corner { display: none !important; }
+/* the planet gets the whole middle */
+.sx-v2 .sx-mid { justify-content: flex-start; }
+.sx-v2 .sx-mid .sx-planet { flex: 1 1 auto; min-height: 0; }
+@media (min-width: 901px) {
+  .sx-v2 .sx-rail { position: absolute; left: max(36px, env(safe-area-inset-left)); top: 92px; bottom: 24px; z-index: 3; width: clamp(250px, 19vw, 310px); display: flex; flex-direction: column; gap: 22px; pointer-events: none; }
+  .sx-v2 .sx-rail > * { pointer-events: auto; }
+  .sx-v2 .sx-rail .sx-storyp { position: static; width: auto; max-height: none; flex: 0 1 auto; min-height: 0; }
+}
+@media (max-width: 900px) {
+  #slRoot.sx.sx-v2, #slRoot.sx.sx-v2.sx-lock, #slRoot.sx.sx-v2.sx-nopanel { grid-template-areas: "top" "mid" "rail" "side"; }
+  .sx-v2 .sx-rail { grid-area: rail; display: flex; flex-direction: column; gap: 20px; }
+  .sx-v2 .sx-corner { align-items: center; }
+  .sx-v2 .sx-corner .sx-clock { align-items: center; text-align: center; }
+  .sx-v2 .sx-mid .sx-planet { flex: none; height: 46vh; }
 }

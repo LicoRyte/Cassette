@@ -7,7 +7,7 @@ const tradeable = id => { const it = itemById(id); return !!it && (it.kind === '
 // everything you own that could change hands: [{ id, who (a person, or null for the stash), slot }]
 function ownedThings() {
   const out = S.stash.filter(tradeable).map(id => ({ id, who: null, slot: null }));
-  [S.me].concat(S.crew).forEach(p => ['wear', 'gear'].forEach(slot => { if (p[slot] && tradeable(p[slot])) out.push({ id: p[slot], who: p, slot }); }));
+  [S.me].concat(S.crew).forEach(p => SLOT_KEYS.concat('gear').forEach(slot => { if (p[slot] && tradeable(p[slot])) out.push({ id: p[slot], who: p, slot }); }));
   return out;
 }
 const personById = id => [S.me].concat(S.crew).find(p => p.id === id) || null;
@@ -54,7 +54,7 @@ function answerTrade(p, yes) {
   let t;
   if (yes && still) {
     takeThing(still);
-    if (still.who && itemById(o.give).kind === itemById(o.want).kind && !still.who[still.slot]) still.who[still.slot] = o.give; else S.stash.push(o.give);
+    if (still.who && slotOf(itemById(o.give)) === still.slot && !still.who[still.slot]) still.who[still.slot] = o.give; else S.stash.push(o.give);
     t = txLine('trade_done', ctx); S.cnt.trades = (S.cnt.trades || 0) + 1;
   } else t = yes ? 'The ' + itemById(o.want).name + ' isn\'t aboard any more, so the swap is off. ' + capFirst(def.name) + ' understands.' : txLine('trade_decline', ctx);
   delete p.trade;
