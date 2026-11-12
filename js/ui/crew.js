@@ -57,7 +57,9 @@ function crewEditor(opts) {
   // a clothing or gear slot: the arrows step through what can go there
   const slotRow = (slot, label) => {
     const cur = itemById(p[slot]);
-    const choices = create ? [''].concat(slotItems(slot).map(it => it.id)) : [''].concat(cur ? [cur.id] : [], [...new Set(S.stash)].filter(id => slotOf(itemById(id)) === slot));
+    // always in the same order (the order of content/items.json), so the arrows cycle through everything predictably
+    const pool = new Set(create ? slotItems(slot).map(it => it.id) : (cur ? [cur.id] : []).concat(S.stash.filter(id => slotOf(itemById(id)) === slot)));
+    const choices = [''].concat(slotItems(slot).map(it => it.id).filter(id => pool.has(id)));
     const at = Math.max(0, choices.indexOf(cur ? cur.id : ''));
     const go = d => { const id = choices[(at + d + choices.length) % choices.length]; if (create) p[slot] = id; else equip(p, slot, id); redraw(); };
     const many = choices.length > 1 && !lock;
@@ -68,7 +70,8 @@ function crewEditor(opts) {
           el('b', { class: 'sx-ed-item' + (cur ? '' : ' none') }, cur ? capFirst(cur.name) : 'nothing'),
           el('button', { type: 'button', class: 'sx-ed-arr', 'aria-label': 'Next ' + label.toLowerCase(), disabled: !many || null, onclick: () => go(1) }, '▸'),
           el('small', { class: 'sx-ed-n' }, choices.length > 1 ? (at + 1) + ' / ' + choices.length : '')),
-        cur ? el('small', { class: 'sx-ed-d' }, capFirst(cur.desc)) : null));
+        cur ? el('small', { class: 'sx-ed-d' }, capFirst(cur.desc)) : null,
+        !create && choices.length < 2 ? el('small', { class: 'sx-ed-d' }, 'Nothing spare in the stash for this. Make one in the Workshop, Crafting.') : null));
   };
   const rnd = L => L.length ? L[Math.floor(Math.random() * L.length)].id : '';
   const outfit = () => { SLOT_KEYS.forEach(k => { p[k] = (k === 'hat' || k === 'acc') && Math.random() < .5 ? '' : rnd(slotItems(k)); }); p.gear = rnd(slotItems('gear')); redraw(); };

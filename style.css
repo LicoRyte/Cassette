@@ -1094,3 +1094,4 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 @media (max-width: 1000px) { .sx-deck { grid-template-columns: minmax(0, 1fr); } .sx-deck-l { position: static; } }
 .sx-rooms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); } .sx-rooms button { margin: -1px 0 0 -1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* like the cutaway: two decks of four */
 .sx-ed-st { font: 600 15px var(--ui) !important; color: var(--amber) !important; }
+.sx-wp-m { width: 18px !important; height: 18px !important; left: -9px !important; top: -9px !important; font-size: 15px !important; } .sx-wp::before { left: -18px; top: -18px; width: 36px; height: 36px; } .sx-wp-l { left: 16px; font-size: 14px; } /* bigger waypoints */

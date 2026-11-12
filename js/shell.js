@@ -463,7 +463,7 @@ void main(){
       cut = { Ocean: .66, Garden: .58, Hycean: .68, Fungal: .55 }[p.type] || .6; clouds = true; }
     else if (st === 1) { const a = land ? land[1] : P[0], b2 = P[1] !== P[0] ? P[1] : P[2]; ca = [shade(a, 1.2), a, b2, shade(b2, .6), P[3]]; cb = p.type === 'Swamp' ? ['#6d8a8d', '#293b49', '#041528'] : ['#77d6c1', '#1c92a7', '#6d8a8d']; cut = .368; clouds = !!L.clouds || p.type === 'Jungle'; }
     else if (st === 2) { ca = [shade(P[0], 1.15), P[0], P[1], P[2], P[3]]; if (p.type === 'Toxic') { clouds = true; ck = ['#ffdaac', '#9cb93b', '#9cb93b', '#458239']; } }
-    else if (st === 3) { ca = [P[0], P[1], P[2], P[3], P[3]]; cb = [shade(P[1], .8), P[3], P[3]]; }
+    else if (st === 3) { const g = P[0]; ca = [shade(g, 1.15), g, shade(g, .8), shade(g, .62), shade(g, .62)]; cb = [shade(g, .72), shade(g, .55), shade(g, .55)]; } // airless: ground and craters from one colour, like a moon (mixed colours looked like a sponge)
     else if (st === 4) { ca = [shade(P[2], 1.3), P[2], P[3], P[3], P[3]]; cb = [P[3], shade(P[3], .7), P[3]]; ck = [P[0], P[1], shade(P[1], .7), P[3]]; cut = .579; }
     else if (st === 5) { cb = [P[0], P[1], P[2]]; ca = [P[2], P[3], shade(P[3], .7), P[3], P[3]]; cut = .62; clouds = true; }
     else if (st === 6) { ca = [P[0], P[1], P[2], P[3], P[3]]; cb = [P[2], P[3], shade(P[3], .6)]; }
