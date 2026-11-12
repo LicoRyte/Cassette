@@ -54,6 +54,12 @@ function noteSetup(it, txt, c) {
   c.append(el('span', { class: 'sx-resize', title: 'Drag to resize', 'aria-hidden': 'true' }));
   if (it.h) c.classList.add('sized');
 }
+// ticking a checklist box under the pointer (the desk calls this for a click on a note you weren't writing in)
+function noteTickAt(txt, x, y) {
+  const n = document.elementFromPoint(x, y), li = n && n.closest && n.closest('ul.sx-chk > li');
+  if (!li || !txt.contains(li) || x - li.getBoundingClientRect().left >= 22 * cam.z) return false;
+  li.classList.toggle('done'); deskSfx('pin'); txt.dispatchEvent(new Event('input')); return true;
+}
 function noteClosest(txt, sel) { const s = getSelection(); let n = s && s.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentNode; const hit = n.closest && n.closest(sel); return hit && txt.contains(hit) ? hit : null; }
 
 /* ---------- the commands ---------- */

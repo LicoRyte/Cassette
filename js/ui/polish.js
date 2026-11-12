@@ -14,7 +14,7 @@ let digW = 0; // the panel width the digits were last fitted to
 function fitDigits() { // as big as the panel is wide: measure the digits at 100px, then scale to the panel
   const w = corner.clientWidth; if (!w) return; digW = w;
   digits.style.fontSize = '100px'; const k = digSpans(); if (!k.length) return;
-  const natural = (k[k.length - 1].getBoundingClientRect().right - k[0].getBoundingClientRect().left) || 1; // the digits themselves, not their box
+  const natural = (k[k.length - 1].offsetLeft + k[k.length - 1].offsetWidth - k[0].offsetLeft) || 1; // the digits themselves, not their box (in layout pixels, so the desk's zoom doesn't fool it)
   digits.style.fontSize = Math.floor(100 * Math.min(w, 560) / natural) + 'px';
 }
 let digitsHold = 0, digitsHoldText = ''; // after a session, the digits stay on 00:00 for a moment (js/ui/clock.js)

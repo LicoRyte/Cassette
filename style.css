@@ -1325,7 +1325,7 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 @media (max-width: 700px) { .sx-ws-help { display: none; } .sx-ws-bar { gap: 6px 10px; } }
 .sx-ws-bar .btn.sx-ws-b { min-height: 0; padding: 4px 10px; background: none; border: 1px solid #293b49; color: #ffdaac; font: 600 14px var(--ui); box-shadow: none; }
 .sx-ws-bar .btn.sx-ws-b.arm { border-color: #d9243c; color: #ff6157; }
-/* stacking on the desk: notes, then strings, then the clock on top (with a dark backing out to its brackets, so strings pass behind it) */
+/* the clock has a dark backing out to its brackets, so strings pass behind it (the stacking order is set further down) */
 .sx-world .sx-layer { z-index: 1; }
 .sx-world .sx-strings { z-index: 2; }
 #slRoot .sx-world > .sx-corner { z-index: 3; background: #030710; box-shadow: 0 0 0 30px #030710; }
@@ -1409,3 +1409,14 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
 .sx-sw:hover { outline-color: #ffdaac; }
 .sx-sw.on { outline: 2px solid #ffb762; }
 .sx-world .sx-bnote .sx-note-t h2, .sx-world .sx-bnote .sx-note-t h3, .sx-world .sx-bnote .sx-note-t blockquote, .sx-world .sx-bnote .sx-note-t code, .sx-world .sx-bnote .sx-note-t li { color: inherit; }
+
+/* dragging: a note straightens smoothly when you pick it; the swing itself is never smoothed (it would lag) */
+.sx-world .sx-bcard { transition: rotate .3s ease, scale .26s cubic-bezier(.3, 1.8, .5, 1), box-shadow .2s; }
+.sx-world .sx-bcard.swinging, .sx-world .sx-bcard.lift { transition: scale .12s ease-out, box-shadow .12s; }
+.sx-world .sx-bcard .sx-note-t, .sx-world .sx-bcard .sx-cap-t { cursor: grab; }
+.sx-world .sx-bcard .sx-note-t:focus, .sx-world .sx-bcard .sx-cap-t:focus { cursor: text; }
+.sx-world .sx-bcard.lift, .sx-world .sx-bcard.lift * { cursor: grabbing; }
+/* stacking, final: strings at the back, then the clock, then the notes and photos on top (a note dropped on the clock stays reachable) */
+.sx-world .sx-strings { z-index: 1; }
+#slRoot .sx-world > .sx-corner { z-index: 2; }
+.sx-world .sx-layer { z-index: 3; }

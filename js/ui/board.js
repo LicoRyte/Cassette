@@ -184,12 +184,12 @@ function wobStep() {
 const swinging = new Set(); let swingRaf = 0;
 function swingTo(c, target) {
   if (stillUI()) return;
-  const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.t = target; swinging.add(c); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
+  const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.t = target; swinging.add(c); c.classList.add('swinging'); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
 }
 function swingStep() {
   swingRaf = 0;
   swinging.forEach(c => { const s = c._sw; s.v = (s.v + (s.t - s.a) * .1) * .87; s.a += s.v; s.t *= .86;
-    if (Math.abs(s.a) + Math.abs(s.v) + Math.abs(s.t) < .06) { s.a = 0; s.v = 0; swinging.delete(c); }
+    if (Math.abs(s.a) + Math.abs(s.v) + Math.abs(s.t) < .06) { s.a = 0; s.v = 0; swinging.delete(c); c.classList.remove('swinging'); }
     c.style.setProperty('--swing', s.a.toFixed(2) + 'deg'); });
   if (swinging.size) swingRaf = requestAnimationFrame(swingStep);
 }
@@ -217,48 +217,85 @@ async function addPhotos(files, at) {
 deskFile.addEventListener('change', () => { addPhotos(deskFile.files); deskFile.value = ''; });
 
 /* ---------- hands: panning, dragging, strings ---------- */
+let deskZ = 10;
+// a click on a note's words (when you weren't already writing in it) puts the pen right there
+function deskEditAt(txt, x, y) {
+  txt.focus({ preventScroll: true });
+  let r = null;
+  if (document.caretRangeFromPoint) r = document.caretRangeFromPoint(x, y);
+  else if (document.caretPositionFromPoint) { const p = document.caretPositionFromPoint(x, y); if (p) { r = document.createRange(); r.setStart(p.offsetNode, p.offset); } }
+  const inside = r && txt.contains(r.startContainer);
+  if (!inside) { r = document.createRange(); r.selectNodeContents(txt); }
+  r.collapse(inside); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+}
+// pressing on a card never starts a text selection or moves the pen by itself (the gesture decides: drag, or put the pen there)
+layer.addEventListener('mousedown', e => {
+  if (e.button !== 0 || e.target.closest('.sx-fmt, .sx-bnote-x')) return;
+  const t = e.target.closest('.sx-note-t, .sx-cap-t');
+  if (e.target.closest('.sx-bcard') && (!t || document.activeElement !== t)) e.preventDefault();
+});
 ws.addEventListener('pointerdown', e => {
   if (e.button !== 0 || page && !page.hidden) return;
   cancelAnimationFrame(glideRaf);
   const c = e.target.closest('.sx-bcard');
   if (c) {
-    select(c.dataset.id);
-    if (e.target.closest('.sx-note-t, .sx-cap-t, .sx-bnote-x, .sx-fmt')) return; // writing, formatting, or taking it down
-    const id = c.dataset.id, it = B_().items.find(x => x.id === id), start = { x: e.clientX, y: e.clientY, l: it.x, t: it.y };
+    const id = c.dataset.id, it = B_().items.find(x => x.id === id); if (!it) return;
+    const txt = e.target.closest('.sx-note-t, .sx-cap-t');
+    select(id);
+    if (txt && document.activeElement === txt) return; // already writing in it: the pointer selects text as usual
+    if (e.target.closest('.sx-bnote-x, .sx-fmt')) return; // taking it down, or formatting
     e.preventDefault(); c.setPointerCapture(e.pointerId);
+    const start = { x: e.clientX, y: e.clientY, l: it.x, t: it.y };
+    // one gesture, and it always ends: on release, on cancel, or if the browser takes the pointer away
+    const track = (move, end) => {
+      let over = false;
+      const fin = ev => { if (over) return; over = true; c.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.removeEventListener(k, fin)); end(ev); };
+      c.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.addEventListener(k, fin));
+    };
     if (e.target.classList.contains('sx-resize')) { // the corner: make the note bigger or smaller
       const w0 = c.offsetWidth, h0 = c.offsetHeight; c.classList.add('sized', 'sizing');
-      const move = ev => { it.w = Math.round(Math.max(160, Math.min(760, w0 + (ev.clientX - start.x) / cam.z))); it.h = Math.round(Math.max(90, Math.min(960, h0 + (ev.clientY - start.y) / cam.z)));
-        c.style.width = it.w + 'px'; c.style.height = it.h + 'px'; strUpdate(); };
-      const up = () => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up); c.classList.remove('sizing'); save(); };
-      c.addEventListener('pointermove', move); c.addEventListener('pointerup', up); return;
+      track(ev => { it.w = Math.round(Math.max(160, Math.min(760, w0 + (ev.clientX - start.x) / cam.z))); it.h = Math.round(Math.max(90, Math.min(960, h0 + (ev.clientY - start.y) / cam.z)));
+        c.style.width = it.w + 'px'; c.style.height = it.h + 'px'; strUpdate(); },
+        () => { c.classList.remove('sizing'); save(); });
+      return;
     }
-    if (e.target.classList.contains('sx-pin')) {
-      deskSfx('pin'); const a = posOf(id), move = ev => { strTemp = { a, b: toWorld(ev.clientX, ev.clientY) }; strUpdate(); };
-      const up = ev => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up);
-        const under = document.elementsFromPoint(ev.clientX, ev.clientY).map(n => n.closest && n.closest('.sx-bcard')).find(n => n && n !== c);
+    if (e.target.classList.contains('sx-pin')) { // the pin: pull a string to something else
+      deskSfx('pin'); const a = posOf(id);
+      track(ev => { strTemp = { a, b: toWorld(ev.clientX, ev.clientY) }; strUpdate(); }, ev => {
         strTemp = null;
+        const under = ev.type === 'pointerup' && document.elementsFromPoint(ev.clientX, ev.clientY).map(n => n.closest && n.closest('.sx-bcard')).find(n => n && n !== c);
         if (under && !B_().links.some(l => l.includes(id) && l.includes(under.dataset.id))) { const l = [id, under.dataset.id]; B_().links.push(l); save(); if (!stillUI()) wob.set(lk(l), { x: 0, y: -34, vx: 0, vy: 0 }); deskSfx('tie'); } // it drops into its sag and bounces
-        drawStrings(); if (wob.size && !wobRaf) wobRaf = requestAnimationFrame(wobStep); };
-      c.addEventListener('pointermove', move); c.addEventListener('pointerup', up); return;
+        drawStrings(); if (wob.size && !wobRaf) wobRaf = requestAnimationFrame(wobStep); });
+      return;
     }
-    c.classList.add('lift'); layer.append(c); deskSfx('pick'); // the one you pick up comes to the top
-    let lx = e.clientX, ly = e.clientY;
-    const move = ev => { it.x = Math.round(start.l + (ev.clientX - start.x) / cam.z); it.y = Math.round(start.t + (ev.clientY - start.y) / cam.z); c.style.left = it.x + 'px'; c.style.top = it.y + 'px';
-      const vx = ev.clientX - lx, vy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY;
-      swingTo(c, Math.max(-16, Math.min(16, vx * 1.2))); wobKick(id, vx / cam.z, vy / cam.z); strUpdate(); };
-    const up = () => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up); c.classList.remove('lift'); swingTo(c, 0); deskSfx('drop'); B_().items = B_().items.filter(x => x !== it).concat(it); save(); };
-    c.addEventListener('pointermove', move); c.addEventListener('pointerup', up);
+    // anywhere else on it, the words included: a drag moves it; a click without moving puts the pen there
+    let dragging = false, lx = e.clientX, ly = e.clientY, lt = e.timeStamp, vx = 0;
+    track(ev => {
+      if (!dragging) {
+        if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
+        dragging = true; c.classList.add('lift'); c.style.zIndex = String(++deskZ); deskSfx('pick'); // (raised with z-index: moving it in the page would make the browser drop the pointer)
+        const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
+      }
+      it.x = Math.round(start.l + (ev.clientX - start.x) / cam.z); it.y = Math.round(start.t + (ev.clientY - start.y) / cam.z); c.style.left = it.x + 'px'; c.style.top = it.y + 'px';
+      const dt = Math.max(8, ev.timeStamp - lt), dx = ev.clientX - lx, dy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; lt = ev.timeStamp;
+      vx = vx * .55 + (dx * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
+      swingTo(c, Math.max(-16, Math.min(16, vx * 1.2))); wobKick(id, dx / cam.z, dy / cam.z); strUpdate();
+    }, ev => {
+      if (dragging) { c.classList.remove('lift'); swingTo(c, 0); deskSfx('drop'); B_().items = B_().items.filter(x => x !== it).concat(it); save(); return; }
+      if (ev.type !== 'pointerup' || !txt) return;
+      if (it.type === 'note' && noteTickAt(txt, ev.clientX, ev.clientY)) return; // a checklist box
+      deskEditAt(txt, ev.clientX, ev.clientY);
+    });
     return;
   }
   if (e.target.closest('button, input, select, a, [contenteditable]')) return; // the clock's own buttons
   // the empty desk (or the clock's face): move the camera
-  select(null); if (document.activeElement && document.activeElement.isContentEditable) document.activeElement.blur();
+  select(null); if (document.activeElement && document.activeElement.isContentEditable) { document.activeElement.blur(); getSelection().removeAllRanges(); } // put the pen down, and let go of any highlighted words
   const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; let moved = false;
-  ws.setPointerCapture(e.pointerId); ws.classList.add('panning');
+  e.preventDefault(); ws.setPointerCapture(e.pointerId); ws.classList.add('panning');
   const move = ev => { if (!moved && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 3) return; moved = true; cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeCam(); };
-  const up = () => { ws.removeEventListener('pointermove', move); ws.removeEventListener('pointerup', up); ws.removeEventListener('pointercancel', up); ws.classList.remove('panning'); if (moved) camSave(); };
-  ws.addEventListener('pointermove', move); ws.addEventListener('pointerup', up); ws.addEventListener('pointercancel', up);
+  const up = () => { ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, up)); ws.classList.remove('panning'); if (moved) camSave(); };
+  ws.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.addEventListener(k, up));
 });
 ws.addEventListener('dblclick', e => { if (e.target.closest('.sx-bcard, .sx-corner')) return; addNoteAt((p => ({ x: p.x - 100, y: p.y - 20 }))(toWorld(e.clientX, e.clientY))); });
 ws.addEventListener('wheel', e => { // zoom around the pointer
