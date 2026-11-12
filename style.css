@@ -987,3 +987,37 @@ input.sx-ed-name:hover, input.sx-ed-name:focus { border-bottom-color: var(--dim)
   .sx-v2 .sl-lv-i { flex: 1 1 0; width: auto; }
 }
 @media (min-width: 901px) { .sx-v2 .sx-rail { width: 360px; } } /* the rail is as wide as the timer panel */
+
+/* session bars: dark when empty, white when done; the one you're on fills smoothly (a break fills the next one, dimmer) */
+.sx-v2 .sx-corner .sx-cycle span { background: #041528; box-shadow: inset 0 0 0 1px #0b1a2b; }
+.sx-v2 .sx-corner .sx-cycle .done { background: var(--white); box-shadow: none; }
+.sx-v2 .sx-corner .sx-cycle .now::after { transition: width .3s linear; }
+.sx-v2 .sx-corner .sx-cycle .brk::after { background: #6d8a8d; }
+@media (prefers-reduced-motion: reduce) { .sx-v2 .sx-corner .sx-cycle .now::after { transition: none; } }
+/* no right column: the planet sits in the space beside the timer rail */
+@media (min-width: 901px) { .sx-v2 .sx-mid { padding-left: 384px; } }
+.sx-v2 .sx-rail .sx-bp-notes { flex: none; }
+/* the waypoints in orbit (Travel on, mysteries from other worlds) */
+.sx-wp-orbit .sx-wp-m { width: 16px; height: 16px; left: -8px; top: -8px; background: #030710; box-shadow: 0 0 0 1px #ffb762; color: #ffb762; font-size: 12px; transform: none; border-radius: 0; }
+.sx-wp-orbit.sx-wp-mystery .sx-wp-m { box-shadow: 0 0 0 1px #c03b94; color: #c03b94; }
+.sx-wp-orbit .sx-wp-l { opacity: 1; left: 16px; color: #ffb762; background: none; border: 0; padding: 0; font-size: 15px; text-shadow: 0 0 4px #030710, 0 0 2px #030710; }
+.sx-wp-orbit.sx-wp-mystery .sx-wp-l { color: #ff88a9; }
+.sx-wp-orbit.flip .sx-wp-l { left: auto; right: 16px; }
+.sx-wp.sel .sx-wp-m { box-shadow: 0 0 0 2px #030710, 0 0 0 4px #ffb762; }
+/* the title card beside a waypoint */
+.sx-wpcard { position: fixed; z-index: 4; width: 320px; max-height: calc(100vh - 90px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; background: #030710; border: 1px solid #293b49; border-top: 2px solid #ffb762; }
+.sx-wpcard[hidden] { display: none; }
+.sx-wpcard h3 { margin: -4px 0 0; padding-right: 22px; font: 700 24px/1.15 var(--ui); color: var(--white); }
+.sx-wpcard p { margin: 0; font: 15px/1.5 var(--ui); color: var(--ink); }
+.sx-wpcard p.sl-muted { color: var(--mute); }
+.sx-wp-k { font: 600 12px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.sx-wp-x { position: absolute; right: 8px; top: 6px; width: 26px; height: 26px; padding: 0; background: none; border: 0; color: var(--mute); font: 22px/1 var(--ui); cursor: pointer; }
+.sx-wp-x:hover { color: var(--white); }
+.sx-wp-sel { width: 100%; padding: 6px 8px; background: #030710; border: 1px solid #293b49; color: var(--white); font: 16px var(--ui); }
+.sx-wp-sel[hidden] { display: none; }
+.sx-wpcard .sx-wp-go { width: 100%; padding: 9px 0; color: #030710; background: var(--amber); border-color: var(--amber); font-size: 18px; }
+.sx-wpcard .sx-wp-go:hover:not(:disabled) { background: var(--amber-hi); border-color: var(--amber-hi); }
+.sx-wpcard .sx-wp-go.on { color: var(--amber); background: none; cursor: default; }
+.sx-wp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sx-wp-two .btn { padding: 9px 0; }
+@media (max-width: 700px) { .sx-wpcard { left: 12px !important; right: 12px; bottom: 12px; top: auto !important; width: auto; max-height: 60vh; } }

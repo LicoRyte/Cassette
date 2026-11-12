@@ -52,7 +52,7 @@ function chLegDone(reps) {
   if (st.step >= ST_LEGS) { // chapter done: the next signal
     S.story.ch++; S.mission = 0; award(60, 30); gainKp(1); extra = ' · Chapter complete: +30 Knowledge, 📘 +1 Knowledge point';
     msg = '📡 Chapter ' + (ch + 1) + ' complete. A new signal is waiting: Follow the Signal from Explore.';
-  } else if (isLastCh(ch) && st.step === ST_LEGS - 1) { S.mission = 0; msg = '📡 Only one thing is left on ' + nm(p) + '. It\'s waiting under What next.'; }
+  } else if (isLastCh(ch) && st.step === ST_LEGS - 1) { S.mission = 0; msg = '📡 Only one thing is left on ' + nm(p) + '. It\'s waiting on the left, under the timer.'; }
   else msg = '📡 Chapter ' + (ch + 1) + ', part ' + st.step + ' of ' + ST_LEGS + ' done.';
   reps.unshift({ story: { ch, leg: st.step - 1, pick, got: '+' + kn + ' Knowledge' + extra, signal: st.step >= ST_LEGS ? c.signal : null } });
   pushEv({ c: 'camp', ic: '📡', title: 'Chapter ' + (ch + 1) + ' · ' + leg.title, t: leg.text.join(' ') + ' (' + leg[pick][0] + ') ' + leg[pick][1], at: Date.now() });

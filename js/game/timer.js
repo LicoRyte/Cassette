@@ -50,7 +50,7 @@ function finish(quiet) {
     } else if (following()) { // Follow the Signal: the next Meridian world (no visitors there)
       const { p, fresh } = followSignal(); foundP = fresh ? p : null;
       done('', p, fresh ? 'story' : 'log');
-      hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (see What next).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + then();
+      hint.textContent = '📡 ' + (fresh ? 'The signal led to ' + nm(p) + '. Chapter ' + (p.story.ch + 1) + ' starts here (its waypoint is on the planet).' : 'Back on ' + nm(p) + '. The chapter picks up where you left it.') + then();
     } else { // Explore: a brand-new world
       const p = makePlanet((Math.random() * 4294967296) >>> 0, S.nextNum++, false, .05, regionNow());
       const visit = rollArrival(p); p.visit = visit || 'none'; // one roll: at most one visitor per world
@@ -67,7 +67,7 @@ function finish(quiet) {
       }
       foundP = p;
       done('', p, 'new');
-      hint.textContent = visit === 'derelict' ? '🛸 Arrived, and a derelict ship is drifting nearby! Salvage it with one study session (see What next).' + then() : 'Arrived! Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
+      hint.textContent = visit === 'derelict' ? '🛸 Arrived, and a derelict ship is drifting nearby! Salvage it with one study session (its waypoint is on the planet).' + then() : 'Arrived! Time for a ' + MODES[mode].toLowerCase() + ': stand up, stretch, drink some water.';
     }
     sessionEnd(reps, foundP, ev);
     learnAsk(true); openReport();

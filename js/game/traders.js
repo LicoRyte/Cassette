@@ -34,7 +34,7 @@ function meetTrader(p, reps) {
   if (how === 'offer') {
     t = txLine('trade_offer', ctx);
     p.trade = { tr: def.id, ic: def.ic, name: def.name, plural: !!def.plural, want: want.id, owner: want.who ? want.who.id : null, slot: want.slot, give: gi.id, t };
-    got = '↔ Swap or keep it: see What next';
+    got = '↔ Swap or keep it: their waypoint is on the planet';
   } else if (how === 'gift' && gi) {
     t = txLine('trade_gift', ctx); S.stash.push(gi.id); S.cnt.gifts = (S.cnt.gifts || 0) + 1; got = '🎁 ' + gi.name + ' (in the stash)';
   } else {

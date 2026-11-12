@@ -406,7 +406,7 @@ void main(){
      (see dfPlanet), so a point on it is (x, y) on that map: x goes round (period 2), y from .15 (top) to .85.
      project() says where such a point is on screen right now; js/ui/globe.js pins the waypoints with it. */
   const globe = window.SolaristGlobe = {
-    drag: 0, zoom: 1, zoomT: 1, look: { tilt: 0, st: 0, locked: false }, at: null, onDraw: null, dragging: false,
+    drag: 0, zoom: 1, zoomT: 1, hold: false, look: { tilt: 0, st: 0, locked: false }, at: null, onDraw: null, dragging: false,
     reset(L) { this.look = { tilt: (L && L.tilt) || 0, st: 0, locked: !!(L && L.locked) }; this.drag = 0; this.zoomT = 1; },
     busy() { return this.dragging || Math.abs(this.zoom - this.zoomT) > .002; },
     step(dt) { if (Math.abs(this.zoom - this.zoomT) > .002) { this.zoom += (this.zoomT - this.zoom) * Math.min(1, dt * 12); lastDraw = 0; } else this.zoom = this.zoomT; },
@@ -419,6 +419,7 @@ void main(){
       const ux = co * cx - si * cy, uy = si * cx + co * cy;
       return { x: (a.cx + ux * a.rad) * PX, y: (a.cy + uy * a.rad) * PX, z: Math.sqrt(Math.max(0, 1 - cx * cx - cy * cy)) };
     },
+    orbit(deg, d) { const a = this.at; if (!a) return null; const t = deg * Math.PI / 180; return { x: (a.cx + Math.cos(t) * d * a.rad) * PX, y: (a.cy + Math.sin(t) * d * a.rad) * PX, z: 1 }; }, // a spot beside the planet, at an angle (0 = right, -90 = up)
     over(e) { const a = this.at; if (!a || !a.has || a.sil || root.classList.contains('paged')) return false;
       if (e.target.closest && e.target.closest('button, a, input, select, textarea, label, .sx-breakp, .sx-top, .sx-page, .sx-report, .sx-corner, .sx-storyp, .sl-hint')) return false;
       return Math.hypot(e.clientX / PX - a.cx, e.clientY / PX - a.cy) < a.rad * 1.05; },
@@ -495,7 +496,7 @@ void main(){
     const moving = !reduceMotion.matches; // effects (radar, rings, raiders) stop when reduced motion is on; the slow spin keeps going
     const dt = lastNow ? Math.min(.1, (now - lastNow) / 1000) : 0; lastNow = now;
     if (moving) simT += dt;
-    spinT += dt * (moving ? 1 : .5); // the planet always turns, timer running or not
+    if (!globe.hold) spinT += dt * (moving ? 1 : .5); // the planet always turns, timer running or not (it waits while a waypoint's card is open)
     globe.step(dt);
     const fps = info.running || globe.busy() ? 30 : 15;
     if (now - lastDraw >= 1000 / fps - 2) {

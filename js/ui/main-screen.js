@@ -15,12 +15,13 @@ function drawName() {
   nameBox.onclick = p ? () => { tab('log'); openWorld(p.num); } : null;
 }
 function drawCycle(pct) { // one bar per study session of the cycle, two to a row: done ones full, the one you're on filling up
-  const n = S.set.every, done = mode === 'focus' ? S.cycle % n : (S.cycle % n || n), kids = [];
-  for (let i = 0; i < n; i++) {
-    const st = i < done ? 'done' : i === done && mode === 'focus' ? 'now' : '';
-    kids.push(el('span', { class: 'st ' + st, style: st === 'now' ? '--p:' + pct + '%' : null }));
-  }
-  cycleBar.replaceChildren(...kids);
+  const n = S.set.every, done = mode === 'focus' ? S.cycle % n : (S.cycle % n || n);
+  if (cycleBar.children.length !== n) cycleBar.replaceChildren(...Array.from({ length: n }, () => el('span', { class: 'st' }))); // made once, then only updated: the fill moves smoothly
+  [...cycleBar.children].forEach((b, i) => {
+    const now = mode === 'focus' && i === done, brk = mode !== 'focus' && i === done % n && done < n; // a break fills the next session's bar, dimmer
+    b.className = 'st' + (i < done ? ' done' : '') + (now ? ' now' : '') + (brk ? ' now brk' : '');
+    b.style.setProperty('--p', (now || brk ? pct : 0) + '%');
+  });
   cycleBar.classList.toggle('broken', !!S.fc.broken);
 }
 // the left side has tabs like the right: Here (the world you're at) and the Meridian. The last one you picked is remembered.

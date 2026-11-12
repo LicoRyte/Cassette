@@ -17,7 +17,7 @@ const bpStory = el('div', { class: 'sx-bp-story' }, encBox, trans, card, reportS
 const bpCards = el('div', { class: 'sx-cards', role: 'radiogroup', 'aria-label': 'Next study session' });
 const bpDetail = el('div', { class: 'sx-bp-detail' });
 const storyPanel = el('aside', { class: 'sx-storyp', 'aria-label': 'What happened' }, bpStoryH, bpStory);
-const breakPanel = el('aside', { class: 'sx-breakp', 'aria-label': 'What next' }, bpNotes, el('h3', { class: 'sx-bp-h' }, 'What next?'), bpCards, bpDetail);
+const breakPanel = el('aside', { class: 'sx-breakp', hidden: true }); // (gone: the next session is picked on the planet, js/ui/globe.js)
 settings.open = true;
 const appSettings = el('div', { class: 'sx-appset' });
 const settingsPane = el('div', { class: 'sl-pane', hidden: true },
@@ -49,7 +49,7 @@ const page = el('div', { class: 'sx-page', hidden: true },
   atlasNav, el('div', { class: 'sl-body' }, logPane, shipPane, itemsPane, mapPane, journalPane, settingsPane));
 [tabTimer, tabLog, tabShip].forEach(b => b.removeAttribute('role'));
 root.classList.add('sx', 'sx-v2');
-root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabAtlas, tabJournal, tabShip, tabSet)), midCol, el('div', { class: 'sx-rail' }, corner, storyPanel), breakPanel, report, page,
+root.replaceChildren(el('header', { class: 'sx-top' }, lvStrip, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabAtlas, tabJournal, tabShip, tabSet)), midCol, el('div', { class: 'sx-rail' }, corner, bpNotes, storyPanel), report, page,
   el('div', { hidden: true }, skipB, tabTimer, tabLog, tabItems, tabMap, status2, leftCol, feedLine, mission, reportBtn));
 function tab(t) {
   if (t === 'log' && !logPane.hidden && !page.hidden) openNum = null; // pressing Worlds again goes back to the grid
