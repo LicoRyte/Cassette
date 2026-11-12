@@ -55,8 +55,9 @@ function finish(quiet) {
       S.cnt.rar[p.rarity] = (S.cnt.rar[p.rarity] || 0) + 1;
       award(20 + ({ Uncommon: 10, Rare: 25, Legendary: 60 }[p.rarity] || 0), 0);
       if (visit === 'derelict') makeDerelict(p);
+      if (visit === 'trade') meetTrader(p, reps);
       if (visit === 'meeting') {
-        const [ic, title, tpl] = ENCOUNTERS[Math.floor(Math.random() * ENCOUNTERS.length)], t = tpl.split('{p}').join(nm(p));
+        const m = txPick('meeting', worldCtx(p)) || { ic: '👋', title: 'A friendly hello', text: 'Someone near {world} waves at the ship.' }, ic = m.ic, title = m.title, t = txFill(m.text, worldCtx(p));
         p.enc = { ic, title, t }; award(10, 5); S.cnt.enc++;
         pushEv({ ic, title, t, at: Date.now() });
       }

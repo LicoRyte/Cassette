@@ -141,7 +141,7 @@ Almost every system writes sentences from pieces, so this comes first. Templates
 | 1 ✅ | **Cut and migrate.** Remove the cut systems, Medals → Achievements, Distress Run removed. Add the **learning log** (cheap, high value) | Old saves load, keep planets and logs; nothing references removed systems |
 | 2 ✅ | **Characters and crew**, text items, Knowledge and crafting | You can create yourself and up to 5 crew, and craft items |
 | 3 ✅ | **Planets from settings**, places to discover, naming, Travel on / Stay here with activities | Each planet's look, biomes and text agree; staying finds more places |
-| 4 | **Crew life**, item encounters with traders, ship equipment | Crew talk and react; you can trade, receive and lose items |
+| 4 ✅ | **Crew life**, item encounters with traders, ship equipment | Crew talk and react; you can trade, receive and lose items |
 | 5 | **Mysteries** | Multi-session events with lore rewards |
 | 6 | **Libraries:** album, postcards, note library, Achievements with Wonders | Everything is browsable and shareable |
 | 7 | **Extras:** campfire talks, return visits, sky of the day, regions, soundscapes, weekly recap | Each one works and stays light |

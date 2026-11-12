@@ -5,6 +5,7 @@
     "  find: the chance (0 to 1) that the session turns up a new place on the world,",
     "  souvenir: the chance it brings back a collectible,",
     "  when (optional): only offered when the world matches, written like line conditions. ground: true / false, water, temp, life go from 0 to 1.",
+    "  shipTags: \"telescope\" in when = only offered once the ship has equipment with that tag (items.json, kind \"ship\").",
     "Its story lines go in the group called act_<id> below, written like content/lines.json. {crew} is whoever went, {place} a spot on the world",
     "(one you found, or the world's name), plus {biome}, {weather}, {time}, {world}. Try them in tools/text-preview.html.",
     "Biomes are often plural (\"rust plains\"), so don't put a verb or \"a\" straight after {biome}: write \"the ground of the {biome} dips\", not \"the {biome} dips\"."
@@ -99,6 +100,72 @@
       "souvenir": 0.15,
       "when": {
         "ground": true
+      }
+    },
+    {
+      "id": "observe",
+      "ic": "🔭",
+      "name": "Night at the telescope",
+      "desc": "Everybody takes a turn at the big telescope.",
+      "find": 0.25,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "telescope"
+      }
+    },
+    {
+      "id": "dance",
+      "ic": "💃",
+      "name": "Dance night",
+      "desc": "Records on, lights low, everybody dances badly.",
+      "find": 0,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "records"
+      }
+    },
+    {
+      "id": "garden",
+      "ic": "🌱",
+      "name": "Tend the ship garden",
+      "desc": "Water, prune, repot, and plant a seed from this world.",
+      "find": 0,
+      "souvenir": 0.2,
+      "when": {
+        "shipTags": "garden"
+      }
+    },
+    {
+      "id": "read",
+      "ic": "📖",
+      "name": "Read together",
+      "desc": "Everyone in the nook, one book, taking turns reading aloud.",
+      "find": 0,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "books"
+      }
+    },
+    {
+      "id": "feast",
+      "ic": "🍲",
+      "name": "Cook a feast",
+      "desc": "The big stove, every pot, the whole crew at one table.",
+      "find": 0,
+      "souvenir": 0.1,
+      "when": {
+        "shipTags": "stove"
+      }
+    },
+    {
+      "id": "games",
+      "ic": "🎲",
+      "name": "Game night",
+      "desc": "Cards, dice and at least one dramatic accusation.",
+      "find": 0,
+      "souvenir": 0.05,
+      "when": {
+        "shipTags": "games"
       }
     }
   ],
@@ -254,6 +321,61 @@
           "crew.gearTags": "cozy"
         },
         "weight": 2
+      }
+    ],
+    "act_observe": [
+      "{Crew} finds a comet nobody has charted and names it after the cook.",
+      "Through the big telescope, {world} looks close enough to touch. {Crew} keeps saying \"look, look\".",
+      {
+        "text": "{Crew} spots something on the far side of {world} that wasn't on any map.",
+        "when": {
+          "ground": true
+        }
+      }
+    ],
+    "act_dance": [
+      "{Crew} picks the first record. It's very loud. Nobody minds.",
+      "Somebody tries a spin, somebody falls over, and {crew} laughs until {crew.they} {crew:cries|cry}.",
+      {
+        "text": "{Crew}, who never dances, dances. Nobody says a word about it, and everybody remembers.",
+        "when": {
+          "crew.tags": [
+            "quiet",
+            "grumpy"
+          ]
+        },
+        "weight": 2
+      }
+    ],
+    "act_garden": [
+      "{Crew} plants a seed from {world} and labels it with a hopeful question mark.",
+      "{Crew} repots the tomatoes and talks them through it.",
+      {
+        "text": "{Crew} finds the first flower in the garden this morning and makes everyone come and see.",
+        "when": {
+          "life": ">0.3"
+        }
+      }
+    ],
+    "act_read": [
+      "{Crew} reads the next chapter aloud and does all the voices. The villain's voice is a little too good.",
+      "Everyone falls asleep in the reading nook, one by one. {Crew} keeps reading anyway."
+    ],
+    "act_feast": [
+      "{Crew} cooks everything there is. There are leftovers for three days, and nobody is sorry.",
+      "The feast on {world} goes on until late. {Crew} makes a toast to the ship, and to the people in it."
+    ],
+    "act_games": [
+      "{Crew} wins, loses, and demands a rematch, in that order.",
+      "The game ends in an argument about the rules and a promise to play again tomorrow.",
+      {
+        "text": "{Crew} is suspiciously good at this game.",
+        "when": {
+          "crew.tags": [
+            "curious",
+            "stubborn"
+          ]
+        }
       }
     ]
   }

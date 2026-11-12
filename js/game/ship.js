@@ -32,7 +32,12 @@ function dismiss(i) { const c = S.crew[i]; if (!c) return; S.crew.splice(i, 1); 
 function shipActivity(reps) { // what the crew got up to this session: one or two little stories (you count too, if you're alone)
   const people = S.crew.length ? S.crew : [S.me];
   shuffleCrewRooms();
-  const who = people.slice().sort(() => Math.random() - .5).slice(0, people.length > 2 ? 2 : 1), here = atP();
+  const all = [S.me].concat(S.crew), here = atP();
+  if (all.length >= 2 && Math.random() < .45) { // two of them together
+    const [a, b] = all.slice().sort(() => Math.random() - .5), t = pairMoment(a, b, here);
+    if (t) { const names = (a === S.me ? capFirst(meName()) : a.name) + ' & ' + (b === S.me ? capFirst(meName()) : b.name); reps.push({ ev: { battle: true, ic: '👥', title: 'Ship activity', t } }); pushEv({ ic: '👥', title: 'Ship activity: ' + names, t, at: Date.now() }); return; }
+  }
+  const who = people.slice().sort(() => Math.random() - .5).slice(0, people.length > 2 ? 2 : 1);
   who.forEach((c, i) => {
     const t = i === 0 && here && Math.random() < .5 ? crewMoment(c, 'arrive_crew', here) : crewMoment(c, 'ship_life');
     if (!t) return;

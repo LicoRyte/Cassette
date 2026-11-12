@@ -7,7 +7,7 @@
      {crew.name}       a field inside it (any depth: {place.biome})
      {Crew}            capital first letter
      {crew.they}       pronouns from the person's "pronouns" (she / he / they): they, them, their, theirs, themself
-     {crew:is|are}     the first word for she / he, the second for they. Use it right after a pronoun ("{crew.they} {crew:laughs|laugh}");
+     {crew:is|are}     the first word for she / he (or "plural": false), the second for they (or "plural": true). Use it right after a pronoun ("{crew.they} {crew:laughs|laugh}");
                        after a name the verb is always the first form ("{Crew} laughs")
      {a:item}          with "a" or "an" in front
      {@group}          a line from another group (so sentences can be built from smaller pieces)
@@ -21,7 +21,7 @@
    Each template can also have "weight" (default 1): 2 is picked twice as often. */
 'use strict';
 
-const TEXT = { lines: {}, items: [], acts: [], warn: [] }; // filled from the content/ files by txLoad
+const TEXT = { lines: {}, items: [], acts: [], traders: [], warn: [] }; // filled from the content/ files by txLoad
 
 // add one content file. Groups with the same name in different files are joined, so new files can add to old groups
 function txLoad(json) {
@@ -30,6 +30,7 @@ function txLoad(json) {
   if (L && typeof L === 'object') Object.keys(L).forEach(g => { if (Array.isArray(L[g])) TEXT.lines[g] = (TEXT.lines[g] || []).concat(L[g]); });
   if (Array.isArray(json.items)) TEXT.items = TEXT.items.concat(json.items.filter(it => it && it.name));
   if (Array.isArray(json.activities)) TEXT.acts = TEXT.acts.concat(json.activities.filter(a => a && a.id && a.name));
+  if (Array.isArray(json.traders)) TEXT.traders = TEXT.traders.concat(json.traders.filter(t => t && t.id && t.name));
 }
 
 // read a dotted path out of the context: "crew.trait.name"
@@ -89,7 +90,7 @@ function txFill(text, ctx, r, depth) {
       return txFill(typeof t === 'object' ? t.text : t, ctx, r, depth + 1);
     }
     const verb = body.match(/^([\w.]+):([^|]*)\|(.*)$/); // {crew:is|are}
-    if (verb) { const who = txGet(ctx, verb[1]); return txPron(who) === TX_PRON.they ? verb[3] : verb[2]; }
+    if (verb) { const who = txGet(ctx, verb[1]), many = who && typeof who.plural === 'boolean' ? who.plural : txPron(who) === TX_PRON.they; return many ? verb[3] : verb[2]; }
     const art = body.match(/^a:([\w.]+)$/i); // {a:item}
     if (art) { const w = txWord(txGet(ctx, art[1]), r); if (!w) return ''; const a = (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w; return body[0] === 'A' ? txCap(a) : a; }
     const cap = body[0] !== body[0].toLowerCase(), path = cap ? body[0].toLowerCase() + body.slice(1) : body;

@@ -7,7 +7,7 @@ if (!S.tech) S.tech = {}; TECH = S.tech; countItems();
 if (!S.slog) S.slog = {}; // Ship Logs unlocked by research, by id
 Object.keys(S.slog).forEach(k => { if (/^d\d+$/.test(k)) delete S.slog[k]; }); // the old logbook pages were removed
 let SEEN_T = null; // titles of arrival encounters and deep-space events, counted for the side challenges
-const pushEv = e => { if (!SEEN_T) SEEN_T = new Set(ENCOUNTERS.map(x => x[1]).concat(EVENTS.map(x => x[1]))); if (SEEN_T.has(e.title)) { S.cnt.seen = S.cnt.seen || {}; S.cnt.seen[e.title] = (S.cnt.seen[e.title] || 0) + 1; } S.events.push(e); if (S.events.length > 800) S.events.splice(0, S.events.length - 800); };
+const pushEv = e => { if (!SEEN_T) SEEN_T = new Set((TEXT.lines.meeting || []).map(x => x.title).concat(EVENTS.map(x => x[1]))); if (SEEN_T.has(e.title)) { S.cnt.seen = S.cnt.seen || {}; S.cnt.seen[e.title] = (S.cnt.seen[e.title] || 0) + 1; } S.events.push(e); if (S.events.length > 800) S.events.splice(0, S.events.length - 800); };
 if (S.kp == null) S.kp = S.kn || 0;
 const hasT = id => !!S.tech[id];
 // Research: [id, name, base cost, what it does, what it unlocks]. Costs are base x researchCost from economy.json.

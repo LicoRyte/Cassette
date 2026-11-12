@@ -126,6 +126,9 @@ A('Collection', 'legit', '🌟', 'Legendary Curator', 'Own 10 Legendary collecti
 tiers('Ship', 'crew', '👥', [[1, 'Not Alone Anymore'], [3, 'Full Table'], [5, 'Big Family']], () => S.crew.length, n => 'Have ' + n + ' crew aboard');
 tiers('Adventure', 'stay', '🏕', [[1, 'Making Camp'], [10, 'Slow Traveler'], [50, 'Nowhere to Be']], () => S.cnt.stays || 0, n => 'Stay on a world for ' + n + ' session' + (n === 1 ? '' : 's'));
 tiers('Adventure', 'places', '📍', [[1, 'Off the Map'], [10, 'Local Expert'], [40, 'Atlas']], () => S.cnt.staysFound || 0, n => 'Find ' + n + ' place' + (n === 1 ? '' : 's') + ' by staying');
+tiers('Adventure', 'swap', '↔', [[1, 'Fair Trade'], [10, 'Swap Meet'], [30, 'Known Everywhere']], () => S.cnt.trades || 0, n => 'Swap ' + n + ' thing' + (n === 1 ? '' : 's') + ' with traders');
+SQ('kind', '💛', 'Kindness', 'Give something away to someone who needed it', () => (S.cnt.gaveAway || 0) >= 1);
+tiers('Ship', 'shipgear', '🛠', [[1, 'Moving In'], [4, 'Home Comforts'], [7, 'Fully Furnished']], () => S.shipGear.length, n => 'Fit ' + n + ' piece' + (n === 1 ? '' : 's') + ' of ship equipment');
 tiers('Ship', 'craft', '🧵', [[1, 'Handmade'], [10, 'Tailor'], [30, 'Workshop Legend']], () => S.cnt.crafted || 0, n => 'Craft ' + n + ' thing' + (n === 1 ? '' : 's'));
 A('Ship', 'color', '🎨', 'Fresh Paint', 'Paint your ship a new color', () => S.ship.colors.length > 1);
 A('Ship', 'design', '🛋', 'Interior Designer', 'Use your first decoration', () => decOwned() > 0);

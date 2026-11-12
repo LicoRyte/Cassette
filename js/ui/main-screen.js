@@ -53,6 +53,11 @@ function hereSec(lock, legBar) {
   // the visitor, if there is one
   if (p.enc) out.push(el('p', { class: 'sx-visit' }, p.enc.ic + ' ' + p.enc.title.replace(/!$/, '')));
   else if (p.visit === 'none' && !derelictHere()) out.push(el('p', { class: 'sx-visit' }, 'No visitors here. Just you and the world.'));
+  // someone offering a swap
+  if (p.trade) { const o = p.trade, w = itemById(o.want), g = itemById(o.give);
+    out.push(el('div', { class: 'sx-offer' }, el('p', { class: 'sx-visit' }, o.ic + ' ' + o.t),
+      el('p', { class: 'sl-muted' }, 'You give: ' + (w ? w.name : '?') + '. You get: ' + (g ? g.name + ' (' + g.desc.charAt(0).toLowerCase() + g.desc.slice(1, -1) + ')' : '?') + '.'),
+      el('div', { class: 'sx-row-l' }, el('button', { type: 'button', class: 'btn sx-buy', disabled: lock || null, onclick: () => answerTrade(p, true) }, 'Swap'), el('button', { type: 'button', class: 'btn sx-mini', disabled: lock || null, onclick: () => answerTrade(p, false) }, 'No thanks')))); }
   // a Meridian chapter on this world
   if (p.story && STD) out.push(...chapterBits(p, lock, legBar));
   // the expedition

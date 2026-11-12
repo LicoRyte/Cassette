@@ -50,6 +50,10 @@ function crewView(group) {
     craftB, craftMsg ? el('p', { class: 'sx-craftmsg' }, craftMsg) : null,
     stash.length ? el('div', { class: 'sx-stash' }, stash.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, it.kind + ' · ' + capFirst(it.desc)))))
       : el('p', { class: 'sl-muted' }, 'The stash is empty. Anything nobody is wearing or carrying waits here.')));
+  const gear = S.shipGear.map(itemById).filter(Boolean), leftN = txItems('ship').length - gear.length;
+  const shipB = el('button', { type: 'button', class: 'btn', disabled: lock || (S.kp || 0) < 4 || !leftN || null, onclick: () => { const it = craftShip(); craftMsg = it ? '🛠 New on the ship: ' + it.name + '. ' + capFirst(it.desc) : ''; drawShip(); } }, leftN ? 'Craft ship equipment (4 Knowledge points)' : 'The ship has everything');
+  out.push(group('🛠 Ship equipment', el('p', { class: 'sl-muted' }, 'Bigger things for the ship. Each one opens something new to do when you stay on a world, and new moments aboard.'), shipB,
+    gear.length ? el('div', { class: 'sx-stash' }, gear.map(it => el('div', { class: 'sx-stash-i' }, el('b', {}, it.name), el('small', {}, capFirst(it.desc))))) : el('p', { class: 'sl-muted' }, 'Nothing yet.')));
   if (lock) out.unshift(el('p', { class: 'sl-muted' }, 'Changes wait until the study session is over. You can still look.'));
   return out;
 }

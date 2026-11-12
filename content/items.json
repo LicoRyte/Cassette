@@ -3,125 +3,647 @@
     "Equipment, clothing and traits. Each one is just a name and a description, plus tags.",
     "To add one: copy an entry, give it a new id (lowercase, dashes, never reused), change the words.",
     "kind: \"equipment\", \"clothing\" or \"trait\". Crafting makes a random equipment or clothing item; traits are picked on the Crew page.",
+    "kind \"ship\": equipment for the ship itself, crafted for 4 Knowledge points. Its tags unlock Stay here activities (activities.json, \"shipTags\") and crew moments.",
     "desc: one or two sentences that help the player imagine it. No numbers or stats.",
     "tags: short words that events and lines can look for, like warm, light, shiny, loud, brave, keepsake.",
     "Reuse tags that already exist where you can, so old events notice new items.",
     "Try your entries in tools/text-preview.html."
   ],
   "items": [
-    { "id": "patched-scarf", "kind": "clothing", "name": "patched scarf",
-      "desc": "Knitted by someone who loved you, mended by someone who didn't know how.", "tags": ["warm", "soft", "keepsake"] },
-    { "id": "yellow-raincoat", "kind": "clothing", "name": "yellow raincoat",
-      "desc": "Bright enough to find you in any storm. The pockets are full of old wrappers.", "tags": ["waterproof", "bright"] },
-    { "id": "mirror-visor", "kind": "clothing", "name": "mirrored visor",
-      "desc": "Everyone you talk to sees themselves in it, which makes some of them nervous.", "tags": ["shiny", "odd"] },
-    { "id": "moss-boots", "kind": "clothing", "name": "moss-green boots",
-      "desc": "Soft soles that never squeak. Small plants keep trying to grow on them.", "tags": ["quiet", "green"] },
-    { "id": "flight-jacket", "kind": "clothing", "name": "old flight jacket",
-      "desc": "Cracked leather and a patch from a squadron nobody remembers. It still smells faintly of engine oil.", "tags": ["warm", "old"] },
-    { "id": "star-sweater", "kind": "clothing", "name": "sweater with stars on it",
-      "desc": "Hand-knitted. The constellations are wrong, but they're wrong in a very confident way.", "tags": ["warm", "soft", "cozy"] },
-    { "id": "bucket-hat", "kind": "clothing", "name": "floppy bucket hat",
-      "desc": "Keeps the sun off and the dignity low. Has a small pin shaped like a mushroom.", "tags": ["sunny", "silly"] },
-    { "id": "mechanic-overalls", "kind": "clothing", "name": "grease-stained overalls",
-      "desc": "More pockets than anyone could need. One of them rattles and nobody knows why.", "tags": ["work", "pockets"] },
-    { "id": "silver-cloak", "kind": "clothing", "name": "silver travel cloak",
-      "desc": "It ripples even when there's no wind, and catches starlight like water.", "tags": ["shiny", "fancy"] },
-    { "id": "knit-mittens", "kind": "clothing", "name": "mismatched mittens",
-      "desc": "One red, one blue. The other two are out there somewhere, also mismatched.", "tags": ["warm", "soft", "silly"] },
-    { "id": "lab-coat", "kind": "clothing", "name": "lab coat with a coffee stain",
-      "desc": "The stain is shaped like a small continent. It has been named.", "tags": ["science", "work"] },
-    { "id": "rain-poncho", "kind": "clothing", "name": "see-through poncho",
-      "desc": "Folds into a pouch the size of an apple. Unfolding it takes ten minutes and a lot of patience.", "tags": ["waterproof", "light-weight"] },
-    { "id": "beaded-necklace", "kind": "clothing", "name": "beaded necklace",
-      "desc": "Every bead is from a different world. A few of them are probably just candy.", "tags": ["shiny", "keepsake"] },
-    { "id": "thick-goggles", "kind": "clothing", "name": "thick brass goggles",
-      "desc": "Make everything look slightly orange and slightly more dramatic.", "tags": ["shiny", "old", "far-sight"] },
-    { "id": "spacer-boots", "kind": "clothing", "name": "magnetic spacer boots",
-      "desc": "Clunk. Clunk. Clunk. You can always hear them coming down the corridor.", "tags": ["loud", "work"] },
-    { "id": "flower-crown", "kind": "clothing", "name": "flower crown",
-      "desc": "Woven from flowers of three different planets. They keep blooming, somehow.", "tags": ["green", "fancy", "keepsake"] },
-    { "id": "night-cap", "kind": "clothing", "name": "striped night cap",
-      "desc": "Worn at all hours, not only at night. There's a little bell on the end.", "tags": ["cozy", "silly", "soft"] },
-    { "id": "diving-suit", "kind": "clothing", "name": "patched diving suit",
-      "desc": "Built for oceans on worlds where the water is something else entirely.", "tags": ["waterproof", "old"] },
-    { "id": "poet-shirt", "kind": "clothing", "name": "billowy poet's shirt",
-      "desc": "Far too dramatic for the ship. Perfect for standing on cliffs.", "tags": ["fancy"] },
-    { "id": "reflective-vest", "kind": "clothing", "name": "reflective safety vest",
-      "desc": "Bright orange with silver stripes. Nobody has ever been run over while wearing it.", "tags": ["bright", "shiny", "work"] },
-
-    { "id": "brass-lantern", "kind": "equipment", "name": "brass lantern",
-      "desc": "Older than the ship. It burns with a small, steady, honey-coloured flame.", "tags": ["light", "shiny", "old"] },
-    { "id": "pocket-telescope", "kind": "equipment", "name": "pocket telescope",
-      "desc": "Folds down to the size of a pencil. The lens has one tiny scratch shaped like a bird.", "tags": ["far-sight", "old"] },
-    { "id": "sketchbook", "kind": "equipment", "name": "sketchbook",
-      "desc": "Half full of planets you've seen and half full of ones you made up.", "tags": ["art", "keepsake"] },
-    { "id": "thermos", "kind": "equipment", "name": "dented thermos",
-      "desc": "Keeps tea hot for exactly as long as a study session.", "tags": ["warm", "food"] },
-    { "id": "field-journal", "kind": "equipment", "name": "field journal",
-      "desc": "Water-stained, with pressed leaves between the pages and a pencil tied to the spine.", "tags": ["science", "keepsake"] },
-    { "id": "harmonica", "kind": "equipment", "name": "harmonica",
-      "desc": "Knows three songs. Plays them all slightly too slowly.", "tags": ["music", "loud"] },
-    { "id": "rock-hammer", "kind": "equipment", "name": "geologist's hammer",
-      "desc": "Small, sharp and very good at finding out what's inside things.", "tags": ["tool", "science"] },
-    { "id": "sample-jars", "kind": "equipment", "name": "set of sample jars",
-      "desc": "Twelve little glass jars in a padded case. Two of them are full of something that hums.", "tags": ["science", "odd"] },
-    { "id": "compass", "kind": "equipment", "name": "compass that points somewhere",
-      "desc": "It doesn't point north. It points somewhere, and it's very sure about it.", "tags": ["odd", "old", "far-sight"] },
-    { "id": "kite", "kind": "equipment", "name": "folding kite",
-      "desc": "Bright paper and a spool of silver string. Flies best in thin air.", "tags": ["bright", "silly"] },
-    { "id": "camera", "kind": "equipment", "name": "instant camera",
-      "desc": "Spits out a little square photo with a whirr. The colours always come out a bit too warm.", "tags": ["art", "keepsake"] },
-    { "id": "multitool", "kind": "equipment", "name": "chunky multitool",
-      "desc": "Has a blade, pliers, three screwdrivers and one tool nobody has identified.", "tags": ["tool", "work"] },
-    { "id": "glow-sticks", "kind": "equipment", "name": "bundle of glow sticks",
-      "desc": "Crack one and the dark turns green, pink or blue. Mostly green.", "tags": ["light", "bright", "silly"] },
-    { "id": "old-radio", "kind": "equipment", "name": "hand-crank radio",
-      "desc": "Picks up music from nowhere in particular. Turn the crank and it hums along.", "tags": ["music", "old", "loud"] },
-    { "id": "picnic-blanket", "kind": "equipment", "name": "checkered picnic blanket",
-      "desc": "Red and white squares, a few crumbs that might be older than you.", "tags": ["cozy", "soft", "food"] },
-    { "id": "seed-pouch", "kind": "equipment", "name": "pouch of seeds",
-      "desc": "Seeds from every garden world so far, each wrapped in paper with a careful label.", "tags": ["green", "keepsake"] },
-    { "id": "spyglass", "kind": "equipment", "name": "long brass spyglass",
-      "desc": "Pulls out to the length of an arm. Makes everyone holding it look like a pirate.", "tags": ["far-sight", "shiny", "old"] },
-    { "id": "rope-coil", "kind": "equipment", "name": "coil of climbing rope",
-      "desc": "Blue and frayed at one end. Has seen a lot of cliffs and a couple of trees.", "tags": ["tool", "brave"] },
-    { "id": "music-box", "kind": "equipment", "name": "tiny music box",
-      "desc": "Plays seven notes, then stops, as if it's waiting for an answer.", "tags": ["music", "keepsake", "odd"] },
-    { "id": "pocket-stove", "kind": "equipment", "name": "folding camp stove",
-      "desc": "Makes one pot of soup at a time and a lot of very satisfying clicking noises.", "tags": ["food", "warm", "tool"] },
-
-    { "id": "curious", "kind": "trait", "name": "curious",
-      "desc": "Has never once walked past a strange rock without turning it over.", "tags": ["curious"] },
-    { "id": "nervous", "kind": "trait", "name": "nervous",
-      "desc": "Jumps at small noises, but always comes back to see what made them.", "tags": ["nervous"] },
-    { "id": "gentle", "kind": "trait", "name": "gentle",
-      "desc": "Talks to plants, animals and machines in the same soft voice.", "tags": ["kind"] },
-    { "id": "grumpy", "kind": "trait", "name": "grumpy",
-      "desc": "Complains about every planet, then writes the longest log entries about them.", "tags": ["grumpy"] },
-    { "id": "brave", "kind": "trait", "name": "brave",
-      "desc": "First out of the airlock, every time. Sometimes before it has finished opening.", "tags": ["brave"] },
-    { "id": "dreamy", "kind": "trait", "name": "dreamy",
-      "desc": "Often staring out of a window. Says they're thinking. They are, mostly about clouds.", "tags": ["dreamy"] },
-    { "id": "tidy", "kind": "trait", "name": "tidy",
-      "desc": "Labels everything. Has labelled the labels. Knows where every spoon is.", "tags": ["tidy"] },
-    { "id": "funny", "kind": "trait", "name": "funny",
-      "desc": "Can make anyone laugh, including people who were very busy being upset.", "tags": ["funny"] },
-    { "id": "sleepy", "kind": "trait", "name": "sleepy",
-      "desc": "Can nap anywhere, at any angle, during any amount of noise.", "tags": ["sleepy"] },
-    { "id": "hungry", "kind": "trait", "name": "always hungry",
-      "desc": "Has a snack. Has another snack for later. Is thinking about a third snack.", "tags": ["hungry"] },
-    { "id": "talkative", "kind": "trait", "name": "talkative",
-      "desc": "Will tell you about their day, your day, and several days that happened to other people.", "tags": ["talkative"] },
-    { "id": "quiet", "kind": "trait", "name": "quiet",
-      "desc": "Says very little, notices everything, and leaves small useful things where you'll find them.", "tags": ["quiet", "kind"] },
-    { "id": "romantic", "kind": "trait", "name": "romantic",
-      "desc": "Thinks every sunset is the best sunset. Is usually right.", "tags": ["dreamy", "kind"] },
-    { "id": "stubborn", "kind": "trait", "name": "stubborn",
-      "desc": "Once they've decided something, the universe can either agree or wait.", "tags": ["stubborn", "brave"] },
-    { "id": "collector", "kind": "trait", "name": "collector",
-      "desc": "Pockets full of pebbles, feathers, bolts and one button from every world.", "tags": ["curious", "keepsake"] },
-    { "id": "superstitious", "kind": "trait", "name": "superstitious",
-      "desc": "Knocks on the hull for luck and never, ever whistles on a Tuesday.", "tags": ["nervous", "odd"] }
+    {
+      "id": "patched-scarf",
+      "kind": "clothing",
+      "name": "patched scarf",
+      "desc": "Knitted by someone who loved you, mended by someone who didn't know how.",
+      "tags": [
+        "warm",
+        "soft",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "yellow-raincoat",
+      "kind": "clothing",
+      "name": "yellow raincoat",
+      "desc": "Bright enough to find you in any storm. The pockets are full of old wrappers.",
+      "tags": [
+        "waterproof",
+        "bright"
+      ]
+    },
+    {
+      "id": "mirror-visor",
+      "kind": "clothing",
+      "name": "mirrored visor",
+      "desc": "Everyone you talk to sees themselves in it, which makes some of them nervous.",
+      "tags": [
+        "shiny",
+        "odd"
+      ]
+    },
+    {
+      "id": "moss-boots",
+      "kind": "clothing",
+      "name": "moss-green boots",
+      "desc": "Soft soles that never squeak. Small plants keep trying to grow on them.",
+      "tags": [
+        "quiet",
+        "green"
+      ]
+    },
+    {
+      "id": "flight-jacket",
+      "kind": "clothing",
+      "name": "old flight jacket",
+      "desc": "Cracked leather and a patch from a squadron nobody remembers. It still smells faintly of engine oil.",
+      "tags": [
+        "warm",
+        "old"
+      ]
+    },
+    {
+      "id": "star-sweater",
+      "kind": "clothing",
+      "name": "sweater with stars on it",
+      "desc": "Hand-knitted. The constellations are wrong, but they're wrong in a very confident way.",
+      "tags": [
+        "warm",
+        "soft",
+        "cozy"
+      ]
+    },
+    {
+      "id": "bucket-hat",
+      "kind": "clothing",
+      "name": "floppy bucket hat",
+      "desc": "Keeps the sun off and the dignity low. Has a small pin shaped like a mushroom.",
+      "tags": [
+        "sunny",
+        "silly"
+      ]
+    },
+    {
+      "id": "mechanic-overalls",
+      "kind": "clothing",
+      "name": "grease-stained overalls",
+      "desc": "More pockets than anyone could need. One of them rattles and nobody knows why.",
+      "tags": [
+        "work",
+        "pockets"
+      ]
+    },
+    {
+      "id": "silver-cloak",
+      "kind": "clothing",
+      "name": "silver travel cloak",
+      "desc": "It ripples even when there's no wind, and catches starlight like water.",
+      "tags": [
+        "shiny",
+        "fancy"
+      ]
+    },
+    {
+      "id": "knit-mittens",
+      "kind": "clothing",
+      "name": "mismatched mittens",
+      "desc": "One red, one blue. The other two are out there somewhere, also mismatched.",
+      "tags": [
+        "warm",
+        "soft",
+        "silly"
+      ]
+    },
+    {
+      "id": "lab-coat",
+      "kind": "clothing",
+      "name": "lab coat with a coffee stain",
+      "desc": "The stain is shaped like a small continent. It has been named.",
+      "tags": [
+        "science",
+        "work"
+      ]
+    },
+    {
+      "id": "rain-poncho",
+      "kind": "clothing",
+      "name": "see-through poncho",
+      "desc": "Folds into a pouch the size of an apple. Unfolding it takes ten minutes and a lot of patience.",
+      "tags": [
+        "waterproof",
+        "light-weight"
+      ]
+    },
+    {
+      "id": "beaded-necklace",
+      "kind": "clothing",
+      "name": "beaded necklace",
+      "desc": "Every bead is from a different world. A few of them are probably just candy.",
+      "tags": [
+        "shiny",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "thick-goggles",
+      "kind": "clothing",
+      "name": "thick brass goggles",
+      "desc": "Make everything look slightly orange and slightly more dramatic.",
+      "tags": [
+        "shiny",
+        "old",
+        "far-sight"
+      ]
+    },
+    {
+      "id": "spacer-boots",
+      "kind": "clothing",
+      "name": "magnetic spacer boots",
+      "desc": "Clunk. Clunk. Clunk. You can always hear them coming down the corridor.",
+      "tags": [
+        "loud",
+        "work"
+      ]
+    },
+    {
+      "id": "flower-crown",
+      "kind": "clothing",
+      "name": "flower crown",
+      "desc": "Woven from flowers of three different planets. They keep blooming, somehow.",
+      "tags": [
+        "green",
+        "fancy",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "night-cap",
+      "kind": "clothing",
+      "name": "striped night cap",
+      "desc": "Worn at all hours, not only at night. There's a little bell on the end.",
+      "tags": [
+        "cozy",
+        "silly",
+        "soft"
+      ]
+    },
+    {
+      "id": "diving-suit",
+      "kind": "clothing",
+      "name": "patched diving suit",
+      "desc": "Built for oceans on worlds where the water is something else entirely.",
+      "tags": [
+        "waterproof",
+        "old"
+      ]
+    },
+    {
+      "id": "poet-shirt",
+      "kind": "clothing",
+      "name": "billowy poet's shirt",
+      "desc": "Far too dramatic for the ship. Perfect for standing on cliffs.",
+      "tags": [
+        "fancy"
+      ]
+    },
+    {
+      "id": "reflective-vest",
+      "kind": "clothing",
+      "name": "reflective safety vest",
+      "desc": "Bright orange with silver stripes. Nobody has ever been run over while wearing it.",
+      "tags": [
+        "bright",
+        "shiny",
+        "work"
+      ]
+    },
+    {
+      "id": "brass-lantern",
+      "kind": "equipment",
+      "name": "brass lantern",
+      "desc": "Older than the ship. It burns with a small, steady, honey-coloured flame.",
+      "tags": [
+        "light",
+        "shiny",
+        "old"
+      ]
+    },
+    {
+      "id": "pocket-telescope",
+      "kind": "equipment",
+      "name": "pocket telescope",
+      "desc": "Folds down to the size of a pencil. The lens has one tiny scratch shaped like a bird.",
+      "tags": [
+        "far-sight",
+        "old"
+      ]
+    },
+    {
+      "id": "sketchbook",
+      "kind": "equipment",
+      "name": "sketchbook",
+      "desc": "Half full of planets you've seen and half full of ones you made up.",
+      "tags": [
+        "art",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "thermos",
+      "kind": "equipment",
+      "name": "dented thermos",
+      "desc": "Keeps tea hot for exactly as long as a study session.",
+      "tags": [
+        "warm",
+        "food"
+      ]
+    },
+    {
+      "id": "field-journal",
+      "kind": "equipment",
+      "name": "field journal",
+      "desc": "Water-stained, with pressed leaves between the pages and a pencil tied to the spine.",
+      "tags": [
+        "science",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "harmonica",
+      "kind": "equipment",
+      "name": "harmonica",
+      "desc": "Knows three songs. Plays them all slightly too slowly.",
+      "tags": [
+        "music",
+        "loud"
+      ]
+    },
+    {
+      "id": "rock-hammer",
+      "kind": "equipment",
+      "name": "geologist's hammer",
+      "desc": "Small, sharp and very good at finding out what's inside things.",
+      "tags": [
+        "tool",
+        "science"
+      ]
+    },
+    {
+      "id": "sample-jars",
+      "kind": "equipment",
+      "name": "set of sample jars",
+      "desc": "Twelve little glass jars in a padded case. Two of them are full of something that hums.",
+      "tags": [
+        "science",
+        "odd"
+      ]
+    },
+    {
+      "id": "compass",
+      "kind": "equipment",
+      "name": "compass that points somewhere",
+      "desc": "It doesn't point north. It points somewhere, and it's very sure about it.",
+      "tags": [
+        "odd",
+        "old",
+        "far-sight"
+      ]
+    },
+    {
+      "id": "kite",
+      "kind": "equipment",
+      "name": "folding kite",
+      "desc": "Bright paper and a spool of silver string. Flies best in thin air.",
+      "tags": [
+        "bright",
+        "silly"
+      ]
+    },
+    {
+      "id": "camera",
+      "kind": "equipment",
+      "name": "instant camera",
+      "desc": "Spits out a little square photo with a whirr. The colours always come out a bit too warm.",
+      "tags": [
+        "art",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "multitool",
+      "kind": "equipment",
+      "name": "chunky multitool",
+      "desc": "Has a blade, pliers, three screwdrivers and one tool nobody has identified.",
+      "tags": [
+        "tool",
+        "work"
+      ]
+    },
+    {
+      "id": "glow-sticks",
+      "kind": "equipment",
+      "name": "bundle of glow sticks",
+      "desc": "Crack one and the dark turns green, pink or blue. Mostly green.",
+      "tags": [
+        "light",
+        "bright",
+        "silly"
+      ]
+    },
+    {
+      "id": "old-radio",
+      "kind": "equipment",
+      "name": "hand-crank radio",
+      "desc": "Picks up music from nowhere in particular. Turn the crank and it hums along.",
+      "tags": [
+        "music",
+        "old",
+        "loud"
+      ]
+    },
+    {
+      "id": "picnic-blanket",
+      "kind": "equipment",
+      "name": "checkered picnic blanket",
+      "desc": "Red and white squares, a few crumbs that might be older than you.",
+      "tags": [
+        "cozy",
+        "soft",
+        "food"
+      ]
+    },
+    {
+      "id": "seed-pouch",
+      "kind": "equipment",
+      "name": "pouch of seeds",
+      "desc": "Seeds from every garden world so far, each wrapped in paper with a careful label.",
+      "tags": [
+        "green",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "spyglass",
+      "kind": "equipment",
+      "name": "long brass spyglass",
+      "desc": "Pulls out to the length of an arm. Makes everyone holding it look like a pirate.",
+      "tags": [
+        "far-sight",
+        "shiny",
+        "old"
+      ]
+    },
+    {
+      "id": "rope-coil",
+      "kind": "equipment",
+      "name": "coil of climbing rope",
+      "desc": "Blue and frayed at one end. Has seen a lot of cliffs and a couple of trees.",
+      "tags": [
+        "tool",
+        "brave"
+      ]
+    },
+    {
+      "id": "music-box",
+      "kind": "equipment",
+      "name": "tiny music box",
+      "desc": "Plays seven notes, then stops, as if it's waiting for an answer.",
+      "tags": [
+        "music",
+        "keepsake",
+        "odd"
+      ]
+    },
+    {
+      "id": "pocket-stove",
+      "kind": "equipment",
+      "name": "folding camp stove",
+      "desc": "Makes one pot of soup at a time and a lot of very satisfying clicking noises.",
+      "tags": [
+        "food",
+        "warm",
+        "tool"
+      ]
+    },
+    {
+      "id": "curious",
+      "kind": "trait",
+      "name": "curious",
+      "desc": "Has never once walked past a strange rock without turning it over.",
+      "tags": [
+        "curious"
+      ]
+    },
+    {
+      "id": "nervous",
+      "kind": "trait",
+      "name": "nervous",
+      "desc": "Jumps at small noises, but always comes back to see what made them.",
+      "tags": [
+        "nervous"
+      ]
+    },
+    {
+      "id": "gentle",
+      "kind": "trait",
+      "name": "gentle",
+      "desc": "Talks to plants, animals and machines in the same soft voice.",
+      "tags": [
+        "kind"
+      ]
+    },
+    {
+      "id": "grumpy",
+      "kind": "trait",
+      "name": "grumpy",
+      "desc": "Complains about every planet, then writes the longest log entries about them.",
+      "tags": [
+        "grumpy"
+      ]
+    },
+    {
+      "id": "brave",
+      "kind": "trait",
+      "name": "brave",
+      "desc": "First out of the airlock, every time. Sometimes before it has finished opening.",
+      "tags": [
+        "brave"
+      ]
+    },
+    {
+      "id": "dreamy",
+      "kind": "trait",
+      "name": "dreamy",
+      "desc": "Often staring out of a window. Says they're thinking. They are, mostly about clouds.",
+      "tags": [
+        "dreamy"
+      ]
+    },
+    {
+      "id": "tidy",
+      "kind": "trait",
+      "name": "tidy",
+      "desc": "Labels everything. Has labelled the labels. Knows where every spoon is.",
+      "tags": [
+        "tidy"
+      ]
+    },
+    {
+      "id": "funny",
+      "kind": "trait",
+      "name": "funny",
+      "desc": "Can make anyone laugh, including people who were very busy being upset.",
+      "tags": [
+        "funny"
+      ]
+    },
+    {
+      "id": "sleepy",
+      "kind": "trait",
+      "name": "sleepy",
+      "desc": "Can nap anywhere, at any angle, during any amount of noise.",
+      "tags": [
+        "sleepy"
+      ]
+    },
+    {
+      "id": "hungry",
+      "kind": "trait",
+      "name": "always hungry",
+      "desc": "Has a snack. Has another snack for later. Is thinking about a third snack.",
+      "tags": [
+        "hungry"
+      ]
+    },
+    {
+      "id": "talkative",
+      "kind": "trait",
+      "name": "talkative",
+      "desc": "Will tell you about their day, your day, and several days that happened to other people.",
+      "tags": [
+        "talkative"
+      ]
+    },
+    {
+      "id": "quiet",
+      "kind": "trait",
+      "name": "quiet",
+      "desc": "Says very little, notices everything, and leaves small useful things where you'll find them.",
+      "tags": [
+        "quiet",
+        "kind"
+      ]
+    },
+    {
+      "id": "romantic",
+      "kind": "trait",
+      "name": "romantic",
+      "desc": "Thinks every sunset is the best sunset. Is usually right.",
+      "tags": [
+        "dreamy",
+        "kind"
+      ]
+    },
+    {
+      "id": "stubborn",
+      "kind": "trait",
+      "name": "stubborn",
+      "desc": "Once they've decided something, the universe can either agree or wait.",
+      "tags": [
+        "stubborn",
+        "brave"
+      ]
+    },
+    {
+      "id": "collector",
+      "kind": "trait",
+      "name": "collector",
+      "desc": "Pockets full of pebbles, feathers, bolts and one button from every world.",
+      "tags": [
+        "curious",
+        "keepsake"
+      ]
+    },
+    {
+      "id": "superstitious",
+      "kind": "trait",
+      "name": "superstitious",
+      "desc": "Knocks on the hull for luck and never, ever whistles on a Tuesday.",
+      "tags": [
+        "nervous",
+        "odd"
+      ]
+    },
+    {
+      "id": "ship-telescope",
+      "kind": "ship",
+      "name": "brass observatory telescope",
+      "desc": "Bolted to the observation deck, polished every week, pointed at whatever looks lonely.",
+      "tags": [
+        "telescope",
+        "far-sight"
+      ]
+    },
+    {
+      "id": "ship-records",
+      "kind": "ship",
+      "name": "record player and a crate of records",
+      "desc": "Crackly songs from a dozen worlds. One of them skips, and everyone knows exactly where.",
+      "tags": [
+        "records",
+        "music"
+      ]
+    },
+    {
+      "id": "ship-garden",
+      "kind": "ship",
+      "name": "little garden in the hold",
+      "desc": "Planters, a sun lamp and seeds from every world that let you take some.",
+      "tags": [
+        "garden",
+        "green"
+      ]
+    },
+    {
+      "id": "ship-books",
+      "kind": "ship",
+      "name": "reading nook",
+      "desc": "A corner full of cushions, a lamp and a shelf of books that never stays tidy.",
+      "tags": [
+        "books",
+        "cozy"
+      ]
+    },
+    {
+      "id": "ship-stove",
+      "kind": "ship",
+      "name": "big cast-iron stove",
+      "desc": "Heavy, black and always warm. It makes the galley the best room on the ship.",
+      "tags": [
+        "stove",
+        "food",
+        "warm"
+      ]
+    },
+    {
+      "id": "ship-games",
+      "kind": "ship",
+      "name": "game table",
+      "desc": "Cards, dice, a board game with half its pieces, and a strict rule about sore losers.",
+      "tags": [
+        "games",
+        "silly"
+      ]
+    },
+    {
+      "id": "ship-hammocks",
+      "kind": "ship",
+      "name": "hammocks in the hold",
+      "desc": "Strung between the cargo racks. The best naps on the ship happen here.",
+      "tags": [
+        "hammocks",
+        "cozy",
+        "soft"
+      ]
+    }
   ]
 }

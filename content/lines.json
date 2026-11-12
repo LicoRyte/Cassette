@@ -21,7 +21,8 @@
     "",
     "Groups with the same name in different files are joined, so you can make a new file in content/ for your own lines",
     "(add it to CONTENT_FILES in js/boot.js). Try lines in tools/text-preview.html.",
-    "Biomes are often plural (\"rust plains\"), so don't put a verb or \"a\" straight after {biome}: write \"the light over the {biome} turns\", not \"the {biome} turns\"."
+    "Biomes are often plural (\"rust plains\"), so don't put a verb or \"a\" straight after {biome}: write \"the light over the {biome} turns\", not \"the {biome} turns\".",
+    "crew_pair lines have two people: {crew} and {other} (both work like {crew}). bond is how many study sessions they've shared: \"bond\": \"<4\" for near-strangers, \">15\" for old friends."
   ],
   "lines": {
     "arrive": [
@@ -324,6 +325,55 @@
           "crew.tags": "dreamy"
         },
         "weight": 2
+      },
+      {
+        "text": "{Crew} spends the evening at the telescope, naming craters on a moon nobody else can see yet.",
+        "when": {
+          "shipTags": "telescope"
+        },
+        "weight": 2
+      },
+      {
+        "text": "The record player is going, and {crew} is dancing in the corridor like nobody's watching. Everybody's watching.",
+        "when": {
+          "shipTags": "records"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} waters the little garden in the hold and talks to each plant by name.",
+        "when": {
+          "shipTags": "garden"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} curls up in the reading nook with a book about a world nobody has found yet.",
+        "when": {
+          "shipTags": "books"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} cooks something slow on the big stove, and the whole ship smells like home.",
+        "when": {
+          "shipTags": "stove"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} wins three games in a row at the game table and is no longer allowed to pick the game.",
+        "when": {
+          "shipTags": "games"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} sways gently in a hammock in the hold, half asleep, half watching the stars.",
+        "when": {
+          "shipTags": "hammocks"
+        },
+        "weight": 2
       }
     ],
     "arrive_crew": [
@@ -362,6 +412,86 @@
           "crew.gearTags": "far-sight"
         },
         "weight": 2
+      }
+    ],
+    "crew_pair": [
+      "{Crew} and {other} split the last biscuit exactly in half. It takes a while.",
+      "{Crew} teaches {other} a card game. {Other} wins every round and pretends to be surprised.",
+      "{Crew} and {other} sit at the window and don't say much. They don't need to.",
+      "{Other} finds {crew} asleep at the console and puts a blanket over {crew.them}.",
+      "{Crew} and {other} argue about the best planet so far. Neither of them wins. Both of them enjoy it.",
+      {
+        "text": "{Crew} and {other} are still polite with each other. Very polite. Extremely polite.",
+        "when": {
+          "bond": "<4"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} asks {other} where {other.they} grew up. The answer takes all evening.",
+        "when": {
+          "bond": "<8"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} and {other} have a joke now that nobody else understands. It involves a spoon.",
+        "when": {
+          "bond": ">12"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} saves {other} the good mug without being asked. {Other} notices. {Other} always notices.",
+        "when": {
+          "bond": ">15"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} and {other} finish each other's sentences now. It's a little annoying. Everyone loves it.",
+        "when": {
+          "bond": ">25"
+        },
+        "weight": 3
+      },
+      {
+        "text": "{Other} jumps at a noise, and {crew} is already there, laughing, holding out a cup of tea.",
+        "when": {
+          "other.tags": "nervous",
+          "bond": ">8"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} grumbles about {other}'s humming. Later {crew} is caught humming the same tune.",
+        "when": {
+          "crew.tags": "grumpy"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} tells {other} the worst joke on the ship. {Other} laughs so hard {other.they} {other:has|have} to sit down.",
+        "when": {
+          "crew.tags": "funny"
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} borrows {other}'s {other.gear} and gives it back slightly better than before.",
+        "when": {
+          "crew.tags": [
+            "tidy",
+            "kind"
+          ]
+        },
+        "weight": 2
+      },
+      {
+        "text": "{Crew} and {other} swap {crew.wear} and {other.wear} for a day, just to see. It suits them both.",
+        "when": {
+          "bond": ">10"
+        }
       }
     ]
   }

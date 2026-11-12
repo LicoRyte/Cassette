@@ -12,7 +12,10 @@ const pk2 = (a, r) => a[Math.floor((r || Math.random)() * a.length)];
 // the captain is S.me (their name stays in S.pilot.name, which the title sequence asks for)
 if (!S.me) S.me = {};
 if (!Array.isArray(S.stash)) S.stash = []; // item ids nobody is using
+if (!Array.isArray(S.shipGear)) S.shipGear = []; // ship equipment (items.json, kind "ship")
+if (!S.bond) S.bond = {}; // how many study sessions each pair has shared (never shown: it only changes how they talk)
 function fillPerson(p, r) { // give anyone missing a detail something sensible
+  if (!p.id) p.id = p === S.me ? 'me' : 'p' + Date.now().toString(36) + Math.floor((r || Math.random)() * 1e6).toString(36);
   if (!PRONOUNS.includes(p.pronouns)) p.pronouns = 'they';
   if (p.age == null || p.age === '') p.age = 20 + Math.floor((r || Math.random)() * 45);
   if (!p.role) p.role = pk2(PROFESSIONS, r);
@@ -22,7 +25,7 @@ function fillPerson(p, r) { // give anyone missing a detail something sensible
   return p;
 }
 if (S.me.role == null) Object.assign(S.me, { role: 'Captain' });
-fillPerson(S.me);
+fillPerson(S.me); S.crew.forEach(c => fillPerson(c)); // anything new since a person was made (like ids) gets filled in
 const meName = () => (S.pilot && S.pilot.name) || 'the captain'; // stories read "the captain" until you give a name
 
 // a brand-new crew member: a random name and everything else, which you can change on the Crew page
@@ -78,14 +81,33 @@ function worldCtx(p) {
   const hrs = new Date().getHours(), x = p.x || (p.x = makeExtra(p));
   return { world: nm(p), place: nm(p), biome: (p.biomes[0] || 'plain').toLowerCase(), temp: Math.max(0, Math.min(1, (p.temp + 100) / 250)), water: (x.water || 0) / 100,
     life: Math.min(1, (p.lifeLvl || 0) / 6), ground: !gasWorld(p), weather: /rain|storm|drizzle|shower/i.test(p.weather || '') ? 'rain' : 'clear', time: hrs < 7 ? 'dawn' : hrs < 17 ? 'noon' : hrs < 21 ? 'dusk' : 'night',
-    star: p.star.startsWith('none') ? 'faraway' : p.star, type: p.type };
+    star: p.star.startsWith('none') ? 'faraway' : p.star, type: p.type, shipTags: shipTags() };
 }
 // a line about someone, with the world around them when there is one (extra: more context, like { place })
 function crewMoment(p, group, world, extra) {
   const r = Math.random, c = personCtx(p, r), it = c.item;
-  const ctx = Object.assign({ crew: c, item: it ? { name: it.name, tags: it.tags } : null, ship: S.ship.name.replace(/^The /, 'the ') }, world ? worldCtx(world) : {}, extra || {});
+  const ctx = Object.assign({ crew: c, item: it ? { name: it.name, tags: it.tags } : null, ship: S.ship.name.replace(/^The /, 'the '), shipTags: shipTags() }, world ? worldCtx(world) : {}, extra || {});
   if (!it) delete ctx.item;
   return txLine(group, ctx, r);
+}
+
+// ship equipment: 4 Knowledge points for a random piece the ship doesn't have yet
+const shipTags = () => S.shipGear.map(itemById).filter(Boolean).flatMap(it => it.tags || []);
+function craftShip() {
+  if (focusLock() || (S.kp || 0) < 4) return null;
+  const left = txItems('ship').filter(it => !S.shipGear.includes(it.id)); if (!left.length) return null;
+  const it = left[Math.floor(Math.random() * left.length)];
+  S.kp -= 4; S.shipGear.push(it.id); S.cnt.shipCrafted = (S.cnt.shipCrafted || 0) + 1;
+  pushEv({ c: 'ship', ic: '🛠', title: 'New on the ship: ' + it.name, t: capFirst(it.desc), at: Date.now() });
+  save(); return it;
+}
+// friendships: every finished study session, everyone aboard grows a little closer to everyone else
+const bondKey = (a, b) => [a.id, b.id].sort().join('|');
+function bumpBonds() { const all = [S.me].concat(S.crew); for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) { const k = bondKey(all[i], all[j]); S.bond[k] = (S.bond[k] || 0) + 1; } }
+// two people together (content/lines.json, crew_pair)
+function pairMoment(a, b, world) {
+  const ctx = Object.assign({ crew: personCtx(a), other: personCtx(b), bond: S.bond[bondKey(a, b)] || 0, ship: S.ship.name.replace(/^The /, 'the '), shipTags: shipTags() }, world ? worldCtx(world) : {});
+  return txLine('crew_pair', ctx);
 }
 
 // ---------- once: crew from before characters existed, and Knowledge points on the new small scale ----------
