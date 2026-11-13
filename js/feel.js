@@ -53,6 +53,7 @@ function feelChimeRing(high) {
 // the desk's sounds
 const DESK_SFX = {
   pick: c => { const t = c.currentTime; feelBurst(c, t, { dur: .12, f0: 2600, f1: 1800, q: .8, vol: .05, grain: 5 }); },
+  lift: c => { const t = c.currentTime; feelTone(c, t, 150 + Math.random() * 20, { dur: .07, vol: .045, to: 95 }); feelBurst(c, t, { dur: .02, type: 'lowpass', f0: 700, vol: .03 }); }, // a pinned note pulled off the board: a low, soft tock
   drop: c => { const t = c.currentTime; feelBurst(c, t, { dur: .07, type: 'lowpass', f0: 900, vol: .07 }); feelTone(c, t, 110, { dur: .06, vol: .03, to: 70 }); },
   pin: c => { const t = c.currentTime; feelTone(c, t, 2100, { dur: .03, vol: .04, to: 1300 }); feelBurst(c, t, { dur: .02, type: 'highpass', f0: 3000, vol: .03 }); },
   tie: c => { const t = c.currentTime; feelTone(c, t, 1900, { dur: .03, vol: .035, to: 1200 }); feelTone(c, t + .06, 330, { dur: .25, vol: .02, type: 'triangle', to: 300 }); }, // a pin, then the string going taut

@@ -549,7 +549,7 @@ ws.addEventListener('pointerdown', e => {
     track(ev => {
       if (!dragging) {
         if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
-        dragging = true; snap = deskSnap(); c.classList.add('lift'); // (picked up quietly)
+        dragging = true; snap = deskSnap(); c.classList.add('lift'); deskSfx('lift'); // (a low tock, like pulling it off its pin)
         const ids = new Set(picked.has(id) ? picked : [id]);
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })); // (a locked label stays behind)
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
