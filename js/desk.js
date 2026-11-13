@@ -194,7 +194,7 @@ async function deskDuplicate() { // Ctrl+D: a copy of what's picked, just beside
   }
   save(); drawBoard(); select(ids[0]); ids.slice(1).forEach(id => select(id, true)); deskSfx('pin');
 }
-function deskDelete() { if (!picked.size) return; deskMark(); deskSfx('pick'); removeItems([...picked]); select(null); save(); drawBoard(); }
+function deskDelete() { const ids = [...picked].filter(id => { const it = itemOf(id); return !(it && it.lock); }); if (!ids.length) { if (picked.size) deskToast('That label is locked'); return; } deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }
 function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
 /* ---------- what's on the desk ---------- */
@@ -243,11 +243,16 @@ function frameCard(it) { // a frame: a labelled area. Its name is the handle; th
   label.addEventListener('input', () => { it.text = label.textContent.replace(/\s+/g, ' ').slice(0, 80); save(); }); // (textContent: the name as typed, not as shown in capitals)
   const sws = el('span', { class: 'sx-frame-sw' }, ...FRAME_INKS.map(k => el('button', { type: 'button', class: 'sx-sw' + ((it.color || 'amber') === k ? ' on' : ''), style: 'background:' + inkOf(k), 'aria-label': k + ' label', title: k, onclick: () => { deskMark(); it.color = k; save(); drawBoard(); } })));
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Take the label away', title: 'Take the label away', onclick: () => removeOne(it) }, '×');
-  return el('div', { class: 'sx-bcard sx-bframe', 'data-id': it.id, style: 'left:' + it.x + 'px;top:' + it.y + 'px;width:' + it.w + 'px;height:' + it.h + 'px;--tilt:0deg;--fc:' + inkOf(it.color || 'amber') },
-    el('div', { class: 'sx-frame-h' }, ...[keyBadge(it), label, sws, x].filter(Boolean)),
+  // the lock: a locked label stays put (dragging it moves the desk instead), can't be resized, and isn't deleted with the rest
+  const lk = el('button', { type: 'button', class: 'sx-frame-lock', 'aria-pressed': String(!!it.lock), 'aria-label': it.lock ? 'Unlock the label' : 'Lock the label in place', title: it.lock ? 'Locked: click to unlock' : 'Lock it in place', onclick: () => { deskMark(); if (it.lock) delete it.lock; else it.lock = true; save(); deskSfx(it.lock ? 'pin' : 'pick'); drawBoard(); } });
+  lk.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="' + (it.lock ? 'M5.5 7V5a2.5 2.5 0 0 1 5 0v2' : 'M5.5 7V5a2.5 2.5 0 0 1 4.9-.7') + '"/></svg>';
+  return el('div', { class: 'sx-bcard sx-bframe' + (it.lock ? ' locked' : ''), 'data-id': it.id, style: 'left:' + it.x + 'px;top:' + it.y + 'px;width:' + it.w + 'px;height:' + it.h + 'px;--tilt:0deg;--fc:' + inkOf(it.color || 'amber') },
+    el('div', { class: 'sx-frame-h' }, ...[keyBadge(it), label, sws, lk, x].filter(Boolean)),
     ...['t', 'r', 'b', 'l'].map(k => el('span', { class: 'sx-fe sx-fe-' + k, title: 'Drag to move the label' })), // its edges are handles too
     el('span', { class: 'sx-resize', title: 'Drag to resize' }));
 }
+// (versions 49 and 50 lost the place of anything dragged: those come back in a neat row near the middle of their board, to be put where they belong)
+{ const lost = {}; S.board.items.forEach(it => { if (Number.isFinite(it.x) && Number.isFinite(it.y)) return; const n = lost[it.board] = (lost[it.board] || 0) + 1; it.x = -300 + ((n - 1) % 4) * 340; it.y = 260 + Math.floor((n - 1) / 4) * 300; }); if (Object.keys(lost).length) save(); }
 { const B = S.board; B.items = B.items.filter(it => it.type !== 'sticker'); B.items.forEach(it => { delete it.hold; delete it.group; delete it.on; }); } // (stickers, holders and groups were here once)
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
@@ -268,21 +273,46 @@ const posOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.of
 const wob = new Map(), lk = l => l[0] + '|' + l[1];
 const pathD = (a, b, w) => { const mx = (a.x + b.x) / 2 + (w ? w.x : 0), my = (a.y + b.y) / 2 + 36 + Math.hypot(b.x - a.x, b.y - a.y) * .15 + (w ? w.y : 0); return 'M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y; };
 let strNodes = [], strTemp = null, strTempP = null;
+// over paper a string goes faint, so the words under it stay easy to read; over the desk it stays full red.
+// (a mask: white everywhere, with a dark patch where each card is. Labels are only a light area, so they don't count)
+const strMask = document.createElementNS(SVGNS, 'mask'), strMaskG = document.createElementNS(SVGNS, 'g'), strMaskRects = new Map();
+{ strMask.id = 'sx-paper'; strMask.setAttribute('maskUnits', 'userSpaceOnUse'); Object.entries({ x: -1e6, y: -1e6, width: 2e6, height: 2e6 }).forEach(([k, v]) => strMask.setAttribute(k, v));
+  const all = document.createElementNS(SVGNS, 'rect'); Object.entries({ x: -1e6, y: -1e6, width: 2e6, height: 2e6, fill: '#fff' }).forEach(([k, v]) => all.setAttribute(k, v));
+  strMaskG.setAttribute('fill', '#4a4a4a'); strMask.append(all, strMaskG); }
+function strMaskRead() { const out = []; els.forEach((c, id) => { if (!c.classList.contains('sx-bframe')) out.push([id, c.offsetLeft, c.offsetTop, c.offsetWidth, c.offsetHeight]); }); return out; }
+function strMaskWrite(ms) {
+  const seen = new Set();
+  ms.forEach(([id, x, y, w, h]) => { seen.add(id); let r = strMaskRects.get(id);
+    if (!r) { r = document.createElementNS(SVGNS, 'rect'); r._k = ''; strMaskRects.set(id, r); strMaskG.append(r); }
+    const k = x + ',' + y + ',' + w + ',' + h; if (r._k !== k) { r._k = k; r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h); } });
+  strMaskRects.forEach((r, id) => { if (!seen.has(id)) { r.remove(); strMaskRects.delete(id); } });
+}
+// point at a card (or pick it) and its strings light up full red over everything, so you can follow where they go
+let strOver = null;
+function strHot() {
+  strNodes.forEach(n => { const on = n.l.some(id => id === strOver || picked.has(id)); if (n.hot === on) return; n.hot = on;
+    n.p.classList.toggle('hot', on); if (on) { n.p.removeAttribute('mask'); strings.append(n.p); } else { n.p.setAttribute('mask', 'url(#sx-paper)'); n.hit.after(n.p); } }); // (a lit string comes to the top of the pile)
+}
+layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); } });
+layer.addEventListener('pointerleave', () => { if (strOver) { strOver = null; strHot(); } });
+{ const selectStrBase = select; select = function () { const r = selectStrBase.apply(this, arguments); strHot(); return r; }; } // (picking a card lights its strings too)
 function drawStrings(temp) {
-  const B = B_(); strings.replaceChildren(); strNodes = []; strTempP = null; strTemp = temp || null;
+  const B = B_(); strings.replaceChildren(); strNodes = []; strMaskRects.clear(); strMaskG.replaceChildren(); strTempP = null; strTemp = temp || null;
   B.links.forEach(l => {
     if (!els.has(l[0]) || !els.has(l[1])) return;
     const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('class', 'sx-string');
     const hit = document.createElementNS(SVGNS, 'path'); hit.setAttribute('class', 'sx-string-hit');
     hit.addEventListener('pointerdown', e => e.stopPropagation());
     hit.addEventListener('click', () => { deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
-    strings.append(hit, p); strNodes.push({ l, p, hit }); });
-  strUpdate();
+    p.setAttribute('mask', 'url(#sx-paper)'); strings.append(hit, p); strNodes.push({ l, p, hit }); });
+  strings.prepend(strMask); strUpdate(); strHot();
 }
 function strUpdate() {
   // measure every end first, then redraw: measuring after each redraw would make the browser lay the page out again every time
   const ds = strNodes.map(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); return a && b ? pathD(a, b, wob.get(lk(n.l))) : null; });
+  const ms = strNodes.length ? strMaskRead() : null;
   strNodes.forEach((n, i) => { const d = ds[i]; if (d && d !== n.d) { n.d = d; n.p.setAttribute('d', d); n.hit.setAttribute('d', d); } }); // (only the strings that moved)
+  if (ms) strMaskWrite(ms);
   if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
   else if (strTempP) { strTempP.remove(); strTempP = null; }
   if (picked.size > 1) selBoxUpdate();
@@ -424,7 +454,7 @@ ws.addEventListener('pointerdown', e => {
     const id = c.dataset.id, it = itemOf(id); if (!it) return;
     const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t');
     if (txt && document.activeElement === txt) { if (!picked.has(id)) select(id); return; } // already writing in it: the pointer selects text as usual
-    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-wb-h button, .sx-hop-tabb')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
+    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }
     e.preventDefault(); c.setPointerCapture(e.pointerId);
@@ -438,6 +468,12 @@ ws.addEventListener('pointerdown', e => {
       const fin = ev => { if (over) return; over = true; cancelAnimationFrame(raf); step(); c.removeEventListener('pointermove', queue); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.removeEventListener(k, fin)); end(ev); };
       c.addEventListener('pointermove', queue); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.addEventListener(k, fin));
     };
+    if (it.lock) { // a locked label stays put: a drag on it moves the desk, a click on its name still lets you rename it
+      const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; let panned = false;
+      track(ev => { if (!panned && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 4) return; panned = true; ws.classList.add('panning'); cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeSoon(); },
+        ev => { ws.classList.remove('panning'); if (panned) { camSave(); return; } if (ev.type === 'pointerup' && txt) deskEditAt(txt, ev.clientX, ev.clientY); });
+      return;
+    }
     if (e.target.classList.contains('sx-resize')) { // the corner: make it bigger or smaller
       const w0 = c.offsetWidth, h0 = c.offsetHeight, snap = deskSnap(), fr = it.type === 'frame' || it.type === 'wb', lim = it.type === 'frame' ? [200, 6000, 140, 4000] : it.type === 'wb' ? [260, 4000, 180, 3000] : [160, 760, 90, 960];
       c.classList.add('sizing'); if (!fr) c.classList.add('sized');
@@ -463,7 +499,7 @@ ws.addEventListener('pointerdown', e => {
         if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
         dragging = true; snap = deskSnap(); c.classList.add('lift'); deskSfx('pick');
         const ids = new Set(picked.has(id) ? picked : [id]);
-        movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c).map(m => Object.assign(m, { x: m.it.x, y: m.it.y }));
+        movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })); // (a locked label stays behind)
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(++deskZ); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
       }

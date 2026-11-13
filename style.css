@@ -1140,3 +1140,19 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-cmp-tip { flex: none; margin: 0; padding: 8px 14px 10px; border-top: 1px solid #0b1a2b; font: 13px var(--ui); color: #6d8a8d; }
 @media (max-width: 640px) { .sx-cmp-cols { grid-template-columns: 1fr; overflow-y: auto; } .sx-cmp-cols > section + section { border-left: 0; border-top: 1px solid #293b49; } }
 @media (prefers-reduced-motion: reduce) { .sx-cmp { transition: none; } }
+
+/* ---------- a label's lock (js/desk.js): locked, it stays put; the padlock shows so you know why ---------- */
+.sx-frame-lock { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; background: none; color: var(--fc); opacity: 0; cursor: pointer; transition: opacity .15s, scale .15s; }
+.sx-frame-lock svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.sx-frame-lock:hover { scale: 1.15; }
+.sx-bframe.sel .sx-frame-lock, .sx-frame-h:hover .sx-frame-lock { opacity: .85; }
+.sx-bframe.locked .sx-frame-lock { opacity: 1; }
+.sx-bframe.locked .sx-frame-lock rect { fill: currentColor; }
+.sx-bframe.locked .sx-resize, .sx-bframe.locked .sx-frame-h .sx-bnote-x { display: none; }
+.sx-bframe.locked .sx-frame-h, .sx-bframe.locked .sx-fe, .sx-bframe.locked .sx-frame-t:not(:focus) { cursor: default; }
+.sx-world .sx-bcard.sx-bframe.locked { border-style: solid; border-color: color-mix(in srgb, var(--fc) 35%, transparent); }
+
+/* ---------- strings and the paper (js/desk.js): faint over a card so its words read, full red over the desk; a card you point at (or pick) lights its strings ---------- */
+.sx-string { transition: stroke-width .15s, stroke .15s; }
+.sx-string.hot { stroke: #ff3048; stroke-width: 3; }
+#app[data-strings="front"] .sx-string.hot { filter: drop-shadow(0 0 3px rgba(255, 48, 72, .55)) drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
