@@ -90,7 +90,7 @@ const backupAge = () => Math.floor((Date.now() - (S.opts.backupAt || S.opts.back
 function backupCheck() {
   if (S.opts.backupNag === false || !nudge.hidden || (S.opts.backupSnooze || 0) > Date.now()) return;
   if (running && mode === 'focus') return; // never in the middle of focusing
-  if (!S.board.items.some(it => it.type !== 'sticker') || backupAge() < 7) return;
+  if (!S.board.items.length || backupAge() < 7) return;
   const d = backupAge();
   nudgeTxt.textContent = (S.opts.backupAt ? 'Your last backup was ' + d + ' days ago.' : 'You have not saved a backup yet.') + ' Your notes and photos live only in this browser, so a backup file keeps them safe if its data is ever cleared.';
   nudge.hidden = false; requestAnimationFrame(() => nudge.classList.add('on'));

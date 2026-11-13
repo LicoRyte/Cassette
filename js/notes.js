@@ -1,5 +1,5 @@
 /* Cassette Timer: notes worth reading. A note on the desk is a small document: titles and headings, bold, italic, underline,
-   strikethrough, a highlighter, inline code, bullet, numbered and check lists, quotes; eight paper colours, six kinds of paper (lined, grid...), a text
+   strikethrough, a highlighter, inline code, bullet, numbered and check lists, quotes; eight paper colours, three kinds of paper (plain, lined, grid), a text
    size, and a corner to drag it bigger. Select a note and its toolbar sits above it. Typing shortcuts work too:
    "# " a title, "## " a heading, "- " a list, "1. " a numbered list, "[] " a checklist, "> " a quote.
    Notes are saved as a small, cleaned subset of HTML (it.html); it.text keeps the plain words for tooltips. */
@@ -182,12 +182,13 @@ function noteBarTo(id) { // the toolbar follows the selected note
   if (c) { if (noteBar.parentNode !== c) c.append(noteBar); noteBarState(); } else noteBar.remove();
 }
 
-/* ---------- paper: plain, lined, grid, dotted, an index card, a page torn from a notebook ----------
+/* ---------- paper: plain, lined or grid ----------
    The paper's lines follow the text size, so words sit on them */
-const PAPERS = [['plain', 'Plain'], ['lined', 'Lined'], ['grid', 'Grid'], ['dots', 'Dots'], ['index', 'Card'], ['torn', 'Torn']];
+const PAPERS = [['plain', 'Plain'], ['lined', 'Lined'], ['grid', 'Grid']];
+const PAPER_WAS = { dots: 'grid', index: 'lined', torn: 'lined' }; // (kinds there were once)
 function paperSet(c, it) { if (it.paper && it.paper !== 'plain') c.dataset.paper = it.paper; else delete c.dataset.paper; }
 const noteSetupPaper = noteSetup;
-noteSetup = function (it, txt, c) { noteSetupPaper(it, txt, c); delete it.fold; paperSet(c, it); }; // (fold: from a version that could fold notes)
+noteSetup = function (it, txt, c) { noteSetupPaper(it, txt, c); delete it.fold; if (PAPER_WAS[it.paper]) it.paper = PAPER_WAS[it.paper]; paperSet(c, it); }; // (fold: from a version that could fold notes)
 // the toolbar's third row: the paper
 noteBar.append(el('div', { class: 'sx-fmt-row' }, ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n))));
 noteBar.addEventListener('click', e => {
