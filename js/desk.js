@@ -299,12 +299,12 @@ var strKin; // (var: strHot can run before this line has)
 // walk the strings: with a card picked, Tab goes through every card tied to it, directly or through others, one by one.
 // It follows a string as far as it goes; at a dead end it goes back to the nearest card with a string not yet followed
 // and takes that one, until it has been everywhere. Shift+Tab steps back through the same order.
-// (where a card has several strings, it takes them in reading order: higher on the desk first, then left to right)
+// (where a card has several strings, it takes the shortest first: the nearest card, measured centre to centre)
 const walk = { root: null, order: [], at: 0 };
 function walkOrder(root) {
-  const B = B_(), seen = new Set([root]), order = [root], pos = id => { const it = itemOf(id); return it ? [it.y, it.x] : [0, 0]; };
+  const B = B_(), seen = new Set([root]), order = [root], mid = id => { const c = els.get(id); return c ? [c.offsetLeft + c.offsetWidth / 2, c.offsetTop + c.offsetHeight / 2] : [0, 0]; };
   const next = id => B.links.filter(l => l.includes(id)).map(l => l[0] === id ? l[1] : l[0]).filter(n => els.has(n) && !seen.has(n))
-    .sort((a, b) => { const p = pos(a), q = pos(b); return Math.abs(p[0] - q[0]) > 40 ? p[0] - q[0] : p[1] - q[1]; });
+    .map(n => { const p = mid(id), q = mid(n); return [n, Math.hypot(q[0] - p[0], q[1] - p[1])]; }).sort((a, b) => a[1] - b[1]).map(x => x[0]);
   const go = id => next(id).forEach(n => { if (seen.has(n)) return; seen.add(n); order.push(n); go(n); });
   go(root); return order;
 }
@@ -317,9 +317,21 @@ function strWalk(back) {
   if (i >= walk.order.length) { i = 0; deskToast('Been through all ' + walk.order.length + ': back to the start'); }
   if (i < 0) { i = walk.order.length - 1; deskToast('Back round to the last one'); }
   walk.at = i; const id = walk.order[i], it = itemOf(id), c = els.get(id); if (!it || !c) return true;
-  select(id); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); deskSfx('pick');
+  select(id); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); deskSfx('walk');
   return true;
 }
+// the sound of moving on to the next note (sfx/note-walk.mp3: loaded at the first click or key, so it's ready by the first Tab)
+let walkBuf = null, walkLoading = false;
+function walkLoad() {
+  if (walkBuf || walkLoading) return; const c = feelCtx(); if (!c) return; walkLoading = true;
+  fetch('sfx/note-walk.mp3').then(r => r.arrayBuffer()).then(b => c.decodeAudioData(b)).then(x => { walkBuf = x; }).catch(() => {}).finally(() => { walkLoading = false; });
+}
+addEventListener('pointerdown', walkLoad, { once: true }); addEventListener('keydown', walkLoad, { once: true });
+DESK_SFX.walk = c => {
+  if (!walkBuf) { walkLoad(); DESK_SFX.pick(c); return; } // (not loaded yet: a paper pick for now)
+  const s = c.createBufferSource(), g = c.createGain(); s.buffer = walkBuf; s.playbackRate.value = 1 + (Math.random() - .5) * .03; g.gain.value = .55;
+  s.connect(g).connect(soundOut(c, 'desk')); s.start();
+};
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
 // brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
 // (only when the pointer comes onto one, and only while it moves: nothing runs while the desk is still)
