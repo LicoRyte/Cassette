@@ -42,7 +42,7 @@ function wbStroke(e, surf, done) {
   show();
   done(ev => {
     const q = at(ev), last = pts[pts.length - 1]; shift = ev.shiftKey; b = q;
-    if (Math.hypot(q.x - last.x, q.y - last.y) >= 1.5 / cam.z) { pts.push(q); if (pen.t === 'pen') deskSfx('scratch'); }
+    if (Math.hypot(q.x - last.x, q.y - last.y) >= 1.5 / cam.z) { pts.push(q); }
     show();
   }, ev => {
     live.remove();

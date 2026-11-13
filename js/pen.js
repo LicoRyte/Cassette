@@ -106,7 +106,7 @@ ws.addEventListener('pointerdown', e => {
   show();
   done(ev => {
     const q = toWorld(ev.clientX, ev.clientY), last = pts[pts.length - 1]; shift = ev.shiftKey; b = q;
-    if (Math.hypot(q.x - last.x, q.y - last.y) >= 1.5 / cam.z) { pts.push(q); if (pen.t === 'pen') deskSfx('scratch'); }
+    if (Math.hypot(q.x - last.x, q.y - last.y) >= 1.5 / cam.z) { pts.push(q); }
     show();
   }, ev => {
     draft.replaceChildren();

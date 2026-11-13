@@ -59,7 +59,6 @@ const DESK_SFX = {
   tear: c => { const t = c.currentTime; feelBurst(c, t, { dur: .26, f0: 3200, f1: 800, q: 1.4, vol: .07, grain: 14 }); },
   shutter: c => { const t = c.currentTime; feelBurst(c, t, { dur: .025, type: 'highpass', f0: 2400, vol: .09 }); feelTone(c, t, 160, { dur: .04, vol: .04, to: 90 });
     feelBurst(c, t + .075, { dur: .03, type: 'highpass', f0: 2000, vol: .07 }); feelBurst(c, t + .09, { dur: .12, f0: 4000, f1: 2500, vol: .02 }); },
-  scratch: c => { const t = c.currentTime; feelBurst(c, t, { dur: .07, f0: 3400 + Math.random() * 800, q: 2.2, vol: .018, grain: 3 }); }, // a marker on paper
   back: c => { const t = c.currentTime; feelBurst(c, t, { dur: .035, type: 'lowpass', f0: 1300 + Math.random() * 300, vol: .045 }); feelTone(c, t, 125 + Math.random() * 20, { dur: .055, vol: .022, to: 80 }); }, // backspace: a duller, heavier clack
   ret: c => { const t = c.currentTime; for (let i = 0; i < 4; i++) feelBurst(c, t + i * .028, { dur: .014, type: 'highpass', f0: 2600 + i * 180, vol: .02 - i * .003 }); // the carriage return: a quick ratchet...
     feelTone(c, t + .13, 2093, { dur: .5, vol: .012, attack: .004 }); feelTone(c, t + .13, 4186, { dur: .25, vol: .004, attack: .004 }); }, // ...and a faint bell
