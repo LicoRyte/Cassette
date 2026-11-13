@@ -317,21 +317,9 @@ function strWalk(back) {
   if (i >= walk.order.length) { i = 0; deskToast('Been through all ' + walk.order.length + ': back to the start'); }
   if (i < 0) { i = walk.order.length - 1; deskToast('Back round to the last one'); }
   walk.at = i; const id = walk.order[i], it = itemOf(id), c = els.get(id); if (!it || !c) return true;
-  select(id); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); deskSfx('walk');
+  select(id); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); // (quietly)
   return true;
 }
-// the sound of moving on to the next note (sfx/note-walk.mp3: loaded at the first click or key, so it's ready by the first Tab)
-let walkBuf = null, walkLoading = false;
-function walkLoad() {
-  if (walkBuf || walkLoading) return; const c = feelCtx(); if (!c) return; walkLoading = true;
-  fetch('sfx/note-walk.mp3').then(r => r.arrayBuffer()).then(b => c.decodeAudioData(b)).then(x => { walkBuf = x; }).catch(() => {}).finally(() => { walkLoading = false; });
-}
-addEventListener('pointerdown', walkLoad, { once: true }); addEventListener('keydown', walkLoad, { once: true });
-DESK_SFX.walk = c => {
-  if (!walkBuf) { walkLoad(); DESK_SFX.pick(c); return; } // (not loaded yet: a paper pick for now)
-  const s = c.createBufferSource(), g = c.createGain(); s.buffer = walkBuf; s.playbackRate.value = 1 + (Math.random() - .5) * .03; g.gain.value = .55;
-  s.connect(g).connect(soundOut(c, 'desk')); s.start();
-};
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
 // brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
 // (only when the pointer comes onto one, and only while it moves: nothing runs while the desk is still)
