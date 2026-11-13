@@ -296,24 +296,28 @@ function strHot() {
   kin.forEach(id => { const c = els.get(id); if (c && !c.classList.contains('kin')) c.classList.add('kin'); }); strKin = kin;
 }
 var strKin; // (var: strHot can run before this line has)
-// walk the strings: with a card picked, Tab glides to the next card tied to it (one you haven't been to on this walk),
-// then on from there, like flipping through a chain of flashcards; Shift+Tab steps back the way you came
-const walk = { path: [], at: 0 };
+// walk the strings: with a card picked, Tab goes through every card tied to it, directly or through others, one by one.
+// It follows a string as far as it goes; at a dead end it goes back to the nearest card with a string not yet followed
+// and takes that one, until it has been everywhere. Shift+Tab steps back through the same order.
+// (where a card has several strings, it takes them in reading order: higher on the desk first, then left to right)
+const walk = { root: null, order: [], at: 0 };
+function walkOrder(root) {
+  const B = B_(), seen = new Set([root]), order = [root], pos = id => { const it = itemOf(id); return it ? [it.y, it.x] : [0, 0]; };
+  const next = id => B.links.filter(l => l.includes(id)).map(l => l[0] === id ? l[1] : l[0]).filter(n => els.has(n) && !seen.has(n))
+    .sort((a, b) => { const p = pos(a), q = pos(b); return Math.abs(p[0] - q[0]) > 40 ? p[0] - q[0] : p[1] - q[1]; });
+  const go = id => next(id).forEach(n => { if (seen.has(n)) return; seen.add(n); order.push(n); go(n); });
+  go(root); return order;
+}
 function strWalk(back) {
-  const cur = selId, B = B_();
-  if (walk.path[walk.at] !== cur) { walk.path = [cur]; walk.at = 0; } // (a new walk starts from wherever you are)
-  let next;
-  if (back) { if (!walk.at) { deskToast('This is where the walk started'); return true; } next = walk.path[--walk.at]; }
-  else {
-    const ns = B.links.filter(l => l.includes(cur)).map(l => l[0] === cur ? l[1] : l[0]).filter(id => els.has(id));
-    if (!ns.length) return false; // (nothing tied to it: Tab does what it usually does)
-    const prev = walk.path[walk.at - 1], fresh = ns.filter(id => !walk.path.includes(id)), more = ns.filter(id => id !== prev);
-    next = fresh[0] || more[0];
-    if (!next) { deskToast('End of the string'); return true; }
-    walk.path = walk.path.slice(0, walk.at + 1).concat(next); walk.at++;
-  }
-  const it = itemOf(next), c = els.get(next); if (!it || !c) return true;
-  select(next); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); deskSfx('pick');
+  const cur = selId;
+  if (walk.order[walk.at] !== cur) { walk.root = cur; walk.order = walkOrder(cur); walk.at = 0; } // (a new walk starts from wherever you are)
+  else { const o = walkOrder(walk.root), i = o.indexOf(cur); if (i >= 0) { walk.order = o; walk.at = i; } } // (strings tied or cut since: the order follows)
+  if (walk.order.length < 2) return false; // (nothing tied to it: Tab does what it usually does)
+  let i = walk.at + (back ? -1 : 1);
+  if (i >= walk.order.length) { i = 0; deskToast('Been through all ' + walk.order.length + ': back to the start'); }
+  if (i < 0) { i = walk.order.length - 1; deskToast('Back round to the last one'); }
+  walk.at = i; const id = walk.order[i], it = itemOf(id), c = els.get(id); if (!it || !c) return true;
+  select(id); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); deskSfx('pick');
   return true;
 }
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
