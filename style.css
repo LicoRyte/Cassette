@@ -1129,3 +1129,34 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-libbox .sx-lib li:hover .sx-add-b, .sx-libbox .sx-lib li:hover .btn.sx-trk-del, .sx-libbox .sx-lib li .btn.sx-trk-del.arm, .sx-mixbox .sx-trks li:hover .sx-trk-x { display: inline-block; }
 .sx-libbox .sx-lib li:hover .sx-on-tag { display: none; }
 .sx-mixbox .sx-trks { margin: 0; }
+
+/* the Remember card drops down under its key at the top left */
+.sx-recall { left: max(16px, env(safe-area-inset-left)); top: 62px; bottom: auto; z-index: 8; transform: translateY(-8px); }
+.sx-recall.on { transform: none; }
+
+/* Remembered: a key at the top left with a count, and the collection dropping down under it */
+.sx-mem-b { display: inline-flex; align-items: center; gap: 6px; }
+.sx-mem-n { min-width: 18px; height: 16px; padding: 0 5px; border-radius: 8px; background: var(--deck); color: #030710; font: 700 10px/16px var(--ui); letter-spacing: 0; text-align: center; }
+.sx-mem-n[hidden] { display: none; }
+.sx-mem-b.got { animation: sx-memgot .6s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes sx-memgot { 0% { transform: translateY(0); } 30% { transform: translateY(4px) scale(1.08); } 100% { transform: none; } }
+.sx-mem { position: fixed; left: max(16px, env(safe-area-inset-left)); top: 62px; z-index: 8; display: flex; flex-direction: column; width: min(420px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 160px)); background: #030710; border: 1px solid #293b49; border-top: 3px solid var(--deck); box-shadow: 0 12px 30px rgba(3, 7, 16, .7); transform: translateY(-8px); opacity: 0; transition: transform .2s ease-out, opacity .2s; }
+.sx-mem.on { transform: none; opacity: 1; }
+.sx-mem[hidden] { display: none; }
+.sx-mem-top { display: flex; align-items: center; gap: 8px; flex: none; padding: 10px 12px; border-bottom: 1px solid #0b1a2b; }
+.sx-mem-top h3 { margin: 0; font: 700 13px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--deck); }
+.sx-mem .sx-ws-b { height: 28px; padding: 0 10px 1px; background: none; border: 1.5px solid currentColor; border-radius: 3px; color: var(--deck); font: 700 11px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.sx-mem-l { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #293b49 transparent; padding: 4px 12px; }
+.sx-mem-i { padding: 10px 0; border-bottom: 1px solid #0b1a2b; }
+.sx-mem-i:last-child { border-bottom: 0; }
+.sx-mem-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sx-mem-h b { font: 600 14px var(--ui); color: #ffffe4; }
+.sx-mem-h span { flex: none; font: 11px var(--ui); letter-spacing: .06em; color: #6d8a8d; }
+.sx-mem-i p { margin: 4px 0 6px; font: 14px/1.45 var(--text); color: #bfc3c6; white-space: pre-wrap; }
+.sx-mem-a { display: flex; gap: 12px; }
+.sx-mem .sx-mem-ab, .sx-mem .btn.sx-mem-ab { padding: 0; background: none; border: 0; color: #6d8a8d; font: 600 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.sx-mem .sx-mem-ab:hover { color: #ffdaac; }
+.sx-mem .btn.sx-mem-del:hover, .sx-mem .btn.sx-mem-del.arm { color: #ff6157; }
+.sx-mem-empty { margin: 0; padding: 16px 14px; font-size: 14px; line-height: 1.45; }
+#app.paged ~ .sx-mem { display: none; }
+@media (prefers-reduced-motion: reduce) { .sx-mem { transition: none; } .sx-mem-b.got { animation: none; } }
