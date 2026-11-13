@@ -29,7 +29,7 @@ const MINI_CSS = `
 .mini[data-clock="last"] .mini-time { color: #ffdaac; }
 @media (prefers-reduced-motion: reduce) { .mini.run .mini-reel svg { animation: none; } }`;
 const MINI_REEL = '<svg viewBox="-18 -18 36 36"><circle r="16" fill="none" stroke="currentColor" stroke-width="2"/><circle r="9" fill="#73392e"/><circle r="4" fill="#030710" stroke="currentColor" stroke-width="1.5"/><path d="M0-4V-8M3.5 2L6.9 4M-3.5 2L-6.9 4" stroke="currentColor" stroke-width="1.6"/></svg>';
-const MINI_ICON = { play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>', pause: '<svg viewBox="0 0 24 24"><path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/></svg>', rew: '<svg viewBox="0 0 24 24"><path d="M11.5 6v12L3.5 12zM20.5 6v12l-8-6z"/></svg>' };
+const MINI_ICON = { play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>', pause: '<svg viewBox="0 0 24 24"><path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/></svg>', rew: '<svg viewBox="0 0 24 24"><path d="M11.5 6v12L3.5 12zM20.5 6v12l-8-6z"/></svg>', next: '<svg viewBox="0 0 24 24"><path d="M3 6v12l8-6zM11 6v12l8-6zM19.5 6h2v12h-2z"/></svg>' };
 function miniDraw() {
   if (!miniWin) return; const d = miniWin.document, m = d.querySelector('.mini'); if (!m) return;
   const r = remaining(), pct = Math.min(100, Math.max(0, 100 - r / length(mode) * 100)), skin = { amber: '#ffb762', mint: '#77d6c1', coral: '#ff6157', clear: '#ffffe4' }[S.opts.skin || 'amber'];
@@ -47,10 +47,11 @@ async function miniOpen() {
   try { miniWin = await documentPictureInPicture.requestWindow({ width: 300, height: 190 }); } catch (e) { deskToast('Could not open the mini deck'); return; }
   const d = miniWin.document;
   d.head.append(Object.assign(d.createElement('style'), { textContent: MINI_CSS }));
-  d.body.innerHTML = '<div class="mini"><div class="mini-top"><b></b><span></span></div><div class="mini-mid"><span class="mini-reel">' + MINI_REEL + '</span><div class="mini-time"></div><span class="mini-reel">' + MINI_REEL + '</span></div><div class="mini-bar"><i></i></div><div class="mini-keys"><button type="button" data-k="go" aria-label="Start or pause"></button><button type="button" data-k="rew" aria-label="Rewind">' + MINI_ICON.rew + '</button></div></div>'; // (fixed markup)
+  d.body.innerHTML = '<div class="mini"><div class="mini-top"><b></b><span></span></div><div class="mini-mid"><span class="mini-reel">' + MINI_REEL + '</span><div class="mini-time"></div><span class="mini-reel">' + MINI_REEL + '</span></div><div class="mini-bar"><i></i></div><div class="mini-keys"><button type="button" data-k="go" aria-label="Start or pause"></button><button type="button" data-k="rew" aria-label="Rewind">' + MINI_ICON.rew + '</button><button type="button" data-k="next" aria-label="Next track" title="Next track (N)">' + MINI_ICON.next + '</button></div></div>'; // (fixed markup)
   d.querySelector('[data-k="go"]').addEventListener('click', () => startB.click());
+  d.querySelector('[data-k="next"]').addEventListener('click', () => nextB.click());
   const mr = d.querySelector('[data-k="rew"]'); mr.addEventListener('pointerdown', () => rewStart()); ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => mr.addEventListener(k, rewStop)); // (held, like the big one)
-  d.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); startB.click(); } else if ((e.key === 'r' || e.key === 'R') && !e.repeat) rewStart(); });
+  d.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); startB.click(); } else if ((e.key === 'r' || e.key === 'R') && !e.repeat) rewStart(); else if ((e.key === 'n' || e.key === 'N') && !e.repeat) nextB.click(); });
   d.addEventListener('keyup', e => { if (e.key === 'r' || e.key === 'R') rewStop(); });
   miniWin.addEventListener('pagehide', () => { miniWin = null; miniB.classList.remove('on'); });
   miniB.classList.add('on'); miniDraw(); deskSfx('pick');

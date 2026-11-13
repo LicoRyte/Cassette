@@ -61,6 +61,13 @@ async function nextTrack(ms) { // on to the next track: it comes in underneath w
   M.pos[s] = ((M.pos[s] || 0) + 1) % Math.max(1, M[s].length); save();
   if (await startOn(other(was), s, ms)) stopEl(was, ms); musicDraw();
 }
+// skip to the next track on the side that's playing (N, the deck's Next key, the mini deck, the cassette)
+function musicNext() {
+  const s = sideNow(); if (!M[s].length) { deskToast('Nothing on ' + SIDE_NAME[s] + ' yet: add music in Tapes'); return; }
+  if (!player.paused && player._side === s) { player._xf = true; nextTrack(700); } // it fades into the next one
+  else { M.pos[s] = ((M.pos[s] || 0) + 1) % M[s].length; save(); musicDraw(); } // (not playing: the next one is lined up)
+  const tr = M[s][(M.pos[s] || 0) % M[s].length]; if (tr) deskToast('▸ ' + tr.name);
+}
 decks.forEach(a => {
   a.addEventListener('timeupdate', () => { if (a !== player || a._xf || a.paused || !a.duration || a.duration < XF * 3 || a.duration - a.currentTime > XF) return; a._xf = true; nextTrack(XF * 1000); });
   a.addEventListener('ended', () => { if (a !== player || a._xf) return; a._xf = true; nextTrack(60); }); // (short tracks just follow on)
@@ -189,6 +196,7 @@ deskTray.prepend(tapesB);
 addEventListener('keydown', e => {
   const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code === 'KeyT') { e.preventDefault(); e.stopPropagation(); tapesOpen(tapesDrawer.hidden ? true : null); }
+  else if ((e.code === 'KeyN' || (e.key || '').toLowerCase() === 'n') && !e.shiftKey && !e.repeat) { e.preventDefault(); e.stopPropagation(); nextB.click(); }
   else if (e.key === 'Escape' && !tapesDrawer.hidden) { e.preventDefault(); e.stopPropagation(); tapesOpen(null); }
 }, true);
 
@@ -249,7 +257,7 @@ function musicDraw() {
   dropZone(libBox, null, 'L');
   if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(est => { const st = libBox.querySelector('.sx-store'); if (st && est.usage) st.textContent += ' (' + Math.round(est.usage / 1048576) + ' MB used)'; }).catch(() => {});
   const mixBox = el('section', { class: 'sx-mcol sx-mixbox' },
-    el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Mixtape'), el('span', { class: 'sx-gap' }), onB, el('label', { class: 'sx-mus-vol', title: 'Volume' }, vol)),
+    el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Mixtape'), el('span', { class: 'sx-gap' }), el('button', { type: 'button', class: 'sx-mini-b sx-nextb', title: 'Next track (N)', 'aria-label': 'Next track', onclick: () => musicNext() }, '⏭'), onB, el('label', { class: 'sx-mus-vol', title: 'Volume' }, vol)),
     el('div', { class: 'sx-mcol-b' }, mixRow, side('A'), side('B')),
     el('p', { class: 'sx-mus-note' }, 'Plays only while the timer runs. Drag to reorder, move between sides, or off.'));
   tapesMusic.replaceChildren(libBox, mixBox);

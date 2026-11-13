@@ -184,6 +184,16 @@ function selBoxUpdate() { // a dashed box around several picked things
   Object.assign(selBox.style, { left: x0 - 14 + 'px', top: y0 - 14 + 'px', width: x1 - x0 + 28 + 'px', height: y1 - y0 + 28 + 'px' }); selBox.hidden = false;
 }
 function removeItems(ids) { const set = new Set(ids), B = B_(); B.items = B.items.filter(x => !set.has(x.id)); B.links = B.links.filter(l => !l.some(i => set.has(i))); }
+async function deskDuplicate() { // Ctrl+D: a copy of what's picked, just beside it (photos too); strings and bookmarks stay with the original
+  const B = B_(), src = [...picked].map(itemOf).filter(it => it && it.board === B.cur); if (!src.length) return;
+  deskMark(); const now = Date.now(), ids = [];
+  for (const [k, it] of src.entries()) {
+    const c = JSON.parse(JSON.stringify(it)); c.id = ((String(it.id).match(/^[a-z]+/i) || ['n'])[0]) + now + '-' + k; c.x = it.x + 28; c.y = it.y + 28; delete c.key;
+    if (it.type === 'photo') { try { const p = await PHOTOS.get(it.id); if (p) await PHOTOS.put(c.id, p); } catch (e) { continue; } }
+    B.items.push(c); ids.push(c.id);
+  }
+  save(); drawBoard(); select(ids[0]); ids.slice(1).forEach(id => select(id, true)); deskSfx('pin');
+}
 function deskDelete() { if (!picked.size) return; deskMark(); deskSfx('pick'); removeItems([...picked]); select(null); save(); drawBoard(); }
 function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
@@ -513,6 +523,7 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyZ') { stop(); if (e.shiftKey) deskRedo(); else deskUndo(); }
     else if (e.code === 'KeyY') { stop(); deskRedo(); }
     else if (e.code === 'KeyA') { stop(); deskSelectAll(); }
+    else if (e.code === 'KeyD' && !e.shiftKey) { stop(); deskDuplicate(); }
     return;
   }
   if (e.altKey || e.ctrlKey || e.metaKey) return;

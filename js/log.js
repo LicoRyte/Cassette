@@ -5,7 +5,7 @@
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 delete S.opts.recallPin; delete S.opts.shelfView; // (from when there was a shelf of tapes)
-S.recalls = Array.isArray(S.recalls) ? S.recalls : []; // what you've kept: [{ id, at, about, text }]
+S.recalls = Array.isArray(S.recalls) ? S.recalls : []; // what you've kept: [{ id, at, about, text, notes: [note ids written in that session] }]
 
 /* ---------- the label: what this session is for ---------- */
 const intent = el('input', { class: 'sx-intent', type: 'text', maxlength: '80', placeholder: 'What is this session for?', 'aria-label': 'What this session is for', spellcheck: 'false' });
@@ -25,16 +25,18 @@ const recallCard = el('div', { class: 'sx-recall', hidden: true, role: 'dialog',
   el('h3', {}, 'What do you remember?'), recallFor, recallTa,
   el('div', { class: 'sx-recall-b' }, el('small', { class: 'sl-muted' }, 'Kept under Remembered, top left'), el('span', { class: 'sx-gap' }), recallSkip, recallKeep));
 document.body.append(recallCard);
-let recallWhat = '';
-function recallOpen(what) {
-  memClose(); recallWhat = what || ''; recallFor.textContent = recallWhat ? 'About: ' + recallWhat : 'Write it the way you would explain it';
+let recallWhat = '', recallSince = 0;
+function recallOpen(what, since) {
+  memClose(); recallWhat = what || ''; recallSince = since || Date.now() - 3600e3; // (the notes written in since then are what you check against) recallFor.textContent = recallWhat ? 'About: ' + recallWhat : 'Write it the way you would explain it';
   recallTa.value = ''; recallCard.hidden = false; requestAnimationFrame(() => recallCard.classList.add('on'));
   setTimeout(() => recallTa.focus({ preventScroll: true }), 350);
 }
 function recallClose(keep) {
   recallCard.classList.remove('on'); recallCard.hidden = true;
   const txt = recallTa.value.trim(); if (!keep || !txt) return;
-  S.recalls.push({ id: 'r' + Date.now(), at: Date.now(), about: recallWhat, text: txt }); save(); deskSfx('pin');
+  const notes = S.board.items.filter(it => it.type === 'note' && (it.mt || 0) >= recallSince).sort((a, b) => b.mt - a.mt).slice(0, 8).map(it => it.id);
+  const r = { id: 'r' + Date.now(), at: Date.now(), about: recallWhat, text: txt, notes }; S.recalls.push(r); save(); deskSfx('pin');
+  if (notes.length) setTimeout(() => cmpOpen(r), 250); // check yourself: what you remembered, beside what you wrote
   memDraw(); if (!stillUI()) { memB.classList.remove('got'); void memB.offsetWidth; memB.classList.add('got'); } // (it drops into the key)
 }
 recallTa.addEventListener('keydown', e => {
@@ -62,6 +64,7 @@ function memDraw() {
     el('div', { class: 'sx-mem-h' }, el('b', {}, r.about || 'A session'), el('span', {}, memWhen(r.at))),
     el('p', {}, r.text),
     el('div', { class: 'sx-mem-a' },
+      (r.notes || []).some(id => itemOf(id)) ? el('button', { type: 'button', class: 'sx-mem-ab', onclick: () => cmpOpen(r) }, 'Check') : null,
       el('button', { type: 'button', class: 'sx-mem-ab', onclick: () => { pinNote(r.about || 'What I remembered', r.text); deskToast('Pinned to the desk'); } }, 'Pin to desk'),
       armBtn('Let it go', 'Sure?', () => { S.recalls = S.recalls.filter(x => x !== r); save(); memDraw(); }, 'sx-mem-ab sx-mem-del'))));
   memList.replaceChildren(
@@ -74,6 +77,25 @@ addEventListener('pointerdown', e => { if (!memList.hidden && !e.target.closest(
 addEventListener('keydown', e => { if (e.key === 'Escape' && !memList.hidden) { e.preventDefault(); e.stopPropagation(); memClose(); } }, true);
 memDraw();
 
+/* ---------- check yourself: what you remembered, beside the notes you wrote in that session ---------- */
+const cmpBox = el('div', { class: 'sx-cmp', hidden: true, role: 'dialog', 'aria-label': 'Check yourself' });
+document.body.append(cmpBox);
+function cmpOpen(r) {
+  memClose(); const notes = (r.notes || []).map(itemOf).filter(Boolean);
+  const card = it => { const lines = String(it.text || '').split('\n').map(l => l.trim()).filter(Boolean);
+    return el('article', { class: 'sx-cmp-n' }, el('b', {}, lines[0] || 'A note'), el('p', {}, lines.slice(1, 9).join('\n') || ' '),
+      el('button', { type: 'button', class: 'sx-mem-ab', onclick: () => { cmpClose(); deskGoTo(it.id); } }, 'Go to note')); };
+  cmpBox.replaceChildren(
+    el('div', { class: 'sx-mem-top' }, el('h3', {}, 'Check yourself'), el('small', {}, r.about || ''), el('span', { class: 'sx-gap' }), el('button', { type: 'button', class: 'sx-ws-b', onclick: cmpClose }, 'Done')),
+    el('div', { class: 'sx-cmp-cols' },
+      el('section', {}, el('h4', {}, 'From memory'), el('p', { class: 'sx-cmp-mem' }, r.text)),
+      el('section', {}, el('h4', {}, 'What you wrote'), ...(notes.length ? notes.map(card) : [el('p', { class: 'sl-muted' }, 'Those notes are no longer on the desk.')]))),
+    el('p', { class: 'sx-cmp-tip' }, 'What did you miss? That is the part to go over again.'));
+  cmpBox.hidden = false; requestAnimationFrame(() => cmpBox.classList.add('on')); deskSfx('pick');
+}
+function cmpClose() { cmpBox.classList.remove('on'); cmpBox.hidden = true; }
+addEventListener('keydown', e => { if (e.key === 'Escape' && !cmpBox.hidden) { e.preventDefault(); e.stopPropagation(); cmpClose(); } }, true);
+
 /* ---------- when a focus session ends: the label is cleared, and the question comes ---------- */
 const finishLogBase = finish;
 finish = function (quiet) {
@@ -81,7 +103,8 @@ finish = function (quiet) {
   finishLogBase.apply(this, arguments);
   if (was !== 'focus') return;
   S.intent = ''; intent.value = ''; intentDraw(); save();
-  if (!quiet && S.opts.recall !== false) setTimeout(() => recallOpen(why), 900); // after the chime
+  const since = Date.now() - (S.set.focus || 25) * 60e3 - 5 * 60e3; // (the session, and a little before it)
+  if (!quiet && S.opts.recall !== false) setTimeout(() => recallOpen(why, since), 900); // after the chime
 };
 
 /* ---------- Settings ---------- */

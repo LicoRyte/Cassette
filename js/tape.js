@@ -20,7 +20,7 @@ drawCycle = function (pct) {
 };
 
 /* ---------- the keys ---------- */
-const TAPE_ICONS = { play: 'M8 5.5v13l11-6.5z', pause: 'M6.5 5h4v14h-4zM13.5 5h4v14h-4z', rew: 'M11.5 6v12L3.5 12zM20.5 6v12l-8-6z' };
+const TAPE_ICONS = { play: 'M8 5.5v13l11-6.5z', pause: 'M6.5 5h4v14h-4zM13.5 5h4v14h-4z', rew: 'M11.5 6v12L3.5 12zM20.5 6v12l-8-6z', next: 'M3 6v12l8-6zM11 6v12l8-6zM19.5 6h2v12h-2z' };
 function tapeKey(btn, icons, hint) {
   const box = el('span', { class: 'sx-tk', 'aria-hidden': 'true' });
   box.innerHTML = '<svg viewBox="0 0 24 24">' + icons.map(k => '<path class="ic-' + k + '" d="' + TAPE_ICONS[k] + '"/>').join('') + '</svg>'; // (fixed icons, written here)
@@ -31,6 +31,9 @@ function tapeKey(btn, icons, hint) {
 }
 const tapePlayLbl = tapeKey(startB, ['play', 'pause'], 'Space');
 tapeKey(resetB, ['rew'], 'R');
+// Next: the next track on the side that's playing (N)
+const nextB = el('button', { type: 'button', class: 'btn', title: 'Next track (N)', onclick: () => { tapeKeySound(resetB); musicNext(); } }, 'Next');
+resetB.after(nextB); tapeKey(nextB, ['next'], 'N');
 startB.classList.add('go');
 // the timer writes the button's words (Start, Pause, Resume...); they go to the label, and the icon follows
 Object.defineProperty(startB, 'textContent', {
@@ -51,8 +54,8 @@ function tapeSound() {
   if (!feelSoundOn()) return; const c = feelCtx(); if (!c || !tapeBuf) { tapeLoad(); return; }
   const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1 + (Math.random() - .5) * .04; g.gain.value = .7; s.connect(g).connect(soundOut(c, 'keys')); s.start();
 }
-[startB, resetB].forEach(b => b.addEventListener('click', () => {
-  if (b.disabled) return; tapeKeySound(b);
+[startB, resetB, nextB].forEach(b => b.addEventListener('click', () => {
+  if (b.disabled) return; if (b !== nextB) tapeKeySound(b);
   if (!stillUI()) { b.classList.remove('press'); void b.offsetWidth; b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 180); } // (Space presses it too)
 }));
 
@@ -272,3 +275,15 @@ const finishEject = finish;
 finish = function (quiet) { const was = mode; finishEject.apply(this, arguments); if (was === 'focus' && mode === 'long' && !quiet) setTimeout(ejectTape, 1100); };
 const fullRewindEject = fullRewind;
 fullRewind = function () { const had = S.cycle > 0 || mode !== 'focus' || remaining() < length(mode); fullRewindEject.apply(this, arguments); if (had) setTimeout(ejectTape, 650); };
+
+/* ---------- keep going by itself: when a session ends the break starts on its own, and when a break ends the next session
+   does (a few seconds later, after the chime). Settings, Flow ---------- */
+const finishAuto = finish;
+finish = function (quiet) {
+  finishAuto.apply(this, arguments);
+  if (quiet || !S.opts.autoGo) return;
+  const was = mode; setTimeout(() => { if (S.opts.autoGo && !running && mode === was && left >= length(mode) - 1000) start(); }, 3500); // (unless you've started or changed it meanwhile)
+};
+{ const box = el('input', { type: 'checkbox', checked: S.opts.autoGo || null }); box.addEventListener('change', () => { S.opts.autoGo = box.checked; save(); });
+  const row = settingsPane.querySelector('.sl-modes'); const sx = el('label', { class: 'sx-check', style: 'margin-top:10px' }, box, ' Keep going by itself: start each break, and the next session, a few seconds after the chime');
+  if (row) row.parentNode.append(sx); else settingsPane.append(sec('Flow', sx)); }

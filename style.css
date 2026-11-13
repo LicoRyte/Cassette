@@ -789,9 +789,6 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-skin i { width: 22px; height: 16px; border: 2px solid var(--sk); border-radius: 3px; box-shadow: inset 0 0 0 2px #030710, inset 0 0 0 9px color-mix(in srgb, var(--sk) 25%, transparent); }
 .sx-skin.on { border-color: var(--sk); color: #ffffe4; }
 
-/* ---------- what a card hangs by (js/desk.js): a pin, washi tape, a binder clip ---------- */
-  clip-path: polygon(0 8%, 4% 0, 8% 10%, 12% 0, 88% 0, 92% 10%, 96% 0, 100% 8%, 100% 92%, 96% 100%, 92% 90%, 88% 100%, 12% 100%, 8% 90%, 4% 100%, 0 92%); }
-/* the holder bar, beside the picked card */
 /* ---------- real tape between the reels (js/tape.js) ---------- */
 .sx-deck { position: relative; }
 .sx-ribbon { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }
@@ -1117,3 +1114,26 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* writing on paper: what you select takes the ink's colour, not the browser's blue */
 .sx-world :is(.sx-note-t, .sx-cap-t)::selection, .sx-world :is(.sx-note-t, .sx-cap-t) *::selection { background: color-mix(in srgb, var(--ink, #34111f) 22%, transparent); color: inherit; }
 .sx-world .sx-polaroid .sx-cap-t::selection, .sx-world .sx-polaroid .sx-cap-t *::selection { background: rgba(52, 17, 31, .2); }
+
+/* the deck's third key, Next; and the cassette's */
+#app .sx-corner .sx-cmd { gap: 30px; }
+.sx-mcol-h .sx-nextb { min-width: 30px; font-size: 13px; }
+/* check yourself: what you remembered beside what you wrote */
+.sx-cmp { position: fixed; left: 50%; top: 62px; z-index: 9; display: flex; flex-direction: column; width: min(820px, calc(100vw - 32px)); max-height: calc(100vh - 160px); background: #030710; border: 1px solid #293b49; border-top: 3px solid #77d6c1; box-shadow: 0 14px 34px rgba(3, 7, 16, .75); transform: translate(-50%, -8px); opacity: 0; transition: transform .2s ease-out, opacity .2s; }
+.sx-cmp.on { transform: translate(-50%, 0); opacity: 1; }
+.sx-cmp[hidden] { display: none; }
+.sx-cmp .sx-mem-top h3 { color: #77d6c1; }
+.sx-cmp .sx-mem-top small { font: italic 14px var(--text); color: #ffdaac; }
+.sx-cmp .sx-ws-b { height: 28px; padding: 0 12px 1px; background: none; border: 1.5px solid currentColor; border-radius: 3px; color: #77d6c1; font: 700 11px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.sx-cmp-cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.sx-cmp-cols > section { min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #293b49 transparent; padding: 12px 14px; }
+.sx-cmp-cols > section + section { border-left: 1px solid #293b49; }
+.sx-cmp-cols h4 { margin: 0 0 8px; font: 700 11px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: #6d8a8d; }
+.sx-cmp-mem { margin: 0; font: 15px/1.5 var(--text); color: #ffffe4; white-space: pre-wrap; }
+.sx-cmp-n { margin: 0 0 10px; padding: 10px 12px; background: #ffffe4; color: #34111f; box-shadow: 2px 3px 0 rgba(3, 7, 16, .5); }
+.sx-cmp-n b { display: block; font: 700 14px var(--ui); }
+.sx-cmp-n p { margin: 4px 0 6px; font: 13px/1.45 var(--text); white-space: pre-wrap; }
+.sx-cmp-n .sx-mem-ab { padding: 0; background: none; border: 0; color: #73392e; font: 600 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.sx-cmp-tip { flex: none; margin: 0; padding: 8px 14px 10px; border-top: 1px solid #0b1a2b; font: 13px var(--ui); color: #6d8a8d; }
+@media (max-width: 640px) { .sx-cmp-cols { grid-template-columns: 1fr; overflow-y: auto; } .sx-cmp-cols > section + section { border-left: 0; border-top: 1px solid #293b49; } }
+@media (prefers-reduced-motion: reduce) { .sx-cmp { transition: none; } }
