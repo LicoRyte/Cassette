@@ -1113,3 +1113,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-mem-empty { margin: 0; padding: 16px 14px; font-size: 14px; line-height: 1.45; }
 #app.paged ~ .sx-mem { display: none; }
 @media (prefers-reduced-motion: reduce) { .sx-mem { transition: none; } .sx-mem-b.got { animation: none; } }
+
+/* writing on paper: what you select takes the ink's colour, not the browser's blue */
+.sx-world :is(.sx-note-t, .sx-cap-t)::selection, .sx-world :is(.sx-note-t, .sx-cap-t) *::selection { background: color-mix(in srgb, var(--ink, #34111f) 22%, transparent); color: inherit; }
+.sx-world .sx-polaroid .sx-cap-t::selection, .sx-world .sx-polaroid .sx-cap-t *::selection { background: rgba(52, 17, 31, .2); }

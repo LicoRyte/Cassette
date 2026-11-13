@@ -207,7 +207,7 @@ function polFormat(c, ar) {
 }
 function paperCard(it) { // a note or a photo
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': it.type === 'photo' ? 'Take the photo down' : 'Take the note down', onclick: () => removeOne(it) }, '×');
-  const txt = el('div', { class: it.type === 'photo' ? 'sx-cap-t' : 'sx-note-t', contenteditable: 'true', 'aria-label': it.type === 'photo' ? 'Caption' : 'Note', 'data-ph': it.type === 'photo' ? 'Write a caption...' : 'Write something...' }, it.text || '');
+  const txt = el('div', { class: it.type === 'photo' ? 'sx-cap-t' : 'sx-note-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': it.type === 'photo' ? 'Caption' : 'Note', 'data-ph': it.type === 'photo' ? 'Write a caption...' : 'Write something...' }, it.text || '');
   txt.addEventListener('input', () => { it.text = txt.innerText.slice(0, 2000); save(); });
   const pin = el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' });
   const style = 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + tilt(it.id) + 'deg' + (it.type === 'note' ? noteStyle(it) : '');
@@ -229,7 +229,7 @@ function drawCard(it) { // a drawing: only its strokes can be grabbed, so a circ
 }
 const FRAME_INKS = ['amber', 'mint', 'coral', 'yellow', 'cream', 'green'];
 function frameCard(it) { // a frame: a labelled area. Its name is the handle; the inside lets clicks through to the desk
-  const label = el('div', { class: 'sx-frame-t', contenteditable: 'true', 'aria-label': 'Label name', 'data-ph': 'Name this area' }, it.text || '');
+  const label = el('div', { class: 'sx-frame-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': 'Label name', 'data-ph': 'Name this area' }, it.text || '');
   label.addEventListener('input', () => { it.text = label.textContent.replace(/\s+/g, ' ').slice(0, 80); save(); }); // (textContent: the name as typed, not as shown in capitals)
   const sws = el('span', { class: 'sx-frame-sw' }, ...FRAME_INKS.map(k => el('button', { type: 'button', class: 'sx-sw' + ((it.color || 'amber') === k ? ' on' : ''), style: 'background:' + inkOf(k), 'aria-label': k + ' label', title: k, onclick: () => { deskMark(); it.color = k; save(); drawBoard(); } })));
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Take the label away', title: 'Take the label away', onclick: () => removeOne(it) }, '×');
