@@ -1158,3 +1158,38 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-string.hot { stroke: #ff3048; stroke-width: 3; }
 #app[data-strings="front"] .sx-string { filter: none; } /* (a shadow on every string is costly; only the lit ones get it) */
 #app[data-strings="front"] .sx-string.hot { filter: drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
+
+/* ---------- each string on its own sheet in the card layer, one level above the higher card it ties (js/desk.js) ---------- */
+.sx-world .sx-strand { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+
+/* ---------- hovering a key fills it with its own colour and the words turn dark, so you can see exactly which one you're on.
+   (the fill is the key's own colour, currentColor; only the letters are painted dark, so every key keeps its colour) ---------- */
+#app :is(.sx-ws-bar, .sx-tray) .sx-ws-b:hover:not(:disabled), #app .sx-ws-bar select:hover,
+.sx-tapes .sx-ws-b:hover:not(:disabled), .sx-recall .sx-ws-b:hover, .sx-mem .sx-ws-b:hover, .sx-cmp .sx-ws-b:hover, .sx-find .sx-ws-b:hover:not(:disabled),
+.sx-mem .sx-mem-ab:hover, .sx-cmp-n .sx-mem-ab:hover {
+  background: currentColor; -webkit-text-fill-color: #030710; border-color: currentColor;
+}
+.sx-mem .sx-mem-ab, .sx-mem .btn.sx-mem-ab, .sx-cmp-n .sx-mem-ab { padding: 3px 7px; margin: -3px -7px; border-radius: 2px; transition: background .12s; }
+.sx-mem .sx-mem-ab:hover { color: #ffdaac; }
+.sx-mem .sx-mem-ab.sx-mem-del:hover { color: #ff6157; }
+.sx-wb-b:hover { background: #293b49; border-color: #293b49; color: #f4f6f1; }
+.sx-wb-b.on:hover { background: #030710; }
+.sx-cmp-n .sx-mem-ab:hover { -webkit-text-fill-color: #ffffe4; } /* (on the paper: dark key, light words) */
+.sx-mem .sx-mem-a { gap: 20px; }
+.sx-find-b { transition: background .12s; }
+.sx-find-b:hover { background: #ffdaac; border-color: #ffdaac; color: #030710; }
+
+/* ---------- small touches of life (js/lively.js) ---------- */
+/* a pressed key gives off a ring of light */
+:is(.sx-ws-bar, .sx-tray, .sx-tapes, .sx-recall, .sx-mem, .sx-cmp) .sx-ws-b, .sx-find-b { position: relative; }
+:is(.sx-ws-bar, .sx-tray, .sx-tapes, .sx-recall, .sx-mem, .sx-cmp) .sx-ws-b.lit::after, .sx-find-b.lit::after {
+  content: ''; position: absolute; inset: -2px; border: 1.5px solid currentColor; border-radius: 4px; pointer-events: none;
+  box-shadow: 0 0 10px currentColor; animation: sx-key-lit .45s ease-out forwards; }
+@keyframes sx-key-lit { from { opacity: .9; scale: 1; } to { opacity: 0; scale: 1.25 1.6; } }
+/* the folder: point at it and the flap lifts, the papers inside rise to peek out */
+.sx-hop-paper { transition: translate .32s cubic-bezier(.3, 1.5, .5, 1), rotate .32s; }
+.sx-hop-back::after { content: ''; position: absolute; left: 26px; right: 10px; top: 4px; height: 34px; background: #efe6c8; border-radius: 1px; rotate: 3deg; box-shadow: 0 1px 2px rgba(3, 7, 16, .25); transition: translate .36s cubic-bezier(.3, 1.5, .5, 1) .03s; }
+.sx-bhop:hover .sx-hop-paper { translate: 0 -13px; rotate: -4deg; }
+.sx-bhop:hover .sx-hop-back::after { translate: 0 -8px; }
+.sx-bhop:hover .sx-hop-front { transform: perspective(400px) rotateX(-24deg); }
+@media (prefers-reduced-motion: reduce) { .sx-bhop:hover .sx-hop-paper, .sx-bhop:hover .sx-hop-back::after { translate: none; rotate: -2deg; } }

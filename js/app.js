@@ -19,10 +19,11 @@
      look.js    cassette skins, the clock's light, parallax
      view.js    the mini deck (a floating window) and full-screen focus
      help.js    the ? card
+     lively.js  small touches of life: cards land, strings draw out, keys light up
      start.js   pick up a running timer, and draw the first frame */
 'use strict';
 
-const APP_VERSION = 55; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 57; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {

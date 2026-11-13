@@ -254,6 +254,10 @@ function frameCard(it) { // a frame: a labelled area. Its name is the handle; th
 // (versions 49 and 50 lost the place of anything dragged: those come back in a neat row near the middle of their board, to be put where they belong)
 { const lost = {}; S.board.items.forEach(it => { if (Number.isFinite(it.x) && Number.isFinite(it.y)) return; const n = lost[it.board] = (lost[it.board] || 0) + 1; it.x = -300 + ((n - 1) % 4) * 340; it.y = 260 + Math.floor((n - 1) / 4) * 300; }); if (Object.keys(lost).length) save(); }
 { const B = S.board; B.items = B.items.filter(it => it.type !== 'sticker'); B.items.forEach(it => { delete it.hold; delete it.group; delete it.on; }); } // (stickers, holders and groups were here once)
+// the stacking: each card gets its own level, two apart in the order they lie on the desk (the last one on top), and each string
+// sits one above the higher of the two cards it ties: over both of them, but under anything lying on top of them
+let layerTop = 0;
+const zOf = c => +c.style.zIndex || 0;
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
   els.clear(); layer.replaceChildren(); frameLayer.replaceChildren();
@@ -265,6 +269,7 @@ function drawBoard() {
     if (picked.has(it.id)) c.classList.add('sel');
     els.set(it.id, c); (it.type === 'frame' ? frameLayer : layer).append(c);
   });
+  layerTop = 0; layer.querySelectorAll(':scope > .sx-bcard').forEach(c => { layerTop += 2; c.style.zIndex = String(layerTop); });
   deskBoardTools(); deskDrawKeys(); noteBarTo(selId); deskSelBar();
   requestAnimationFrame(() => { drawStrings(); selBoxUpdate(); });
 }
@@ -277,7 +282,7 @@ let strNodes = [], strTemp = null, strTempP = null;
 let strOver = null;
 function strHot() {
   strNodes.forEach(n => { const on = n.l.some(id => id === strOver || picked.has(id)); if (n.hot === on) return; n.hot = on;
-    n.p.classList.toggle('hot', on); if (on) strings.append(n.p); else n.hit.after(n.p); }); // (a lit string comes to the top of the pile)
+    n.p.classList.toggle('hot', on); });
 }
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
 // brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
@@ -301,7 +306,7 @@ function brushString(l, e) {
 layer.addEventListener('pointerleave', () => { if (strOver) { strOver = null; strHot(); } });
 { const selectStrBase = select; select = function () { const r = selectStrBase.apply(this, arguments); strHot(); return r; }; } // (picking a card lights its strings too)
 function drawStrings(temp) {
-  const B = B_(); strings.replaceChildren(); strNodes = []; strTempP = null; strTemp = temp || null;
+  const B = B_(); strings.replaceChildren(); strNodes.forEach(n => n.sv.remove()); strNodes = []; strTempP = null; strTemp = temp || null;
   B.links.forEach(l => {
     if (!els.has(l[0]) || !els.has(l[1])) return;
     const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('class', 'sx-string');
@@ -309,13 +314,15 @@ function drawStrings(temp) {
     hit.addEventListener('pointerdown', e => e.stopPropagation());
     hit.addEventListener('pointerenter', e => brushString(l, e)); // (plucked as the mouse passes over it)
     hit.addEventListener('click', () => { deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
-    strings.append(hit, p); strNodes.push({ l, p, hit }); });
+    const sv = document.createElementNS(SVGNS, 'svg'); sv.setAttribute('class', 'sx-strand'); sv.append(hit, p); layer.append(sv); // (its own sheet, at its own level)
+    strNodes.push({ l, p, hit, sv, z: -1 }); });
   strUpdate(); strHot();
 }
 function strUpdate() {
   // measure every end first, then redraw: measuring after each redraw would make the browser lay the page out again every time
   const ds = strNodes.map(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); return a && b ? pathD(a, b, wob.get(lk(n.l))) : null; });
-  strNodes.forEach((n, i) => { const d = ds[i]; if (d && d !== n.d) { n.d = d; n.p.setAttribute('d', d); n.hit.setAttribute('d', d); } }); // (only the strings that moved)
+  const back = root.dataset.strings === 'back', zs = strNodes.map(n => { const a = els.get(n.l[0]), b = els.get(n.l[1]); return back ? 1 : a && b ? Math.max(zOf(a), zOf(b)) + 1 : 1; }); // (behind the paper, if that's how you like it: Settings, Look)
+  strNodes.forEach((n, i) => { const d = ds[i]; if (d && d !== n.d) { n.d = d; n.p.setAttribute('d', d); n.hit.setAttribute('d', d); } if (zs[i] !== n.z) { n.z = zs[i]; n.sv.style.zIndex = String(n.z); } }); // (only the strings that moved)
   if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
   else if (strTempP) { strTempP.remove(); strTempP = null; }
   if (picked.size > 1) selBoxUpdate();
@@ -405,7 +412,6 @@ addEventListener('paste', e => {
 }, true);
 
 /* ---------- hands: panning, picking, dragging, strings ---------- */
-let deskZ = 10;
 // a click on a note's words (when you weren't already writing in it) puts the pen right there
 function deskEditAt(txt, x, y) {
   txt.focus({ preventScroll: true });
@@ -503,7 +509,7 @@ ws.addEventListener('pointerdown', e => {
         dragging = true; snap = deskSnap(); c.classList.add('lift'); deskSfx('pick');
         const ids = new Set(picked.has(id) ? picked : [id]);
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })); // (a locked label stays behind)
-        movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(++deskZ); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
+        movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
       }
       const dx = (ev.clientX - start.x) / cam.z, dy = (ev.clientY - start.y) / cam.z;

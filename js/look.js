@@ -38,7 +38,7 @@ addEventListener('pointermove', e => { parX = e.clientX / innerWidth * 2 - 1; pa
 
 /* ---------- strings: in front of the paper (tied over the pins), or tucked behind it ---------- */
 function stringsSet(k) {
-  S.opts.strings = k === 'back' ? 'back' : 'front'; root.dataset.strings = S.opts.strings; save();
+  S.opts.strings = k === 'back' ? 'back' : 'front'; root.dataset.strings = S.opts.strings; save(); if (typeof strUpdate === 'function') strUpdate();
   strRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === S.opts.strings));
 }
 const strRow = el('div', { class: 'sx-skins', role: 'radiogroup', 'aria-label': 'Strings' }, ...[['front', 'In front of the paper'], ['back', 'Behind the paper']].map(([k, name]) =>
