@@ -907,3 +907,23 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* the reels can be spun by hand */
 .sx-reel { cursor: grab; touch-action: none; } .sx-reel:active { cursor: grabbing; }
 @media (prefers-reduced-motion: reduce) { .sx-grain, .sx-par { translate: none; transition: none; } }
+
+/* ---------- full-screen focus (js/view.js): only the clock ---------- */
+#app.sx-full .sx-world .sx-layer, #app.sx-full .sx-world .sx-flayer, #app.sx-full .sx-world .sx-strings, #app.sx-full .sx-world .sx-tapes, #app.sx-full .sx-selbox,
+#app.sx-full .sx-top, .sx-full-b .sx-help-b, .sx-full-b .sx-pen { opacity: 0 !important; pointer-events: none !important; transition: opacity .6s; }
+#app.sx-full .sx-ws { background-image: none; cursor: default; }
+#app.sx-full .sx-ws-bar { opacity: 0 !important; transition: opacity .5s; }
+.sx-full-b:not(.sx-hidecur) #app.sx-full .sx-ws-bar { opacity: .85 !important; } /* the bar comes back while the mouse moves */
+.sx-full-b.sx-hidecur, .sx-full-b.sx-hidecur * { cursor: none !important; }
+.sx-full-b .sx-par { opacity: 0; }
+/* ---------- the eject (js/tape.js): out of the deck, up, and onto the shelf ---------- */
+.sx-eject { position: fixed; z-index: 30; width: 90px; height: 58px; pointer-events: none; opacity: 0; filter: drop-shadow(0 6px 10px rgba(3, 7, 16, .6)); }
+.sx-eject svg { display: block; width: 100%; height: 100%; }
+.sx-eject.go { animation: sx-eject 1.7s cubic-bezier(.3, .7, .3, 1) forwards; }
+@keyframes sx-eject { 0% { opacity: 0; transform: translateY(18px) scale(.7); } 14% { opacity: 1; transform: translateY(-70px) scale(1); } 22% { transform: translateY(-60px) scale(1) rotate(-3deg); } 48% { opacity: 1; transform: translateY(-62px) scale(1) rotate(-3deg); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.25) rotate(8deg); } }
+/* strings in front of the paper (Settings, Look): over the notes and photos, tied at their pins */
+#app[data-strings="front"] .sx-world .sx-strings { z-index: 4; }
+#app[data-strings="front"] .sx-string { filter: drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
+#app[data-strings="front"] .sx-string-hit { stroke-width: 9; }
+#app .sx-ws-bar .sx-ws-b { white-space: nowrap; } /* (labels stay on one line) */

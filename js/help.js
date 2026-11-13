@@ -4,6 +4,7 @@
 
 const HELP = [
   ['The clock', [['Label', 'Above the digits: write what the session is for'], ['Space', 'Start or pause'], ['R', 'Rewind: start this part over (while stopped)'], ['Hold R key / Shift + R', 'Rewind the whole tape: back to session 1'], ['S', 'Skip to the next part (while stopped)']]],
+  ['Views', [['M', 'Pop out a mini deck that stays on top of other windows (Chrome, Edge)'], ['F', 'Full-screen focus: only the clock (F or Esc to come back)']]],
   ['Moving around', [['Drag', 'Move the desk (anywhere empty, or with the right button)'], ['Wheel', 'Zoom in and out'], ['0', 'Back to the clock'], ['1 – 9', 'Glide to a bookmark'], ['Shift + 1 – 9', 'Bookmark what you picked']]],
   ['On the desk', [['Sticker', 'In the bar: drop one on a note or photo and it sticks there'], ['Holder', 'Pick a note or photo: pin, washi tape or a binder clip, beside it'],['Double-click', 'Pin a note there'], ['Drop a photo', 'It hangs as a Polaroid'], ['Red pin', 'Drag to something else to tie a string; click a string to cut it'], ['Frame', 'Drag it by its name or an edge: what is inside comes along']]],
   ['Picking', [['Shift + drag', 'Pick everything in the box'], ['Shift + click', 'Pick one more, or let it go'], ['Ctrl + G', 'Group (Ctrl + Shift + G to ungroup)'], ['Delete', 'Remove what is picked'], ['Ctrl + A', 'Pick everything on this board']]],

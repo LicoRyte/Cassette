@@ -231,3 +231,31 @@ reelStep = function () {
   r.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(x => r.addEventListener(x, end));
 }));
 [reelL, reelR].forEach(r => { r.title = 'Spin me'; });
+
+/* ---------- the counter clicks as its wheels roll, with a heavier thunk when a digit carries over ---------- */
+const tapeCounterBase = tapeCounter;
+tapeCounter = function (n) {
+  const before = ctrLast; tapeCounterBase(n);
+  if (before == null || n <= before || stillUI() || S.opts.deskSfx === false || !feelSoundOn()) return;
+  const a = String(before).padStart(3, '0'), b = String(n).padStart(3, '0'), rolled = [...b].filter((ch, i) => ch !== a[i]).length;
+  const c = feelCtx(); if (!c) return; const t = c.currentTime;
+  feelBurst(c, t + .05, { dur: .012, type: 'highpass', f0: 2700, vol: .035 }); feelTone(c, t + .05, 620, { dur: .03, vol: .012, to: 420 }); // the wheel's click
+  for (let i = 1; i < rolled; i++) feelTone(c, t + .05 + i * .07, 150, { dur: .08, vol: .04, to: 90 }); // the carry: the next wheel goes over too
+};
+
+/* ---------- the end of a tape: the cassette ejects from the deck and flies to your shelf ---------- */
+function ejectTape() {
+  if (stillUI()) return;
+  const d = deck.getBoundingClientRect(), to = tapesB.getBoundingClientRect();
+  const cas = el('div', { class: 'sx-eject', 'aria-hidden': 'true', style: 'left:' + (d.left + d.width / 2 - 45) + 'px;top:' + (d.top + d.height / 2 - 29) + 'px;--tx:' + Math.round(to.left + to.width / 2 - (d.left + d.width / 2)) + 'px;--ty:' + Math.round(to.top + to.height / 2 - (d.top + d.height / 2)) + 'px' });
+  cas.innerHTML = '<svg viewBox="0 0 30 19"><rect x=".5" y=".5" width="29" height="18" rx="1.5" fill="#041528" style="stroke:var(--deck)"/><rect x="3" y="2.5" width="24" height="5" fill="#ffdaac"/><rect x="5" y="4" width="11" height="1" fill="#34111f"/><rect x="7" y="9.5" width="16" height="5" fill="#030710" stroke="#293b49" stroke-width=".6"/><circle cx="11" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><circle cx="19" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><path d="M8 18.5l1.5-2.5h11l1.5 2.5" fill="none" style="stroke:var(--deck)" stroke-width=".7"/></svg>'; // (a fixed drawing)
+  document.body.append(cas); requestAnimationFrame(() => cas.classList.add('go'));
+  if (feelSoundOn()) { const c = feelCtx(); if (c) { const t = c.currentTime; feelBurst(c, t, { dur: .03, type: 'highpass', f0: 1800, vol: .06 }); feelTone(c, t, 120, { dur: .09, vol: .05, to: 70 }); // the eject's clack
+    if (tapeBuf) { const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1.15; g.gain.value = .45; s.connect(g).connect(c.destination); s.start(t + .03); }
+    feelBurst(c, t + 1.55, { dur: .07, type: 'lowpass', f0: 900, vol: .05 }); } } // and it lands on the shelf
+  setTimeout(() => cas.remove(), 1800);
+}
+const finishEject = finish;
+finish = function (quiet) { const was = mode; finishEject.apply(this, arguments); if (was === 'focus' && mode === 'long' && !quiet) setTimeout(ejectTape, 1100); };
+const fullRewindEject = fullRewind;
+fullRewind = function () { const t = S.tapes && S.tapes[S.tapes.length - 1], had = t && !t.done && t.sessions.length; fullRewindEject.apply(this, arguments); if (had) setTimeout(ejectTape, 650); };

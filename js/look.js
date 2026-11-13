@@ -31,3 +31,13 @@ document.body.append(el('div', { class: 'sx-par', 'aria-hidden': 'true' }));
 let parRaf = 0, parX = 0, parY = 0;
 addEventListener('pointermove', e => { parX = e.clientX / innerWidth * 2 - 1; parY = e.clientY / innerHeight * 2 - 1;
   if (!parRaf && !stillUI()) parRaf = requestAnimationFrame(() => { parRaf = 0; document.documentElement.style.setProperty('--px', parX.toFixed(3)); document.documentElement.style.setProperty('--py', parY.toFixed(3)); }); }, { passive: true });
+
+/* ---------- strings: in front of the paper (tied over the pins), or tucked behind it ---------- */
+function stringsSet(k) {
+  S.opts.strings = k === 'back' ? 'back' : 'front'; root.dataset.strings = S.opts.strings; save();
+  strRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === S.opts.strings));
+}
+const strRow = el('div', { class: 'sx-skins', role: 'radiogroup', 'aria-label': 'Strings' }, ...[['front', 'In front of the paper'], ['back', 'Behind the paper']].map(([k, name]) =>
+  el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:#d9243c', onclick: () => stringsSet(k) }, el('i', {}), name)));
+settingsPane.querySelector('.sx-skins').closest('.sx-sec').append(el('p', { class: 'sl-muted', style: 'margin-top:14px' }, 'The red strings between pins:'), strRow);
+stringsSet(S.opts.strings || 'front');
