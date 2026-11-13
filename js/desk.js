@@ -461,6 +461,11 @@ addEventListener('paste', e => {
 
 /* ---------- hands: panning, picking, dragging, strings ---------- */
 // a click on a note's words (when you weren't already writing in it) puts the pen right there
+function deskWriteIn(id) {
+  const c = els.get(id), txt = c && c.querySelector('.sx-note-t, .sx-cap-t, .sx-frame-t'); if (!txt) return false;
+  txt.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(txt); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  return true;
+}
 function deskEditAt(txt, x, y) {
   txt.focus({ preventScroll: true });
   let r = null;
@@ -513,6 +518,7 @@ ws.addEventListener('pointerdown', e => {
     if (txt && document.activeElement === txt) { if (!picked.has(id)) select(id); return; } // already writing in it: the pointer selects text as usual
     if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
+    const wasPicked = picked.has(id); // (the first click picks it; a click on it once it's picked starts writing)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }
     deskRaise(it, c); // (whatever you press comes to the front)
     e.preventDefault(); c.setPointerCapture(e.pointerId);
@@ -529,7 +535,7 @@ ws.addEventListener('pointerdown', e => {
     if (it.lock) { // a locked label stays put: a drag on it moves the desk, a click on its name still lets you rename it
       const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; let panned = false;
       track(ev => { if (!panned && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 4) return; panned = true; ws.classList.add('panning'); cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeSoon(); },
-        ev => { ws.classList.remove('panning'); if (panned) { camSave(); return; } if (ev.type === 'pointerup' && txt) deskEditAt(txt, ev.clientX, ev.clientY); });
+        ev => { ws.classList.remove('panning'); if (panned) { camSave(); return; } if (ev.type === 'pointerup' && txt && wasPicked) deskEditAt(txt, ev.clientX, ev.clientY); });
       return;
     }
     if (e.target.classList.contains('sx-resize')) { // the corner: make it bigger or smaller
@@ -575,8 +581,8 @@ ws.addEventListener('pointerdown', e => {
       }
       if (ev.type === 'pointerup' && it.type === 'hop') { hopGo(it); return; } // a click on a folder: through it
       if (ev.type !== 'pointerup' || !txt) return;
-      if (it.type === 'note' && noteTickAt(txt, ev.clientX, ev.clientY)) return; // a checklist box
-      deskEditAt(txt, ev.clientX, ev.clientY);
+      if (it.type === 'note' && noteTickAt(txt, ev.clientX, ev.clientY)) return; // a checklist box (it ticks on the first click)
+      if (wasPicked) deskEditAt(txt, ev.clientX, ev.clientY); // picked already: the pen goes where you clicked
     });
     return;
   }
@@ -624,6 +630,7 @@ addEventListener('keydown', e => {
   if (drawKeys(e)) { stop(); return; } // D, and the pen's own keys (js/ui/draw-mode.js)
   if ((e.key === 'Delete' || e.key === 'Backspace') && picked.size) { stop(); deskDelete(); return; }
   if (e.key === 'Tab' && selId && strWalk(e.shiftKey)) { stop(); return; } // follow the strings from the picked card
+  if (e.key === 'Enter' && !e.shiftKey && picked.size === 1 && deskWriteIn(selId)) { stop(); return; } // Enter: start writing in it, at the end
   const m = /^Digit([0-9])$|^Numpad([0-9])$/.exec(e.code); if (!m) { if (e.key === 'Escape' && picked.size) select(null); return; }
   const n = +(m[1] || m[2]); stop();
   if (n === 0) { glideHome(); return; }
