@@ -46,7 +46,7 @@ recallTa.addEventListener('keydown', e => {
 });
 function pinNote(title, body) { // a note on the desk, near the middle of the view
   deskMark(); const p = freeSpot(), id = 'n' + Date.now();
-  B_().items.push({ id, type: 'note', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), html: '<h2>' + esc(title) + '</h2>' + body.split('\n').map(l => '<div>' + (esc(l) || '<br>') + '</div>').join(''), text: title + '\n' + body });
+  B_().items.push({ id, type: 'note', board: B_().cur, mt: Date.now(), x: Math.round(p.x), y: Math.round(p.y), html: '<h2>' + esc(title) + '</h2>' + body.split('\n').map(l => '<div>' + (esc(l) || '<br>') + '</div>').join(''), text: title + '\n' + body });
   save(); drawBoard();
 }
 

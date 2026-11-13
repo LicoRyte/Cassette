@@ -15,6 +15,7 @@
      tape.js    the session strip, the tape-deck keys, the reels, the counter, the side flip
      music.js   the two sides of music, and the Tapes drawer
      log.js     the label (what a session is for), what you remember, the shelf of tapes
+     review.js  cards from your notes, reviewed on breaks, spaced out over days
      help.js    the ? card
      start.js   pick up a running timer, and draw the first frame */
 'use strict';

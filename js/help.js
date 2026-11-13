@@ -9,6 +9,7 @@ const HELP = [
   ['Picking', [['Shift + drag', 'Pick everything in the box'], ['Shift + click', 'Pick one more, or let it go'], ['Ctrl + G', 'Group (Ctrl + Shift + G to ungroup)'], ['Delete', 'Remove what is picked'], ['Ctrl + A', 'Pick everything on this board']]],
   ['Drawing', [['D', 'Pen up or down'], ['P A L C B F', 'Pen, arrow, line, circle, box, frame'], ['E', 'Eraser'], ['[  ]', 'Thinner, thicker'], ['Shift', 'Straight angles, true circles and squares']]],
   ['Notes', [['# ## - 1. [] >', 'At the start of a line: title, heading, list, numbers, checklist, quote'], ['Ctrl + B I U', 'Bold, italic, underline'], ['Esc', 'Put the pen down']]],
+  ['Learning', [['Q: / A:', 'In a note: a question, and on the next line its answer, make a card'], ['{{word}}', 'In a note: a word in braces becomes a blank to fill'], ['Enter', 'In a review: show the answer'], ['← / →', 'Again (next break) / Got it (later and later)']]],
   ['Tapes', [['T', 'Open the Tapes drawer: your shelf, and music'], ['Drop music', 'On a side in the drawer, or on the desk: Side A plays while you focus, Side B on breaks'], ['Ctrl + Enter', 'Keep what you remember, when a session ends']]],
   ['Everything', [['Ctrl + Z', 'Undo (Ctrl + Shift + Z to redo)'], ['Board ▾', 'Boards, save as an image, backups']]],
 ];

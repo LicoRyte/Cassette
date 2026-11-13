@@ -16,37 +16,64 @@ M.pos = Object.assign({ A: 0, B: 0 }, M.pos || {});
 const sideNow = () => mode === 'focus' ? 'A' : 'B';
 const SIDE_NAME = { A: 'Side A · focus', B: 'Side B · breaks' };
 
-/* ---------- playing ---------- */
-const player = new Audio(); player.preload = 'auto';
-let playSide = null, playId = null, playUrl = null, fadeT = 0, musicBusy = false, musicAgain = false;
-function fadeTo(v, ms, done) {
-  clearInterval(fadeT); const from = player.volume, t0 = performance.now();
-  fadeT = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / Math.max(1, ms)); player.volume = Math.max(0, Math.min(1, from + (v - from) * k)); if (k >= 1) { clearInterval(fadeT); if (done) done(); } }, 30);
+/* ---------- playing: two decks, so one track can fade into the next ---------- */
+const decks = [0, 1].map(() => { const a = new Audio(); a.preload = 'auto'; a._ft = 0; a._url = null; a._id = null; a._side = null; a._xf = false; return a; });
+let player = decks[0], playSide = null, playId = null, musicBusy = false, musicAgain = false, duck = 1;
+const XF = 2.6; // seconds tracks overlap
+const vol = () => M.vol * duck;
+const other = a => decks[0] === a ? decks[1] : decks[0];
+function fadeEl(a, v, ms, done) {
+  clearInterval(a._ft); const from = a.volume, t0 = performance.now();
+  a._ft = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / Math.max(1, ms)); a.volume = Math.max(0, Math.min(1, from + (v - from) * k)); if (k >= 1) { clearInterval(a._ft); if (done) done(); } }, 30);
 }
-async function loadTrack(side) { // the track this side is up to, ready in the player
+const trackAt = side => M[side].length ? M[side][(M.pos[side] || 0) % M[side].length] : null;
+async function loadInto(a, side) { // the track this side is up to, ready on deck a (from the start)
   const list = M[side]; if (!list.length) return false;
   const i = (M.pos[side] || 0) % list.length, tr = list[i];
-  if (playId === tr.id && playSide === side && playUrl) return true;
-  let blob = null; try { blob = await MUSIC.get(tr.id); } catch (e) { /* gone */ }
-  if (!blob) { list.splice(i, 1); save(); return loadTrack(side); } // (a file that's no longer stored)
-  if (playUrl) URL.revokeObjectURL(playUrl);
-  playUrl = URL.createObjectURL(blob); player.src = playUrl; playId = tr.id; playSide = side; return true;
+  if (a._id === tr.id && a._url) a.currentTime = 0;
+  else {
+    let blob = null; try { blob = await MUSIC.get(tr.id); } catch (e) { /* gone */ }
+    if (!blob) { list.splice(i, 1); save(); return loadInto(a, side); } // (a file that's no longer stored)
+    if (a._url) URL.revokeObjectURL(a._url);
+    a._url = URL.createObjectURL(blob); a.src = a._url; a._id = tr.id;
+  }
+  a._side = side; a._xf = false; return true;
 }
-player.addEventListener('ended', () => { const s = playSide; if (!s) return; M.pos[s] = ((M.pos[s] || 0) + 1) % Math.max(1, M[s].length); save(); playId = null; musicSync(true); });
-async function musicSync(cont) {
+function setActive(a) { player = a; playSide = a._side; playId = a._id; }
+async function startOn(a, side, ms) { if (!(await loadInto(a, side))) return false; a.volume = 0; try { await a.play(); } catch (e) { return false; } setActive(a); fadeEl(a, vol(), ms); return true; }
+function stopEl(a, ms) { if (a.paused) return; fadeEl(a, 0, ms, () => { a.pause(); musicDraw(); }); }
+async function nextTrack(ms) { // on to the next track: it comes in underneath while this one fades
+  const was = player, s = was._side; if (!s) return;
+  M.pos[s] = ((M.pos[s] || 0) + 1) % Math.max(1, M[s].length); save();
+  if (await startOn(other(was), s, ms)) stopEl(was, ms); musicDraw();
+}
+decks.forEach(a => {
+  a.addEventListener('timeupdate', () => { if (a !== player || a._xf || a.paused || !a.duration || a.duration < XF * 3 || a.duration - a.currentTime > XF) return; a._xf = true; nextTrack(XF * 1000); });
+  a.addEventListener('ended', () => { if (a !== player || a._xf) return; a._xf = true; nextTrack(60); }); // (short tracks just follow on)
+});
+async function musicSync() {
   if (musicBusy) { musicAgain = true; return; } musicBusy = true; // (one at a time; a change that comes meanwhile runs right after)
   try {
     const side = sideNow(), want = running && M.on && soundOn && M[side].length > 0;
-    if (!want) { if (!player.paused) fadeTo(0, 700, () => { player.pause(); musicDraw(); }); return; }
-    if (playSide && playSide !== side && !player.paused) { // the deck flipped: let this side fade, then the other
-      await new Promise(r => fadeTo(0, 500, r)); player.pause(); playId = null; playSide = null;
+    if (!want) { decks.forEach(a => stopEl(a, 700)); return; }
+    if (!player.paused && player._side === side) { fadeEl(player, vol(), 400); return; } // already playing this side
+    const tr = trackAt(side);
+    if (player.paused && player._side === side && player._url && tr && player._id === tr.id && player.currentTime > 0) { // a pause: carry on where it stopped
+      player.volume = 0; try { await player.play(); } catch (e) { return; } setActive(player); fadeEl(player, vol(), 1400); return;
     }
-    if (!(await loadTrack(side))) return;
-    if (player.paused) { player.volume = cont ? M.vol : 0; try { await player.play(); } catch (e) { return; } }
-    fadeTo(M.vol, cont ? 60 : 1400);
+    const was = player.paused ? null : player; // the deck flipped: the other side comes in as this one fades
+    if (await startOn(was ? other(was) : player, side, 1400) && was) stopEl(was, 1400);
   } finally { musicBusy = false; musicDraw(); if (musicAgain) { musicAgain = false; setTimeout(() => musicSync(), 0); } }
 }
 new MutationObserver(() => musicSync()).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
+// the chime always comes through: the music dips while it rings, then comes back
+function musicDuck(ms) {
+  duck = .2; decks.forEach(a => { if (!a.paused && a === player) fadeEl(a, vol(), 250); });
+  clearTimeout(musicDuck.t); musicDuck.t = setTimeout(() => { duck = 1; if (!player.paused) fadeEl(player, vol(), 1600); }, ms);
+}
+{ const tadaBase = hooks.tada, dingBase = hooks.ding;
+  hooks.tada = () => { musicDuck(4200); if (tadaBase) tadaBase(); };
+  hooks.ding = () => { musicDuck(3000); if (dingBase) dingBase(); }; }
 
 /* ---------- adding and removing ---------- */
 async function musicAdd(files, side) {
@@ -60,7 +87,7 @@ async function musicAdd(files, side) {
 function musicRemove(side, id) {
   const i = M[side].findIndex(t => t.id === id); if (i < 0) return;
   M[side].splice(i, 1); if (M.pos[side] > i) M.pos[side]--; MUSIC.del(id).catch(() => {});
-  if (playId === id) { player.pause(); playId = null; playSide = null; }
+  decks.forEach(a => { if (a._id === id) { clearInterval(a._ft); a.pause(); a._id = null; } }); if (playId === id) { playId = null; playSide = null; }
   save(); musicDraw(); musicSync();
 }
 
@@ -111,7 +138,7 @@ function musicDraw() {
   if (tapesDrawer.hidden || tapesTab !== 'music') return;
   const onB = el('button', { type: 'button', class: 'sx-ws-b' + (M.on ? ' on' : ''), 'aria-pressed': String(M.on), onclick: () => { M.on = !M.on; save(); musicSync(); musicDraw(); } }, M.on ? 'Music on' : 'Music off');
   const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round(M.vol * 100), 'aria-label': 'Music volume' });
-  vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(fadeT); player.volume = M.vol; } save(); });
+  vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(player._ft); player.volume = M.vol * duck; } save(); });
   const side = s => {
     const file = el('input', { type: 'file', accept: 'audio/*', multiple: true, hidden: true });
     file.addEventListener('change', () => { musicAdd(file.files, s); file.value = ''; });
