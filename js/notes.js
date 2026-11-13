@@ -192,22 +192,23 @@ function paperSound(open) {
   feelBurst(c, t, { cat: 'desk', dur: .16, type: 'bandpass', f0: open ? 1400 : 2600, f1: open ? 2600 : 1200, q: .8, vol: .05, grain: .5 }); // the paper sliding over itself
   feelBurst(c, t + .15, { cat: 'desk', dur: .03, type: 'lowpass', f0: 700, vol: .05 }); // and the crease pressed flat
 }
-function foldH(c) { // down to the end of the first line (or heading), and the crease under it
-  const t = c.querySelector('.sx-note-t'), lh = parseFloat(getComputedStyle(t).lineHeight) || 22; let f = t && t.firstChild;
+function foldH(c) { // how much of the writing shows when folded: down to the end of the first line (or heading)
+  const t = c.querySelector('.sx-note-t'), lh = parseFloat(getComputedStyle(t).lineHeight) || 22; let f = t.firstChild;
   if (f && /^(UL|OL)$/.test(f.tagName) && f.firstElementChild) f = f.firstElementChild; // (a list: just its first line)
   const end = f && f.nodeType === 1 && f.tagName !== 'BR' ? f.offsetTop + f.offsetHeight : t.offsetTop + lh; // (offsets are on the paper itself, so the tilt doesn't count)
-  return Math.round(end + 4 + 16);
+  return Math.max(lh, Math.round(end - t.offsetTop + 2));
 }
+// only the writing is folded away (the paper's toolbar, pin and buttons sit outside it and stay where they are)
 function noteFold(c, it, on, quiet) {
   if (!quiet) { if (!!it.fold === on) return; deskMark(); }
   if (on) it.fold = true; else delete it.fold; if (!quiet) save();
-  const to = foldH(c);
-  if (quiet || stillUI()) { c.classList.toggle('folded', on); c.style.maxHeight = on ? to + 'px' : ''; strUpdate(); return; }
-  const from = c.offsetHeight; c.style.maxHeight = from + 'px'; c.classList.toggle('folded', on); void c.offsetWidth;
-  c.classList.add('folding'); c.style.maxHeight = (on ? to : (c.classList.contains('sized') && it.h ? it.h : c.scrollHeight)) + 'px'; paperSound(!on);
+  const t = c.querySelector('.sx-note-t');
+  if (quiet || stillUI()) { c.classList.toggle('folded', on); t.style.maxHeight = on ? foldH(c) + 'px' : ''; strUpdate(); return; }
+  const to = foldH(c), from = t.offsetHeight; t.style.maxHeight = from + 'px'; c.classList.add('folding'); c.classList.toggle('folded', on); void t.offsetWidth;
+  t.style.maxHeight = (on ? to : (c.classList.contains('sized') && it.h ? Math.max(to, it.h - 36) : t.scrollHeight)) + 'px'; paperSound(!on);
   let ended = false;
-  const done = () => { if (ended) return; ended = true; c.classList.remove('folding'); if (!on) c.style.maxHeight = ''; strUpdate(); if (typeof selBoxUpdate === 'function') selBoxUpdate(); };
-  c.addEventListener('transitionend', function te(e) { if (e.target !== c) return; c.removeEventListener('transitionend', te); done(); });
+  const done = () => { if (ended) return; ended = true; c.classList.remove('folding'); if (!on) t.style.maxHeight = ''; strUpdate(); if (typeof selBoxUpdate === 'function') selBoxUpdate(); };
+  t.addEventListener('transitionend', function te(e) { if (e.target !== t) return; t.removeEventListener('transitionend', te); done(); });
   setTimeout(done, 600);
   const tick = () => { if (!ended) { strUpdate(); requestAnimationFrame(tick); } }; requestAnimationFrame(tick); // the strings follow the paper
 }
@@ -224,7 +225,7 @@ noteBar.append(el('div', { class: 'sx-fmt-row' }, ...PAPERS.map(([k, n]) => el('
   el('i', { class: 'sx-fsep' }), fbtn('fold', 'Fold', 'Fold the note over: only the first line shows (Ctrl+Shift+F)')));
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return; const n = selNote(); if (!n) return;
-  if (b.dataset.p) { e.stopImmediatePropagation(); deskMark(); n.it.paper = b.dataset.p; if (b.dataset.p === 'plain') delete n.it.paper; paperSet(n.c, n.it); deskSfx('pick'); save(); if (n.it.fold) n.c.style.maxHeight = foldH(n.c) + 'px'; noteBarState(); }
+  if (b.dataset.p) { e.stopImmediatePropagation(); deskMark(); n.it.paper = b.dataset.p; if (b.dataset.p === 'plain') delete n.it.paper; paperSet(n.c, n.it); deskSfx('pick'); save(); if (n.it.fold) n.t.style.maxHeight = foldH(n.c) + 'px'; noteBarState(); }
   else if (b.dataset.k === 'fold') { e.stopImmediatePropagation(); noteFold(n.c, n.it, !n.it.fold); noteBarState(); }
 }, true);
 const noteBarStatePaper = noteBarState;

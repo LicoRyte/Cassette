@@ -1004,8 +1004,10 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-ppi[data-pi="index"] { background: linear-gradient(transparent 3px, #ff6157 3px 4px, transparent 4px 7px, rgba(74, 127, 208, .6) 7px 8px, transparent 8px 11px, rgba(74, 127, 208, .6) 11px 12px, transparent 12px), #ffffe4; }
 .sx-ppi[data-pi="torn"] { background: linear-gradient(transparent 5px, var(--r) 5px 6px, transparent 6px 9px, var(--r) 9px 10px, transparent 10px), #ffffe4; clip-path: polygon(0 2px, 2px 0, 4px 2px, 6px 0, 8px 2px, 10px 0, 12px 2px, 12px 100%, 0 100%); }
 /* folded over: only the first line shows; the rest is tucked behind a crease, with the paper's back as a flap */
-.sx-world .sx-bnote.folded, .sx-world .sx-bnote.folding { overflow: hidden; min-height: 0; }
-.sx-world .sx-bnote.folding { transition: max-height .38s cubic-bezier(.5, 0, .2, 1); }
+.sx-world .sx-bnote.folded, .sx-world .sx-bnote.folding { min-height: 0; }
+.sx-world .sx-bnote.folded.sized, .sx-world .sx-bnote.folding.sized { height: auto !important; } /* (a sized note folds too, and gets its size back when opened) */
+.sx-world .sx-bnote.folded .sx-note-t, .sx-world .sx-bnote.folding .sx-note-t { min-height: 0; overflow: hidden; }
+.sx-world .sx-bnote.folding .sx-note-t { transition: max-height .38s cubic-bezier(.5, 0, .2, 1); }
 .sx-world .sx-bnote.folded.sized .sx-note-t { overflow-y: hidden; }
 .sx-world .sx-bnote.folded .sx-resize { display: none; }
 .sx-flap { display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 16px; padding: 0; border: 0; cursor: pointer; z-index: 2;
@@ -1017,7 +1019,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-bnote.folded > .sx-flap::before { content: ''; position: absolute; right: 0; top: 0; border-style: solid; border-width: 0 0 16px 16px; border-color: transparent transparent #030710 transparent; opacity: .35; } /* (the folded corner) */
 .sx-world .sx-bnote.folded::after { display: none; }
 .sx-exporting .sx-flap span { display: none; }
-@media (prefers-reduced-motion: reduce) { .sx-world .sx-bnote.folding { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .sx-world .sx-bnote.folding .sx-note-t { transition: none; } }
 /* on paper with lines, headings, lists and quotes keep to the lines, so the words below still sit on them */
 .sx-world .sx-bnote[data-paper] .sx-note-t h2 { margin: 0; line-height: calc(var(--lh) * 2); }
 .sx-world .sx-bnote[data-paper="index"] .sx-note-t h2 { line-height: var(--lh); }
