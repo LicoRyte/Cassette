@@ -94,7 +94,9 @@ async function deskExportImage() {
       ctx.fillStyle = 'rgba(3, 7, 16, .55)'; ctx.fillRect(x + 3, y + 4, r.width, r.height);
       ctx.fillStyle = getComputedStyle(c).backgroundColor; ctx.fillRect(x, y, r.width, r.height);
       const img = c.querySelector('.sx-pol-img img');
-      if (img && img.complete && img.naturalWidth) { const ir = img.getBoundingClientRect(); ctx.drawImage(img, ir.left - o.x, ir.top - o.y, ir.width, ir.height); }
+      if (img && img.complete && img.naturalWidth) { // cropped to its window like on the desk, never stretched
+        const ir = img.getBoundingClientRect(), iw = img.naturalWidth, ih = img.naturalHeight, k = Math.max(ir.width / iw, ir.height / ih), sw = ir.width / k, sh = ir.height / k;
+        ctx.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, ir.left - o.x, ir.top - o.y, ir.width, ir.height); }
       const txt = c.querySelector('.sx-note-t, .sx-cap-t'); if (txt) { ctx.save(); ctx.beginPath(); ctx.rect(x, y, r.width, r.height); ctx.clip(); paintText(ctx, txt, o); ctx.restore(); }
       ctx.fillStyle = '#890027'; ctx.beginPath(); ctx.arc(px + 1, py + 2, 7, 0, 7); ctx.fill(); ctx.fillStyle = '#d9243c'; ctx.beginPath(); ctx.arc(px, py, 6.5, 0, 7); ctx.fill(); // the pin
       ctx.restore();

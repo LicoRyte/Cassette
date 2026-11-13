@@ -805,3 +805,9 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-rv-row .sx-ws-b:disabled { color: #293b49; box-shadow: none; cursor: default; }
 .sx-check.sx-sub { padding-left: 26px; }
 @media (prefers-reduced-motion: reduce) { .sx-review { transition: none; } }
+
+/* ---------- instant film in three shapes (js/desk.js polFormat): the window follows the photo ---------- */
+.sx-pol-img { aspect-ratio: var(--par, 1); }
+.sx-world .sx-polaroid.sx-pol-wide { width: 330px; padding: 11px 11px 8px; }
+.sx-world .sx-polaroid.sx-pol-mini { width: 186px; padding: 10px 10px 8px; }
+.sx-polaroid.sx-pol-mini .sx-cap-t { font-size: 15px; }

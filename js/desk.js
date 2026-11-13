@@ -194,6 +194,12 @@ function setKey(it, n) { // one number, one thing (on this board)
 }
 const keyBadge = it => it.key ? el('span', { class: 'sx-bkey', title: 'Press ' + it.key + ' to come here' }, String(it.key)) : null;
 function removeOne(it) { deskMark(); deskSfx('pick'); removeItems([it.id]); picked.delete(it.id); if (selId === it.id) selId = null; save(); drawBoard(); }
+// instant film comes in three shapes: square (the classic), wide (for landscape photos) and mini (for tall ones).
+// The photo window takes the photo's own shape within each film's range, so 16:9, 3:2, 4:3, 3:4 and 9:16 all show whole
+function polFormat(c, ar) {
+  const f = ar >= 1.15 ? 'wide' : ar <= .87 ? 'mini' : 'square', win = f === 'wide' ? Math.min(2, ar) : f === 'mini' ? Math.max(.56, ar) : 1;
+  c.classList.toggle('sx-pol-wide', f === 'wide'); c.classList.toggle('sx-pol-mini', f === 'mini'); c.style.setProperty('--par', win);
+}
 function paperCard(it) { // a note or a photo
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': it.type === 'photo' ? 'Take the photo down' : 'Take the note down', onclick: () => removeOne(it) }, '×');
   const txt = el('div', { class: it.type === 'photo' ? 'sx-cap-t' : 'sx-note-t', contenteditable: 'true', 'aria-label': it.type === 'photo' ? 'Caption' : 'Note', 'data-ph': it.type === 'photo' ? 'Write a caption...' : 'Write something...' }, it.text || '');
@@ -203,8 +209,12 @@ function paperCard(it) { // a note or a photo
   if (it.type === 'photo') {
     const img = el('img', { alt: it.text || 'A photo', draggable: 'false' });
     PHOTOS.get(it.id).then(src => { if (src) img.src = src; else img.alt = 'This photo is missing (it lives in the browser it was added in).'; drawStrings(); }).catch(() => {});
-    img.addEventListener('load', () => { drawStrings(); selBoxUpdate(); });
-    return el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt].filter(Boolean));
+    const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt].filter(Boolean));
+    if (it.ar) polFormat(c, it.ar);
+    img.addEventListener('load', () => { // the frame takes the photo's shape (measured once, then remembered)
+      const ar = img.naturalWidth && img.naturalHeight ? Math.round(img.naturalWidth / img.naturalHeight * 1000) / 1000 : 1;
+      if (it.ar !== ar) { it.ar = ar; save(); } polFormat(c, ar); drawStrings(); selBoxUpdate(); });
+    return c;
   }
   const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
   return c;
