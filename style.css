@@ -1116,7 +1116,10 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-world .sx-polaroid .sx-cap-t::selection, .sx-world .sx-polaroid .sx-cap-t *::selection { background: rgba(52, 17, 31, .2); }
 
 /* the deck's third key, Next; and the cassette's */
-#app .sx-corner .sx-cmd { gap: 30px; }
+/* three keys on the deck (Play, Rewind, Next) and the meters beside them: a fixed, slightly wider panel so the row fits */
+#app .sx-world > .sx-corner { width: 620px; }
+#app .sx-world > .sx-corner .sx-cmd { gap: 16px; }
+@media (max-width: 700px) { #app .sx-world > .sx-corner { width: calc(100vw - 72px); } }
 .sx-mcol-h .sx-nextb { min-width: 30px; font-size: 13px; }
 /* check yourself: what you remembered beside what you wrote */
 .sx-cmp { position: fixed; left: 50%; top: 62px; z-index: 9; display: flex; flex-direction: column; width: min(820px, calc(100vw - 32px)); max-height: calc(100vh - 160px); background: #030710; border: 1px solid #293b49; border-top: 3px solid #77d6c1; box-shadow: 0 14px 34px rgba(3, 7, 16, .75); transform: translate(-50%, -8px); opacity: 0; transition: transform .2s ease-out, opacity .2s; }
