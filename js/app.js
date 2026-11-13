@@ -43,6 +43,12 @@ async function sfxPlay(k) {
   if (!soundOn) return;
   try { const c = audioCtx(); if (!c) return; if (c.state === 'suspended') await c.resume(); const b = await sfxLoad(k), s = c.createBufferSource(), g = c.createGain(); g.gain.value = SFX[k][1]; s.buffer = b; s.connect(g).connect(c.destination); s.start(); } catch (e) { /* no audio here */ }
 }
+// a button clicked with the mouse lets go of the keyboard's focus afterwards, so Space always means Start/Pause
+// (otherwise Space would press that button again: Reset, a radio station...). Keyboard users moving with Tab keep it.
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('button'); if (!b || e.detail === 0) return; // (detail 0: pressed with the keyboard)
+  setTimeout(() => { if (document.activeElement === b) b.blur(); }, 0);
+});
 const sfxUnlock = () => { const c = audioCtx(); if (c && c.state === 'suspended') c.resume(); Object.keys(SFX).forEach(k => sfxLoad(k).catch(() => {})); };
 addEventListener('pointerdown', sfxUnlock, { once: true }); addEventListener('keydown', sfxUnlock, { once: true });
 // a click for buttons, a softer tick for tabs, colours and options (the tape keys have a sound of their own)
