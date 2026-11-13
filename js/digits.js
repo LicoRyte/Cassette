@@ -47,7 +47,7 @@ function tickPlay() {
   const src = tickCtx.createBufferSource(), g = tickCtx.createGain(); src.buffer = tickBuf;
   tickTock = !tickTock; src.playbackRate.value = (tickTock ? 1 : .89) * (1 + (Math.random() - .5) * .04); // tick, tock, never quite the same twice
   const rem = remaining(), soft = rem < 60000 ? Math.max(.25, rem / 60000) : 1; // the last minute winds down
-  g.gain.value = (S.opts.tickVol != null ? S.opts.tickVol : .35) * soft; src.connect(g); g.connect(tickCtx.destination); src.start();
+  g.gain.value = (S.opts.tickVol != null ? S.opts.tickVol : .35) * soft; src.connect(g); g.connect(typeof soundOut === 'function' ? soundOut(tickCtx, 'tick') : tickCtx.destination); src.start();
 }
 let tickLast = '';
 new MutationObserver(() => { const t = timeText.textContent; if (t !== tickLast) { tickLast = t; tickPlay(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
@@ -56,4 +56,4 @@ new MutationObserver(() => { const t = timeText.textContent; if (t !== tickLast)
   box.addEventListener('change', () => { S.opts.tick = box.checked; save(); });
   const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round((S.opts.tickVol != null ? S.opts.tickVol : .35) * 100), 'aria-label': 'Clock tick volume' });
   vol.addEventListener('input', () => { S.opts.tickVol = vol.value / 100; save(); });
-  settingsPane.append(sec('Clock', el('label', { class: 'sx-check' }, box, ' The clock ticks while a session runs (only when Cassette Timer is the window in front)'), el('label', { class: 'sx-check' }, 'Volume ', vol))); }
+  settingsPane.append(sec('Clock', el('label', { class: 'sx-check' }, box, ' The clock ticks while a session runs (only when Cassette Timer is the window in front)'))); }

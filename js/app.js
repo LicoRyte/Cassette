@@ -42,7 +42,7 @@ function audioCtx() { if (!actx) { const A = window.AudioContext || window.webki
 async function sfxLoad(k) { if (sfxBufs[k]) return sfxBufs[k]; const r = await fetch(SFX[k][0]); sfxBufs[k] = await audioCtx().decodeAudioData(await r.arrayBuffer()); return sfxBufs[k]; }
 async function sfxPlay(k) {
   if (!soundOn) return;
-  try { const c = audioCtx(); if (!c) return; if (c.state === 'suspended') await c.resume(); const b = await sfxLoad(k), s = c.createBufferSource(), g = c.createGain(); g.gain.value = SFX[k][1]; s.buffer = b; s.connect(g).connect(c.destination); s.start(); } catch (e) { /* no audio here */ }
+  try { const c = audioCtx(); if (!c) return; if (c.state === 'suspended') await c.resume(); const b = await sfxLoad(k), s = c.createBufferSource(), g = c.createGain(); g.gain.value = SFX[k][1] * (S.opts.lv ? (S.opts.lv.ui != null ? S.opts.lv.ui : 1) * (S.opts.lv.master != null ? S.opts.lv.master : 1) : 1); s.buffer = b; s.connect(g).connect(c.destination); s.start(); } catch (e) { /* no audio here */ }
 }
 // a button clicked with the mouse lets go of the keyboard's focus afterwards, so Space always means Start/Pause
 // (otherwise Space would press that button again: Reset, a radio station...). Keyboard users moving with Tab keep it.

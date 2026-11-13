@@ -49,7 +49,7 @@ function tapeLoad() {
 addEventListener('pointerdown', tapeLoad, { once: true }); addEventListener('keydown', tapeLoad, { once: true });
 function tapeSound() {
   if (!feelSoundOn()) return; const c = feelCtx(); if (!c || !tapeBuf) { tapeLoad(); return; }
-  const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1 + (Math.random() - .5) * .04; g.gain.value = .7; s.connect(g).connect(c.destination); s.start();
+  const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1 + (Math.random() - .5) * .04; g.gain.value = .7; s.connect(g).connect(soundOut(c, 'keys')); s.start();
 }
 [startB, resetB].forEach(b => b.addEventListener('click', () => {
   if (b.disabled) return; tapeKeySound(b);
@@ -118,7 +118,7 @@ function sideDraw() {
   if (first || stillUI()) { sideTagB.textContent = 'Side ' + s; return; }
   deck.classList.remove('flip'); sideTag.classList.remove('flip'); void deck.offsetWidth; deck.classList.add('flip'); sideTag.classList.add('flip');
   setTimeout(() => { sideTagB.textContent = 'Side ' + s; }, 280); // the label changes as the deck turns edge-on
-  if (feelSoundOn() && tapeBuf) { const c = feelCtx(); if (c) { const src = c.createBufferSource(), g = c.createGain(); src.buffer = tapeBuf; src.playbackRate.value = .72; g.gain.value = .55; src.connect(g).connect(c.destination); src.start(); } } // a lower clunk: the tape turned over
+  if (feelSoundOn() && tapeBuf) { const c = feelCtx(); if (c) { const src = c.createBufferSource(), g = c.createGain(); src.buffer = tapeBuf; src.playbackRate.value = .72; g.gain.value = .55; src.connect(g).connect(soundOut(c, 'keys')); src.start(); } } // a lower clunk: the tape turned over
 }
 new MutationObserver(sideDraw).observe(root, { attributes: true, attributeFilter: ['data-mode'] });
 sideDraw();
@@ -133,8 +133,8 @@ function fullRewind() {
   if (feelSoundOn()) { const c = feelCtx(); if (c) { // the motor whirring back, then the clunk at the end of the tape
     const t0 = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(140, t0); o.frequency.exponentialRampToValueAtTime(520, t0 + .55);
     f.type = 'lowpass'; f.frequency.value = 900; g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.03, t0 + .08); g.gain.exponentialRampToValueAtTime(.0001, t0 + .6);
-    o.connect(f).connect(g).connect(c.destination); o.start(t0); o.stop(t0 + .62);
-    if (tapeBuf) { const s = c.createBufferSource(), sg = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = .8; sg.gain.value = .6; s.connect(sg).connect(c.destination); s.start(t0 + .6); } } }
+    o.connect(f).connect(g).connect(soundOut(c, 'keys')); o.start(t0); o.stop(t0 + .62);
+    if (tapeBuf) { const s = c.createBufferSource(), sg = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = .8; sg.gain.value = .6; s.connect(sg).connect(soundOut(c, 'keys')); s.start(t0 + .6); } } }
   if (typeof deskToast === 'function') deskToast('Rewound to the start: session 1 of ' + S.set.every);
 }
 // holding the key: it fills up, and at the top the whole tape rewinds (a short press is the usual Rewind)
@@ -194,14 +194,14 @@ vuStep();
 /* ---------- each key sounds like itself: Play latches, Pause pops back up, Rewind whirrs ---------- */
 function tapeKeySound(b) {
   if (!feelSoundOn()) return; const c = feelCtx(); if (!c) return; const t = c.currentTime;
-  const clip = (rate, gain, at) => { if (!tapeBuf) return; const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = rate; g.gain.value = gain; s.connect(g).connect(c.destination); s.start(at || t); };
+  const clip = (rate, gain, at) => { if (!tapeBuf) return; const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = rate; g.gain.value = gain; s.connect(g).connect(soundOut(c, 'keys')); s.start(at || t); };
   if (b === resetB) { // a little motor whirr under the key
     const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(470, t + .26);
     f.type = 'lowpass'; f.frequency.value = 820; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.022, t + .04); g.gain.exponentialRampToValueAtTime(.0001, t + .3);
-    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + .32); clip(.95, .4, t + .02); return;
+    o.connect(f).connect(g).connect(soundOut(c, 'keys')); o.start(t); o.stop(t + .32); clip(.95, .4, t + .02); return;
   }
-  if (running) { clip(1, .7); feelTone(c, t + .035, 88, { dur: .08, vol: .05, to: 58 }); } // Play: the key goes down and latches
-  else { clip(1.3, .3); feelBurst(c, t, { dur: .03, type: 'highpass', f0: 2100, vol: .03 }); feelTone(c, t, 330, { dur: .05, vol: .02, to: 520 }); } // Pause: it pops back up
+  if (running) { clip(1, .7); feelTone(c, t + .035, 88, { cat: 'keys', dur: .08, vol: .05, to: 58 }); } // Play: the key goes down and latches
+  else { clip(1.3, .3); feelBurst(c, t, { cat: 'keys', dur: .03, type: 'highpass', f0: 2100, vol: .03 }); feelTone(c, t, 330, { cat: 'keys', dur: .05, vol: .02, to: 520 }); } // Pause: it pops back up
 }
 
 /* ---------- flick the reels: grab one and spin it; it keeps turning, slows down, and ticks as it goes ---------- */
@@ -210,7 +210,7 @@ function reelTurn(d, byHand) {
   reelA = (reelA + d) % 360;
   reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + reelA.toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (reelA * 1.3).toFixed(1) + ')');
   if (!byHand) return; reelTick += Math.abs(d);
-  if (reelTick >= 30) { reelTick = 0; if (S.opts.deskSfx !== false && feelSoundOn()) { const c = feelCtx(); if (c) feelBurst(c, c.currentTime, { dur: .007, type: 'highpass', f0: 3200 + Math.random() * 800, vol: .016 }); } } // the ratchet
+  if (reelTick >= 30) { reelTick = 0; if (S.opts.deskSfx !== false && feelSoundOn()) { const c = feelCtx(); if (c) feelBurst(c, c.currentTime, { cat: 'keys', dur: .007, type: 'highpass', f0: 3200 + Math.random() * 800, vol: .016 }); } } // the ratchet
 }
 reelStep = function () {
   reelRaf = 0;
@@ -239,8 +239,8 @@ tapeCounter = function (n) {
   if (before == null || n <= before || stillUI() || S.opts.deskSfx === false || !feelSoundOn()) return;
   const a = String(before).padStart(3, '0'), b = String(n).padStart(3, '0'), rolled = [...b].filter((ch, i) => ch !== a[i]).length;
   const c = feelCtx(); if (!c) return; const t = c.currentTime;
-  feelBurst(c, t + .05, { dur: .012, type: 'highpass', f0: 2700, vol: .035 }); feelTone(c, t + .05, 620, { dur: .03, vol: .012, to: 420 }); // the wheel's click
-  for (let i = 1; i < rolled; i++) feelTone(c, t + .05 + i * .07, 150, { dur: .08, vol: .04, to: 90 }); // the carry: the next wheel goes over too
+  feelBurst(c, t + .05, { cat: 'keys', dur: .012, type: 'highpass', f0: 2700, vol: .035 }); feelTone(c, t + .05, 620, { cat: 'keys', dur: .03, vol: .012, to: 420 }); // the wheel's click
+  for (let i = 1; i < rolled; i++) feelTone(c, t + .05 + i * .07, 150, { cat: 'keys', dur: .08, vol: .04, to: 90 }); // the carry: the next wheel goes over too
 };
 
 /* ---------- the end of a tape: the cassette ejects from the deck and flies to your shelf ---------- */
@@ -250,9 +250,9 @@ function ejectTape() {
   const cas = el('div', { class: 'sx-eject', 'aria-hidden': 'true', style: 'left:' + (d.left + d.width / 2 - 45) + 'px;top:' + (d.top + d.height / 2 - 29) + 'px;--tx:' + Math.round(to.left + to.width / 2 - (d.left + d.width / 2)) + 'px;--ty:' + Math.round(to.top + to.height / 2 - (d.top + d.height / 2)) + 'px' });
   cas.innerHTML = '<svg viewBox="0 0 30 19"><rect x=".5" y=".5" width="29" height="18" rx="1.5" fill="#041528" style="stroke:var(--deck)"/><rect x="3" y="2.5" width="24" height="5" fill="#ffdaac"/><rect x="5" y="4" width="11" height="1" fill="#34111f"/><rect x="7" y="9.5" width="16" height="5" fill="#030710" stroke="#293b49" stroke-width=".6"/><circle cx="11" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><circle cx="19" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><path d="M8 18.5l1.5-2.5h11l1.5 2.5" fill="none" style="stroke:var(--deck)" stroke-width=".7"/></svg>'; // (a fixed drawing)
   document.body.append(cas); requestAnimationFrame(() => cas.classList.add('go'));
-  if (feelSoundOn()) { const c = feelCtx(); if (c) { const t = c.currentTime; feelBurst(c, t, { dur: .03, type: 'highpass', f0: 1800, vol: .06 }); feelTone(c, t, 120, { dur: .09, vol: .05, to: 70 }); // the eject's clack
-    if (tapeBuf) { const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1.15; g.gain.value = .45; s.connect(g).connect(c.destination); s.start(t + .03); }
-    feelBurst(c, t + 1.55, { dur: .07, type: 'lowpass', f0: 900, vol: .05 }); } } // and it lands on the shelf
+  if (feelSoundOn()) { const c = feelCtx(); if (c) { const t = c.currentTime; feelBurst(c, t, { cat: 'keys', dur: .03, type: 'highpass', f0: 1800, vol: .06 }); feelTone(c, t, 120, { cat: 'keys', dur: .09, vol: .05, to: 70 }); // the eject's clack
+    if (tapeBuf) { const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1.15; g.gain.value = .45; s.connect(g).connect(soundOut(c, 'keys')); s.start(t + .03); }
+    feelBurst(c, t + 1.55, { cat: 'keys', dur: .07, type: 'lowpass', f0: 900, vol: .05 }); } } // and it lands on the shelf
   setTimeout(() => cas.remove(), 1800);
 }
 const finishEject = finish;

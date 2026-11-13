@@ -4,6 +4,18 @@
    leave it alone, then comes back the moment you reach for it. Settings, Feel, turns each of them off. */
 'use strict';
 
+/* ---------- sound levels: every sound goes through its kind's volume, then the master volume (Settings, Sound levels) ---------- */
+S.opts.lv = Object.assign({ master: 1, chime: 1, keys: 1, desk: 1, ui: 1, hiss: 1, tick: 1 }, S.opts.lv || {});
+const LV = S.opts.lv;
+let feelCat = 'desk'; // the kind of sound being made right now
+function soundOut(c, cat) {
+  if (!c._master) { c._master = c.createGain(); c._master.gain.value = LV.master; c._master.connect(c.destination); c._cats = {}; }
+  if (!cat) return c._master;
+  if (!c._cats[cat]) { const g = c.createGain(); g.gain.value = LV[cat] != null ? LV[cat] : 1; g.connect(c._master); c._cats[cat] = g; }
+  return c._cats[cat];
+}
+function lvApply() { const c = tickCtx; if (!c || !c._master) return; c._master.gain.value = LV.master; Object.entries(c._cats).forEach(([k, g]) => { g.gain.value = LV[k] != null ? LV[k] : 1; }); }
+
 /* ---------- sound, made live ---------- */
 const feelSoundOn = () => soundOn;
 function feelCtx() { tickLoad(); const c = tickCtx; if (!c) return null; if (c.state === 'suspended') c.resume(); return c.state === 'closed' ? null : c; }
@@ -14,22 +26,25 @@ function feelNoise(c) { // one second of white noise, made once
   return feelNoiseBuf = b;
 }
 // a burst of filtered noise: the base of every paper sound
-function feelBurst(c, t, { dur, type = 'bandpass', f0, f1, q = 1, vol, attack = .004, grain = 0 }) {
+function feelBurst(c, t, { dur, type = 'bandpass', f0, f1, q = 1, vol, attack = .004, grain = 0, cat }) {
   const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
   s.buffer = feelNoise(c); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack);
   if (grain) for (let k = 1; k < grain; k++) g.gain.setValueAtTime(vol * (.25 + Math.random() * .75), t + dur * k / grain); // the crackle of fibres giving way
   g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-  s.connect(f).connect(g).connect(c.destination); s.start(t, Math.random() * .5); s.stop(t + dur + .02);
+  s.connect(f).connect(g).connect(soundOut(c, cat || feelCat)); s.start(t, Math.random() * .5); s.stop(t + dur + .02);
 }
-function feelTone(c, t, freq, { dur, vol, type = 'sine', attack = .005, to, lp }) {
+function feelTone(c, t, freq, { dur, vol, type = 'sine', attack = .005, to, lp, cat }) {
   const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(freq, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   let out = o.connect(g); if (lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; out = out.connect(f); }
-  out.connect(c.destination); o.start(t); o.stop(t + dur + .02);
+  out.connect(soundOut(c, cat || feelCat)); o.start(t); o.stop(t + dur + .02);
 }
 // a bell heard through a wall: a few slow-dying partials, the bright ones muffled
 function feelChime(high) {
+  feelCat = 'chime'; try { feelChimeRing(high); } finally { feelCat = 'desk'; }
+}
+function feelChimeRing(high) {
   if (!feelSoundOn()) return; const c = feelCtx(); if (!c) return;
   const t = c.currentTime + .02, base = high ? 392 : 196, v = high ? .05 : .09;
   [[1, 1, 4.2], [2.01, .5, 3.2], [2.76, .32, 2.4], [5.4, .12, 1.4]].forEach(([r, a, d]) => feelTone(c, t, base * r, { dur: d, vol: v * a, attack: .012, lp: 1500 }));
@@ -91,7 +106,7 @@ function hissSync() {
     const b = c.createBuffer(1, c.sampleRate * 4, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; // four seconds, so it never sounds looped
     const src = c.createBufferSource(), hp = c.createBiquadFilter(), lp = c.createBiquadFilter(); src.buffer = b; src.loop = true;
     hp.type = 'highpass'; hp.frequency.value = 2200; lp.type = 'lowpass'; lp.frequency.value = 9500; hissGain = c.createGain(); hissGain.gain.value = 0;
-    src.connect(hp).connect(lp).connect(hissGain).connect(c.destination); src.start();
+    src.connect(hp).connect(lp).connect(hissGain).connect(soundOut(c, 'hiss')); src.start();
   }
   hissGain.gain.setTargetAtTime(want ? .0045 * (S.opts.tickVol != null ? Math.max(.3, S.opts.tickVol / .35) : 1) : 0, c.currentTime, want ? 2.2 : .35);
 }

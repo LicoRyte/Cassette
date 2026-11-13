@@ -95,7 +95,7 @@ function musicDuck(ms) {
 let mGraph = null;
 function musicGraph() {
   if (mGraph) return mGraph; const c = feelCtx(); if (!c) return null;
-  const bus = c.createGain(), an = c.createAnalyser(); an.fftSize = 512; bus.connect(an); an.connect(c.destination);
+  const bus = c.createGain(), an = c.createAnalyser(); an.fftSize = 512; bus.connect(an); an.connect(soundOut(c));
   decks.forEach(a => { try { c.createMediaElementSource(a).connect(bus); } catch (e) { /* already routed */ } });
   return mGraph = { c, bus, an, buf: new Uint8Array(512) };
 }

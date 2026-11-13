@@ -955,3 +955,10 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .btn.sx-trk-del:hover { opacity: 1; border-color: #293b49; } .btn.sx-trk-del.arm { opacity: 1; color: #ff6157; border-color: #ff6157; }
 .sx-libbox h4 b { color: #ffdaac !important; }
 .sx-store { font: 12px var(--ui); color: #6d8a8d; }
+
+/* Settings, Sound levels */
+.sx-lv-row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(120px, 220px) 48px; align-items: center; gap: 12px; margin: 0 0 10px; }
+.sx-lv-row label { display: flex; flex-direction: column; } .sx-lv-row b { font: 600 15px var(--ui); color: #ffffe4; } .sx-lv-row small { font: 12px var(--ui); color: #6d8a8d; }
+.sx-lv-row input[type="range"] { width: 100%; accent-color: var(--deck); }
+.sx-lv-row output { font: 600 13px var(--ui); color: var(--deck); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .sx-lv-row { grid-template-columns: 1fr 48px; } .sx-lv-row input[type="range"] { grid-column: 1 / -1; grid-row: 2; } }
