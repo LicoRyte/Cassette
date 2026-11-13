@@ -73,7 +73,7 @@ function drawClock() {
   timeText.textContent = fmt(r);
   const hl = headline(); if (bigText.textContent !== hl) bigText.textContent = hl;
   drawCycle(pct);
-  document.title = running ? fmt(r) + ' · ' + (mode === 'focus' ? 'Focus' : MODES[mode]) : 'Cassette Timer'; // the time in the browser tab
+  document.title = running ? fmt(r) + ' · ' + (mode === 'focus' ? (S.intent || '').trim() || 'Focus' : MODES[mode]) : 'Cassette Timer'; // the time in the browser tab (and what the session is for)
 }
 function draw() {
   drawClock();

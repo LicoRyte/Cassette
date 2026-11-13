@@ -70,6 +70,22 @@ new MutationObserver(() => {
   pulse.classList.remove('on'); void pulse.offsetWidth; pulse.classList.add('on');
 }).observe(timeText, { childList: true, characterData: true, subtree: true });
 
+/* ---------- tape hiss: very faint, while you focus, fading in after Play and out when you stop ---------- */
+let hissGain = null;
+function hissSync() {
+  const want = S.opts.hiss !== false && soundOn && running && mode === 'focus';
+  if (!want && !hissGain) return;
+  const c = feelCtx(); if (!c) return;
+  if (!hissGain) {
+    const b = c.createBuffer(1, c.sampleRate * 4, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; // four seconds, so it never sounds looped
+    const src = c.createBufferSource(), hp = c.createBiquadFilter(), lp = c.createBiquadFilter(); src.buffer = b; src.loop = true;
+    hp.type = 'highpass'; hp.frequency.value = 2200; lp.type = 'lowpass'; lp.frequency.value = 9500; hissGain = c.createGain(); hissGain.gain.value = 0;
+    src.connect(hp).connect(lp).connect(hissGain).connect(c.destination); src.start();
+  }
+  hissGain.gain.setTargetAtTime(want ? .0045 * (S.opts.tickVol != null ? Math.max(.3, S.opts.tickVol / .35) : 1) : 0, c.currentTime, want ? 2.2 : .35);
+}
+new MutationObserver(hissSync).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
+
 /* ---------- the desk dims while you focus and leave it alone ---------- */
 let stillT = 0;
 function feelWake() {
@@ -80,5 +96,5 @@ function feelWake() {
 feelWake();
 
 /* ---------- Settings, Feel ---------- */
-{ const opt = (k, label) => { const box = el('input', { type: 'checkbox', checked: S.opts[k] !== false || null }); box.addEventListener('change', () => { S.opts[k] = box.checked; save(); if (k === 'dim') feelWake(); }); return el('label', { class: 'sx-check' }, box, ' ' + label); };
-  settingsPane.append(sec('Feel', opt('glow', 'A green glow around the screen on every second of a focus session'), opt('dim', 'The desk dims while you focus and leave it alone'), opt('deskSfx', 'Paper, pin and typing sounds on the desk'))); }
+{ const opt = (k, label) => { const box = el('input', { type: 'checkbox', checked: S.opts[k] !== false || null }); box.addEventListener('change', () => { S.opts[k] = box.checked; save(); if (k === 'dim') feelWake(); if (k === 'hiss') hissSync(); }); return el('label', { class: 'sx-check' }, box, ' ' + label); };
+  settingsPane.append(sec('Feel', opt('glow', 'A green glow around the screen on every second of a focus session'), opt('dim', 'The desk dims while you focus and leave it alone'), opt('deskSfx', 'Paper, pin and typing sounds on the desk'), opt('hiss', 'A faint tape hiss while you focus'))); }

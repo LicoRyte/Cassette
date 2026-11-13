@@ -442,7 +442,9 @@ ws.addEventListener('wheel', e => { // zoom around the pointer
 }, { passive: false });
 ws.addEventListener('dragover', e => { if ([...(e.dataTransfer.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); ws.classList.add('drop'); } });
 ws.addEventListener('dragleave', () => ws.classList.remove('drop'));
-ws.addEventListener('drop', e => { e.preventDefault(); ws.classList.remove('drop'); addPhotos(e.dataTransfer.files, toWorld(e.clientX, e.clientY)); });
+ws.addEventListener('drop', e => { e.preventDefault(); ws.classList.remove('drop'); const fs = e.dataTransfer.files;
+  if ([...fs].some(f => /^audio\//.test(f.type)) && typeof musicAdd === 'function') musicAdd(fs, mode === 'focus' ? 'A' : 'B'); // music goes on the side that's playing (js/music.js)
+  addPhotos(fs, toWorld(e.clientX, e.clientY)); });
 addEventListener('resize', placeCam);
 
 /* ---------- keys ---------- */

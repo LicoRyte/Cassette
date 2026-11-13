@@ -11,13 +11,16 @@ Everything is saved in this browser.
 ## Controls
 
 Press **?** (or the ? key at the top left) for every key and gesture. The main ones: `Space` starts or pauses, `R`
-rewinds and `S` skips (while stopped), `D` draws, `0` goes back to the clock, `1`-`9` glide to a bookmark,
+rewinds and `S` skips (while stopped), `D` draws, `T` opens Tapes, `0` goes back to the clock, `1`-`9` glide to a bookmark,
 `Shift`+`1`-`9` bookmarks what you picked, `Ctrl+Z` / `Ctrl+Shift+Z` undo and redo, `Ctrl+G` groups, `Delete` removes
 what's picked, `Esc` puts down the note you're writing or closes Settings.
 
 ## What's in it
 
 - **How it works:** the ? key at the top left opens a card with every key and gesture. The bar along the bottom has the board menu, Note, Photo, Draw, Frame, Undo and Redo, the clock and your bookmarks, all as hollow keys like the timer's.
+- **What each session is for:** above the digits there's a label: write what this session is for before you press Play (it shows in the browser tab while you focus, too). At 00:00 a small card asks what you remember, written from memory, which is the surest way to make it stick (Ctrl+Enter keeps it, Esc skips; tick "Pin it to the desk too" to get a note). Settings, Learning turns the question off.
+- **Tapes** (T, or Tapes in the bar): every session you finish is a track, with what it was for and what you remembered; a full cycle is one tape. The **Shelf** keeps them all as cassette spines: open one for its track listing, pin it to the desk, or throw it away. The **Music** tab has two sides: Side A plays while you focus, Side B on breaks. Drop audio files on a side (or anywhere on the desk: they go to the side that's playing), take tracks off, set the volume. Music plays only while the timer runs and fades in and out; the files stay in this browser. When focus turns into a break or back, the deck flips over with a clunk and the music changes sides; the line under the counter shows the side and what's playing.
+- **Tape hiss:** a very faint hiss while you focus, fading in after Play (Settings, Feel).
 - **The clock:** one centred clock in a console frame with amber corner brackets, over a slowly drifting grain and faint scanlines, with a single line sweeping down the screen once a minute. Above the digits: Ready, Focus or Paused, and which session of the cycle this is. Under them: one strip for the whole cycle (a long segment for each focus session, a short one for each break, a longer one for the long break, filling as you go), then two hollow tape-deck keys, Play/Pause and Rewind (Reset), with the key to press written underneath; Play stays latched down while a session runs, and both play a cassette click. Two little tape reels sit either side of the strip: the left holds what's left of the cycle and the right what's done, they turn while the timer runs, ease to a stop when you pause and spin back on Rewind. Under the keys, today's sessions on a three-wheel tape counter that rolls up when a session ends. At 00:00 the screen's edges darken and lift once, like a breath out.
 - **Colour tells you where you are:** cream while you focus, warmer in the last minute, mint on a break, dimmed and blinking when paused, quiet silver when ready.
 - **The feel:** each digit rolls down into place as it changes, like an odometer, while the old one rolls out underneath and lingers for a moment like phosphor. The colon glows on every second, and the edge of the screen glows green once with it, so you can feel the clock without watching it. Pressing Start switches the digits on like an old screen. In the last ten seconds the roll slows down. At 00:00 the digits hold and glow while a soft, low chime plays, like a bell through a wall (a lighter one ends a break). Breaks don't tick: the digits breathe. Reduced motion keeps all of it still.
@@ -48,6 +51,8 @@ what's picked, `Esc` puts down the note you're writing or closes Settings.
 | `js/export.js` | Saving a board as an image, backups of all boards, loading a backup |
 | `js/clock.js` | Colour by state, the colon's beat, the power-on, the soft landing and the breath out at 00:00 |
 | `js/tape.js` | The session strip, the tape-deck keys, the reels and the counter |
+| `js/music.js` | The two sides of music (Side A focus, Side B breaks) and the Tapes drawer |
+| `js/log.js` | The label (what a session is for), what you remember at 00:00, and the shelf of tapes |
 | `js/help.js` | The ? card |
 | `js/start.js` | Picks up a timer that was running when the page closed, and draws the first frame |
 | `sw.js` | Offline support. Files are always fetched fresh when online, so edits show up on the next reload. Bump `VERSION` and update its file list if you add, rename or remove files |

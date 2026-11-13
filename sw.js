@@ -1,9 +1,9 @@
 /* Cassette Timer offline support. Every file is fetched fresh when online (so updates show up on the next reload)
    and saved, so the app also works offline. VERSION only needs bumping when this list of files changes. */
-const VERSION = 'cassette-1';
+const VERSION = 'cassette-2';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest', 'CREDITS.md',
-  'js/app.js', 'js/state.js', 'js/screen.js', 'js/digits.js', 'js/feel.js', 'js/notes.js', 'js/draw.js', 'js/desk.js', 'js/pen.js', 'js/export.js', 'js/clock.js', 'js/tape.js', 'js/help.js', 'js/start.js',
+  'js/app.js', 'js/state.js', 'js/screen.js', 'js/digits.js', 'js/feel.js', 'js/notes.js', 'js/draw.js', 'js/desk.js', 'js/pen.js', 'js/export.js', 'js/clock.js', 'js/tape.js', 'js/music.js', 'js/log.js', 'js/help.js', 'js/start.js',
   'fonts/barlow-condensed-latin-400-normal.woff2', 'fonts/barlow-condensed-latin-500-normal.woff2', 'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2',
   'fonts/courier-prime-latin-400-normal.woff2', 'fonts/courier-prime-latin-700-normal.woff2', 'fonts/courier-prime-latin-400-italic.woff2',
   'sfx/clock-tick.mp3', 'sfx/cassette-play.mp3', 'sfx/twm_mouse_click.wav', 'sfx/twm_notif.wav',

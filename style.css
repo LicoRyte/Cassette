@@ -661,3 +661,81 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-help dl { grid-template-columns: 136px 1fr; align-items: center; }
 .sx-help dt { white-space: normal; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; color: #6d8a8d; font: 12px var(--ui); }
 .sx-clockonly .sx-top { display: flex; justify-content: flex-end; } #app.paged ~ .sx-help-b, #app.paged ~ .sx-help { display: none; } /* (Settings has the screen to itself) */
+
+/* ---------- the label above the digits (js/log.js) ---------- */
+#app .sx-intent { order: -1; align-self: center; width: min(100%, 380px); margin: 0 0 8px; padding: 5px 10px; background: none; border: 0; border-bottom: 1.5px dashed #293b49; color: #ffdaac; font: italic 17px/1.3 var(--text); text-align: center; outline: none; transition: border-color .3s, color .3s; }
+#app .sx-intent::placeholder { color: #6d8a8d; font-style: italic; }
+#app .sx-intent:hover, #app .sx-intent:focus { border-bottom-color: #ffb762; }
+#app .sx-intent.lock { border-bottom-color: transparent; color: #ffffe4; cursor: default; }
+#app .sx-intent.lock.empty { visibility: hidden; }
+/* the side line under the counter, and the flip */
+.sx-sidetag { order: 6; display: flex; justify-content: center; gap: 10px; margin-top: 6px; min-height: 1.2em; font: 600 11px/1.2 var(--ui); letter-spacing: .22em; text-transform: uppercase; color: #6d8a8d; }
+.sx-sidetag b { color: #ffb762; font-weight: 700; }
+#app[data-side="B"] .sx-sidetag b { color: #77d6c1; }
+.sx-sidetag .sx-np { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: .08em; text-transform: none; font-size: 12px; color: #ffdaac; }
+.sx-clockonly .sx-tally { order: 5; }
+.sx-deck.flip, .sx-sidetag.flip { animation: sx-flip .6s ease-in-out; }
+@keyframes sx-flip { 0% { transform: perspective(500px) rotateX(0); } 45% { transform: perspective(500px) rotateX(88deg); opacity: .5; } 55% { transform: perspective(500px) rotateX(-88deg); opacity: .5; } 100% { transform: perspective(500px) rotateX(0); } }
+/* ---------- what do you remember? ---------- */
+.sx-recall { position: fixed; left: 50%; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 76px); z-index: 7; width: min(440px, calc(100vw - 32px)); padding: 14px 16px 12px; background: #030710; border: 1px solid #ffb762; box-shadow: 0 8px 26px rgba(3, 7, 16, .75); transform: translate(-50%, 12px); opacity: 0; transition: opacity .3s, transform .3s; }
+.sx-recall.on { transform: translate(-50%, 0); opacity: 1; }
+.sx-recall h3 { margin: 0; font: 700 13px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: #ffb762; }
+.sx-recall-for { display: block; margin: 3px 0 8px; font: italic 14px var(--text); color: #ffdaac; }
+.sx-recall-t { display: block; width: 100%; resize: vertical; min-height: 84px; padding: 8px 10px; background: #041528; border: 1px solid #293b49; color: #ffffe4; font: 15px/1.5 var(--text); outline: none; caret-color: #ffb762; }
+.sx-recall-t:focus { border-color: #ffb762; }
+.sx-recall-b { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.sx-recall-b .sx-check { margin: 0; font-size: 13px; color: #6d8a8d; }
+.sx-gap { flex: 1; }
+/* ---------- the Tapes drawer ---------- */
+.sx-tapes { position: fixed; right: max(16px, env(safe-area-inset-right)); top: 62px; z-index: 6; width: min(380px, calc(100vw - 32px)); max-height: calc(100vh - 160px); display: flex; flex-direction: column; background: #030710; border: 1px solid #ffb762; box-shadow: 0 8px 24px rgba(3, 7, 16, .7); }
+.sx-tapes[hidden] { display: none; }
+.sx-tapes-h { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid #293b49; }
+.sx-tt { height: 30px; padding: 0 12px 1px; background: none; border: 1.5px solid #293b49; border-radius: 3px; color: #6d8a8d; font: 700 12px/1 var(--ui); letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
+.sx-tt.on { color: #ffb762; border-color: #ffb762; box-shadow: inset 0 0 0 1px rgba(255, 183, 98, .15); }
+.sx-tt.sx-tx { width: 30px; padding: 0; font-size: 17px; letter-spacing: 0; }
+.sx-shelf, .sx-mus { overflow-y: auto; scrollbar-width: thin; padding: 12px; }
+.sx-tapes .sx-ws-b, .sx-recall .sx-ws-b { height: 30px; padding: 0 11px 1px; background: none; border: 1.5px solid currentColor; border-radius: 3px; color: #ffb762; font: 700 12px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 3px 0 rgba(255, 183, 98, .28); cursor: pointer; transition: transform .07s, box-shadow .07s, background .15s; }
+.sx-tapes .sx-ws-b:hover, .sx-recall .sx-ws-b:hover { background: rgba(255, 183, 98, .09); }
+.sx-tapes .sx-ws-b:active, .sx-recall .sx-ws-b:active, .sx-tapes .sx-ws-b.on { transform: translateY(3px); box-shadow: none; background: rgba(255, 183, 98, .14); }
+.sx-tapes .sx-ws-b.sx-quiet, .sx-recall .sx-ws-b.sx-quiet { color: #6d8a8d; box-shadow: 0 3px 0 rgba(109, 138, 141, .25); }
+.sx-tapes .btn.sx-ws-b.arm { color: #ff6157; }
+/* the shelf: a cassette spine for every tape */
+.sx-spine { display: flex; flex-direction: column; gap: 3px; width: 100%; margin: 0 0 8px; padding: 10px 12px 10px 18px; position: relative; background: #041528; border: 1px solid #293b49; border-radius: 3px; color: #ffffe4; text-align: left; cursor: pointer; }
+.sx-spine::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 4px; border-radius: 2px; background: #ffb762; }
+.sx-spine.in::before { background: #77d6c1; }
+.sx-spine:hover, .sx-spine.open { border-color: #ffb762; }
+.sx-spine-t { font: italic 15px/1.3 var(--text); color: #ffdaac; }
+.sx-spine-m { font: 600 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: #6d8a8d; }
+.sx-tape-open { margin-bottom: 14px; }
+.sx-tape-open .sx-spine { margin-bottom: 6px; }
+.sx-index-side { margin: 8px 0 4px; font: 700 11px var(--ui); letter-spacing: .22em; text-transform: uppercase; color: #ffb762; }
+.sx-index { margin: 0 0 10px; padding-left: 22px; color: #6d8a8d; }
+.sx-index li { margin: 0 0 8px; }
+.sx-index-h { display: flex; justify-content: space-between; gap: 10px; }
+.sx-index-h b { font: 600 15px var(--ui); color: #ffffe4; }
+.sx-index-h span { font: 12px var(--ui); color: #6d8a8d; white-space: nowrap; }
+.sx-index p { margin: 2px 0 0; font: 14px/1.45 var(--text); color: #bfc3c6; white-space: pre-wrap; }
+.sx-shelf-empty { margin: 4px 2px; font-size: 14px; line-height: 1.45; }
+/* the music: two sides */
+.sx-mus-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.sx-mus-vol { display: flex; align-items: center; gap: 8px; font: 13px var(--ui); color: #6d8a8d; }
+.sx-ms { margin: 0 0 14px; padding: 10px 12px 12px; border: 1px solid #293b49; border-radius: 3px; }
+.sx-ms.now { border-color: #ffb762; }
+#app[data-side="B"] ~ .sx-tapes .sx-ms.now { border-color: #77d6c1; }
+.sx-ms h4 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
+.sx-ms h4 b { font: 700 13px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: #ffb762; }
+.sx-ms:last-of-type h4 b { color: #77d6c1; }
+.sx-ms h4 span { font: 12px var(--ui); color: #6d8a8d; }
+.sx-trks { margin: 0 0 8px; padding-left: 22px; }
+.sx-trks li { display: flex; align-items: center; gap: 6px; margin: 0 0 3px; font: 14px var(--ui); color: #bfc3c6; }
+.sx-trks li.play { color: #ffffe4; } .sx-trks li.play::marker { color: #ffb762; }
+.sx-trks li.play .sx-trk-n::before { content: '▸ '; color: #ffb762; }
+.sx-trk-n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx-trk-x { width: 22px; height: 22px; padding: 0; background: none; border: 0; color: #6d8a8d; font: 16px/1 var(--ui); cursor: pointer; opacity: .6; }
+.sx-trk-x:hover { color: #ff6157; opacity: 1; }
+.sx-mz { padding: 12px; border: 1.5px dashed #293b49; border-radius: 3px; text-align: center; font: 13px var(--ui); color: #6d8a8d; cursor: pointer; }
+.sx-mz:hover, .sx-mz:focus-visible, .sx-mz.drop { border-color: #ffb762; color: #ffdaac; }
+.sx-mz u { color: #ffb762; }
+.sx-mus-note { margin: 4px 2px 0; font-size: 12px; }
+#app.paged ~ .sx-tapes, #app.paged ~ .sx-recall { display: none; }
+@media (prefers-reduced-motion: reduce) { .sx-deck.flip, .sx-sidetag.flip { animation: none; } .sx-recall { transition: none; } }

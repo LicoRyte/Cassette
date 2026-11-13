@@ -106,3 +106,19 @@ function tapeCounter(n) {
   });
 }
 tapeCounter(S.todayN || 0);
+
+/* ---------- the side: A while you focus, B on breaks; the deck flips over when one turns into the other ---------- */
+const sideTagB = el('b', {}), sideTagNp = el('span', { class: 'sx-np' }); // (what's playing: js/music.js)
+const sideTag = el('div', { class: 'sx-sidetag' }, sideTagB, sideTagNp);
+corner.append(sideTag);
+let sideShown = null;
+function sideDraw() {
+  const s = mode === 'focus' ? 'A' : 'B'; if (s === sideShown) return;
+  const first = sideShown == null; sideShown = s; root.dataset.side = s;
+  if (first || stillUI()) { sideTagB.textContent = 'Side ' + s; return; }
+  deck.classList.remove('flip'); sideTag.classList.remove('flip'); void deck.offsetWidth; deck.classList.add('flip'); sideTag.classList.add('flip');
+  setTimeout(() => { sideTagB.textContent = 'Side ' + s; }, 280); // the label changes as the deck turns edge-on
+  if (feelSoundOn() && tapeBuf) { const c = feelCtx(); if (c) { const src = c.createBufferSource(), g = c.createGain(); src.buffer = tapeBuf; src.playbackRate.value = .72; g.gain.value = .55; src.connect(g).connect(c.destination); src.start(); } } // a lower clunk: the tape turned over
+}
+new MutationObserver(sideDraw).observe(root, { attributes: true, attributeFilter: ['data-mode'] });
+sideDraw();
