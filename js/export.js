@@ -136,7 +136,7 @@ function deskImportBackup() {
       const o = { id, type: it.type, board: bmap.get(it.board), x: num(it.x), y: num(it.y) };
       if (it.key >= 1 && it.key <= 9) o.key = num(it.key); if (it.group) o.group = str(it.group, 40) + tag;
       if (it.text) o.text = str(it.text, 2000);
-      if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; if (it.fold) o.fold = true; }
+      if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; }
       if (it.type === 'frame') Object.assign(o, { w: Math.max(200, num(it.w)), h: Math.max(140, num(it.h)), color: str(it.color, 12) || 'amber' });
       if (it.type === 'draw') Object.assign(o, { w: num(it.w), h: num(it.h), strokes: (Array.isArray(it.strokes) ? it.strokes : []).filter(s => s && TOOLS.includes(s.t) && Array.isArray(s.p)).map(s => ({ t: s.t, c: str(s.c, 12), s: Math.max(1, Math.min(12, num(s.s))), seed: num(s.seed), p: s.p.filter(q => Array.isArray(q)).slice(0, 4000).map(q => [+q[0] || 0, +q[1] || 0]) })) });
       return o;
