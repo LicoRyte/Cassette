@@ -45,19 +45,30 @@ const DESK_SFX = {
   shutter: c => { const t = c.currentTime; feelBurst(c, t, { dur: .025, type: 'highpass', f0: 2400, vol: .09 }); feelTone(c, t, 160, { dur: .04, vol: .04, to: 90 });
     feelBurst(c, t + .075, { dur: .03, type: 'highpass', f0: 2000, vol: .07 }); feelBurst(c, t + .09, { dur: .12, f0: 4000, f1: 2500, vol: .02 }); },
   scratch: c => { const t = c.currentTime; feelBurst(c, t, { dur: .07, f0: 3400 + Math.random() * 800, q: 2.2, vol: .018, grain: 3 }); }, // a marker on paper
+  back: c => { const t = c.currentTime; feelBurst(c, t, { dur: .035, type: 'lowpass', f0: 1300 + Math.random() * 300, vol: .045 }); feelTone(c, t, 125 + Math.random() * 20, { dur: .055, vol: .022, to: 80 }); }, // backspace: a duller, heavier clack
+  ret: c => { const t = c.currentTime; for (let i = 0; i < 4; i++) feelBurst(c, t + i * .028, { dur: .014, type: 'highpass', f0: 2600 + i * 180, vol: .02 - i * .003 }); // the carriage return: a quick ratchet...
+    feelTone(c, t + .13, 2093, { dur: .5, vol: .012, attack: .004 }); feelTone(c, t + .13, 4186, { dur: .25, vol: .004, attack: .004 }); }, // ...and a faint bell
   key: c => { const t = c.currentTime; feelBurst(c, t, { dur: .018, type: 'highpass', f0: 1800 + Math.random() * 600, vol: .025 }); feelTone(c, t, 180 + Math.random() * 40, { dur: .03, vol: .012, to: 120 }); },
 };
 let deskSfxLast = {};
 function deskSfx(k) {
   if (S.opts.deskSfx === false || !feelSoundOn() || document.hidden) return;
-  const now = performance.now(); if (now - (deskSfxLast[k] || 0) < (k === 'key' ? 35 : 60)) return; deskSfxLast[k] = now;
+  const now = performance.now(); if (now - (deskSfxLast[k] || 0) < (k === 'key' ? 35 : k === 'back' ? 45 : 60)) return; deskSfxLast[k] = now;
   const c = feelCtx(); if (c && c.state === 'running') try { DESK_SFX[k](c); } catch (e) { /* no audio here */ }
 }
 // the session's end: the chime instead of the old fanfare; a lighter one when a break ends
 hooks.tada = () => feelChime(false);
 hooks.ding = () => feelChime(true);
 // writing on a note: a soft key click (not for every character of a paste)
-document.addEventListener('input', e => { if (e.target.closest && e.target.closest('.sx-note-t, .sx-cap-t') && e.inputType && e.inputType.startsWith('insert') && e.inputType !== 'insertFromPaste') deskSfx('key'); });
+// typing anywhere (notes, captions, frame names, the label, what you remember, any text field): a typewriter
+const typingIn = t => !!t && (t.isContentEditable || (t.matches && t.matches('textarea, input:not([type]), input[type="text"], input[type="search"]')));
+document.addEventListener('input', e => { // a letter (the input event, so it follows what was really typed)
+  const k = e.inputType || ''; if (typingIn(e.target) && k.startsWith('insert') && !/^insert(FromPaste|FromDrop|Paragraph|LineBreak)$/.test(k)) deskSfx('key');
+}, true);
+addEventListener('keydown', e => { // backspace and delete clack even with nothing left to take away; Enter returns the carriage
+  if (!typingIn(e.target) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+  if (e.key === 'Backspace' || e.key === 'Delete') deskSfx('back'); else if (e.key === 'Enter' && !e.repeat) deskSfx('ret');
+}, true);
 
 /* ---------- the edge glow: every second of a focus session, the screen's edge breathes green once ---------- */
 const pulse = el('div', { class: 'sx-pulse', 'aria-hidden': 'true' });
@@ -97,4 +108,4 @@ feelWake();
 
 /* ---------- Settings, Feel ---------- */
 { const opt = (k, label) => { const box = el('input', { type: 'checkbox', checked: S.opts[k] !== false || null }); box.addEventListener('change', () => { S.opts[k] = box.checked; save(); if (k === 'dim') feelWake(); if (k === 'hiss') hissSync(); }); return el('label', { class: 'sx-check' }, box, ' ' + label); };
-  settingsPane.append(sec('Feel', opt('glow', 'A green glow around the screen on every second of a focus session'), opt('dim', 'The desk dims while you focus and leave it alone'), opt('deskSfx', 'Paper, pin and typing sounds on the desk'), opt('hiss', 'A faint tape hiss while you focus'))); }
+  settingsPane.append(sec('Feel', opt('glow', 'A green glow around the screen on every second of a focus session'), opt('dim', 'The desk dims while you focus and leave it alone'), opt('deskSfx', 'Paper, pin and typewriter sounds (in notes and every place you type)'), opt('hiss', 'A faint tape hiss while you focus'))); }
