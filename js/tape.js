@@ -72,7 +72,7 @@ function reelStep() {
   const target = running ? 1.6 : 0; reelV += (target - reelV) * (reelV < 0 ? .045 : .06); // degrees a frame: up to speed, or easing down
   if (Math.abs(reelV) < .01 && !running) { reelV = 0; return; }
   reelA = (reelA + reelV) % 360;
-  reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + reelA.toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (reelA * 1.3).toFixed(1) + ')');
+  reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (-reelA).toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (-reelA * 1.3).toFixed(1) + ')'); // (shown mirrored: playing turns them counter-clockwise, the way the tape runs off the bottom)
   reelRaf = requestAnimationFrame(reelStep);
 }
 const reelGo = () => { if (!stillUI() && !reelRaf) reelRaf = requestAnimationFrame(reelStep); };
@@ -249,7 +249,7 @@ function tapeKeySound(b) {
 let reelSpin = 0, reelHeld = false, reelTick = 0;
 function reelTurn(d, byHand) {
   reelA = (reelA + d) % 360;
-  reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + reelA.toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (reelA * 1.3).toFixed(1) + ')');
+  reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (-reelA).toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (-reelA * 1.3).toFixed(1) + ')'); // (shown mirrored: playing turns them counter-clockwise, the way the tape runs off the bottom)
   if (!byHand) return; reelTick += Math.abs(d);
   if (reelTick >= 30) { reelTick = 0; if (S.opts.deskSfx !== false && feelSoundOn()) { const c = feelCtx(); if (c) feelBurst(c, c.currentTime, { cat: 'keys', dur: .007, type: 'highpass', f0: 3200 + Math.random() * 800, vol: .016 }); } } // the ratchet
 }
@@ -266,7 +266,7 @@ reelStep = function () {
   const b = r.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2, k = r === reelR ? 1 / 1.3 : 1; // (the right reel turns 1.3 times as fast)
   let last = Math.atan2(e.clientY - cy, e.clientX - cx), lt = e.timeStamp, v = 0;
   const move = ev => { const a = Math.atan2(ev.clientY - cy, ev.clientX - cx); let d = (a - last) * 180 / Math.PI; if (d > 180) d -= 360; if (d < -180) d += 360;
-    last = a; const dt = Math.max(8, ev.timeStamp - lt); lt = ev.timeStamp; v = v * .5 + (d * k * 16 / dt) * .5; reelTurn(d * k, true); };
+    last = a; const dt = Math.max(8, ev.timeStamp - lt); lt = ev.timeStamp; d = -d; v = v * .5 + (d * k * 16 / dt) * .5; reelTurn(d * k, true); }; // (the angle is stored mirrored, so the reel still follows your finger)
   const end = () => { r.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(x => r.removeEventListener(x, end));
     reelHeld = false; reelSpin = stillUI() ? 0 : Math.max(-45, Math.min(45, v)); reelGo(); };
   r.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(x => r.addEventListener(x, end));
