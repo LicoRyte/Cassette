@@ -279,7 +279,8 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-string { fill: none; stroke: #d9243c; stroke-width: 2.5; }
 .sx-string-temp { stroke-dasharray: 6 4; }
 .sx-string-hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
-.sx-string-hit:hover + .sx-string, .sx-string-hit:hover { stroke: rgba(255, 216, 50, .35); }
+.sx-string-hit:hover { stroke: rgba(255, 255, 255, .5); filter: blur(1.5px); } /* (a soft white glow around the string you could cut: it stays red, so it shows on yellow paper too) */
+.sx-string-hit:hover + .sx-string { stroke: #ff3048; }
 .sx-bcard { position: absolute; z-index: 1; width: 230px; padding: 18px 14px 14px; background: #ffffe4; color: #030710; transform: rotate(var(--tilt)); box-shadow: 3px 4px 0 rgba(3, 7, 16, .55); cursor: grab; user-select: none; touch-action: none; }
 .sx-bcard.lift { z-index: 3; transform: rotate(0deg) scale(1.03); box-shadow: 6px 9px 0 rgba(3, 7, 16, .5); cursor: grabbing; }
 .sx-bcard small { display: block; font: 600 11px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #6d8a8d; }

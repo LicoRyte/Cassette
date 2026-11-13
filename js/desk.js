@@ -75,9 +75,9 @@ let camSaveT = 0;
 const camSave = () => { clearTimeout(camSaveT); camSaveT = setTimeout(save, 400); };
 // gliding: the camera eases over, pulling back a little on long trips so you see where you're going
 let glideRaf = 0;
-function glideTo(x, y, z) {
+function glideTo(x, y, z, quick) { // (quick: a shorter glide that keeps the zoom as it is, no dip out and back in)
   cancelAnimationFrame(glideRaf);
-  const a = { x: cam.x, y: cam.y, z: cam.z }, d = Math.hypot(x - a.x, y - a.y), dur = Math.min(1100, 420 + d * .35), dip = Math.min(.4, d / 3500), t0 = performance.now();
+  const a = { x: cam.x, y: cam.y, z: cam.z }, d = Math.hypot(x - a.x, y - a.y), dur = quick ? Math.min(560, 240 + d * .16) : Math.min(1100, 420 + d * .35), dip = quick ? 0 : Math.min(.4, d / 3500), t0 = performance.now();
   if (stillUI() || d < 1 && Math.abs(z - a.z) < .01) { Object.assign(cam, { x, y, z }); placeCam(); camSave(); return; }
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const step = now => { const t = Math.min(1, (now - t0) / dur), e = ease(t);
@@ -296,6 +296,26 @@ function strHot() {
   kin.forEach(id => { const c = els.get(id); if (c && !c.classList.contains('kin')) c.classList.add('kin'); }); strKin = kin;
 }
 var strKin; // (var: strHot can run before this line has)
+// walk the strings: with a card picked, Tab glides to the next card tied to it (one you haven't been to on this walk),
+// then on from there, like flipping through a chain of flashcards; Shift+Tab steps back the way you came
+const walk = { path: [], at: 0 };
+function strWalk(back) {
+  const cur = selId, B = B_();
+  if (walk.path[walk.at] !== cur) { walk.path = [cur]; walk.at = 0; } // (a new walk starts from wherever you are)
+  let next;
+  if (back) { if (!walk.at) { deskToast('This is where the walk started'); return true; } next = walk.path[--walk.at]; }
+  else {
+    const ns = B.links.filter(l => l.includes(cur)).map(l => l[0] === cur ? l[1] : l[0]).filter(id => els.has(id));
+    if (!ns.length) return false; // (nothing tied to it: Tab does what it usually does)
+    const prev = walk.path[walk.at - 1], fresh = ns.filter(id => !walk.path.includes(id)), more = ns.filter(id => id !== prev);
+    next = fresh[0] || more[0];
+    if (!next) { deskToast('End of the string'); return true; }
+    walk.path = walk.path.slice(0, walk.at + 1).concat(next); walk.at++;
+  }
+  const it = itemOf(next), c = els.get(next); if (!it || !c) return true;
+  select(next); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); deskSfx('pick');
+  return true;
+}
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
 // brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
 // (only when the pointer comes onto one, and only while it moves: nothing runs while the desk is still)
@@ -587,6 +607,7 @@ addEventListener('keydown', e => {
   if (e.altKey || e.ctrlKey || e.metaKey) return;
   if (drawKeys(e)) { stop(); return; } // D, and the pen's own keys (js/ui/draw-mode.js)
   if ((e.key === 'Delete' || e.key === 'Backspace') && picked.size) { stop(); deskDelete(); return; }
+  if (e.key === 'Tab' && selId && strWalk(e.shiftKey)) { stop(); return; } // follow the strings from the picked card
   const m = /^Digit([0-9])$|^Numpad([0-9])$/.exec(e.code); if (!m) { if (e.key === 'Escape' && picked.size) select(null); return; }
   const n = +(m[1] || m[2]); stop();
   if (n === 0) { glideHome(); return; }
