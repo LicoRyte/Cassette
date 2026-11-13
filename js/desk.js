@@ -93,6 +93,11 @@ function glideToItem(it) { // a frame fills the view; anything else comes to the
   const z = it.type === 'frame' ? Math.min(1.6, Math.max(.35, Math.min(v.w * .86 / w, (v.h - 150) * .86 / h))) : 1;
   glideTo(it.x + w / 2, it.y + h / 2 + (it.type === 'frame' ? 20 / z : 0), z); select(it.id);
 }
+function deskGoTo(id) { // go to something, on whichever board it is (search, the shelf's notes)
+  const it = itemOf(id); if (!it) return false;
+  if (it.board !== S.board.cur) { S.board.cur = it.board; select(null); save(); drawBoard(); deskBoardTools(); }
+  glideToItem(it); return true;
+}
 
 /* ---------- undo: every change to the desk can be taken back (text has its own undo while you write) ---------- */
 const undoS = [], redoS = [];

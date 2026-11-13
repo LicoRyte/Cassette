@@ -1045,3 +1045,36 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-world .sx-bcard.sx-bframe.lift, .sx-world .sx-bcard.sx-bdraw.lift { scale: 1; box-shadow: none; }
 .sx-world .sx-bcard.sx-bsticker.lift { box-shadow: none; }
 @media (prefers-reduced-motion: reduce) { .sx-world .sx-bcard, .sx-world .sx-bcard.lift, .sx-world .sx-bcard.swinging { transition: none; } }
+
+/* find (js/find.js): a slim bar at the top; the words it finds are lit up in the notes */
+.sx-find { position: fixed; left: 50%; top: 14px; z-index: 60; display: flex; align-items: center; gap: 4px; padding: 5px; background: #030710; border: 1px solid #293b49; box-shadow: 0 8px 22px rgba(3, 7, 16, .6); transform: translate(-50%, -10px); opacity: 0; transition: transform .2s ease-out, opacity .2s; }
+.sx-find.on { transform: translate(-50%, 0); opacity: 1; }
+.sx-find-i { width: min(260px, 52vw); height: 30px; padding: 0 10px; background: #041528; border: 1px solid #293b49; color: #ffffe4; font: 15px var(--text); outline: none; }
+.sx-find-i:focus { border-color: var(--deck); }
+.sx-find.none .sx-find-i { border-color: #ff6157; }
+.sx-find-n { min-width: 64px; padding: 0 6px; font: 600 12px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #6d8a8d; text-align: center; white-space: nowrap; }
+.sx-find-b { width: 30px; height: 30px; padding: 0; background: none; border: 1px solid transparent; color: #ffdaac; font: 600 16px/1 var(--ui); cursor: pointer; }
+.sx-find-b:hover { border-color: #293b49; color: #ffffe4; }
+::highlight(sx-find) { background-color: rgba(255, 216, 50, .55); }
+::highlight(sx-find-now) { background-color: #ff6157; color: #ffffe4; }
+@media (prefers-reduced-motion: reduce) { .sx-find { transition: none; } }
+/* the shelf: by tape or by day, and the notes written in during each track */
+.sx-shelf-v { display: flex; gap: 4px; margin: 0 0 10px; }
+.sx-shelf-vb { flex: 1; height: 28px; background: none; border: 1px solid #293b49; color: #6d8a8d; font: 600 12px var(--ui); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.sx-shelf-vb.on { border-color: var(--deck); color: #ffffe4; background: #041528; }
+.sx-day { margin: 0 0 14px; }
+.sx-day-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 0 0 4px; margin: 0 0 6px; border-bottom: 1px solid #293b49; }
+.sx-day-h b { font: italic 16px var(--text); color: #ffdaac; }
+.sx-day-h span { font: 600 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: #6d8a8d; white-space: nowrap; }
+.sx-tn { display: flex; flex-wrap: wrap; gap: 4px; margin: 5px 0 0; }
+.sx-tn-b { max-width: 100%; padding: 2px 8px; overflow: hidden; background: #041528; border: 1px solid #293b49; color: #ffd832; font: 13px var(--text); text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.sx-tn-b::before { content: '▤ '; color: #6d8a8d; }
+.sx-tn-b:hover { border-color: #ffd832; }
+.sx-tn-b.gone { color: #6d8a8d; text-decoration: line-through; cursor: default; }
+/* the backup reminder: a small card at the bottom right, never in the way */
+.sx-nudge { position: fixed; right: 16px; bottom: 86px; z-index: 55; width: min(320px, calc(100vw - 32px)); padding: 12px 14px; background: #030710; border: 1px solid #293b49; border-left: 3px solid var(--deck); box-shadow: 0 10px 26px rgba(3, 7, 16, .6); transform: translateY(10px); opacity: 0; transition: transform .25s ease-out, opacity .25s; }
+.sx-nudge.on { transform: none; opacity: 1; }
+.sx-nudge b { display: block; font: 700 14px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: #ffffe4; }
+.sx-nudge p { margin: 6px 0 10px; font: 14px/1.45 var(--text); color: #bfc3c6; }
+.sx-nudge .sx-row { justify-content: flex-end; gap: 6px; margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .sx-nudge { transition: none; } }
