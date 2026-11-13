@@ -290,7 +290,12 @@ let strOver = null;
 function strHot() {
   strNodes.forEach(n => { const on = n.l.some(id => id === strOver || picked.has(id)); if (n.hot === on) return; n.hot = on;
     n.p.classList.toggle('hot', on); });
+  // and the cards tied to what you've picked get a faint red outline: the notes that go with this one
+  const kin = new Set(); B_().links.forEach(l => { if (picked.has(l[0]) && !picked.has(l[1])) kin.add(l[1]); if (picked.has(l[1]) && !picked.has(l[0])) kin.add(l[0]); });
+  (strKin || []).forEach(id => { if (!kin.has(id)) { const c = els.get(id); if (c) c.classList.remove('kin'); } });
+  kin.forEach(id => { const c = els.get(id); if (c && !c.classList.contains('kin')) c.classList.add('kin'); }); strKin = kin;
 }
+var strKin; // (var: strHot can run before this line has)
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
 // brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
 // (only when the pointer comes onto one, and only while it moves: nothing runs while the desk is still)

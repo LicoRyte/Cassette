@@ -1193,3 +1193,8 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-bhop:hover .sx-hop-back::after { translate: 0 -8px; }
 .sx-bhop:hover .sx-hop-front { transform: perspective(400px) rotateX(-24deg); }
 @media (prefers-reduced-motion: reduce) { .sx-bhop:hover .sx-hop-paper, .sx-bhop:hover .sx-hop-back::after { translate: none; rotate: -2deg; } }
+
+/* ---------- the cards tied by a string to the one you've picked (js/desk.js strHot): a faint red outline, the string's colour ---------- */
+.sx-world .sx-bcard.kin:not(.sel) { outline: 1.5px dashed rgba(255, 48, 72, .7); outline-offset: 5px; animation: sx-kin .35s ease-out; }
+@keyframes sx-kin { from { outline-color: rgba(255, 48, 72, 0); outline-offset: 12px; } }
+@media (prefers-reduced-motion: reduce) { .sx-world .sx-bcard.kin { animation: none; } }
