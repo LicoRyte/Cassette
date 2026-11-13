@@ -53,7 +53,7 @@ document.addEventListener('click', e => {
 function notifyAsk() { if ('Notification' in window && Notification.permission === 'default' && !store.get('solarist-asked')) { store.set('solarist-asked', '1'); Notification.requestPermission().catch(() => {}); } }
 function notify(text) {
   if (!document.hidden || !('Notification' in window) || Notification.permission !== 'granted') return;
-  const opts = { body: text, icon: 'icons/icon-192.png', tag: 'cassette-timer' };
+  const opts = { body: text, icon: 'icons/cassette-192.png', tag: 'cassette-timer' };
   if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(r => r.showNotification('Cassette Timer', opts)).catch(() => {});
   else try { new Notification('Cassette Timer', opts); } catch (e) { /* not allowed here */ }
 }

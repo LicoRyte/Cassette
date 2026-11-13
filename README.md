@@ -56,7 +56,7 @@ what's picked, `Esc` puts down the note you're writing or closes Settings.
 | `js/help.js` | The ? card |
 | `js/start.js` | Picks up a timer that was running when the page closed, and draws the first frame |
 | `sw.js` | Offline support. Files are always fetched fresh when online, so edits show up on the next reload. Bump `VERSION` and update its file list if you add, rename or remove files |
-| `manifest.webmanifest`, `icons/` | App name and icons for installing (the cassette icon is drawn in the palette) |
+| `manifest.webmanifest`, `icons/` | App name and icons for installing (the cassette icon is drawn in the palette; new icon files get new names, so installed apps notice the change) |
 | `fonts/` | Barlow Condensed and Courier Prime (SIL Open Font License, see the OFL files) |
 | `sfx/` | Sounds (see `sfx/CREDITS.txt`) |
 | `CREDITS.md` | Who made the palette, fonts and sounds |
