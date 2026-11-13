@@ -5,12 +5,12 @@
 const HELP = [
   ['The clock', [['Label', 'Above the digits: write what the session is for'], ['Space', 'Start or pause'], ['R', 'Rewind: start this part over (while stopped)'], ['Hold R key / Shift + R', 'Rewind the whole tape: back to session 1'], ['S', 'Skip to the next part (while stopped)']]],
   ['Moving around', [['Drag', 'Move the desk (anywhere empty, or with the right button)'], ['Wheel', 'Zoom in and out'], ['0', 'Back to the clock'], ['1 – 9', 'Glide to a bookmark'], ['Shift + 1 – 9', 'Bookmark what you picked']]],
-  ['On the desk', [['Double-click', 'Pin a note there'], ['Drop a photo', 'It hangs as a Polaroid'], ['Red pin', 'Drag to something else to tie a string; click a string to cut it'], ['Frame', 'Drag it by its name or an edge: what is inside comes along']]],
+  ['On the desk', [['Sticker', 'In the bar: drop one on a note or photo and it sticks there'], ['Holder', 'Pick a note or photo: pin, washi tape or a binder clip, beside it'],['Double-click', 'Pin a note there'], ['Drop a photo', 'It hangs as a Polaroid'], ['Red pin', 'Drag to something else to tie a string; click a string to cut it'], ['Frame', 'Drag it by its name or an edge: what is inside comes along']]],
   ['Picking', [['Shift + drag', 'Pick everything in the box'], ['Shift + click', 'Pick one more, or let it go'], ['Ctrl + G', 'Group (Ctrl + Shift + G to ungroup)'], ['Delete', 'Remove what is picked'], ['Ctrl + A', 'Pick everything on this board']]],
   ['Drawing', [['D', 'Pen up or down'], ['P A L C B F', 'Pen, arrow, line, circle, box, frame'], ['E', 'Eraser'], ['[  ]', 'Thinner, thicker'], ['Shift', 'Straight angles, true circles and squares']]],
   ['Notes', [['# ## - 1. [] >', 'At the start of a line: title, heading, list, numbers, checklist, quote'], ['Ctrl + B I U', 'Bold, italic, underline'], ['Esc', 'Put the pen down']]],
   ['Learning', [['Q: / A:', 'In a note: a question, and on the next line its answer, make a card'], ['{{word}}', 'In a note: a word in braces becomes a blank to fill'], ['Enter', 'In a review: show the answer'], ['← / →', 'Again (next break) / Got it (later and later)']]],
-  ['Tapes', [['T', 'Open the Tapes drawer: your shelf, and music'], ['Drop music', 'On a side in the drawer, or on the desk: Side A plays while you focus, Side B on breaks'], ['Ctrl + Enter', 'Keep what you remember, when a session ends']]],
+  ['Tapes', [['T', 'Open the Tapes drawer: your shelf, and music'], ['Drop music', 'On a side in the drawer, or on the desk: Side A plays while you focus, Side B on breaks'], ['Radio', 'Tune a side to rain, a cafe or a fireplace instead (made live, no files)'], ['Ctrl + Enter', 'Keep what you remember, when a session ends']]],
   ['Everything', [['Ctrl + Z', 'Undo (Ctrl + Shift + Z to redo)'], ['Board ▾', 'Boards, save as an image, backups']]],
 ];
 const keysOf = s => s.split(/(\s\+\s|\s–\s)/).map(p => /^\s[+–]\s$/.test(p) ? ' ' + p.trim() + ' ' : el('kbd', {}, p)); // each key in its own little key

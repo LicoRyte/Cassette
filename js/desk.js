@@ -133,14 +133,17 @@ const grpB = deskBtn('Group', () => deskGroup(), '', 'Group them, so they move t
 const delSelB = deskBtn('Delete', () => deskDelete(), '', 'Delete what is picked (Delete)');
 const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, selCount, grpB, ungrpB, delSelB);
 const drawB = deskBtn('Draw', () => drawModeSet(!drawOn), 'sx-ws-draw', 'Draw (D)');
+const stickMenu = el('div', { class: 'sx-stk-menu', hidden: true, role: 'menu', 'aria-label': 'Stickers' });
+const stickB = deskBtn('Sticker', () => { if (!stickMenu.hidden) { stickMenu.hidden = true; return; } stickMenu.hidden = false; stickMenu.style.left = Math.max(0, stickB.offsetLeft - 60) + 'px'; }, 'sx-ws-stickb', 'Stickers to stick on notes and photos');
 const deskBar = el('div', { class: 'sx-ws-bar' },
   el('div', { class: 'sx-ws-grp' }, deskSel, deskBtn('Board ▾', deskMenuOpen, 'sx-ws-menub', 'New, rename, delete, save as image, backup')),
-  el('div', { class: 'sx-ws-grp' }, deskBtn('Note', () => addNoteAt(freeSpot())), deskBtn('Photo', () => deskFile.click()), drawB, deskBtn('Frame', () => addFrameAt()), deskFile),
+  el('div', { class: 'sx-ws-grp' }, deskBtn('Note', () => addNoteAt(freeSpot())), deskBtn('Photo', () => deskFile.click()), drawB, deskBtn('Frame', () => addFrameAt()), stickB, deskFile),
   el('div', { class: 'sx-ws-grp' }, undoB, redoB),
   el('div', { class: 'sx-ws-grp' }, deskHomeB, deskKeys),
   deskSelGrp,
-  deskMenu);
-ws.after(deskBar); deskUndoState();
+  deskMenu, stickMenu);
+ws.after(deskBar);
+addEventListener('pointerdown', e => { if (!stickMenu.hidden && !e.target.closest('.sx-stk-menu, .sx-ws-stickb')) stickMenu.hidden = true; }, true); deskUndoState();
 
 // the 0 button shows the time while the clock is out of sight
 function deskHome() {
@@ -161,7 +164,7 @@ function select(id, add) {
   else if (add && picked.has(id)) { groupOf(id).forEach(x => picked.delete(x)); selId = picked.size ? [...picked].pop() : null; }
   else { if (!add) picked.clear(); groupOf(id).forEach(x => picked.add(x)); selId = id; }
   els.forEach((c, k) => c.classList.toggle('sel', picked.has(k)));
-  noteBarTo(selId); deskSelBar(); selBoxUpdate();
+  noteBarTo(selId); holdBarTo(selId); deskSelBar(); selBoxUpdate();
 }
 function deskSelBar() {
   const items = [...picked].map(itemOf).filter(Boolean), groups = new Set(items.map(i => i.group || null));
@@ -209,16 +212,48 @@ function paperCard(it) { // a note or a photo
   if (it.type === 'photo') {
     const img = el('img', { alt: it.text || 'A photo', draggable: 'false' });
     PHOTOS.get(it.id).then(src => { if (src) img.src = src; else img.alt = 'This photo is missing (it lives in the browser it was added in).'; drawStrings(); }).catch(() => {});
-    const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt].filter(Boolean));
+    const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, 'data-hold': it.hold || 'pin', 'data-w': washiOf(it.id), style }, ...[pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt].filter(Boolean));
     if (it.ar) polFormat(c, it.ar);
     img.addEventListener('load', () => { // the frame takes the photo's shape (measured once, then remembered)
       const ar = img.naturalWidth && img.naturalHeight ? Math.round(img.naturalWidth / img.naturalHeight * 1000) / 1000 : 1;
       if (it.ar !== ar) { it.ar = ar; save(); } polFormat(c, ar); drawStrings(); selBoxUpdate(); });
     return c;
   }
-  const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
+  const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, 'data-hold': it.hold || 'pin', 'data-w': washiOf(it.id), style }, ...[pin, x, keyBadge(it), txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
   return c;
 }
+const washiOf = id => { let h = 7; for (const ch of id) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return h % 3; }; // which washi pattern (it stays the same)
+// stickers: die-cut, a cream border, a little crooked. Drop one on a note or photo and it goes where they go
+const STICKERS = [['star', 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z', 'fill', '#ffd832'],
+  ['check', 'M4.5 12.5l5 5L19.5 6.5', 'line', '#9cb93b'], ['heart', 'M12 20.5s-8-4.9-8-11A4.5 4.5 0 0 1 12 6.6 4.5 4.5 0 0 1 20 9.5c0 6.1-8 11-8 11z', 'fill', '#ff6157'],
+  ['arrow', 'M4 12h14M13 6.5l5.5 5.5-5.5 5.5', 'line', '#77d6c1'], ['bang', 'M12 4v10', 'line', '#ff6157', 19.5], ['ask', 'M8.5 8.6a3.5 3.5 0 1 1 5 3.1c-1 .5-1.5 1.2-1.5 2.3v.8', 'line', '#ffb762', 19.5],
+  ['smile', 'M12 3.5a8.5 8.5 0 1 0 .01 0M9 10v.6M15 10v.6M8.5 14.2a4 4 0 0 0 7 0', 'line', '#ffd832'], ['flag', 'M6 21V4M6 4.5h11l-2.5 4 2.5 4H6', 'line', '#ff6157'], ['bolt', 'M13 2L5 14h6l-1 8 8-12h-6z', 'fill', '#ffd832']];
+function stickerSvg(g) { // (fixed shapes from the list above)
+  const [, d, m, col, dot] = g, cream = '#ffffe4';
+  const back = c => m === 'fill' ? '<path d="' + d + '" fill="' + c + '" stroke="' + c + '" stroke-width="5" stroke-linejoin="round"/>' : '<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>';
+  const front = m === 'fill' ? '<path d="' + d + '" fill="' + col + '"/>' : '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+  const dt = dot ? '<circle cx="12" cy="' + dot + '" r="3.6" fill="' + cream + '"/><circle cx="12" cy="' + dot + '" r="1.9" fill="' + col + '"/>' : '';
+  return '<svg viewBox="-3 -3 30 30" aria-hidden="true"><g transform="translate(.9 1.3)" opacity=".4">' + back('#030710') + '</g>' + back(cream) + front + dt + '</svg>';
+}
+function stickerCard(it) {
+  const c = el('div', { class: 'sx-bcard sx-bsticker', 'data-id': it.id, title: 'Drop it on a note or photo to stick it there', style: 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + (tilt(it.id) * 4) + 'deg' });
+  c.innerHTML = stickerSvg(STICKERS.find(s => s[0] === it.glyph) || STICKERS[0]); return c;
+}
+function addSticker(glyph) {
+  deskMark(); deskSfx('pin'); const id = 's' + Date.now(), p = freeSpot();
+  B_().items.push({ id, type: 'sticker', board: B_().cur, glyph, x: Math.round(p.x + 60), y: Math.round(p.y + 30) }); save(); drawBoard(); select(id);
+}
+// the holder bar beside a picked note or photo: pin, washi tape or a clip
+const HOLDS = [['pin', 'Red pin'], ['washi', 'Washi tape'], ['clip', 'Binder clip']];
+const holdBar = el('div', { class: 'sx-holdbar', role: 'toolbar', 'aria-label': 'What it hangs by' }, ...HOLDS.map(([k, label]) => el('button', { type: 'button', class: 'sx-hb', 'data-h': k, title: label, 'aria-label': label }, el('i', {}))));
+holdBar.addEventListener('mousedown', e => e.preventDefault()); holdBar.addEventListener('pointerdown', e => e.stopPropagation());
+holdBar.addEventListener('click', e => { const b = e.target.closest('button'), it = selId && itemOf(selId); if (!b || !it) return; deskMark(); if (b.dataset.h === 'pin') delete it.hold; else it.hold = b.dataset.h; deskSfx(b.dataset.h === 'clip' ? 'drop' : 'pin'); save(); drawBoard(); });
+function holdBarTo(id) {
+  const it = id && itemOf(id), c = it && (it.type === 'note' || it.type === 'photo') && picked.size <= (it.group ? groupOf(id).length : 1) ? els.get(id) : null;
+  if (!c) { holdBar.remove(); return; }
+  if (holdBar.parentNode !== c) c.append(holdBar); holdBar.querySelectorAll('[data-h]').forEach(b => b.classList.toggle('on', b.dataset.h === (it.hold || 'pin')));
+}
+stickMenu.replaceChildren(...STICKERS.map(g => { const b = el('button', { type: 'button', class: 'sx-stk', role: 'menuitem', 'aria-label': g[0] + ' sticker', title: 'Add a ' + g[0] + ' sticker', onclick: () => { stickMenu.hidden = true; addSticker(g[0]); } }); b.innerHTML = stickerSvg(g); return b; })); // the sticker sheet
 function drawCard(it) { // a drawing: only its strokes can be grabbed, so a circle around a note leaves the note clickable
   return el('div', { class: 'sx-bcard sx-bdraw', 'data-id': it.id, style: 'left:' + it.x + 'px;top:' + it.y + 'px;width:' + it.w + 'px;height:' + it.h + 'px;--tilt:0deg' }, ...[drawSvg(it), keyBadge(it)].filter(Boolean));
 }
@@ -238,11 +273,11 @@ function drawBoard() {
   els.clear(); layer.replaceChildren(); frameLayer.replaceChildren();
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
-    const c = it.type === 'frame' ? frameCard(it) : it.type === 'draw' ? drawCard(it) : paperCard(it);
+    const c = it.type === 'frame' ? frameCard(it) : it.type === 'draw' ? drawCard(it) : it.type === 'sticker' ? stickerCard(it) : paperCard(it);
     if (picked.has(it.id)) c.classList.add('sel');
     els.set(it.id, c); (it.type === 'frame' ? frameLayer : layer).append(c);
   });
-  deskBoardTools(); deskDrawKeys(); noteBarTo(selId); deskSelBar();
+  deskBoardTools(); deskDrawKeys(); noteBarTo(selId); holdBarTo(selId); deskSelBar();
   requestAnimationFrame(() => { drawStrings(); selBoxUpdate(); });
 }
 const posOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + 10 } : null; };
@@ -375,7 +410,7 @@ ws.addEventListener('pointerdown', e => {
     const id = c.dataset.id, it = itemOf(id); if (!it) return;
     const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t');
     if (txt && document.activeElement === txt) { if (!picked.has(id)) select(id); return; } // already writing in it: the pointer selects text as usual
-    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
+    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-holdbar')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }
     e.preventDefault(); c.setPointerCapture(e.pointerId);
@@ -415,6 +450,7 @@ ws.addEventListener('pointerdown', e => {
         [...ids].forEach(fid => { const f = itemOf(fid); if (!f || f.type !== 'frame') return; // a frame brings what's inside it
           const r = { x0: f.x, y0: f.y, x1: f.x + f.w, y1: f.y + f.h };
           els.forEach((cc, oid) => { const o = itemOf(oid), p = centreOf(oid); if (o && o.type !== 'frame' && p && p.x > r.x0 && p.x < r.x1 && p.y > r.y0 && p.y < r.y1) groupOf(oid).forEach(g => ids.add(g)); }); });
+        B_().items.forEach(s => { if (s.type === 'sticker' && s.on && ids.has(s.on)) ids.add(s.id); }); // stickers stuck on it come along
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c).map(m => Object.assign(m, { x: m.it.x, y: m.it.y }));
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(++deskZ); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
@@ -428,6 +464,9 @@ ws.addEventListener('pointerdown', e => {
     }, ev => {
       if (dragging) {
         c.classList.remove('lift'); if (swings) swingTo(c, 0); deskSfx('drop');
+        if (it.type === 'sticker') { // dropped on a note or photo: it sticks there (and comes off when you pull it away)
+          const r = c.getBoundingClientRect(), under = document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2).map(n => n.closest && n.closest('.sx-bnote, .sx-polaroid')).find(n => n && n !== c);
+          if (under) { it.on = under.dataset.id; deskSfx('pin'); } else delete it.on; }
         const ids = new Set(movers.map(m => m.it.id)); B_().items = B_().items.filter(x => !ids.has(x.id)).concat(movers.map(m => m.it)); // what you moved is on top now
         if (snap && deskSnap() !== snap) deskMark(snap); save(); return;
       }

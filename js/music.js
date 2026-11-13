@@ -12,7 +12,7 @@ const MUSIC = (() => {
   return { put: (k, v) => run('readwrite', s => s.put(v, k)), get: k => run('readonly', s => s.get(k)), del: k => run('readwrite', s => s.delete(k)) };
 })();
 const M = S.music = Object.assign({ on: true, vol: .5, A: [], B: [], pos: { A: 0, B: 0 } }, S.music || {});
-M.pos = Object.assign({ A: 0, B: 0 }, M.pos || {});
+M.pos = Object.assign({ A: 0, B: 0 }, M.pos || {}); M.radio = Object.assign({ A: null, B: null }, M.radio || {});
 const sideNow = () => mode === 'focus' ? 'A' : 'B';
 const SIDE_NAME = { A: 'Side A · focus', B: 'Side B · breaks' };
 
@@ -40,7 +40,7 @@ async function loadInto(a, side) { // the track this side is up to, ready on dec
   a._side = side; a._xf = false; return true;
 }
 function setActive(a) { player = a; playSide = a._side; playId = a._id; }
-async function startOn(a, side, ms) { if (!(await loadInto(a, side))) return false; a.volume = 0; try { await a.play(); } catch (e) { return false; } setActive(a); fadeEl(a, vol(), ms); return true; }
+async function startOn(a, side, ms) { if (!(await loadInto(a, side))) return false; musicGraph(); a.volume = 0; try { await a.play(); } catch (e) { return false; } setActive(a); fadeEl(a, vol(), ms); return true; }
 function stopEl(a, ms) { if (a.paused) return; fadeEl(a, 0, ms, () => { a.pause(); musicDraw(); }); }
 async function nextTrack(ms) { // on to the next track: it comes in underneath while this one fades
   const was = player, s = was._side; if (!s) return;
@@ -54,8 +54,10 @@ decks.forEach(a => {
 async function musicSync() {
   if (musicBusy) { musicAgain = true; return; } musicBusy = true; // (one at a time; a change that comes meanwhile runs right after)
   try {
-    const side = sideNow(), want = running && M.on && soundOn && M[side].length > 0;
-    if (!want) { decks.forEach(a => stopEl(a, 700)); return; }
+    const side = sideNow(), st = M.radio[side], want = running && M.on && soundOn && (!!st || M[side].length > 0);
+    if (!want) { decks.forEach(a => stopEl(a, 700)); radioOff(700); return; }
+    if (st) { decks.forEach(a => stopEl(a, 1400)); radioOn(st); return; } // this side is tuned to the radio
+    radioOff(1400);
     if (!player.paused && player._side === side) { fadeEl(player, vol(), 400); return; } // already playing this side
     const tr = trackAt(side);
     if (player.paused && player._side === side && player._url && tr && player._id === tr.id && player.currentTime > 0) { // a pause: carry on where it stopped
@@ -68,12 +70,74 @@ async function musicSync() {
 new MutationObserver(() => musicSync()).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
 // the chime always comes through: the music dips while it rings, then comes back
 function musicDuck(ms) {
-  duck = .2; decks.forEach(a => { if (!a.paused && a === player) fadeEl(a, vol(), 250); });
-  clearTimeout(musicDuck.t); musicDuck.t = setTimeout(() => { duck = 1; if (!player.paused) fadeEl(player, vol(), 1600); }, ms);
+  duck = .2; decks.forEach(a => { if (!a.paused && a === player) fadeEl(a, vol(), 250); }); radioLevel(.08);
+  clearTimeout(musicDuck.t); musicDuck.t = setTimeout(() => { duck = 1; if (!player.paused) fadeEl(player, vol(), 1600); radioLevel(.5); }, ms);
 }
 { const tadaBase = hooks.tada, dingBase = hooks.ding;
   hooks.tada = () => { musicDuck(4200); if (tadaBase) tadaBase(); };
   hooks.ding = () => { musicDuck(3000); if (dingBase) dingBase(); }; }
+
+/* ---------- the audio runs through one bus, so the VU meters can listen ---------- */
+let mGraph = null;
+function musicGraph() {
+  if (mGraph) return mGraph; const c = feelCtx(); if (!c) return null;
+  const bus = c.createGain(), an = c.createAnalyser(); an.fftSize = 512; bus.connect(an); an.connect(c.destination);
+  decks.forEach(a => { try { c.createMediaElementSource(a).connect(bus); } catch (e) { /* already routed */ } });
+  return mGraph = { c, bus, an, buf: new Uint8Array(512) };
+}
+function vuLevel() { // how loud it is right now, 0 to 1
+  if (!mGraph) return 0; mGraph.an.getByteTimeDomainData(mGraph.buf); let s = 0;
+  for (let i = 0; i < mGraph.buf.length; i++) { const x = (mGraph.buf[i] - 128) / 128; s += x * x; }
+  return Math.min(1, Math.sqrt(s / mGraph.buf.length) * 4.5);
+}
+
+/* ---------- night radio: stations made live, no files needed. A side tuned to one plays it instead of its tracks ---------- */
+const STATIONS = { rain: 'Rain on the window', cafe: 'Cafe murmur', fire: 'Fireplace' };
+let radio = null; // { kind, out, nodes, timer }
+function radioNoise(c, secs, brown) {
+  const b = c.createBuffer(1, c.sampleRate * secs, c.sampleRate), d = b.getChannelData(0); let last = 0;
+  for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; if (brown) { last = (last + .02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w; }
+  const s = c.createBufferSource(); s.buffer = b; s.loop = true; return s;
+}
+function radioChain(c, src, nodes, out) { let n = src; nodes.forEach(x => { n.connect(x); n = x; }); n.connect(out); return src; }
+function radioFilter(c, type, f, q) { const x = c.createBiquadFilter(); x.type = type; x.frequency.value = f; if (q) x.Q.value = q; return x; }
+function radioGain(c, v) { const g = c.createGain(); g.gain.value = v; return g; }
+function radioBurst(c, out, t, dur, type, f, v) { // one small sound: a drop, a crackle
+  const s = c.createBufferSource(), fl = radioFilter(c, type, f), g = c.createGain(); s.buffer = feelNoise(c);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .002); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(fl).connect(g).connect(out); s.start(t, Math.random() * .5); s.stop(t + dur + .02);
+}
+function radioOn(kind) {
+  const g = musicGraph(); if (!g) return;
+  if (radio && radio.kind === kind) { radioLevel(.6); return; }
+  radioOff(900);
+  const c = g.c, out = c.createGain(); out.gain.value = 0; out.connect(g.bus);
+  const nodes = []; let timer = 0;
+  if (kind === 'rain') { // a steady wash, and drops on the glass
+    nodes.push(radioChain(c, radioNoise(c, 5), [radioFilter(c, 'highpass', 350), radioFilter(c, 'lowpass', 1700), radioGain(c, .5)], out));
+    nodes.push(radioChain(c, radioNoise(c, 4, true), [radioFilter(c, 'lowpass', 300), radioGain(c, .35)], out));
+    timer = setInterval(() => { const t = c.currentTime; for (let i = 0; i < 3; i++) if (Math.random() < .45) radioBurst(c, out, t + Math.random() * .06, .012 + Math.random() * .02, 'highpass', 2500 + Math.random() * 4000, .02 + Math.random() * .07); }, 70);
+  } else if (kind === 'cafe') { // the murmur of a room, rising and falling, and now and then a cup
+    [[380, .8, .07], [720, 1.2, .11], [1300, 1.5, .17]].forEach(([f, q, rate]) => {
+      const n = radioNoise(c, 5), bp = radioFilter(c, 'bandpass', f, q), gg = radioGain(c, .55), lfo = c.createOscillator(), lg = radioGain(c, .35);
+      lfo.frequency.value = rate + Math.random() * .05; lfo.connect(lg).connect(gg.gain); lfo.start(); nodes.push(lfo, radioChain(c, n, [bp, gg], out)); });
+    timer = setInterval(() => { if (Math.random() < .07) { const t = c.currentTime, f = 2200 + Math.random() * 1400, o = c.createOscillator(), gg = c.createGain();
+      o.frequency.value = f; gg.gain.setValueAtTime(.0001, t); gg.gain.exponentialRampToValueAtTime(.03, t + .004); gg.gain.exponentialRampToValueAtTime(.0001, t + .5); o.connect(gg).connect(out); o.start(t); o.stop(t + .55); } }, 400);
+  } else { // fire: a low rumble, crackles, now and then a pop
+    nodes.push(radioChain(c, radioNoise(c, 5, true), [radioFilter(c, 'lowpass', 420), radioGain(c, .9)], out));
+    nodes.push(radioChain(c, radioNoise(c, 4), [radioFilter(c, 'bandpass', 900, .6), radioGain(c, .05)], out));
+    timer = setInterval(() => { const t = c.currentTime; if (Math.random() < .3) radioBurst(c, out, t + Math.random() * .04, .004 + Math.random() * .016, 'highpass', 1500 + Math.random() * 3000, .04 + Math.random() * .18);
+      if (Math.random() < .015) radioBurst(c, out, t, .05, 'bandpass', 600, .25); }, 45);
+  }
+  nodes.forEach(n => { if (n.start && n.constructor.name === 'AudioBufferSourceNode') n.start(); });
+  radio = { kind, out, nodes, timer }; radioLevel(1.2);
+}
+function radioLevel(tc) { if (radio) radio.out.gain.setTargetAtTime(vol() * 1.1, radio.out.context.currentTime, tc || .5); }
+function radioOff(ms) {
+  if (!radio) return; const r = radio; radio = null; clearInterval(r.timer);
+  r.out.gain.setTargetAtTime(0, r.out.context.currentTime, (ms || 700) / 3000);
+  setTimeout(() => { r.nodes.forEach(n => { try { n.stop(); } catch (e) { /* done */ } }); try { r.out.disconnect(); } catch (e) { /* gone */ } }, (ms || 700) + 400);
+}
 
 /* ---------- adding and removing ---------- */
 async function musicAdd(files, side) {
@@ -134,11 +198,11 @@ addEventListener('keydown', e => {
 
 function musicDraw() {
   // the line under the clock: which side, and what's playing
-  if (typeof sideTagNp !== 'undefined') { const tr = !player.paused && playSide && M[playSide].find(t => t.id === playId); sideTagNp.textContent = tr ? '▸ ' + tr.name : ''; }
+  if (typeof sideTagNp !== 'undefined') { const tr = !player.paused && playSide && M[playSide].find(t => t.id === playId); sideTagNp.textContent = radio ? '▸ ' + STATIONS[radio.kind] + ' (radio)' : tr ? '▸ ' + tr.name : ''; }
   if (tapesDrawer.hidden || tapesTab !== 'music') return;
   const onB = el('button', { type: 'button', class: 'sx-ws-b' + (M.on ? ' on' : ''), 'aria-pressed': String(M.on), onclick: () => { M.on = !M.on; save(); musicSync(); musicDraw(); } }, M.on ? 'Music on' : 'Music off');
   const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round(M.vol * 100), 'aria-label': 'Music volume' });
-  vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(player._ft); player.volume = M.vol * duck; } save(); });
+  vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(player._ft); player.volume = M.vol * duck; } radioLevel(.1); save(); });
   const side = s => {
     const file = el('input', { type: 'file', accept: 'audio/*', multiple: true, hidden: true });
     file.addEventListener('change', () => { musicAdd(file.files, s); file.value = ''; });
@@ -151,6 +215,8 @@ function musicDraw() {
     const cur = (M.pos[s] || 0) % Math.max(1, M[s].length);
     return el('section', { class: 'sx-ms' + (sideNow() === s ? ' now' : '') },
       el('h4', {}, el('b', {}, s === 'A' ? 'Side A' : 'Side B'), el('span', {}, s === 'A' ? 'plays while you focus' : 'plays on breaks')),
+      el('div', { class: 'sx-radio', role: 'radiogroup', 'aria-label': 'Radio on ' + SIDE_NAME[s] }, el('span', {}, 'Radio'), ...[[null, 'Off'], ...Object.entries(STATIONS).map(([k, n]) => [k, n.split(' ')[0]])].map(([k, n]) =>
+        el('button', { type: 'button', class: 'sx-rb' + (M.radio[s] === k ? ' on' : ''), role: 'radio', 'aria-checked': String(M.radio[s] === k), title: k ? STATIONS[k] + ': plays instead of the tracks on this side' : 'Play the tracks', onclick: () => { M.radio[s] = k; save(); musicSync(); musicDraw(); } }, n))),
       M[s].length ? el('ol', { class: 'sx-trks' }, ...M[s].map((t, i) => el('li', { class: (playId === t.id && !player.paused ? 'play' : i === cur ? 'next' : '') },
         el('span', { class: 'sx-trk-n', title: t.name }, t.name),
         el('button', { type: 'button', class: 'sx-trk-x', 'aria-label': 'Take ' + t.name + ' off the tape', title: 'Take it off', onclick: () => musicRemove(s, t.id) }, '×')))) : el('p', { class: 'sl-muted' }, 'Nothing on this side yet.'),
