@@ -357,6 +357,33 @@ async function addPhotos(files, at) {
 }
 deskFile.addEventListener('change', () => { addPhotos(deskFile.files); deskFile.value = ''; });
 
+/* ---------- pasting: an image you copied (Ctrl+V) hangs as a photo where the mouse is; text on the desk becomes a note ---------- */
+let deskMouse = null; // where the mouse last was on the desk (in desk coordinates)
+ws.addEventListener('pointermove', e => { deskMouse = { cx: e.clientX, cy: e.clientY }; }, { passive: true });
+ws.addEventListener('pointerleave', () => { deskMouse = null; });
+const pasteSpot = () => deskMouse ? toWorld(deskMouse.cx, deskMouse.cy) : null;
+addEventListener('paste', e => {
+  if (page && !page.hidden) return;
+  const t = e.target, items = [...((e.clipboardData && e.clipboardData.items) || [])];
+  const imgs = items.filter(i => i.kind === 'file' && /^image\//.test(i.type)).map(i => i.getAsFile()).filter(Boolean);
+  if (t && t.closest && t.closest('input, textarea')) return; // a text field: the usual paste
+  if (imgs.length) { // an image wins, even while you write in a note (it hangs beside it)
+    e.preventDefault(); e.stopPropagation();
+    const ae = document.activeElement, card = ae && ae.isContentEditable && ae.closest('.sx-bcard');
+    const at = pasteSpot() || (card ? { x: card.offsetLeft + card.offsetWidth + 160, y: card.offsetTop + 40 } : null);
+    addPhotos(imgs, at).then(() => deskToast(imgs.length === 1 ? 'Pasted a photo' : 'Pasted ' + imgs.length + ' photos'));
+    return;
+  }
+  if (t && t.isContentEditable) return; // writing in a note: its own paste (plain text)
+  const text = e.clipboardData && e.clipboardData.getData('text/plain');
+  if (text && text.trim()) { // text on the desk: a new note with it
+    e.preventDefault(); const p = pasteSpot() || freeSpot();
+    deskMark(); deskSfx('pin'); const id = 'n' + Date.now(), body = text.trim().slice(0, 2000);
+    B_().items.push({ id, type: 'note', board: B_().cur, mt: Date.now(), x: Math.round(p.x - 100), y: Math.round(p.y - 20), text: body, html: noteFromText(body) });
+    save(); drawBoard(); select(id); deskToast('Pasted as a note');
+  }
+}, true);
+
 /* ---------- hands: panning, picking, dragging, strings ---------- */
 let deskZ = 10;
 // a click on a note's words (when you weren't already writing in it) puts the pen right there
