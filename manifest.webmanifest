@@ -1,12 +1,12 @@
 {
-  "name": "Solarist",
-  "short_name": "Solarist",
-  "description": "A Pomodoro study timer where every study session is a trip to a new, randomly generated planet.",
+  "name": "Cassette Timer",
+  "short_name": "Cassette",
+  "description": "A focus timer like a vintage tape deck, on a desk for your notes, photos and drawings.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#34111f",
-  "theme_color": "#34111f",
+  "background_color": "#030710",
+  "theme_color": "#030710",
   "orientation": "any",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },

@@ -1,7 +1,0 @@
-{
-  "_help": "Solarist music. Put audio files (mp3, ogg, m4a...) in the music folder and list them here, like \"music/rain.mp3\". study plays during study sessions, break plays during short and long breaks. Tracks loop in order, starting from a random one. Empty lists mean no music. Settings has an on/off switch and a volume slider.",
-  "study": [],
-  "break": [
-    "music/night_stars.mp3"
-  ]
-}

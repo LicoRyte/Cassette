@@ -3,29 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Solarist</title>
-<meta name="description" content="A Pomodoro study timer where every study session is a trip to a new, randomly generated planet.">
+<title>Cassette Timer</title>
+<meta name="description" content="A focus timer like a vintage tape deck, on a desk for your notes, photos and drawings.">
 <meta name="theme-color" content="#030710">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<link rel="preload" href="fonts/barlow-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main id="slRoot">
-  <p class="boot">Loading Solarist...</p>
-</main>
-<noscript><p class="boot">Solarist needs JavaScript to run.</p></noscript>
-<script src="js/world/random.js"></script>
-<script src="js/world/text.js"></script>
-<script src="js/world/planet-data.js"></script>
-<script src="js/world/planet.js"></script>
-<script src="js/world/events.js"></script>
-<script src="js/world/items.js"></script>
-<script src="js/world/paint.js"></script>
-<script src="js/world/economy.js"></script>
-<script src="js/boot.js"></script>
-<script src="js/shell.js"></script>
+<main id="app"></main>
+<noscript><p class="boot">Cassette Timer needs JavaScript to run.</p></noscript>
+<!-- in this order: each file can use what the ones before it made (see js/app.js) -->
+<script src="js/app.js"></script>
+<script src="js/state.js"></script>
+<script src="js/screen.js"></script>
+<script src="js/digits.js"></script>
+<script src="js/feel.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/desk.js"></script>
+<script src="js/pen.js"></script>
+<script src="js/export.js"></script>
+<script src="js/clock.js"></script>
+<script src="js/tape.js"></script>
+<script src="js/help.js"></script>
+<script src="js/start.js"></script>
 </body>
 </html>

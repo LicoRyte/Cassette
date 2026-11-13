@@ -1,10 +1,6 @@
 Sound credits
 =============
-All rights to each sound belong to its creator. Used in Solarist, a non-commercial personal project.
-
-By NightMargin:
-  granted.wav      session finished
-  messagebox.wav   break finished
+All rights to each sound belong to its creator. Used in Cassette Timer, a non-commercial personal project.
 
 Interface sounds (from the Not-So-Awesome Archive):
   twm_mouse_click.wav   button click
