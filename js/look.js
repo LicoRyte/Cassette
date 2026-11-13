@@ -12,3 +12,22 @@ const skinRow = el('div', { class: 'sx-skins', role: 'radiogroup', 'aria-label':
   el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:' + col, onclick: () => { skinSet(k); if (typeof tapeSound === 'function') tapeSound(); } }, el('i', {}), name)));
 settingsPane.append(sec('Look', el('p', { class: 'sl-muted' }, 'The cassette skin: the colour of the keys, the reels, the frame and the cassette on the desk.'), skinRow));
 skinSet(S.opts.skin || 'amber');
+
+/* ---------- the clock's light: every note and photo is lit on the side facing the clock, more the closer it is ---------- */
+function lightCards() {
+  els.forEach((c, id) => {
+    if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid')) return;
+    const x = c.offsetLeft + c.offsetWidth / 2, y = c.offsetTop + c.offsetHeight / 2, d = Math.hypot(x, y);
+    const lit = Math.pow(Math.max(0, 1 - d / 950), 1.4);
+    c.style.setProperty('--lit', lit.toFixed(3)); c.style.setProperty('--lang', (Math.atan2(x, -y) * 180 / Math.PI).toFixed(0) + 'deg'); // (the gradient runs away from the clock)
+  });
+}
+const strUpdateLight = strUpdate;
+strUpdate = function () { strUpdateLight.apply(this, arguments); lightCards(); };
+requestAnimationFrame(lightCards);
+
+/* ---------- parallax: the grain and a far layer of dots drift a little as you move the mouse ---------- */
+document.body.append(el('div', { class: 'sx-par', 'aria-hidden': 'true' }));
+let parRaf = 0, parX = 0, parY = 0;
+addEventListener('pointermove', e => { parX = e.clientX / innerWidth * 2 - 1; parY = e.clientY / innerHeight * 2 - 1;
+  if (!parRaf && !stillUI()) parRaf = requestAnimationFrame(() => { parRaf = 0; document.documentElement.style.setProperty('--px', parX.toFixed(3)); document.documentElement.style.setProperty('--py', parY.toFixed(3)); }); }, { passive: true });

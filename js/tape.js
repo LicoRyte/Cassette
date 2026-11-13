@@ -52,7 +52,7 @@ function tapeSound() {
   const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1 + (Math.random() - .5) * .04; g.gain.value = .7; s.connect(g).connect(c.destination); s.start();
 }
 [startB, resetB].forEach(b => b.addEventListener('click', () => {
-  if (b.disabled) return; tapeSound();
+  if (b.disabled) return; tapeKeySound(b);
   if (!stillUI()) { b.classList.remove('press'); void b.offsetWidth; b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 180); } // (Space presses it too)
 }));
 
@@ -190,3 +190,44 @@ const vuGo = () => { if (!vuRaf && !stillUI()) vuRaf = requestAnimationFrame(vuS
 new MutationObserver(() => { if (running && mode === 'focus') { vuKick = Math.max(vuKick, .32 + Math.random() * .12); vuGo(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
 new MutationObserver(vuGo).observe(root, { attributes: true, attributeFilter: ['data-clock'] });
 vuStep();
+
+/* ---------- each key sounds like itself: Play latches, Pause pops back up, Rewind whirrs ---------- */
+function tapeKeySound(b) {
+  if (!feelSoundOn()) return; const c = feelCtx(); if (!c) return; const t = c.currentTime;
+  const clip = (rate, gain, at) => { if (!tapeBuf) return; const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = rate; g.gain.value = gain; s.connect(g).connect(c.destination); s.start(at || t); };
+  if (b === resetB) { // a little motor whirr under the key
+    const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(470, t + .26);
+    f.type = 'lowpass'; f.frequency.value = 820; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.022, t + .04); g.gain.exponentialRampToValueAtTime(.0001, t + .3);
+    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + .32); clip(.95, .4, t + .02); return;
+  }
+  if (running) { clip(1, .7); feelTone(c, t + .035, 88, { dur: .08, vol: .05, to: 58 }); } // Play: the key goes down and latches
+  else { clip(1.3, .3); feelBurst(c, t, { dur: .03, type: 'highpass', f0: 2100, vol: .03 }); feelTone(c, t, 330, { dur: .05, vol: .02, to: 520 }); } // Pause: it pops back up
+}
+
+/* ---------- flick the reels: grab one and spin it; it keeps turning, slows down, and ticks as it goes ---------- */
+let reelSpin = 0, reelHeld = false, reelTick = 0;
+function reelTurn(d, byHand) {
+  reelA = (reelA + d) % 360;
+  reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + reelA.toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (reelA * 1.3).toFixed(1) + ')');
+  if (!byHand) return; reelTick += Math.abs(d);
+  if (reelTick >= 30) { reelTick = 0; if (S.opts.deskSfx !== false && feelSoundOn()) { const c = feelCtx(); if (c) feelBurst(c, c.currentTime, { dur: .007, type: 'highpass', f0: 3200 + Math.random() * 800, vol: .016 }); } } // the ratchet
+}
+reelStep = function () {
+  reelRaf = 0;
+  const target = running ? 1.6 : 0; reelV += (target - reelV) * (reelV < 0 ? .045 : .06);
+  if (!reelHeld) { reelSpin *= .984; if (Math.abs(reelSpin) < .04) reelSpin = 0; } // friction
+  if (Math.abs(reelV) < .01 && !running && !reelSpin && !reelHeld) { reelV = 0; return; }
+  if (Math.abs(reelV) >= .01) reelTurn(reelV, false); if (reelSpin && !reelHeld) reelTurn(reelSpin, true);
+  reelRaf = requestAnimationFrame(reelStep);
+};
+[reelL, reelR].forEach(r => r.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return; e.preventDefault(); e.stopPropagation(); r.setPointerCapture(e.pointerId); reelHeld = true; reelSpin = 0; deskSfx('pick');
+  const b = r.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2, k = r === reelR ? 1 / 1.3 : 1; // (the right reel turns 1.3 times as fast)
+  let last = Math.atan2(e.clientY - cy, e.clientX - cx), lt = e.timeStamp, v = 0;
+  const move = ev => { const a = Math.atan2(ev.clientY - cy, ev.clientX - cx); let d = (a - last) * 180 / Math.PI; if (d > 180) d -= 360; if (d < -180) d += 360;
+    last = a; const dt = Math.max(8, ev.timeStamp - lt); lt = ev.timeStamp; v = v * .5 + (d * k * 16 / dt) * .5; reelTurn(d * k, true); };
+  const end = () => { r.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(x => r.removeEventListener(x, end));
+    reelHeld = false; reelSpin = stillUI() ? 0 : Math.max(-45, Math.min(45, v)); reelGo(); };
+  r.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(x => r.addEventListener(x, end));
+}));
+[reelL, reelR].forEach(r => { r.title = 'Spin me'; });

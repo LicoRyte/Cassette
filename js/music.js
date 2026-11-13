@@ -40,8 +40,14 @@ async function loadInto(a, side) { // the track this side is up to, ready on dec
   a._side = side; a._xf = false; return true;
 }
 function setActive(a) { player = a; playSide = a._side; playId = a._id; }
-async function startOn(a, side, ms) { if (!(await loadInto(a, side))) return false; musicGraph(); a.volume = 0; try { await a.play(); } catch (e) { return false; } setActive(a); fadeEl(a, vol(), ms); return true; }
-function stopEl(a, ms) { if (a.paused) return; fadeEl(a, 0, ms, () => { a.pause(); musicDraw(); }); }
+function rampRate(a, from, to, ms) { // the motor: playback speed (and so pitch) sliding between two speeds
+  clearInterval(a._rt); try { a.preservesPitch = false; } catch (e) { /* older browsers */ }
+  if (stillUI()) { a.playbackRate = to; return; }
+  const t0 = performance.now(); a.playbackRate = from;
+  a._rt = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms), e = 1 - Math.pow(1 - k, 2); a.playbackRate = Math.max(.25, from + (to - from) * e); if (k >= 1) clearInterval(a._rt); }, 30);
+}
+async function startOn(a, side, ms, wind) { if (!(await loadInto(a, side))) return false; musicGraph(); a.volume = 0; if (wind) rampRate(a, .45, 1, 750); else { clearInterval(a._rt); a.playbackRate = 1; } try { await a.play(); } catch (e) { return false; } setActive(a); fadeEl(a, vol(), ms); return true; }
+function stopEl(a, ms, wind) { if (a.paused) return; if (wind) rampRate(a, a.playbackRate || 1, .3, ms); fadeEl(a, 0, ms, () => { a.pause(); clearInterval(a._rt); a.playbackRate = 1; musicDraw(); }); }
 async function nextTrack(ms) { // on to the next track: it comes in underneath while this one fades
   const was = player, s = was._side; if (!s) return;
   M.pos[s] = ((M.pos[s] || 0) + 1) % Math.max(1, M[s].length); save();
@@ -55,16 +61,16 @@ async function musicSync() {
   if (musicBusy) { musicAgain = true; return; } musicBusy = true; // (one at a time; a change that comes meanwhile runs right after)
   try {
     const side = sideNow(), st = M.radio[side], want = running && M.on && soundOn && (!!st || M[side].length > 0);
-    if (!want) { decks.forEach(a => stopEl(a, 700)); radioOff(700); return; }
+    if (!want) { decks.forEach(a => stopEl(a, 900, true)); radioOff(900, true); return; } // the tape winds down
     if (st) { decks.forEach(a => stopEl(a, 1400)); radioOn(st); return; } // this side is tuned to the radio
     radioOff(1400);
     if (!player.paused && player._side === side) { fadeEl(player, vol(), 400); return; } // already playing this side
     const tr = trackAt(side);
     if (player.paused && player._side === side && player._url && tr && player._id === tr.id && player.currentTime > 0) { // a pause: carry on where it stopped
-      player.volume = 0; try { await player.play(); } catch (e) { return; } setActive(player); fadeEl(player, vol(), 1400); return;
+      player.volume = 0; rampRate(player, .45, 1, 750); try { await player.play(); } catch (e) { return; } setActive(player); fadeEl(player, vol(), 900); return; // and speeds up again
     }
     const was = player.paused ? null : player; // the deck flipped: the other side comes in as this one fades
-    if (await startOn(was ? other(was) : player, side, 1400) && was) stopEl(was, 1400);
+    if (await startOn(was ? other(was) : player, side, was ? 1400 : 900, !was) && was) stopEl(was, 1400);
   } finally { musicBusy = false; musicDraw(); if (musicAgain) { musicAgain = false; setTimeout(() => musicSync(), 0); } }
 }
 new MutationObserver(() => musicSync()).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
@@ -111,7 +117,8 @@ function radioOn(kind) {
   const g = musicGraph(); if (!g) return;
   if (radio && radio.kind === kind) { radioLevel(.6); return; }
   radioOff(900);
-  const c = g.c, out = c.createGain(); out.gain.value = 0; out.connect(g.bus);
+  const c = g.c, out = c.createGain(), tone = c.createBiquadFilter(); out.gain.value = 0; tone.type = 'lowpass'; out.connect(tone).connect(g.bus);
+  tone.frequency.setValueAtTime(stillUI() ? 18000 : 260, c.currentTime); tone.frequency.exponentialRampToValueAtTime(18000, c.currentTime + .9); // the radio opens up as it comes on
   const nodes = []; let timer = 0;
   if (kind === 'rain') { // a steady wash, and drops on the glass
     nodes.push(radioChain(c, radioNoise(c, 5), [radioFilter(c, 'highpass', 350), radioFilter(c, 'lowpass', 1700), radioGain(c, .5)], out));
@@ -130,12 +137,13 @@ function radioOn(kind) {
       if (Math.random() < .015) radioBurst(c, out, t, .05, 'bandpass', 600, .25); }, 45);
   }
   nodes.forEach(n => { if (n.start && n.constructor.name === 'AudioBufferSourceNode') n.start(); });
-  radio = { kind, out, nodes, timer }; radioLevel(1.2);
+  radio = { kind, out, tone, nodes, timer }; radioLevel(1.2);
 }
 function radioLevel(tc) { if (radio) radio.out.gain.setTargetAtTime(vol() * 1.1, radio.out.context.currentTime, tc || .5); }
 function radioOff(ms) {
   if (!radio) return; const r = radio; radio = null; clearInterval(r.timer);
   r.out.gain.setTargetAtTime(0, r.out.context.currentTime, (ms || 700) / 3000);
+  if (arguments[1] && r.tone && !stillUI()) r.tone.frequency.exponentialRampToValueAtTime(220, r.out.context.currentTime + (ms || 700) / 1000); // and closes down as it winds off
   setTimeout(() => { r.nodes.forEach(n => { try { n.stop(); } catch (e) { /* done */ } }); try { r.out.disconnect(); } catch (e) { /* gone */ } }, (ms || 700) + 400);
 }
 

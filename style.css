@@ -889,3 +889,21 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-rb:hover { border-color: #6d8a8d; } .sx-rb.on { border-color: var(--deck); color: #ffffe4; background: #041528; }
 @media (prefers-reduced-motion: reduce) { #app .sx-ribbon .rb-shine { animation: none !important; } }
 .sx-ribbon .rb-tape { stroke: #833f34; stroke-width: 3; } .sx-reel .rl-pack { fill: #73392e; stroke: #833f34; } /* (tape you can see against the dark deck) */
+
+/* ---------- the clock's light on the paper (js/look.js): its colour follows the clock ---------- */
+@property --lcol { syntax: '<color>'; inherits: true; initial-value: rgba(255, 255, 228, .5); }
+#app { --lcol: rgba(255, 255, 228, .35); transition: --lcol 1.2s ease; }
+#app[data-clock="focus"] { --lcol: rgba(255, 255, 228, .6); }
+#app[data-clock="last"] { --lcol: rgba(255, 218, 172, .7); }
+#app[data-clock="break"] { --lcol: rgba(119, 214, 193, .6); }
+#app[data-clock="paused"] { --lcol: rgba(109, 138, 141, .3); }
+/* paper: a faint fibre grain, the light from the clock, and a corner lifting off the board */
+.sx-world .sx-bcard.sx-bnote { background: linear-gradient(var(--lang, 0deg), color-mix(in srgb, var(--lcol) calc(var(--lit, 0) * 70%), transparent), transparent 65%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--note, #ffd832); }
+.sx-world .sx-bcard.sx-polaroid { background: linear-gradient(var(--lang, 0deg), color-mix(in srgb, var(--lcol) calc(var(--lit, 0) * 70%), transparent), transparent 65%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), #ffffe4; }
+.sx-world .sx-bnote::after, .sx-world .sx-polaroid::after { content: ''; position: absolute; left: 0; bottom: 0; width: 22px; height: 22px; pointer-events: none; background: linear-gradient(45deg, rgba(3, 7, 16, .28) 0, rgba(3, 7, 16, .12) 38%, rgba(255, 255, 255, .28) 46%, transparent 54%); }
+/* parallax: the grain and a far layer of dots */
+.sx-grain { translate: calc(var(--px, 0) * -8px) calc(var(--py, 0) * -8px); transition: translate .8s ease-out; }
+.sx-par { position: fixed; inset: -40px; z-index: 0; pointer-events: none; background-image: radial-gradient(rgba(109, 138, 141, .14) 1px, transparent 1.6px); background-size: 97px 97px; translate: calc(var(--px, 0) * -22px) calc(var(--py, 0) * -22px); transition: translate 1s ease-out; }
+/* the reels can be spun by hand */
+.sx-reel { cursor: grab; touch-action: none; } .sx-reel:active { cursor: grabbing; }
+@media (prefers-reduced-motion: reduce) { .sx-grain, .sx-par { translate: none; transition: none; } }
