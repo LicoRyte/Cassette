@@ -25,7 +25,7 @@ function tapeKey(btn, icons, hint) {
   const box = el('span', { class: 'sx-tk', 'aria-hidden': 'true' });
   box.innerHTML = '<svg viewBox="0 0 24 24">' + icons.map(k => '<path class="ic-' + k + '" d="' + TAPE_ICONS[k] + '"/>').join('') + '</svg>'; // (fixed icons, written here)
   const lbl = el('span', { class: 'sx-tl' }, btn.textContent);
-  btn.replaceChildren(box, lbl, el('small', { class: 'sx-th', 'aria-hidden': 'true' }, hint));
+  btn.replaceChildren(box, el('span', { class: 'sx-tlw' }, lbl, el('small', { class: 'sx-th', 'aria-hidden': 'true' }, hint))); // the word, with the key to press under it
   btn.classList.remove('sl-go'); btn.classList.add('sx-tape');
   return lbl;
 }

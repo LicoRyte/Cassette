@@ -78,7 +78,7 @@ function penErase(x, y, marked) { // the eraser: whatever stroke is under it goe
   deskSfx('tear'); save(); drawBoard(); return true;
 }
 ws.addEventListener('pointerdown', e => {
-  if (!drawOn || e.button !== 0 || page && !page.hidden || e.target.closest('.sx-corner button')) return;
+  if (!drawOn || e.button !== 0 || page && !page.hidden || e.target.closest('.sx-corner button, .sx-tapes')) return;
   e.stopPropagation(); e.preventDefault(); cancelAnimationFrame(glideRaf);
   ws.setPointerCapture(e.pointerId);
   const done = (move, end) => { let over = false; const fin = ev => { if (over) return; over = true; ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, fin)); end(ev); };

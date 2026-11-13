@@ -356,7 +356,7 @@ function deskMarquee(e) { // Shift+drag on the empty desk: pick everything the b
   ws.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.addEventListener(k, up));
 }
 ws.addEventListener('pointerdown', e => {
-  if (page && !page.hidden) return;
+  if (page && !page.hidden || e.target.closest('.sx-tapes')) return; // (the cassette panel handles its own pointer: js/music.js)
   cancelAnimationFrame(glideRaf);
   if (e.button === 1 || e.button === 2) { if (!e.target.isContentEditable) deskPan(e); return; } // the middle or right button always moves the desk
   if (e.button !== 0) return;
@@ -433,9 +433,9 @@ ws.addEventListener('pointerdown', e => {
   select(null); if (document.activeElement && document.activeElement.isContentEditable) { document.activeElement.blur(); getSelection().removeAllRanges(); } // put the pen down, and let go of any highlighted words
   deskPan(e);
 });
-ws.addEventListener('dblclick', e => { if (drawOn || e.target.closest('.sx-bcard, .sx-corner')) return; addNoteAt((p => ({ x: p.x - 100, y: p.y - 20 }))(toWorld(e.clientX, e.clientY))); });
+ws.addEventListener('dblclick', e => { if (drawOn || e.target.closest('.sx-bcard, .sx-corner, .sx-tapes')) return; addNoteAt((p => ({ x: p.x - 100, y: p.y - 20 }))(toWorld(e.clientX, e.clientY))); });
 ws.addEventListener('wheel', e => { // zoom around the pointer
-  if (page && !page.hidden) return;
+  if (page && !page.hidden || e.target.closest('.sx-shelf, .sx-mus')) return; // (its lists scroll)
   e.preventDefault(); cancelAnimationFrame(glideRaf);
   const before = toWorld(e.clientX, e.clientY), z = Math.min(1.6, Math.max(.35, cam.z * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015))));
   cam.z = z; const after = toWorld(e.clientX, e.clientY); cam.x += before.x - after.x; cam.y += before.y - after.y; placeCam(); camSave();

@@ -13,7 +13,7 @@ function fitDigits() { // as big as the panel is wide: measure the digits at 100
   const w = corner.clientWidth; if (!w) return; digW = w;
   digits.style.fontSize = '100px'; const k = digSpans(); if (!k.length) return;
   const natural = (k[k.length - 1].offsetLeft + k[k.length - 1].offsetWidth - k[0].offsetLeft) || 1; // the digits themselves, not their box (in layout pixels, so the desk's zoom doesn't fool it)
-  digits.style.fontSize = Math.floor(100 * Math.min(w, 560) / natural) + 'px';
+  digits.style.fontSize = Math.floor(100 * Math.min(w * .88, 480) / natural) + 'px';
 }
 let digitsHold = 0, digitsHoldText = ''; // after a session, the digits stay on 00:00 for a moment (js/ui/clock.js)
 function drawDigits() {

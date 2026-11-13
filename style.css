@@ -743,3 +743,38 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 @media (max-width: 760px) { #app .sx-ws-bar, #app[data-clock] .sx-ws-bar { flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 24px); } }
 #app.sx-clockonly .sx-top { display: flex; justify-content: flex-end; }
 #app.sx-clockonly .sx-nav { width: auto; justify-content: flex-end; } /* (the old phone rule spread several tabs across; there is only Settings now) */
+
+/* ---------- the clock as a rectangle, like a tape deck's front: Side on the left of the top line, keys and counter on one row ---------- */
+#app .sx-world > .sx-corner { display: grid; width: min(560px, calc(100vw - 72px)); grid-template-columns: 1fr auto; grid-template-areas: "label label" "head head" "digits digits" "deck deck" "keys meta"; align-items: center; column-gap: 16px; }
+#app .sx-world > .sx-corner .sx-intent { grid-area: label; justify-self: center; }
+#app .sx-world > .sx-corner .sl-big { grid-area: head; justify-self: end; margin: 0 0 4px; text-align: right; }
+#app .sx-world > .sx-corner .sx-sidetag { grid-area: head; justify-self: start; order: 0; margin: 0 0 4px; justify-content: flex-start; max-width: 55%; }
+#app .sx-world > .sx-corner .sx-digits { grid-area: digits; margin-bottom: 10px; }
+#app .sx-world > .sx-corner .sx-deck { grid-area: deck; }
+#app .sx-world > .sx-corner .sx-cmd { grid-area: keys; justify-self: start; justify-content: flex-start; gap: 18px; margin-top: 18px; }
+#app .sx-world > .sx-corner .sx-tally { grid-area: meta; justify-self: end; align-self: center; margin: 18px 0 0; }
+#app .sx-corner .sx-tk { width: 58px; height: 48px; }
+#app .sx-corner .sx-tk svg { width: 22px; height: 22px; }
+#app .sx-corner .sx-cmd .btn.sx-tape { flex-direction: row; gap: 10px; }
+.sx-tape .sx-tlw { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+#app .sx-corner .sx-tape .sx-th { margin-top: 0; }
+@media (max-width: 520px) { #app .sx-world > .sx-corner .sx-sidetag .sx-np { display: none; } #app .sx-world > .sx-corner .sx-cmd { gap: 10px; } }
+
+/* ---------- the cassette on the desk (js/music.js) ---------- */
+.sx-world .sx-tapes { position: absolute; right: auto; top: 0; left: 0; z-index: 5; width: 380px; max-height: none; height: 560px; border: 2px solid #ffb762; border-radius: 10px; background: #041528; box-shadow: 4px 6px 0 rgba(3, 7, 16, .6), inset 0 0 0 4px #030710; overflow: hidden; transition: box-shadow .15s, scale .15s; }
+.sx-world .sx-tapes.lift { scale: 1.02; box-shadow: 8px 12px 0 rgba(3, 7, 16, .5), inset 0 0 0 4px #030710; }
+.sx-tapes-grip { display: flex; align-items: center; justify-content: center; gap: 14px; flex: none; height: 30px; background: #ffb762; color: #030710; font: 700 11px var(--ui); letter-spacing: .3em; text-transform: uppercase; cursor: grab; user-select: none; touch-action: none; }
+.sx-tapes.lift .sx-tapes-grip { cursor: grabbing; }
+.sx-hole { width: 14px; height: 14px; border-radius: 50%; background: #030710; box-shadow: inset 0 0 0 3px #293b49; }
+.sx-world .sx-tapes .sx-tapes-h { border-bottom: 1px dashed #293b49; }
+.sx-world .sx-tapes .sx-shelf, .sx-world .sx-tapes .sx-mus { flex: 1; min-height: 0; }
+.sx-tapes-f { display: flex; align-items: center; justify-content: space-between; flex: none; padding: 10px 14px 12px; border-top: 1px dashed #293b49; }
+.sx-screw { width: 9px; height: 9px; border-radius: 50%; background: #293b49; box-shadow: inset -2px -2px 0 #030710; }
+.sx-tapes .sx-ws-b.sx-tapes-save { height: 34px; padding: 0 18px 1px; }
+/* phones: the keys show just their faces (the words would push the counter off the edge), and the top line tightens */
+@media (max-width: 520px) {
+  #app .sx-corner .sx-tape .sx-tlw { display: none; }
+  #app .sx-world > .sx-corner { grid-template-columns: minmax(0, 1fr) auto; }
+  #app .sx-world > .sx-corner .sl-big { max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; letter-spacing: .12em; }
+  #app .sx-world > .sx-corner .sx-sidetag { letter-spacing: .14em; }
+}

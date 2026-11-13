@@ -67,22 +67,38 @@ function musicRemove(side, id) {
 /* ---------- the Tapes drawer: the Shelf (js/log.js) and the Music ---------- */
 const tapesShelf = el('div', { class: 'sx-shelf' }), tapesMusic = el('div', { class: 'sx-mus' });
 const tapesTabs = ['shelf', 'music'].map(k => el('button', { type: 'button', class: 'sx-tt', 'data-k': k, onclick: () => tapesOpen(k) }, k === 'shelf' ? 'Shelf' : 'Music'));
+const tapesGrip = el('div', { class: 'sx-tapes-grip', title: 'Drag to move the cassette' }, el('i', { class: 'sx-hole' }), el('span', {}, 'Cassette'), el('i', { class: 'sx-hole' }));
+const tapesSave = el('button', { type: 'button', class: 'sx-ws-b sx-tapes-save', title: 'Save cassette and put it away (T or Esc)', onclick: () => tapesOpen(null) }, 'Save cassette');
 const tapesDrawer = el('div', { class: 'sx-tapes', role: 'dialog', 'aria-label': 'Tapes', hidden: true },
-  el('div', { class: 'sx-tapes-h' }, ...tapesTabs, el('span', { class: 'sx-gap' }), el('button', { type: 'button', class: 'sx-tt sx-tx', 'aria-label': 'Close', title: 'Close (T or Esc)', onclick: () => tapesOpen(null) }, '×')),
-  tapesShelf, tapesMusic);
-document.body.append(tapesDrawer);
+  tapesGrip, el('div', { class: 'sx-tapes-h' }, ...tapesTabs),
+  tapesShelf, tapesMusic, el('div', { class: 'sx-tapes-f' }, el('i', { class: 'sx-screw' }), tapesSave, el('i', { class: 'sx-screw' })));
+world.append(tapesDrawer); // it lives on the desk, next to the clock, and moves and zooms with it
+// where it sits on the desk (remembered); dragged by its top
+M.panel = M.panel && isFinite(M.panel.x) ? M.panel : null;
+function tapesPlace() { const p = M.panel || { x: Math.round(corner.offsetWidth / 2 + 90), y: -280 }; tapesDrawer.style.left = p.x + 'px'; tapesDrawer.style.top = p.y + 'px'; }
+tapesGrip.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return; e.preventDefault(); e.stopPropagation(); tapesGrip.setPointerCapture(e.pointerId);
+  const s = { x: e.clientX, y: e.clientY, l: tapesDrawer.offsetLeft, t: tapesDrawer.offsetTop }; tapesDrawer.classList.add('lift'); deskSfx('pick');
+  const move = ev => { M.panel = { x: Math.round(s.l + (ev.clientX - s.x) / cam.z), y: Math.round(s.t + (ev.clientY - s.y) / cam.z) }; tapesPlace(); };
+  const end = () => { tapesGrip.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => tapesGrip.removeEventListener(k, end)); tapesDrawer.classList.remove('lift'); deskSfx('drop'); save(); };
+  tapesGrip.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => tapesGrip.addEventListener(k, end));
+});
+tapesPlace();
 let tapesTab = 'shelf';
 function tapesOpen(k) {
-  if (k == null || (!tapesDrawer.hidden && k === true)) { tapesDrawer.hidden = true; tapesB.classList.remove('on'); return; }
+  if (k == null || (!tapesDrawer.hidden && k === true)) { if (!tapesDrawer.hidden) { tapesDrawer.hidden = true; tapesB.classList.remove('on'); save(); deskSfx('drop'); if (typeof tapeSound === 'function') tapeSound(); } return; } // Save cassette: everything is already kept; it just goes away
   if (k !== true) tapesTab = k;
-  tapesDrawer.hidden = false; tapesB.classList.add('on');
+  const was = tapesDrawer.hidden; tapesDrawer.hidden = false; tapesB.classList.add('on'); tapesPlace();
+  if (was) { deskSfx('pick'); // if it's off screen, frame the clock and the cassette together
+    const v = view(), cw = corner.offsetWidth / 2, ch = corner.offsetHeight / 2, L = tapesDrawer.offsetLeft, T = tapesDrawer.offsetTop, R = L + tapesDrawer.offsetWidth, Bt = T + tapesDrawer.offsetHeight;
+    const inView = (L - cam.x) * cam.z > -v.w / 2 && (R - cam.x) * cam.z < v.w / 2 && (T - cam.y) * cam.z > -v.h / 2 + 50 && (Bt - cam.y) * cam.z < v.h / 2 - 80;
+    if (!inView) { const x0 = Math.min(-cw, L), x1 = Math.max(cw, R), y0 = Math.min(-ch, T), y1 = Math.max(ch, Bt); glideTo((x0 + x1) / 2, (y0 + y1) / 2 + 20, Math.max(.35, Math.min(1, (v.w - 80) / (x1 - x0), (v.h - 200) / (y1 - y0)))); } }
   tapesTabs.forEach(b => b.classList.toggle('on', b.dataset.k === tapesTab));
   tapesShelf.hidden = tapesTab !== 'shelf'; tapesMusic.hidden = tapesTab !== 'music';
   if (tapesTab === 'shelf' && typeof drawShelf === 'function') drawShelf(); else musicDraw();
 }
 const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Music and your shelf of tapes (T)');
 deskBar.querySelectorAll('.sx-ws-grp')[1].append(tapesB);
-addEventListener('pointerdown', e => { if (!tapesDrawer.hidden && !e.target.closest('.sx-tapes, .sx-ws-bar, .sx-toast')) tapesOpen(null); }, true);
 addEventListener('keydown', e => {
   const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code === 'KeyT') { e.preventDefault(); e.stopPropagation(); tapesOpen(tapesDrawer.hidden ? true : null); }
