@@ -279,7 +279,21 @@ function strHot() {
   strNodes.forEach(n => { const on = n.l.some(id => id === strOver || picked.has(id)); if (n.hot === on) return; n.hot = on;
     n.p.classList.toggle('hot', on); if (on) strings.append(n.p); else n.hit.after(n.p); }); // (a lit string comes to the top of the pile)
 }
-layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); } });
+layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, e.movementX); } });
+// brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
+// (only when the pointer comes onto one, and only while it moves: nothing runs while the desk is still)
+function brushCard(c, mx) {
+  if (stillUI() || !(c.classList.contains('sx-bnote') || c.classList.contains('sx-polaroid')) || c.classList.contains('lift') || c.contains(document.activeElement)) return;
+  const k = Math.max(-.8, Math.min(.8, (mx || 0) * .06)); if (Math.abs(k) < .08) return;
+  const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.v += k; s.t = 0; s.held = false;
+  swinging.add(c); c.classList.add('swinging'); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
+}
+function brushString(l, e) {
+  if (stillUI() || e.buttons) return;
+  const k = lk(l), w = wob.get(k) || { x: 0, y: 0, vx: 0, vy: 0 };
+  w.vx += Math.max(-6, Math.min(6, e.movementX * .35)); w.vy += Math.max(-6, Math.min(6, e.movementY * .35)); wob.set(k, w);
+  if (!wobRaf) wobRaf = requestAnimationFrame(wobStep);
+}
 layer.addEventListener('pointerleave', () => { if (strOver) { strOver = null; strHot(); } });
 { const selectStrBase = select; select = function () { const r = selectStrBase.apply(this, arguments); strHot(); return r; }; } // (picking a card lights its strings too)
 function drawStrings(temp) {
@@ -289,6 +303,7 @@ function drawStrings(temp) {
     const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('class', 'sx-string');
     const hit = document.createElementNS(SVGNS, 'path'); hit.setAttribute('class', 'sx-string-hit');
     hit.addEventListener('pointerdown', e => e.stopPropagation());
+    hit.addEventListener('pointerenter', e => brushString(l, e)); // (plucked as the mouse passes over it)
     hit.addEventListener('click', () => { deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
     strings.append(hit, p); strNodes.push({ l, p, hit }); });
   strUpdate(); strHot();
