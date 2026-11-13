@@ -151,11 +151,21 @@ function rewWind(ms) { // give back ms of this part (never past its start)
   if (running) endAt += add; else left = now + add;
   drawClock(); return add;
 }
+// how fast it winds (seconds of timer per second held), in three stages: a steady 22 for the first couple of seconds
+// (1 to 2 s held: about 20 to 48 s back), then 65 (3 to 4 s held: about 2 to 3 minutes back), then a long rewind that
+// keeps speeding up (about 10 minutes back by 6 s held), up to 15 minutes a second. The stages blend into each other.
+function rewSpeed(t) {
+  const ease = (a, b, x) => { const k = Math.max(0, Math.min(1, x)); return a + (b - a) * k * k * (3 - 2 * k); };
+  if (t < 1.6) return 22;
+  if (t < 2.4) return ease(22, 65, (t - 1.6) / .8);
+  if (t < 4) return 65;
+  return Math.min(900, 65 + (t - 4) * (t - 4) * 130);
+}
 function rewStart() {
   if (rewT || rewAt) return; rewAt = performance.now(); rewMoved = 0; resetB.classList.add('holding'); tapeKeySound(resetB);
   rewT = setInterval(() => {
     const held = (performance.now() - rewAt) / 1000;
-    const speed = Math.min(720, 3 + held * 8 + held * held * held * 16); // seconds of timer per second held: 3 at first, 1 minute by about 1.5 s, 5 minutes by about 3 s, up to 12
+    const speed = rewSpeed(held);
     const got = rewWind(speed * 50); rewMoved += got; reelV = -Math.min(34, 3 + speed / 8); reelGo(); rewWhirr(true, speed);
     if (!got) { rewStopNow(); if (feelSoundOn()) { const c = feelCtx(); if (c) feelTone(c, c.currentTime, 110, { dur: .09, vol: .05, to: 70, cat: 'keys' }); } } // the start of the part: a soft stop
   }, 50);
