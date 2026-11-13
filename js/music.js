@@ -13,6 +13,14 @@ const MUSIC = (() => {
 })();
 const M = S.music = Object.assign({ on: true, vol: .5, A: [], B: [], pos: { A: 0, B: 0 } }, S.music || {});
 M.pos = Object.assign({ A: 0, B: 0 }, M.pos || {}); M.radio = Object.assign({ A: null, B: null }, M.radio || {});
+// your music: M.lib = [{ id, name, dur }], every file kept in this browser. Mixtapes: M.mixes = [{ id, name, A: [ids], B: [ids] }];
+// M.mix is the one in the deck, and M.A / M.B are its sides as the player reads them. (Older saves: their two sides become the first mixtape.)
+if (!Array.isArray(M.lib)) { const seen = new Set(); M.lib = [...M.A, ...M.B].filter(t => t && !seen.has(t.id) && seen.add(t.id)).map(t => ({ id: t.id, name: t.name })); }
+if (!Array.isArray(M.mixes) || !M.mixes.length) M.mixes = [{ id: 'x' + Date.now(), name: 'My mixtape', A: M.A.map(t => t.id), B: M.B.map(t => t.id) }];
+if (!M.mixes.some(m => m.id === M.mix)) M.mix = M.mixes[0].id;
+const mixNow = () => M.mixes.find(m => m.id === M.mix) || M.mixes[0];
+const libOf = id => M.lib.find(t => t.id === id);
+{ const mx = mixNow(); M.A = mx.A.map(libOf).filter(Boolean); M.B = mx.B.map(libOf).filter(Boolean); }
 const sideNow = () => mode === 'focus' ? 'A' : 'B';
 const SIDE_NAME = { A: 'Side A · focus', B: 'Side B · breaks' };
 
@@ -147,20 +155,58 @@ function radioOff(ms) {
   setTimeout(() => { r.nodes.forEach(n => { try { n.stop(); } catch (e) { /* done */ } }); try { r.out.disconnect(); } catch (e) { /* gone */ } }, (ms || 700) + 400);
 }
 
-/* ---------- adding and removing ---------- */
-async function musicAdd(files, side) {
-  const list = [...files].filter(f => /^audio\//.test(f.type) || /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|webm)$/i.test(f.name)); if (!list.length) return 0;
-  let k = 0;
-  for (const f of list) { const id = 'm' + Date.now() + '-' + k; try { await MUSIC.put(id, f); M[side].push({ id, name: f.name.replace(/\.[^.]+$/, '').slice(0, 80) }); k++; } catch (e) { /* storage full, or not allowed */ } }
-  save(); musicDraw(); musicSync();
-  if (typeof deskToast === 'function') deskToast(k ? 'Added ' + k + (k === 1 ? ' track' : ' tracks') + ' to ' + SIDE_NAME[side] : 'Could not keep those files');
-  return k;
+/* ---------- the library and the mixtapes ---------- */
+const AUDIO_RE = /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|webm)$/i;
+const fmtDur = sec => !isFinite(sec) || sec <= 0 ? '' : Math.floor(sec / 60) + ':' + String(Math.round(sec % 60)).padStart(2, '0');
+function audioLength(blob) { // how long a file plays (read from its own header)
+  return new Promise(res => { const a = new Audio(), u = URL.createObjectURL(blob); let done = false;
+    const fin = v => { if (done) return; done = true; URL.revokeObjectURL(u); res(v); };
+    a.preload = 'metadata'; a.addEventListener('loadedmetadata', () => fin(a.duration)); a.addEventListener('error', () => fin(0)); setTimeout(() => fin(0), 5000); a.src = u; });
 }
-function musicRemove(side, id) {
-  const i = M[side].findIndex(t => t.id === id); if (i < 0) return;
-  M[side].splice(i, 1); if (M.pos[side] > i) M.pos[side]--; MUSIC.del(id).catch(() => {});
-  decks.forEach(a => { if (a._id === id) { clearInterval(a._ft); a.pause(); a._id = null; } }); if (playId === id) { playId = null; playSide = null; }
+let storeAsked = false;
+async function libAdd(files) { // into this browser, and into your library; returns the new ids
+  const list = [...files].filter(f => /^audio\//.test(f.type) || AUDIO_RE.test(f.name)), ids = [];
+  if (!storeAsked && navigator.storage && navigator.storage.persist) { storeAsked = true; navigator.storage.persist().catch(() => {}); } // (ask the browser to keep these, not clear them to save space)
+  for (const [k, f] of list.entries()) {
+    const id = 'm' + Date.now() + '-' + k;
+    try { await MUSIC.put(id, f); M.lib.push({ id, name: f.name.replace(/\.[^.]+$/, '').slice(0, 80), dur: Math.round(await audioLength(f)) || 0 }); ids.push(id); } catch (e) { /* storage full, or not allowed */ }
+  }
+  save(); return ids;
+}
+function mixApply(fresh) { // the mixtape in the deck becomes what the player plays (keeping your place where it can)
+  const mx = mixNow();
+  ['A', 'B'].forEach(sd => {
+    const was = !fresh && trackAt(sd); M[sd] = mx[sd].map(libOf).filter(Boolean);
+    const i = was ? M[sd].findIndex(t => t.id === was.id) : -1; M.pos[sd] = i >= 0 ? i : fresh ? 0 : Math.min(M.pos[sd] || 0, Math.max(0, M[sd].length - 1));
+  });
+  if (playId && playSide && (fresh || !M[playSide].some(t => t.id === playId))) { decks.forEach(a => { clearInterval(a._ft); a.pause(); a._id = null; }); playId = null; playSide = null; } // what was playing isn't on the tape any more
   save(); musicDraw(); musicSync();
+}
+async function musicAdd(files, side) { // new files straight onto a side (from the drawer, or dropped on the desk)
+  const ids = await libAdd(files); if (!ids.length) { if ([...files].length) deskToast('Could not keep those files'); return 0; }
+  mixNow()[side].push(...ids); mixApply();
+  deskToast('Added ' + ids.length + (ids.length === 1 ? ' track' : ' tracks') + ' to ' + SIDE_NAME[side]); return ids.length;
+}
+function musicRemove(side, id) { const mx = mixNow(), i = mx[side].indexOf(id); if (i < 0) return; mx[side].splice(i, 1); mixApply(); } // off the side; the file stays in your music
+function trackMove(from, fi, to, ti) { // drag and drop: within a side, between sides, from your music onto a side, or off a side
+  const mx = mixNow(); let id;
+  if (from === 'L') id = M.lib[fi] && M.lib[fi].id; else { id = mx[from][fi]; if (to !== 'L') { mx[from].splice(fi, 1); if (from === to && ti > fi) ti--; } }
+  if (!id) return;
+  if (to === 'L') { if (from !== 'L') mx[from].splice(fi, 1); } else mx[to].splice(Math.max(0, Math.min(ti, mx[to].length)), 0, id);
+  deskSfx('drop'); mixApply();
+}
+function libDelete(id) { // gone from this browser, and from every mixtape
+  M.lib = M.lib.filter(t => t.id !== id); M.mixes.forEach(m => { m.A = m.A.filter(x => x !== id); m.B = m.B.filter(x => x !== id); });
+  MUSIC.del(id).catch(() => {}); mixApply();
+}
+function mixSwitch(id) { if (id === M.mix) return; M.mix = id; deskSfx('pin'); if (typeof tapeSound === 'function') tapeSound(); mixApply(true); }
+function mixNew() { const name = (prompt('Name the new mixtape:', 'Mixtape ' + (M.mixes.length + 1)) || '').trim().slice(0, 40); if (!name) return; const id = 'x' + Date.now(); M.mixes.push({ id, name, A: [], B: [] }); M.mix = id; mixApply(true); }
+function mixRename() { const mx = mixNow(), name = (prompt('Rename this mixtape:', mx.name) || '').trim().slice(0, 40); if (name) { mx.name = name; save(); musicDraw(); } }
+function mixDelete() { if (M.mixes.length < 2) return; M.mixes = M.mixes.filter(m => m.id !== M.mix); M.mix = M.mixes[0].id; mixApply(true); } // (the files stay in your music)
+async function libLengths() { // tracks from before lengths were kept: measure them once
+  let changed = false;
+  for (const t of M.lib) if (!t.dur && !t._tried) { t._tried = true; try { const b = await MUSIC.get(t.id); if (b) { t.dur = Math.round(await audioLength(b)) || 0; changed = true; } } catch (e) { /* gone */ } }
+  M.lib.forEach(t => delete t._tried); if (changed) { save(); musicDraw(); }
 }
 
 /* ---------- the Tapes drawer: the Shelf (js/log.js) and the Music ---------- */
@@ -204,32 +250,64 @@ addEventListener('keydown', e => {
   else if (e.key === 'Escape' && !tapesDrawer.hidden) { e.preventDefault(); e.stopPropagation(); tapesOpen(null); }
 }, true);
 
+let musicDrag = null; // what's being dragged: { from: 'A' | 'B' | 'L', i }
+function dropTarget(list, y) { const lis = [...list.querySelectorAll(':scope > li')]; const i = lis.findIndex(li => { const r = li.getBoundingClientRect(); return y < r.top + r.height / 2; }); return i < 0 ? lis.length : i; }
+function dropZone(box, list, to) { // where tracks (or files) can land
+  const clear = () => box.querySelectorAll('.drop-before').forEach(n => n.classList.remove('drop-before')), mark = y => { clear(); const lis = list ? [...list.children] : [], i = list ? dropTarget(list, y) : 0; box.classList.add('drop'); if (lis[i]) lis[i].classList.add('drop-before'); };
+  box.addEventListener('dragover', e => { const files = [...(e.dataTransfer.types || [])].includes('Files'); if (!files && !musicDrag) return; e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = musicDrag && musicDrag.from === 'L' ? 'copy' : 'move'; mark(e.clientY); });
+  box.addEventListener('dragleave', e => { if (!box.contains(e.relatedTarget)) { box.classList.remove('drop'); clear(); } });
+  box.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); box.classList.remove('drop'); clear();
+    if (musicDrag) { const d = musicDrag; musicDrag = null; trackMove(d.from, d.i, to, list ? dropTarget(list, e.clientY) : 0); }
+    else if (e.dataTransfer.files.length) { if (to === 'L') libAdd(e.dataTransfer.files).then(ids => { deskToast(ids.length ? 'Added ' + ids.length + ' to your music' : 'Could not keep those files'); musicDraw(); }); else musicAdd(e.dataTransfer.files, to); } });
+}
+function dragRow(li, from, i) { li.draggable = true; li.addEventListener('dragstart', e => { musicDrag = { from, i }; e.dataTransfer.effectAllowed = 'copyMove'; e.dataTransfer.setData('text/plain', li.dataset.name || ''); li.classList.add('dragging'); deskSfx('pick'); });
+  li.addEventListener('dragend', () => { li.classList.remove('dragging'); setTimeout(() => { musicDrag = null; }, 0); }); }
 function musicDraw() {
   // the line under the clock: which side, and what's playing
   if (typeof sideTagNp !== 'undefined') { const tr = !player.paused && playSide && M[playSide].find(t => t.id === playId); sideTagNp.textContent = radio ? '▸ ' + STATIONS[radio.kind] + ' (radio)' : tr ? '▸ ' + tr.name : ''; }
   if (tapesDrawer.hidden || tapesTab !== 'music') return;
+  const mx = mixNow();
   const onB = el('button', { type: 'button', class: 'sx-ws-b' + (M.on ? ' on' : ''), 'aria-pressed': String(M.on), onclick: () => { M.on = !M.on; save(); musicSync(); musicDraw(); } }, M.on ? 'Music on' : 'Music off');
   const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round(M.vol * 100), 'aria-label': 'Music volume' });
   vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(player._ft); player.volume = M.vol * duck; } radioLevel(.1); save(); });
-  const side = s => {
-    const file = el('input', { type: 'file', accept: 'audio/*', multiple: true, hidden: true });
-    file.addEventListener('change', () => { musicAdd(file.files, s); file.value = ''; });
-    const zone = el('div', { class: 'sx-mz', tabindex: '0', role: 'button', 'aria-label': 'Add music to ' + SIDE_NAME[s] }, 'Drop audio files here, or ', el('u', {}, 'choose some'), file);
-    zone.addEventListener('click', e => { if (e.target !== file) file.click(); });
-    zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } });
-    zone.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); zone.classList.add('drop'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drop'));
-    zone.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); zone.classList.remove('drop'); musicAdd(e.dataTransfer.files, s); });
-    const cur = (M.pos[s] || 0) % Math.max(1, M[s].length);
-    return el('section', { class: 'sx-ms' + (sideNow() === s ? ' now' : '') },
-      el('h4', {}, el('b', {}, s === 'A' ? 'Side A' : 'Side B'), el('span', {}, s === 'A' ? 'plays while you focus' : 'plays on breaks')),
-      el('div', { class: 'sx-radio', role: 'radiogroup', 'aria-label': 'Radio on ' + SIDE_NAME[s] }, el('span', {}, 'Radio'), ...[[null, 'Off'], ...Object.entries(STATIONS).map(([k, n]) => [k, n.split(' ')[0]])].map(([k, n]) =>
-        el('button', { type: 'button', class: 'sx-rb' + (M.radio[s] === k ? ' on' : ''), role: 'radio', 'aria-checked': String(M.radio[s] === k), title: k ? STATIONS[k] + ': plays instead of the tracks on this side' : 'Play the tracks', onclick: () => { M.radio[s] = k; save(); musicSync(); musicDraw(); } }, n))),
-      M[s].length ? el('ol', { class: 'sx-trks' }, ...M[s].map((t, i) => el('li', { class: (playId === t.id && !player.paused ? 'play' : i === cur ? 'next' : '') },
-        el('span', { class: 'sx-trk-n', title: t.name }, t.name),
-        el('button', { type: 'button', class: 'sx-trk-x', 'aria-label': 'Take ' + t.name + ' off the tape', title: 'Take it off', onclick: () => musicRemove(s, t.id) }, '×')))) : el('p', { class: 'sl-muted' }, 'Nothing on this side yet.'),
-      zone);
+  // the mixtape in the deck
+  const pick = el('select', { 'aria-label': 'Mixtape in the deck' }, ...M.mixes.map(m => el('option', { value: m.id, selected: m.id === mx.id || null }, m.name)));
+  pick.addEventListener('change', () => mixSwitch(pick.value));
+  const mixRow = el('div', { class: 'sx-mixrow' }, el('span', { class: 'sx-mix-l' }, 'Mixtape'), pick,
+    el('button', { type: 'button', class: 'sx-mini-b', title: 'A new, empty mixtape', onclick: mixNew }, 'New'), el('button', { type: 'button', class: 'sx-mini-b', title: 'Rename this mixtape', onclick: mixRename }, 'Rename'),
+    M.mixes.length > 1 ? armBtn('Delete', 'Sure?', mixDelete, 'sx-mini-b') : null);
+  const side = sd => {
+    const cur = (M.pos[sd] || 0) % Math.max(1, M[sd].length), total = M[sd].reduce((a, t) => a + (t.dur || 0), 0);
+    const list = el('ol', { class: 'sx-trks' }, ...M[sd].map((t, i) => { const li = el('li', { class: (playId === t.id && playSide === sd && !player.paused ? 'play' : i === cur ? 'next' : ''), 'data-name': t.name },
+      el('span', { class: 'sx-grip', 'aria-hidden': 'true' }, '⋮⋮'), el('span', { class: 'sx-trk-n', title: t.name }, t.name), el('span', { class: 'sx-trk-d' }, fmtDur(t.dur)),
+      el('button', { type: 'button', class: 'sx-trk-x', 'aria-label': 'Take ' + t.name + ' off this side', title: 'Take it off this side (it stays in your music)', onclick: () => musicRemove(sd, t.id) }, '×')); dragRow(li, sd, i); return li; }));
+    const box = el('section', { class: 'sx-ms' + (sideNow() === sd ? ' now' : '') },
+      el('h4', {}, el('b', {}, sd === 'A' ? 'Side A' : 'Side B'), el('span', {}, (sd === 'A' ? 'plays while you focus' : 'plays on breaks') + (total ? ' · ' + fmtDur(total) : ''))),
+      el('div', { class: 'sx-radio', role: 'radiogroup', 'aria-label': 'Radio on ' + SIDE_NAME[sd] }, el('span', {}, 'Radio'), ...[[null, 'Off'], ...Object.entries(STATIONS).map(([k, n]) => [k, n.split(' ')[0]])].map(([k, n]) =>
+        el('button', { type: 'button', class: 'sx-rb' + (M.radio[sd] === k ? ' on' : ''), role: 'radio', 'aria-checked': String(M.radio[sd] === k), title: k ? STATIONS[k] + ': plays instead of the tracks on this side' : 'Play the tracks', onclick: () => { M.radio[sd] = k; save(); musicSync(); musicDraw(); } }, n))),
+      M[sd].length ? list : el('p', { class: 'sl-muted sx-empty' }, 'Drag tracks here from your music, or drop audio files.'));
+    dropZone(box, M[sd].length ? list : null, sd); return box;
   };
-  tapesMusic.replaceChildren(el('div', { class: 'sx-mus-top' }, onB, el('label', { class: 'sx-mus-vol' }, 'Volume ', vol)), side('A'), side('B'),
-    el('p', { class: 'sl-muted sx-mus-note' }, 'Music plays only while the timer runs. Files stay in this browser.'));
+  // your music: everything you've added, to drag onto the sides
+  const file = el('input', { type: 'file', accept: 'audio/*', multiple: true, hidden: true });
+  file.addEventListener('change', () => { libAdd(file.files).then(ids => { deskToast(ids.length ? 'Added ' + ids.length + ' to your music' : 'Could not keep those files'); musicDraw(); }); file.value = ''; });
+  const used = id => (mx.A.includes(id) ? 'A' : '') + (mx.B.includes(id) ? 'B' : '');
+  const lib = el('ul', { class: 'sx-lib' }, ...M.lib.map((t, i) => { const u = used(t.id), li = el('li', { 'data-name': t.name },
+    el('span', { class: 'sx-grip', 'aria-hidden': 'true' }, '⋮⋮'),
+    el('span', { class: 'sx-trk-n', title: 'Double-click to rename' }, t.name), el('span', { class: 'sx-trk-d' }, fmtDur(t.dur)),
+    u ? el('span', { class: 'sx-on-tag', title: 'On this mixtape' }, u) : null,
+    el('button', { type: 'button', class: 'sx-add-b', title: 'Add to Side A', onclick: () => { mx.A.push(t.id); deskSfx('pin'); mixApply(); } }, '+A'),
+    el('button', { type: 'button', class: 'sx-add-b sx-add-bb', title: 'Add to Side B', onclick: () => { mx.B.push(t.id); deskSfx('pin'); mixApply(); } }, '+B'),
+    armBtn('🗑', 'Delete?', () => libDelete(t.id), 'sx-trk-del')); dragRow(li, 'L', i);
+    li.querySelector('.sx-trk-n').addEventListener('dblclick', () => { const n = (prompt('Rename this track:', t.name) || '').trim().slice(0, 80); if (n) { t.name = n; mixApply(); } });
+    return li; }));
+  const libBox = el('section', { class: 'sx-ms sx-libbox' },
+    el('h4', {}, el('b', {}, 'Your music'), el('span', { class: 'sx-store' }, M.lib.length + (M.lib.length === 1 ? ' track' : ' tracks') + ', kept in this browser')),
+    M.lib.length ? lib : null,
+    el('div', { class: 'sx-mz', tabindex: '0', role: 'button', 'aria-label': 'Add music files', onclick: e => { if (e.target !== file) file.click(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } } }, 'Drop audio files here, or ', el('u', {}, 'choose some'), file));
+  dropZone(libBox, null, 'L');
+  if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(est => { const st = libBox.querySelector('.sx-store'); if (st && est.usage) st.textContent += ' (' + Math.round(est.usage / 1048576) + ' MB used)'; }).catch(() => {});
+  tapesMusic.replaceChildren(el('div', { class: 'sx-mus-top' }, onB, el('label', { class: 'sx-mus-vol' }, 'Volume ', vol)), mixRow, side('A'), side('B'), libBox,
+    el('p', { class: 'sl-muted sx-mus-note' }, 'Music plays only while the timer runs. Drag tracks to put them in order, from side to side, or off a side.'));
+  libLengths();
 }
