@@ -1,5 +1,5 @@
 /* Cassette Timer: notes worth reading. A note on the desk is a small document: titles and headings, bold, italic, underline,
-   strikethrough, a highlighter, inline code, bullet, numbered and check lists, quotes; eight paper colours, a text
+   strikethrough, a highlighter, inline code, bullet, numbered and check lists, quotes; eight paper colours, six kinds of paper (lined, grid...), folding, a text
    size, and a corner to drag it bigger. Select a note and its toolbar sits above it. Typing shortcuts work too:
    "# " a title, "## " a heading, "- " a list, "1. " a numbered list, "[] " a checklist, "> " a quote.
    Notes are saved as a small, cleaned subset of HTML (it.html); it.text keeps the plain words for tooltips. */
@@ -181,3 +181,60 @@ function noteBarTo(id) { // the toolbar follows the selected note
   const c = id && layer.querySelector('.sx-bnote[data-id="' + id + '"]');
   if (c) { if (noteBar.parentNode !== c) c.append(noteBar); noteBarState(); } else noteBar.remove();
 }
+
+/* ---------- paper: plain, lined, grid, dotted, an index card, a page torn from a notebook; and folding a note over ----------
+   The paper's lines follow the text size, so words sit on them. A folded note shows only its first line, with the rest
+   tucked behind a crease: write a question on top and the answer below, fold it, and unfold it when you want to check */
+const PAPERS = [['plain', 'Plain'], ['lined', 'Lined'], ['grid', 'Grid'], ['dots', 'Dots'], ['index', 'Card'], ['torn', 'Torn']];
+function paperSet(c, it) { if (it.paper && it.paper !== 'plain') c.dataset.paper = it.paper; else delete c.dataset.paper; }
+function paperSound(open) {
+  if (S.opts.deskSfx === false || !feelSoundOn()) return; const c = feelCtx(); if (!c) return; const t = c.currentTime;
+  feelBurst(c, t, { cat: 'desk', dur: .16, type: 'bandpass', f0: open ? 1400 : 2600, f1: open ? 2600 : 1200, q: .8, vol: .05, grain: .5 }); // the paper sliding over itself
+  feelBurst(c, t + .15, { cat: 'desk', dur: .03, type: 'lowpass', f0: 700, vol: .05 }); // and the crease pressed flat
+}
+function foldH(c) { // down to the end of the first line (or heading), and the crease under it
+  const t = c.querySelector('.sx-note-t'), lh = parseFloat(getComputedStyle(t).lineHeight) || 22; let f = t && t.firstChild;
+  if (f && /^(UL|OL)$/.test(f.tagName) && f.firstElementChild) f = f.firstElementChild; // (a list: just its first line)
+  const end = f && f.nodeType === 1 && f.tagName !== 'BR' ? f.offsetTop + f.offsetHeight : t.offsetTop + lh; // (offsets are on the paper itself, so the tilt doesn't count)
+  return Math.round(end + 4 + 16);
+}
+function noteFold(c, it, on, quiet) {
+  if (!quiet) { if (!!it.fold === on) return; deskMark(); }
+  if (on) it.fold = true; else delete it.fold; if (!quiet) save();
+  const to = foldH(c);
+  if (quiet || stillUI()) { c.classList.toggle('folded', on); c.style.maxHeight = on ? to + 'px' : ''; strUpdate(); return; }
+  const from = c.offsetHeight; c.style.maxHeight = from + 'px'; c.classList.toggle('folded', on); void c.offsetWidth;
+  c.classList.add('folding'); c.style.maxHeight = (on ? to : (c.classList.contains('sized') && it.h ? it.h : c.scrollHeight)) + 'px'; paperSound(!on);
+  let ended = false;
+  const done = () => { if (ended) return; ended = true; c.classList.remove('folding'); if (!on) c.style.maxHeight = ''; strUpdate(); if (typeof selBoxUpdate === 'function') selBoxUpdate(); };
+  c.addEventListener('transitionend', function te(e) { if (e.target !== c) return; c.removeEventListener('transitionend', te); done(); });
+  setTimeout(done, 600);
+  const tick = () => { if (!ended) { strUpdate(); requestAnimationFrame(tick); } }; requestAnimationFrame(tick); // the strings follow the paper
+}
+const noteSetupPaper = noteSetup;
+noteSetup = function (it, txt, c) {
+  noteSetupPaper(it, txt, c); paperSet(c, it);
+  const flap = el('button', { type: 'button', class: 'sx-flap', title: 'Unfold', 'aria-label': 'Unfold the note' }, el('span', {}, 'unfold'));
+  flap.addEventListener('click', e => { e.stopPropagation(); noteFold(c, it, false); noteBarState(); });
+  c.append(flap);
+  if (it.fold) { c.classList.add('folded'); Promise.resolve().then(() => { if (c.isConnected) noteFold(c, it, true, true); }); } // (once it's on the desk and can be measured)
+};
+// the toolbar's third row: the paper, and Fold
+noteBar.append(el('div', { class: 'sx-fmt-row' }, ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n)),
+  el('i', { class: 'sx-fsep' }), fbtn('fold', 'Fold', 'Fold the note over: only the first line shows (Ctrl+Shift+F)')));
+noteBar.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; const n = selNote(); if (!n) return;
+  if (b.dataset.p) { e.stopImmediatePropagation(); deskMark(); n.it.paper = b.dataset.p; if (b.dataset.p === 'plain') delete n.it.paper; paperSet(n.c, n.it); deskSfx('pick'); save(); if (n.it.fold) n.c.style.maxHeight = foldH(n.c) + 'px'; noteBarState(); }
+  else if (b.dataset.k === 'fold') { e.stopImmediatePropagation(); noteFold(n.c, n.it, !n.it.fold); noteBarState(); }
+}, true);
+const noteBarStatePaper = noteBarState;
+noteBarState = function () {
+  noteBarStatePaper(); const n = selNote(); if (!n) return;
+  noteBar.querySelectorAll('button[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === (n.it.paper || 'plain')));
+  const f = noteBar.querySelector('[data-k="fold"]'); if (f) { f.classList.toggle('on', !!n.it.fold); f.textContent = n.it.fold ? 'Unfold' : 'Fold'; }
+};
+// Ctrl+Shift+F folds or unfolds the picked note (writing in it or not)
+addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.altKey || ((e.key || '').toLowerCase() !== 'f' && e.code !== 'KeyF')) return;
+  const n = selNote(); if (!n) return; e.preventDefault(); e.stopPropagation(); noteFold(n.c, n.it, !n.it.fold); noteBarState();
+}, true);

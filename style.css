@@ -982,3 +982,57 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-tape.holding .sx-tk::after { animation: none; height: 100%; opacity: .5; }
 .sx-tape.holding .sx-tk { transform: translateY(3px); box-shadow: none; }
 .sx-version { margin: 22px 0 6px; font: 600 12px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: #6d8a8d; text-align: center; }
+
+/* kinds of paper (js/notes.js): the lines follow the text size (--lh, one line of text), starting under the top margin */
+.sx-world .sx-bnote { --lh: calc(var(--fs, 15px) * 1.5); --rule: color-mix(in srgb, var(--ink, #34111f) 17%, transparent); --margin: rgba(255, 97, 87, .5); }
+.sx-world .sx-bcard.sx-bnote[data-paper] { background: linear-gradient(var(--lang, 0deg), color-mix(in srgb, var(--lcol) calc(var(--lit, 0) * 70%), transparent), transparent 65%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--pat), var(--note, #ffd832); }
+.sx-bnote[data-paper="lined"] { --pat: linear-gradient(var(--margin), var(--margin)) 10px 0 / 1.5px 100% no-repeat, linear-gradient(transparent calc(100% - 1px), var(--rule) calc(100% - 1px)) 0 20px / 100% var(--lh); }
+.sx-bnote[data-paper="grid"] { --pat: linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 20px / var(--lh) var(--lh), linear-gradient(transparent calc(100% - 1px), var(--rule) calc(100% - 1px)) 0 20px / var(--lh) var(--lh); }
+.sx-bnote[data-paper="dots"] { --pat: radial-gradient(circle, color-mix(in srgb, var(--ink, #34111f) 30%, transparent) 1.1px, transparent 1.6px) 0 20px / var(--lh) var(--lh); }
+.sx-bnote[data-paper="index"] { --pat: linear-gradient(var(--margin), var(--margin)) 0 calc(20px + var(--lh) - 1px) / 100% 2px no-repeat, linear-gradient(var(--note, #ffd832), var(--note, #ffd832)) 0 0 / 100% calc(20px + var(--lh)) no-repeat, linear-gradient(transparent calc(100% - 1px), rgba(74, 127, 208, .38) calc(100% - 1px)) 0 20px / 100% var(--lh); }
+.sx-world .sx-bnote[data-paper="torn"] { padding-left: 30px; }
+.sx-bnote[data-paper="torn"] { --pat: radial-gradient(circle at 10px 50%, #030710 3.6px, rgba(3, 7, 16, .35) 4.2px, transparent 4.8px) 0 6px / 20px 30px repeat-y, linear-gradient(var(--margin), var(--margin)) 22px 0 / 1.5px 100% no-repeat, linear-gradient(transparent calc(100% - 1px), var(--rule) calc(100% - 1px)) 0 20px / 100% var(--lh); }
+/* a notebook page: the top edge ripped out along the perforation */
+.sx-world .sx-bnote[data-paper="torn"]::before { content: ''; position: absolute; left: 0; right: 0; top: -6px; height: 7px; pointer-events: none; background: var(--note, #ffd832);
+  -webkit-mask: conic-gradient(from 135deg at 50% 0, #000 90deg, transparent 0) 0 0 / 9px 7px repeat-x; mask: conic-gradient(from 135deg at 50% 0, #000 90deg, transparent 0) 0 0 / 9px 7px repeat-x; }
+/* the toolbar's paper buttons, each with a tiny picture of its paper */
+.sx-fb.sx-pp { display: inline-flex; align-items: center; gap: 5px; padding: 0 7px; }
+.sx-ppi { display: inline-block; width: 12px; height: 14px; --r: rgba(52, 17, 31, .45); background: #ffffe4; }
+.sx-ppi[data-pi="lined"] { background: linear-gradient(transparent 3px, var(--r) 3px 4px, transparent 4px 7px, var(--r) 7px 8px, transparent 8px 11px, var(--r) 11px 12px, transparent 12px), #ffffe4; }
+.sx-ppi[data-pi="grid"] { background: linear-gradient(90deg, var(--r) 1px, transparent 1px) 0 0 / 4px 4px, linear-gradient(var(--r) 1px, transparent 1px) 0 0 / 4px 4px, #ffffe4; }
+.sx-ppi[data-pi="dots"] { background: radial-gradient(circle, var(--r) 1px, transparent 1.2px) 0 0 / 4px 4px, #ffffe4; }
+.sx-ppi[data-pi="index"] { background: linear-gradient(transparent 3px, #ff6157 3px 4px, transparent 4px 7px, rgba(74, 127, 208, .6) 7px 8px, transparent 8px 11px, rgba(74, 127, 208, .6) 11px 12px, transparent 12px), #ffffe4; }
+.sx-ppi[data-pi="torn"] { background: linear-gradient(transparent 5px, var(--r) 5px 6px, transparent 6px 9px, var(--r) 9px 10px, transparent 10px), #ffffe4; clip-path: polygon(0 2px, 2px 0, 4px 2px, 6px 0, 8px 2px, 10px 0, 12px 2px, 12px 100%, 0 100%); }
+/* folded over: only the first line shows; the rest is tucked behind a crease, with the paper's back as a flap */
+.sx-world .sx-bnote.folded, .sx-world .sx-bnote.folding { overflow: hidden; min-height: 0; }
+.sx-world .sx-bnote.folding { transition: max-height .38s cubic-bezier(.5, 0, .2, 1); }
+.sx-world .sx-bnote.folded.sized .sx-note-t { overflow-y: hidden; }
+.sx-world .sx-bnote.folded .sx-resize { display: none; }
+.sx-flap { display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 16px; padding: 0; border: 0; cursor: pointer; z-index: 2;
+  background: linear-gradient(rgba(3, 7, 16, .28), rgba(3, 7, 16, 0) 5px), linear-gradient(color-mix(in srgb, var(--note, #ffd832) 80%, #030710), color-mix(in srgb, var(--note, #ffd832) 90%, #030710));
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--ink, #34111f) 22%, transparent); }
+.sx-flap span { font: 600 10px/16px var(--ui); letter-spacing: .16em; text-transform: uppercase; color: color-mix(in srgb, var(--ink, #34111f) 60%, transparent); opacity: 0; transition: opacity .15s; }
+.sx-bnote.folded > .sx-flap { display: block; }
+.sx-bnote.folded:hover .sx-flap span, .sx-bnote.folded.sel .sx-flap span { opacity: 1; }
+.sx-bnote.folded > .sx-flap::before { content: ''; position: absolute; right: 0; top: 0; border-style: solid; border-width: 0 0 16px 16px; border-color: transparent transparent #030710 transparent; opacity: .35; } /* (the folded corner) */
+.sx-world .sx-bnote.folded::after { display: none; }
+.sx-exporting .sx-flap span { display: none; }
+@media (prefers-reduced-motion: reduce) { .sx-world .sx-bnote.folding { transition: none; } }
+/* on paper with lines, headings, lists and quotes keep to the lines, so the words below still sit on them */
+.sx-world .sx-bnote[data-paper] .sx-note-t h2 { margin: 0; line-height: calc(var(--lh) * 2); }
+.sx-world .sx-bnote[data-paper="index"] .sx-note-t h2 { line-height: var(--lh); }
+.sx-world .sx-bnote[data-paper] .sx-note-t h3 { margin: 0; padding: 0; border-bottom: 0; line-height: var(--lh); }
+.sx-world .sx-bnote[data-paper] .sx-note-t ul, .sx-world .sx-bnote[data-paper] .sx-note-t ol, .sx-world .sx-bnote[data-paper] .sx-note-t li { margin: 0; }
+.sx-world .sx-bnote[data-paper] .sx-note-t blockquote { margin: 0; padding-top: 0; padding-bottom: 0; }
+/* picked: a white outline that springs out and settles snug around the paper */
+.sx-world .sx-bcard.sel { outline-color: #ffffe4; animation: sx-selpop .42s cubic-bezier(.3, .7, .4, 1); }
+.sx-world .sx-bcard.sx-bframe.sel { animation: none; }
+@keyframes sx-selpop {
+  0% { outline-offset: 0; outline-color: rgba(255, 255, 228, 0); }
+  40% { outline-offset: 12px; outline-color: #ffffe4; }
+  70% { outline-offset: 2px; }
+  100% { outline-offset: 4px; }
+}
+.sx-world .sx-bcard.sx-bsticker.sel { animation-name: sx-selpop-s; }
+@keyframes sx-selpop-s { 0% { outline-offset: -2px; outline-color: rgba(255, 255, 228, 0); } 40% { outline-offset: 9px; outline-color: #ffffe4; } 70% { outline-offset: 0; } 100% { outline-offset: 2px; } }
+@media (prefers-reduced-motion: reduce) { .sx-world .sx-bcard.sel { animation: none; } }

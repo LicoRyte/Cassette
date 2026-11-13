@@ -93,6 +93,11 @@ async function deskExportImage() {
       ctx.save(); ctx.translate(px, py); ctx.rotate(tilt(it.id) * Math.PI / 180); ctx.translate(-px, -py); // hung a little crooked, like on the desk
       ctx.fillStyle = 'rgba(3, 7, 16, .55)'; ctx.fillRect(x + 3, y + 4, r.width, r.height);
       ctx.fillStyle = getComputedStyle(c).backgroundColor; ctx.fillRect(x, y, r.width, r.height);
+      if (it.type === 'note' && it.paper && it.paper !== 'plain') { // the paper's lines
+        const lh = (it.fs || 15) * 1.5, ink = getComputedStyle(c).color; ctx.save(); ctx.beginPath(); ctx.rect(x, y, r.width, r.height); ctx.clip(); ctx.globalAlpha = .18; ctx.fillStyle = ink;
+        if (it.paper === 'dots') { for (let gy = y + 20 + lh / 2; gy < y + r.height; gy += lh) for (let gx = x + lh / 2; gx < x + r.width; gx += lh) ctx.fillRect(gx - 1, gy - 1, 2, 2); }
+        else { for (let gy = y + 20 + lh - 1; gy < y + r.height; gy += lh) ctx.fillRect(x, gy, r.width, 1); if (it.paper === 'grid') for (let gx = x; gx < x + r.width; gx += lh) ctx.fillRect(gx, y, 1, r.height); }
+        ctx.globalAlpha = .5; ctx.fillStyle = '#ff6157'; if (it.paper === 'lined' || it.paper === 'torn') ctx.fillRect(x + (it.paper === 'torn' ? 22 : 10), y, 1.5, r.height); if (it.paper === 'index') ctx.fillRect(x, y + 20 + lh - 1, r.width, 2); ctx.restore(); }
       const img = c.querySelector('.sx-pol-img img');
       if (img && img.complete && img.naturalWidth) { // cropped to its window like on the desk, never stretched
         const ir = img.getBoundingClientRect(), iw = img.naturalWidth, ih = img.naturalHeight, k = Math.max(ir.width / iw, ir.height / ih), sw = ir.width / k, sh = ir.height / k;
@@ -131,7 +136,7 @@ function deskImportBackup() {
       const o = { id, type: it.type, board: bmap.get(it.board), x: num(it.x), y: num(it.y) };
       if (it.key >= 1 && it.key <= 9) o.key = num(it.key); if (it.group) o.group = str(it.group, 40) + tag;
       if (it.text) o.text = str(it.text, 2000);
-      if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); }
+      if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; if (it.fold) o.fold = true; }
       if (it.type === 'frame') Object.assign(o, { w: Math.max(200, num(it.w)), h: Math.max(140, num(it.h)), color: str(it.color, 12) || 'amber' });
       if (it.type === 'draw') Object.assign(o, { w: num(it.w), h: num(it.h), strokes: (Array.isArray(it.strokes) ? it.strokes : []).filter(s => s && TOOLS.includes(s.t) && Array.isArray(s.p)).map(s => ({ t: s.t, c: str(s.c, 12), s: Math.max(1, Math.min(12, num(s.s))), seed: num(s.seed), p: s.p.filter(q => Array.isArray(q)).slice(0, 4000).map(q => [+q[0] || 0, +q[1] || 0]) })) });
       return o;
