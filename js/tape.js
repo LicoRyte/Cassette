@@ -122,3 +122,34 @@ function sideDraw() {
 }
 new MutationObserver(sideDraw).observe(root, { attributes: true, attributeFilter: ['data-mode'] });
 sideDraw();
+
+/* ---------- the full rewind: hold Rewind (or Shift+R) to go back to the start of the tape: session 1, an empty strip ---------- */
+// (today's count and the tapes on your shelf stay; a tape that had tracks on it goes on the shelf, and a fresh one goes in)
+function fullRewind() {
+  clearInterval(tickT); running = false; mode = 'focus'; left = length('focus'); S.cycle = 0; S.fc = { n: 0, broken: false };
+  const t = S.tapes && S.tapes[S.tapes.length - 1]; if (t && !t.done && t.sessions.length) t.done = true;
+  persistRun(); draw(); if (typeof drawShelf === 'function' && !tapesDrawer.hidden) drawShelf();
+  if (!stillUI()) { reelV = -32; reelGo(); }
+  if (feelSoundOn()) { const c = feelCtx(); if (c) { // the motor whirring back, then the clunk at the end of the tape
+    const t0 = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(140, t0); o.frequency.exponentialRampToValueAtTime(520, t0 + .55);
+    f.type = 'lowpass'; f.frequency.value = 900; g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.03, t0 + .08); g.gain.exponentialRampToValueAtTime(.0001, t0 + .6);
+    o.connect(f).connect(g).connect(c.destination); o.start(t0); o.stop(t0 + .62);
+    if (tapeBuf) { const s = c.createBufferSource(), sg = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = .8; sg.gain.value = .6; s.connect(sg).connect(c.destination); s.start(t0 + .6); } } }
+  if (typeof deskToast === 'function') deskToast('Rewound to the start: session 1 of ' + S.set.every);
+}
+// holding the key: it fills up, and at the top the whole tape rewinds (a short press is the usual Rewind)
+let rewHold = 0, rewDone = false;
+resetB.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || resetB.disabled) return; rewDone = false; resetB.classList.add('holding');
+  clearTimeout(rewHold); rewHold = setTimeout(() => { rewDone = true; resetB.classList.remove('holding'); fullRewind(); }, 900);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach(k => resetB.addEventListener(k, () => { clearTimeout(rewHold); resetB.classList.remove('holding'); }));
+resetB.addEventListener('click', e => { if (rewDone) { e.stopImmediatePropagation(); e.preventDefault(); rewDone = false; } }, true); // (the press that rewound everything isn't also a short Rewind)
+resetB.title = 'Rewind this part (R). Hold to rewind the whole tape (Shift+R)';
+const rewHint = resetB.querySelector('.sx-th'); if (rewHint) rewHint.textContent = 'R · hold';
+addEventListener('keydown', e => {
+  const t = e.target; if (e.code !== 'KeyR' || !e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')))) return;
+  e.preventDefault(); e.stopPropagation(); fullRewind();
+}, true);
+// and in Settings, under Switch by hand
+{ const row = settingsPane.querySelector('.sl-modes'); if (row) row.after(el('div', { class: 'sx-row', style: 'margin-top:10px' }, armBtn('Rewind the whole tape', 'Back to session 1? Click again', () => { fullRewind(); tab('timer'); }), el('small', { class: 'sl-muted' }, 'Back to session 1 of the cycle, an empty strip. Today\'s count and your shelf stay.'))); }

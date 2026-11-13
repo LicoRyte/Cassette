@@ -3,7 +3,7 @@
 'use strict';
 
 const HELP = [
-  ['The clock', [['Label', 'Above the digits: write what the session is for'], ['Space', 'Start or pause'], ['R', 'Rewind: start this part over (while stopped)'], ['S', 'Skip to the next part (while stopped)']]],
+  ['The clock', [['Label', 'Above the digits: write what the session is for'], ['Space', 'Start or pause'], ['R', 'Rewind: start this part over (while stopped)'], ['Hold R key / Shift + R', 'Rewind the whole tape: back to session 1'], ['S', 'Skip to the next part (while stopped)']]],
   ['Moving around', [['Drag', 'Move the desk (anywhere empty, or with the right button)'], ['Wheel', 'Zoom in and out'], ['0', 'Back to the clock'], ['1 – 9', 'Glide to a bookmark'], ['Shift + 1 – 9', 'Bookmark what you picked']]],
   ['On the desk', [['Double-click', 'Pin a note there'], ['Drop a photo', 'It hangs as a Polaroid'], ['Red pin', 'Drag to something else to tie a string; click a string to cut it'], ['Frame', 'Drag it by its name or an edge: what is inside comes along']]],
   ['Picking', [['Shift + drag', 'Pick everything in the box'], ['Shift + click', 'Pick one more, or let it go'], ['Ctrl + G', 'Group (Ctrl + Shift + G to ungroup)'], ['Delete', 'Remove what is picked'], ['Ctrl + A', 'Pick everything on this board']]],

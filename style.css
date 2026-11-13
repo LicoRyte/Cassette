@@ -811,3 +811,10 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-world .sx-polaroid.sx-pol-wide { width: 330px; padding: 11px 11px 8px; }
 .sx-world .sx-polaroid.sx-pol-mini { width: 186px; padding: 10px 10px 8px; }
 .sx-polaroid.sx-pol-mini .sx-cap-t { font-size: 15px; }
+
+/* holding Rewind: the key fills from the bottom; at the top, the whole tape rewinds */
+.sx-tape .sx-tk { position: relative; overflow: hidden; }
+.sx-tape .sx-tk::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: color-mix(in srgb, currentColor 30%, transparent); pointer-events: none; }
+.sx-tape.holding .sx-tk::after { animation: sx-hold .9s linear forwards; }
+@keyframes sx-hold { to { height: 100%; } }
+@media (prefers-reduced-motion: reduce) { .sx-tape.holding .sx-tk::after { animation: none; height: 50%; } }

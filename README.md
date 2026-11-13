@@ -11,7 +11,7 @@ Everything is saved in this browser.
 ## Controls
 
 Press **?** (or the ? key at the top left) for every key and gesture. The main ones: `Space` starts or pauses, `R`
-rewinds and `S` skips (while stopped), `D` draws, `T` opens Tapes, `0` goes back to the clock, `1`-`9` glide to a bookmark,
+rewinds and `S` skips (while stopped), holding the Rewind key or `Shift+R` rewinds the whole tape (back to session 1), `D` draws, `T` opens Tapes, `0` goes back to the clock, `1`-`9` glide to a bookmark,
 `Shift`+`1`-`9` bookmarks what you picked, `Ctrl+Z` / `Ctrl+Shift+Z` undo and redo, `Ctrl+G` groups, `Delete` removes
 what's picked, `Esc` puts down the note you're writing or closes Settings.
 
