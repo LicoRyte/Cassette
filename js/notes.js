@@ -117,11 +117,24 @@ function noteMarkdown(t) {
 }
 const NOTE_MD = { '#': 'title', '##': 'head', '-': 'bullet', '*': 'bullet', '1.': 'num', '[]': 'check', '[ ]': 'check', '>': 'quote' };
 // keys while writing (called from the desk's key handler in js/ui/board.js)
+// which formatting a key press asks for (by the key's place, or by its letter when the browser doesn't say where it is)
+function noteShortcut(e) {
+  if (!(e.ctrlKey || e.metaKey)) return null;
+  const key = (e.key || '').toLowerCase(), c = e.code || ({ x: 'KeyX', h: 'KeyH', b: 'KeyB', i: 'KeyI', u: 'KeyU', '`': 'Backquote', '.': 'Period', '>': 'Period' }[key]) || (/^[0-9]$/.test(key) ? 'Digit' + key : '');
+  if (e.shiftKey && !e.altKey) return { KeyX: 'strike', KeyH: 'mark', Digit7: 'num', Digit8: 'bullet', Digit9: 'check', Period: 'quote' }[c] || null;
+  if (e.altKey && !e.shiftKey) return { Digit1: 'title', Digit2: 'head', Digit0: 'clear' }[c] || null;
+  if (!e.altKey) return { KeyB: 'bold', KeyI: 'italic', KeyU: 'under', Backquote: 'code' }[c] || null;
+  return null;
+}
+// a shortcut with the note picked but the pen not in it: it formats the whole note
+function noteRunAll(k) {
+  const n = selNote(); if (!n) return false;
+  n.t.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(n.t); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  noteRun(k); return true;
+}
 function noteKeys(e, t) {
   if (!t.classList.contains('sx-note-t')) return;
-  const mod = e.ctrlKey || e.metaKey;
-  const k = mod && e.shiftKey ? { KeyX: 'strike', KeyH: 'mark', Digit7: 'num', Digit8: 'bullet', Digit9: 'check', Period: 'quote' }[e.code]
-    : mod && e.altKey ? { Digit1: 'title', Digit2: 'head', Digit0: 'clear' }[e.code] : mod && e.code === 'Backquote' ? 'code' : null;
+  const k = noteShortcut(e);
   if (k) { e.preventDefault(); noteRun(k); return; }
   if (e.key === 'Tab' && noteClosest(t, 'li')) { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); t.dispatchEvent(new Event('input')); }
 }

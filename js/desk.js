@@ -546,6 +546,7 @@ addEventListener('keydown', e => {
   }
   if ((t && t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return;
   const stop = () => { e.preventDefault(); e.stopPropagation(); };
+  { const k = noteShortcut(e); if (k && selNote()) { stop(); noteRunAll(k); return; } } // a note picked: its formatting keys work without clicking into it
   if ((e.ctrlKey || e.metaKey) && !e.altKey) {
     if (e.code === 'KeyZ') { stop(); if (e.shiftKey) deskRedo(); else deskUndo(); }
     else if (e.code === 'KeyY') { stop(); deskRedo(); }
