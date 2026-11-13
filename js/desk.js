@@ -308,7 +308,9 @@ function drawStrings(temp) {
   strUpdate();
 }
 function strUpdate() {
-  strNodes.forEach(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); if (!a || !b) return; const d = pathD(a, b, wob.get(lk(n.l))); n.p.setAttribute('d', d); n.hit.setAttribute('d', d); });
+  // measure every end first, then redraw: measuring after each redraw would make the browser lay the page out again every time
+  const ds = strNodes.map(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); return a && b ? pathD(a, b, wob.get(lk(n.l))) : null; });
+  strNodes.forEach((n, i) => { const d = ds[i]; if (d && d !== n.d) { n.d = d; n.p.setAttribute('d', d); n.hit.setAttribute('d', d); } }); // (only the strings that moved)
   if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
   else if (strTempP) { strTempP.remove(); strTempP = null; }
   if (picked.size > 1) selBoxUpdate();
@@ -454,10 +456,13 @@ ws.addEventListener('pointerdown', e => {
     e.preventDefault(); c.setPointerCapture(e.pointerId);
     const start = { x: e.clientX, y: e.clientY, l: it.x, t: it.y };
     // one gesture, and it always ends: on release, on cancel, or if the browser takes the pointer away
+    // (the mouse can report hundreds of moves a second: only the latest one is acted on, once a frame)
     const track = (move, end) => {
-      let over = false;
-      const fin = ev => { if (over) return; over = true; c.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.removeEventListener(k, fin)); end(ev); };
-      c.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.addEventListener(k, fin));
+      let over = false, last = null, raf = 0;
+      const step = () => { raf = 0; if (last) { const ev = last; last = null; move(ev); } };
+      const queue = ev => { last = ev; if (!raf) raf = requestAnimationFrame(step); };
+      const fin = ev => { if (over) return; over = true; cancelAnimationFrame(raf); step(); c.removeEventListener('pointermove', queue); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.removeEventListener(k, fin)); end(ev); };
+      c.addEventListener('pointermove', queue); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.addEventListener(k, fin));
     };
     if (e.target.classList.contains('sx-resize')) { // the corner: make it bigger or smaller
       const w0 = c.offsetWidth, h0 = c.offsetHeight, snap = deskSnap(), fr = it.type === 'frame', lim = fr ? [200, 6000, 140, 4000] : [160, 760, 90, 960];
@@ -501,7 +506,7 @@ ws.addEventListener('pointerdown', e => {
       movers.forEach(m => wobKick(m.it.id, ddx / cam.z, ddy / cam.z)); strUpdate();
     }, ev => {
       if (dragging) {
-        c.classList.remove('lift'); if (swings) swingTo(c, 0); deskSfx('drop');
+        c.classList.remove('lift'); if (swings) swingTo(c, 0); deskSfx('drop'); strUpdate();
         if (it.type === 'sticker') { // dropped on a note or photo: it sticks there (and comes off when you pull it away)
           const r = c.getBoundingClientRect(), under = document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2).map(n => n.closest && n.closest('.sx-bnote, .sx-polaroid')).find(n => n && n !== c);
           if (under) { it.on = under.dataset.id; deskSfx('pin'); } else delete it.on; }

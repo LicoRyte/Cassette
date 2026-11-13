@@ -15,12 +15,14 @@ skinSet(S.opts.skin || 'amber');
 
 /* ---------- the clock's light: every note and photo is lit on the side facing the clock, more the closer it is ---------- */
 function lightCards() {
-  els.forEach((c, id) => {
-    if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid')) return;
-    const x = c.offsetLeft + c.offsetWidth / 2, y = c.offsetTop + c.offsetHeight / 2, d = Math.hypot(x, y);
-    const lit = Math.pow(Math.max(0, 1 - d / 950), 1.4);
-    c.style.setProperty('--lit', lit.toFixed(3)); c.style.setProperty('--lang', (Math.atan2(x, -y) * 180 / Math.PI).toFixed(0) + 'deg'); // (the gradient runs away from the clock)
+  const todo = [];
+  els.forEach(c => { // measure them all first, then restyle only the ones that moved
+    if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid') || c.classList.contains('lift')) return; // (the one you're carrying is lit when you put it down)
+    const x = c.offsetLeft + c.offsetWidth / 2, y = c.offsetTop + c.offsetHeight / 2;
+    if (c._lx === x && c._ly === y) return; c._lx = x; c._ly = y; todo.push([c, x, y]);
   });
+  todo.forEach(([c, x, y]) => { const lit = Math.pow(Math.max(0, 1 - Math.hypot(x, y) / 950), 1.4);
+    c.style.setProperty('--lit', lit.toFixed(3)); c.style.setProperty('--lang', (Math.atan2(x, -y) * 180 / Math.PI).toFixed(0) + 'deg'); }); // (the gradient runs away from the clock)
 }
 const strUpdateLight = strUpdate;
 strUpdate = function () { strUpdateLight.apply(this, arguments); lightCards(); };

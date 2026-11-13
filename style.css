@@ -1021,3 +1021,17 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-world .sx-bcard.sx-bsticker.sel { animation-name: sx-selpop-s; }
 @keyframes sx-selpop-s { 0% { outline-offset: -2px; outline-color: rgba(255, 255, 228, 0); } 40% { outline-offset: 9px; outline-color: #ffffe4; } 70% { outline-offset: 0; } 100% { outline-offset: 2px; } }
 @media (prefers-reduced-motion: reduce) { .sx-world .sx-bcard.sel { animation: none; } }
+
+/* lots of paper on the desk: each card lays itself out on its own, and the one you carry gets its own layer, so moving it
+   doesn't make the browser repaint everything under it */
+.sx-world .sx-bcard { contain: layout style; }
+.sx-world .sx-bcard.lift, .sx-world .sx-bcard.swinging { will-change: transform; }
+.sx-grain, .sx-par { will-change: translate; }
+
+/* long notes: the values that change while a card moves belong to the card alone, so the words inside it aren't restyled
+   with every move; and the ink bleed is drawn without blurring (blurred shadows on thousands of letters are slow to paint) */
+@property --swing { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --lang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --lit { syntax: '<number>'; inherits: false; initial-value: 0; }
+.sx-world .sx-bnote .sx-note-t { text-shadow: .25px .15px 0 color-mix(in srgb, var(--ink, #34111f) 30%, transparent); -webkit-text-stroke: .15px color-mix(in srgb, var(--ink, #34111f) 45%, transparent); }
+.sx-world .sx-bnote .sx-note-t h2, .sx-world .sx-bnote .sx-note-t h3 { -webkit-text-stroke: 0; text-shadow: none; }
