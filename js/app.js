@@ -43,10 +43,10 @@ async function sfxPlay(k) {
 }
 const sfxUnlock = () => { const c = audioCtx(); if (c && c.state === 'suspended') c.resume(); Object.keys(SFX).forEach(k => sfxLoad(k).catch(() => {})); };
 addEventListener('pointerdown', sfxUnlock, { once: true }); addEventListener('keydown', sfxUnlock, { once: true });
-// a click for buttons, a softer tick for tabs and options (the tape keys and the desk have sounds of their own)
+// a click for buttons, a softer tick for tabs, colours and options (the tape keys have a sound of their own)
 document.addEventListener('click', e => {
-  const b = e.target.closest('button, select, summary'); if (!b || b.disabled || b.closest('.sx-ws, .sx-ws-bar, .sx-pen, .sx-fmt') || b.classList.contains('sx-tape')) return;
-  sfxPlay(b.matches('.sx-nav button, .sl-mode, select, summary') ? 'ui' : 'click');
+  const b = e.target.closest('button, select, summary'); if (!b || b.disabled || b.classList.contains('sx-tape')) return;
+  sfxPlay(b.matches('.sx-nav button, .sl-mode, .sx-tt, .sx-sw, .sx-pb, .sx-fb, select, summary') ? 'ui' : 'click');
 }, true);
 
 /* ---------- a notification when a session ends while you're elsewhere ---------- */

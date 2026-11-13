@@ -739,3 +739,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-mus-note { margin: 4px 2px 0; font-size: 12px; }
 #app.paged ~ .sx-tapes, #app.paged ~ .sx-recall { display: none; }
 @media (prefers-reduced-motion: reduce) { .sx-deck.flip, .sx-sidetag.flip { animation: none; } .sx-recall { transition: none; } }
+/* phones: the bar wraps onto two rows (as strong as the rule that keeps it on one row on wider screens), Settings stays top right */
+@media (max-width: 760px) { #app .sx-ws-bar, #app[data-clock] .sx-ws-bar { flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 24px); } }
+#app.sx-clockonly .sx-top { display: flex; justify-content: flex-end; }
+#app.sx-clockonly .sx-nav { width: auto; justify-content: flex-end; } /* (the old phone rule spread several tabs across; there is only Settings now) */

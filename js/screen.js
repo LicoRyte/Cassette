@@ -43,7 +43,7 @@ const settingsPane = el('div', { class: 'sl-pane' },
     el('label', {}, 'Long break every ', minutes('every', [2, 3, 4, 5, 6]), ' sessions'))),
   sec('Switch by hand', el('p', { class: 'sl-muted' }, 'Normally the timer moves between focus and breaks for you.'), el('div', { class: 'sl-modes' }, modeBtns, el('button', { type: 'button', class: 'sl-mode', title: 'Skip to the next part (S)', onclick: () => skip() }, 'Skip'))),
   sec('Sound and app', appBox),
-  sec('Start over', el('p', { class: 'sl-muted' }, 'Erases your settings, counts and every board. Save a backup from Board ▾ first if you might want it back.'), startOver));
+  el('div', { class: 'sx-sec sx-sec-last' }, el('h3', {}, 'Start over'), el('p', { class: 'sl-muted' }, 'Erases your settings, counts and every board. Save a backup from Board ▾ first if you might want it back.'), startOver));
 // (Clock and Feel are added below these by js/digits.js and js/feel.js)
 const pageTitle = el('h2', { class: 'sx-page-t' }, 'Settings');
 const page = el('div', { class: 'sx-page', hidden: true },
