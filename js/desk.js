@@ -273,46 +273,30 @@ const posOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.of
 const wob = new Map(), lk = l => l[0] + '|' + l[1];
 const pathD = (a, b, w) => { const mx = (a.x + b.x) / 2 + (w ? w.x : 0), my = (a.y + b.y) / 2 + 36 + Math.hypot(b.x - a.x, b.y - a.y) * .15 + (w ? w.y : 0); return 'M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y; };
 let strNodes = [], strTemp = null, strTempP = null;
-// over paper a string goes faint, so the words under it stay easy to read; over the desk it stays full red.
-// (a mask: white everywhere, with a dark patch where each card is. Labels are only a light area, so they don't count)
-const strMask = document.createElementNS(SVGNS, 'mask'), strMaskG = document.createElementNS(SVGNS, 'g'), strMaskRects = new Map();
-{ strMask.id = 'sx-paper'; strMask.setAttribute('maskUnits', 'userSpaceOnUse'); Object.entries({ x: -1e6, y: -1e6, width: 2e6, height: 2e6 }).forEach(([k, v]) => strMask.setAttribute(k, v));
-  const all = document.createElementNS(SVGNS, 'rect'); Object.entries({ x: -1e6, y: -1e6, width: 2e6, height: 2e6, fill: '#fff' }).forEach(([k, v]) => all.setAttribute(k, v));
-  strMaskG.setAttribute('fill', '#4a4a4a'); strMask.append(all, strMaskG); }
-function strMaskRead() { const out = []; els.forEach((c, id) => { if (!c.classList.contains('sx-bframe')) out.push([id, c.offsetLeft, c.offsetTop, c.offsetWidth, c.offsetHeight]); }); return out; }
-function strMaskWrite(ms) {
-  const seen = new Set();
-  ms.forEach(([id, x, y, w, h]) => { seen.add(id); let r = strMaskRects.get(id);
-    if (!r) { r = document.createElementNS(SVGNS, 'rect'); r._k = ''; strMaskRects.set(id, r); strMaskG.append(r); }
-    const k = x + ',' + y + ',' + w + ',' + h; if (r._k !== k) { r._k = k; r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h); } });
-  strMaskRects.forEach((r, id) => { if (!seen.has(id)) { r.remove(); strMaskRects.delete(id); } });
-}
-// point at a card (or pick it) and its strings light up full red over everything, so you can follow where they go
+// strings rest faint, so the words under them read; point at a card (or pick it) and its strings light up full red over everything
 let strOver = null;
 function strHot() {
   strNodes.forEach(n => { const on = n.l.some(id => id === strOver || picked.has(id)); if (n.hot === on) return; n.hot = on;
-    n.p.classList.toggle('hot', on); if (on) { n.p.removeAttribute('mask'); strings.append(n.p); } else { n.p.setAttribute('mask', 'url(#sx-paper)'); n.hit.after(n.p); } }); // (a lit string comes to the top of the pile)
+    n.p.classList.toggle('hot', on); if (on) strings.append(n.p); else n.hit.after(n.p); }); // (a lit string comes to the top of the pile)
 }
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); } });
 layer.addEventListener('pointerleave', () => { if (strOver) { strOver = null; strHot(); } });
 { const selectStrBase = select; select = function () { const r = selectStrBase.apply(this, arguments); strHot(); return r; }; } // (picking a card lights its strings too)
 function drawStrings(temp) {
-  const B = B_(); strings.replaceChildren(); strNodes = []; strMaskRects.clear(); strMaskG.replaceChildren(); strTempP = null; strTemp = temp || null;
+  const B = B_(); strings.replaceChildren(); strNodes = []; strTempP = null; strTemp = temp || null;
   B.links.forEach(l => {
     if (!els.has(l[0]) || !els.has(l[1])) return;
     const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('class', 'sx-string');
     const hit = document.createElementNS(SVGNS, 'path'); hit.setAttribute('class', 'sx-string-hit');
     hit.addEventListener('pointerdown', e => e.stopPropagation());
     hit.addEventListener('click', () => { deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
-    p.setAttribute('mask', 'url(#sx-paper)'); strings.append(hit, p); strNodes.push({ l, p, hit }); });
-  strings.prepend(strMask); strUpdate(); strHot();
+    strings.append(hit, p); strNodes.push({ l, p, hit }); });
+  strUpdate(); strHot();
 }
 function strUpdate() {
   // measure every end first, then redraw: measuring after each redraw would make the browser lay the page out again every time
   const ds = strNodes.map(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); return a && b ? pathD(a, b, wob.get(lk(n.l))) : null; });
-  const ms = strNodes.length ? strMaskRead() : null;
   strNodes.forEach((n, i) => { const d = ds[i]; if (d && d !== n.d) { n.d = d; n.p.setAttribute('d', d); n.hit.setAttribute('d', d); } }); // (only the strings that moved)
-  if (ms) strMaskWrite(ms);
   if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
   else if (strTempP) { strTempP.remove(); strTempP = null; }
   if (picked.size > 1) selBoxUpdate();

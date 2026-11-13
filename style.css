@@ -1152,7 +1152,9 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-bframe.locked .sx-frame-h, .sx-bframe.locked .sx-fe, .sx-bframe.locked .sx-frame-t:not(:focus) { cursor: default; }
 .sx-world .sx-bcard.sx-bframe.locked { border-style: solid; border-color: color-mix(in srgb, var(--fc) 35%, transparent); }
 
-/* ---------- strings and the paper (js/desk.js): faint over a card so its words read, full red over the desk; a card you point at (or pick) lights its strings ---------- */
-.sx-string { transition: stroke-width .15s, stroke .15s; }
+/* ---------- strings rest faint (js/desk.js): the words under them read; a card you point at (or pick) lights its strings full red ---------- */
+.sx-string { opacity: .3; transition: opacity .15s, stroke-width .15s; }
+.sx-string.hot, .sx-string-temp, .sx-string-hit:hover + .sx-string { opacity: 1; }
 .sx-string.hot { stroke: #ff3048; stroke-width: 3; }
-#app[data-strings="front"] .sx-string.hot { filter: drop-shadow(0 0 3px rgba(255, 48, 72, .55)) drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
+#app[data-strings="front"] .sx-string { filter: none; } /* (a shadow on every string is costly; only the lit ones get it) */
+#app[data-strings="front"] .sx-string.hot { filter: drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
