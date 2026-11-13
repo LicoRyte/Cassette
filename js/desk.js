@@ -54,12 +54,23 @@ root.append(ws); root.classList.add('sx-desk');
 
 const cam = S.board.cam; cam.z = Math.min(1.6, Math.max(.35, +cam.z || 1));
 const view = () => ({ w: ws.clientWidth || innerWidth, h: ws.clientHeight || innerHeight });
+// moving the camera is made cheap: while it moves, the desk is one picture the graphics card slides and scales
+// (will-change), the dots are their own layer moved the same way, and the zoom that toolbars and frame names read
+// (--cz) is only updated once the camera comes to rest
+const deskDots = el('div', { class: 'sx-dots', 'aria-hidden': 'true' }); ws.prepend(deskDots);
+let camMoveT = 0, czShown = null, dotsKey = '';
 function placeCam() {
   const { w, h } = view(), tx = w / 2 - cam.x * cam.z, ty = h / 2 - cam.y * cam.z;
-  world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + cam.z + ')'; world.style.setProperty('--cz', cam.z); // (toolbars and frame names stay the same size on screen)
-  const g = 44 * cam.z; ws.style.backgroundSize = g + 'px ' + g + 'px'; ws.style.backgroundPosition = tx + 'px ' + ty + 'px'; // the dots move with you
+  world.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0) scale(' + cam.z + ')';
+  world.classList.add('moving'); clearTimeout(camMoveT); camMoveT = setTimeout(camSettle, 160); // (panning too: one sliding picture)
+  const g = 44 * cam.z, key = w + 'x' + h + 'x' + g.toFixed(3);
+  if (key !== dotsKey) { dotsKey = key; deskDots.style.cssText = 'width:' + (w + 2 * g) + 'px;height:' + (h + 2 * g) + 'px;background-size:' + g + 'px ' + g + 'px'; }
+  deskDots.style.transform = 'translate3d(' + (((tx % g) + g) % g - g) + 'px,' + (((ty % g) + g) % g - g) + 'px,0)'; // the dots move with you
   deskHome();
 }
+function camSettle() { world.classList.remove('moving'); if (czShown !== cam.z) { czShown = cam.z; world.style.setProperty('--cz', cam.z); } } // (toolbars and frame names stay the same size on screen)
+let placeRaf = 0;
+const placeSoon = () => { if (!placeRaf) placeRaf = requestAnimationFrame(() => { placeRaf = 0; placeCam(); }); }; // (at most once a frame)
 const toWorld = (cx, cy) => { const r = ws.getBoundingClientRect(), { w, h } = view(); return { x: (cx - r.left - w / 2) / cam.z + cam.x, y: (cy - r.top - h / 2) / cam.z + cam.y }; };
 let camSaveT = 0;
 const camSave = () => { clearTimeout(camSaveT); camSaveT = setTimeout(save, 400); };
@@ -148,7 +159,7 @@ addEventListener('pointerdown', e => { if (!stickMenu.hidden && !e.target.closes
 // the 0 button shows the time while the clock is out of sight
 function deskHome() {
   const { w, h } = view(), off = Math.abs(cam.x) * cam.z > w / 2 || Math.abs(cam.y) * cam.z > h / 2 || cam.z < .5;
-  deskHomeB.textContent = off ? '0 · ' + (timeText.textContent || 'Clock') : '0 · Clock'; deskHomeB.classList.toggle('away', off);
+  const txt = off ? '0 · ' + (timeText.textContent || 'Clock') : '0 · Clock'; if (deskHomeB.textContent !== txt) deskHomeB.textContent = txt; deskHomeB.classList.toggle('away', off); // (only when it changes)
 }
 new MutationObserver(deskHome).observe(timeText, { childList: true, characterData: true, subtree: true });
 
@@ -407,7 +418,7 @@ const centreOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c
 function deskPan(e) {
   const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; let moved = false;
   e.preventDefault(); ws.setPointerCapture(e.pointerId); ws.classList.add('panning');
-  const move = ev => { if (!moved && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 3) return; moved = true; cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeCam(); };
+  const move = ev => { if (!moved && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 3) return; moved = true; cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeSoon(); };
   const up = () => { ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, up)); ws.classList.remove('panning'); if (moved) camSave(); };
   ws.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.addEventListener(k, up));
 }
@@ -514,7 +525,7 @@ ws.addEventListener('wheel', e => { // zoom around the pointer
   if (page && !page.hidden || e.target.closest('.sx-shelf, .sx-mus')) return; // (its lists scroll)
   e.preventDefault(); cancelAnimationFrame(glideRaf);
   const before = toWorld(e.clientX, e.clientY), z = Math.min(1.6, Math.max(.35, cam.z * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015))));
-  cam.z = z; const after = toWorld(e.clientX, e.clientY); cam.x += before.x - after.x; cam.y += before.y - after.y; placeCam(); camSave();
+  cam.z = z; const after = toWorld(e.clientX, e.clientY); cam.x += before.x - after.x; cam.y += before.y - after.y; placeSoon(); camSave();
 }, { passive: false });
 ws.addEventListener('dragover', e => { if ([...(e.dataTransfer.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); ws.classList.add('drop'); } });
 ws.addEventListener('dragleave', () => ws.classList.remove('drop'));
@@ -552,4 +563,4 @@ addEventListener('keydown', e => {
   const it = B_().items.find(x => x.board === B_().cur && x.key === n); if (it) glideToItem(it);
 }, true);
 
-drawBoard(); placeCam();
+drawBoard(); placeCam(); camSettle();

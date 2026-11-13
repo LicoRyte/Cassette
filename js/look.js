@@ -30,7 +30,9 @@ requestAnimationFrame(lightCards);
 document.body.append(el('div', { class: 'sx-par', 'aria-hidden': 'true' }));
 let parRaf = 0, parX = 0, parY = 0;
 addEventListener('pointermove', e => { parX = e.clientX / innerWidth * 2 - 1; parY = e.clientY / innerHeight * 2 - 1;
-  if (!parRaf && !stillUI()) parRaf = requestAnimationFrame(() => { parRaf = 0; document.documentElement.style.setProperty('--px', parX.toFixed(3)); document.documentElement.style.setProperty('--py', parY.toFixed(3)); }); }, { passive: true });
+  if (!parRaf && !stillUI()) parRaf = requestAnimationFrame(() => { parRaf = 0; // (the two layers themselves, so nothing else has to be restyled)
+    const g = document.querySelector('.sx-grain'), p = document.querySelector('.sx-par');
+    if (g) g.style.translate = (parX * -8).toFixed(1) + 'px ' + (parY * -8).toFixed(1) + 'px'; if (p) p.style.translate = (parX * -22).toFixed(1) + 'px ' + (parY * -22).toFixed(1) + 'px'; }); }, { passive: true });
 
 /* ---------- strings: in front of the paper (tied over the pins), or tucked behind it ---------- */
 function stringsSet(k) {

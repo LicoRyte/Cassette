@@ -971,3 +971,14 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-still[data-clock="focus"] .sx-top, .sx-still[data-clock="last"] .sx-top { opacity: calc(var(--dimto, .4) * .5); }
 .sx-dimrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 2px; font: 15px var(--ui); color: #bfc3c6; }
 .sx-dimrow select { height: 28px; padding: 0 6px; background: #041528; border: 1px solid #293b49; color: #ffffe4; font: 600 14px var(--ui); }
+
+/* a cheap camera: the desk is one moving picture while it moves; the dots are their own sliding layer */
+.sx-world.moving { will-change: transform; }
+#app .sx-ws { background-image: none; }
+.sx-dots { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; background-image: radial-gradient(rgba(109, 138, 141, .22) 1px, transparent 1.4px); }
+#app.sx-full .sx-dots { opacity: 0; transition: opacity .6s; }
+.sx-grain, .sx-par { translate: 0 0; } /* (moved by js/look.js directly) */
+/* holding Rewind: the key stays down and glows while the time winds back */
+.sx-tape.holding .sx-tk::after { animation: none; height: 100%; opacity: .5; }
+.sx-tape.holding .sx-tk { transform: translateY(3px); box-shadow: none; }
+.sx-version { margin: 22px 0 6px; font: 600 12px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: #6d8a8d; text-align: center; }

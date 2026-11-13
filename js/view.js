@@ -49,8 +49,9 @@ async function miniOpen() {
   d.head.append(Object.assign(d.createElement('style'), { textContent: MINI_CSS }));
   d.body.innerHTML = '<div class="mini"><div class="mini-top"><b></b><span></span></div><div class="mini-mid"><span class="mini-reel">' + MINI_REEL + '</span><div class="mini-time"></div><span class="mini-reel">' + MINI_REEL + '</span></div><div class="mini-bar"><i></i></div><div class="mini-keys"><button type="button" data-k="go" aria-label="Start or pause"></button><button type="button" data-k="rew" aria-label="Rewind">' + MINI_ICON.rew + '</button></div></div>'; // (fixed markup)
   d.querySelector('[data-k="go"]').addEventListener('click', () => startB.click());
-  d.querySelector('[data-k="rew"]').addEventListener('click', () => resetB.click());
-  d.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); startB.click(); } else if (e.key === 'r' || e.key === 'R') { if (!running) resetB.click(); } });
+  const mr = d.querySelector('[data-k="rew"]'); mr.addEventListener('pointerdown', () => rewStart()); ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => mr.addEventListener(k, rewStop)); // (held, like the big one)
+  d.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); startB.click(); } else if ((e.key === 'r' || e.key === 'R') && !e.repeat) rewStart(); });
+  d.addEventListener('keyup', e => { if (e.key === 'r' || e.key === 'R') rewStop(); });
   miniWin.addEventListener('pagehide', () => { miniWin = null; miniB.classList.remove('on'); });
   miniB.classList.add('on'); miniDraw(); deskSfx('pick');
 }

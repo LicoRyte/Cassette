@@ -58,12 +58,11 @@ function tab(t) {
 root.classList.add('sx', 'sx-v2', 'sx-clockonly');
 root.replaceChildren(el('header', { class: 'sx-top' }, el('nav', { class: 'sx-nav', 'aria-label': 'Pages' }, tabSet)), el('div', { class: 'sx-rail' }, corner), page);
 
-/* ---------- the keyboard: Space starts or pauses; R and S rewind and skip, only while stopped; Esc closes Settings ---------- */
+/* ---------- the keyboard: Space starts or pauses; S skips, only while stopped; Esc closes Settings (holding R winds back: js/tape.js) ---------- */
 document.addEventListener('keydown', e => {
   if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, select, textarea')) return;
   if (!page.hidden) { if (e.key === 'Escape') { e.preventDefault(); tab('timer'); } return; }
   if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); startB.click(); }
-  if ((e.key === 'r' || e.key === 'R') && !running) { e.preventDefault(); resetB.click(); }
   if ((e.key === 's' || e.key === 'S') && !running) { e.preventDefault(); skip(); }
 });
 

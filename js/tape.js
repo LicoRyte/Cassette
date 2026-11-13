@@ -137,16 +137,47 @@ function fullRewind() {
     if (tapeBuf) { const s = c.createBufferSource(), sg = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = .8; sg.gain.value = .6; s.connect(sg).connect(soundOut(c, 'keys')); s.start(t0 + .6); } } }
   if (typeof deskToast === 'function') deskToast('Rewound to the start: session 1 of ' + S.set.every);
 }
-// holding the key: it fills up, and at the top the whole tape rewinds (a short press is the usual Rewind)
-let rewHold = 0, rewDone = false;
-resetB.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || resetB.disabled) return; rewDone = false; resetB.classList.add('holding');
-  clearTimeout(rewHold); rewHold = setTimeout(() => { rewDone = true; resetB.classList.remove('holding'); fullRewind(); }, 900);
-});
-['pointerup', 'pointerleave', 'pointercancel'].forEach(k => resetB.addEventListener(k, () => { clearTimeout(rewHold); resetB.classList.remove('holding'); }));
-resetB.addEventListener('click', e => { if (rewDone) { e.stopImmediatePropagation(); e.preventDefault(); rewDone = false; } }, true); // (the press that rewound everything isn't also a short Rewind)
-resetB.title = 'Rewind this part (R). Hold to rewind the whole tape (Shift+R)';
-const rewHint = resetB.querySelector('.sx-th'); if (rewHint) rewHint.textContent = 'R · hold';
+// Rewind is held, not pressed: hold it (the key, R, or the mini deck's) and the time winds back while you hold, a few seconds
+// at first, then faster and faster, minutes a second (never past the start of the part). A quick tap just reminds you to hold.
+let rewT = 0, rewMotor = null, rewAt = 0, rewMoved = 0;
+function rewWhirr(on, speed) { // the motor running backwards, higher as it speeds up
+  if (!on) { if (rewMotor) { const m = rewMotor; rewMotor = null; m.g.gain.setTargetAtTime(0, m.c.currentTime, .05); setTimeout(() => { try { m.o.stop(); } catch (e) { /* done */ } }, 300); } return; }
+  if (!feelSoundOn()) return; const c = feelCtx(); if (!c) return;
+  if (!rewMotor) { const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = 0; o.connect(f).connect(g).connect(soundOut(c, 'keys')); o.start(); rewMotor = { c, o, g }; g.gain.setTargetAtTime(.018, c.currentTime, .05); }
+  rewMotor.o.frequency.setTargetAtTime(Math.min(900, 160 + speed * 1.2), rewMotor.c.currentTime, .08);
+}
+function rewWind(ms) { // give back ms of this part (never past its start)
+  const full = length(mode), now = remaining(), add = Math.min(ms, full - now); if (add <= 0) return 0;
+  if (running) endAt += add; else left = now + add;
+  drawClock(); return add;
+}
+function rewStart() {
+  if (rewT || rewAt) return; rewAt = performance.now(); rewMoved = 0; resetB.classList.add('holding'); tapeKeySound(resetB);
+  rewT = setInterval(() => {
+    const held = (performance.now() - rewAt) / 1000;
+    const speed = Math.min(720, 3 + held * 8 + held * held * held * 16); // seconds of timer per second held: 3 at first, 1 minute by about 1.5 s, 5 minutes by about 3 s, up to 12
+    const got = rewWind(speed * 50); rewMoved += got; reelV = -Math.min(34, 3 + speed / 8); reelGo(); rewWhirr(true, speed);
+    if (!got) { rewStopNow(); if (feelSoundOn()) { const c = feelCtx(); if (c) feelTone(c, c.currentTime, 110, { dur: .09, vol: .05, to: 70, cat: 'keys' }); } } // the start of the part: a soft stop
+  }, 50);
+}
+function rewStopNow() { clearInterval(rewT); rewT = 0; rewWhirr(false); resetB.classList.remove('holding'); }
+function rewStop() {
+  if (!rewAt) return; const tap = performance.now() - rewAt < 220 && rewMoved < 2000; rewAt = 0; rewStopNow(); // (even when it had nothing to wind)
+  if (rewMoved) persistRun();
+  if (tap) deskToast('Hold Rewind to wind the time back (Shift+R rewinds the whole tape)');
+}
+resetB.addEventListener('pointerdown', e => { if (e.button === 0 && !resetB.disabled) rewStart(); });
+['pointerup', 'pointerleave', 'pointercancel'].forEach(k => resetB.addEventListener(k, rewStop));
+resetB.addEventListener('click', e => { e.stopImmediatePropagation(); e.preventDefault(); }, true); // (a press never starts the part over: only holding winds it back)
+// R works the same: hold it to wind back (Shift+R is the whole tape)
+addEventListener('keydown', e => {
+  const t = e.target; if (e.code !== 'KeyR' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea'))) || page && !page.hidden) return;
+  e.preventDefault(); e.stopPropagation(); if (!e.repeat) rewStart();
+}, true);
+addEventListener('keyup', e => { if (e.code === 'KeyR') rewStop(); }, true);
+addEventListener('blur', rewStop);
+resetB.title = 'Hold to wind the time back (R works too). Shift+R rewinds the whole tape to session 1';
+const rewHint = resetB.querySelector('.sx-th'); if (rewHint) rewHint.textContent = 'Hold R';
 addEventListener('keydown', e => {
   const t = e.target; if (e.code !== 'KeyR' || !e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')))) return;
   e.preventDefault(); e.stopPropagation(); fullRewind();
