@@ -1,16 +1,17 @@
-/* Cassette Timer: the pen. Press D (or Draw) and the desk becomes paper: draw freehand, or pick a tool for an arrow, a line,
-   a circle, a box or a frame (hold Shift for straight angles, true circles and squares). Strokes drawn close together
+/* Cassette Timer: the pen. Press D (or Draw on a whiteboard) and you can draw on whiteboards (js/whiteboard.js): freehand,
+   or pick a tool for an arrow, a line, a circle or a box (hold Shift for straight angles, true circles and squares). Strokes drawn close together
    within a moment of each other become one drawing, so an arrow's shaft and head stay together; afterwards a drawing
    is a thing on the desk like a note: drag it, tie strings to it, bookmark it, group it. The eraser takes away the
    strokes you touch. The right mouse button still moves the desk, and the wheel still zooms. D or Esc puts the pen down.
-   Keys while drawing: P pen, A arrow, L line, C circle, B box, F frame, E eraser, [ and ] for thinner and thicker. */
+   Keys while drawing: P pen, A arrow, L line, C circle, B box, E eraser, [ and ] for thinner and thicker. */
 'use strict';
 
 let drawOn = false;
 const pen = S.opts.pen = Object.assign({ t: 'pen', c: 'amber', s: 4 }, S.opts.pen || {});
 const PEN_SIZES = [2, 4, 8];
+if (pen.t === 'frame') pen.t = 'pen'; // (frames are made from the bar now)
 const PEN_TOOLS = [['pen', 'Pen', 'P', 'M3 15c3-9 5 1 8-7s5-3 6 4'], ['arrow', 'Arrow', 'A', 'M3 17L16 4M9 4h7v7'], ['line', 'Line', 'L', 'M3 17L17 3'],
-  ['circle', 'Circle', 'C', 'M10 3.5a6.5 6.5 0 1 0 .1 0'], ['box', 'Box', 'B', 'M3.5 4.5h13v11h-13z'], ['frame', 'Frame', 'F', 'M3 7h14v10H3zM3 3.5h6'], ['eraser', 'Eraser', 'E', 'M5 13l7-7 5 5-7 7zM3 18h14']];
+  ['circle', 'Circle', 'C', 'M10 3.5a6.5 6.5 0 1 0 .1 0'], ['box', 'Box', 'B', 'M3.5 4.5h13v11h-13z'], ['eraser', 'Eraser', 'E', 'M5 13l7-7 5 5-7 7zM3 18h14']];
 const penIcon = d => { const s = el('span', { class: 'sx-pi', 'aria-hidden': 'true' }); s.innerHTML = '<svg viewBox="0 0 20 20"><path d="' + d + '"/></svg>'; return s; }; // (fixed icons, written here)
 const penBar = el('div', { class: 'sx-pen', hidden: true, role: 'toolbar', 'aria-label': 'Drawing tools' },
   el('div', { class: 'sx-pen-row' }, ...PEN_TOOLS.map(([k, label, key, d]) => el('button', { type: 'button', class: 'sx-pb', 'data-t': k, title: label + ' (' + key + ')', 'aria-label': label }, penIcon(d)))),
@@ -35,9 +36,10 @@ function penState() {
   root.dataset.pen = pen.t;
 }
 function drawModeSet(on) {
+  if (on && !drawOn && !B_().items.some(it => it.type === 'wb' && it.board === B_().cur)) { deskToast('Add a whiteboard to draw on (Whiteboard, in the bar)'); return; } // (nothing to draw on yet)
   if (on === drawOn) return; drawOn = on;
   penBar.hidden = !on; root.classList.toggle('sx-drawing', on); drawB.classList.toggle('on', on);
-  if (on) { select(null); const ae = document.activeElement; if (ae && ae.isContentEditable) ae.blur(); penState(); }
+  if (on) { if (!(selId && (itemOf(selId) || {}).type === 'wb')) select(null); const ae = document.activeElement; if (ae && ae.isContentEditable) ae.blur(); penState(); }
   draft.replaceChildren(); deskSfx(on ? 'pin' : 'drop');
 }
 
@@ -71,6 +73,8 @@ function penCommit(st, seed) {
 }
 function penErase(x, y, marked) { // the eraser: whatever stroke is under it goes
   const hit = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('sx-dhit')); if (!hit) return marked;
+  const wb = hit.closest('.sx-bwb'), wit = wb && itemOf(wb.dataset.id);
+  if (wit) { if (!marked) deskMark(); wit.strokes.splice(+hit.dataset.i, 1); deskSfx('tear'); save(); wbRedraw(wit); return true; } // on a whiteboard
   const c = hit.closest('.sx-bdraw'), it = c && itemOf(c.dataset.id); if (!it) return marked;
   if (!marked) deskMark();
   const abs = drawAbs(it); abs.splice(+hit.dataset.i, 1);
@@ -79,6 +83,9 @@ function penErase(x, y, marked) { // the eraser: whatever stroke is under it goe
 }
 ws.addEventListener('pointerdown', e => {
   if (!drawOn || e.button !== 0 || page && !page.hidden || e.target.closest('.sx-corner button, .sx-tapes')) return;
+  // only a whiteboard's surface takes the pen (and the eraser, old drawings on the desk too); anywhere else, the desk as usual
+  const surf = e.target.closest('.sx-wb-s');
+  if (!surf && !(pen.t === 'eraser' && e.target.closest('.sx-bdraw'))) return;
   e.stopPropagation(); e.preventDefault(); cancelAnimationFrame(glideRaf);
   ws.setPointerCapture(e.pointerId);
   const done = (move, end) => { let over = false; const fin = ev => { if (over) return; over = true; ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, fin)); end(ev); };
@@ -88,6 +95,7 @@ ws.addEventListener('pointerdown', e => {
     done(ev => { const n = Math.max(1, Math.ceil(Math.hypot(ev.clientX - lx, ev.clientY - ly) / 5)); for (let i = 1; i <= n; i++) marked = penErase(lx + (ev.clientX - lx) * i / n, ly + (ev.clientY - ly) * i / n, marked); lx = ev.clientX; ly = ev.clientY; }, () => {});
     return;
   }
+  if (surf) { wbStroke(e, surf, done); return; }
   const a = toWorld(e.clientX, e.clientY), pts = [a], seed = (Math.random() * 2 ** 31) | 0; let b = a, shift = e.shiftKey; // (one seed: what you see while drawing is what stays)
   const show = () => {
     const st = penShape(a, b, pts, shift);
@@ -105,14 +113,14 @@ ws.addEventListener('pointerdown', e => {
     if (ev.type !== 'pointerup' && ev.type !== 'lostpointercapture') return;
     penCommit(penShape(a, b, pts, shift), seed);
   });
-}, true); // (the capture phase: with the pen down, the desk is paper, even over notes)
+}, true); // (the capture phase: on a whiteboard, the pen goes first)
 
 // the keys while drawing (called from the desk's key handler in js/ui/board.js); true when the key was the pen's
 function drawKeys(e) {
   if (e.code === 'KeyD' && !e.shiftKey) { drawModeSet(!drawOn); return true; }
   if (!drawOn) return false;
   if (e.key === 'Escape') { drawModeSet(false); return true; }
-  const tool = { KeyP: 'pen', KeyA: 'arrow', KeyL: 'line', KeyC: 'circle', KeyB: 'box', KeyF: 'frame', KeyE: 'eraser' }[e.code];
+  const tool = { KeyP: 'pen', KeyA: 'arrow', KeyL: 'line', KeyC: 'circle', KeyB: 'box', KeyE: 'eraser' }[e.code];
   if (tool) { pen.t = tool; save(); penState(); return true; }
   if (e.key === '[' || e.key === ']') { const i = PEN_SIZES.indexOf(pen.s); pen.s = PEN_SIZES[Math.max(0, Math.min(2, (i < 0 ? 1 : i) + (e.key === ']' ? 1 : -1)))]; save(); penState(); return true; }
   return false;

@@ -42,7 +42,7 @@ function noteSetup(it, txt, c) {
   txt.addEventListener('input', e => {
     if (e.inputType === 'insertText' && e.data === ' ') Promise.resolve().then(() => { noteMarkdown(txt); it.html = txt.innerHTML.slice(0, 30000); save(); }); // (after the typing itself has finished: the browser runs one edit at a time)
     if (e.inputType === 'insertParagraph') { const li = noteClosest(txt, 'li'); if (li) li.classList.remove('done'); } // a new checklist line starts unticked
-    it.html = txt.innerHTML.slice(0, 30000); it.text = txt.innerText.slice(0, 2000); it.mt = Date.now(); save(); // (mt: when it was last written in, for Side B review)
+    it.html = txt.innerHTML.slice(0, 30000); it.text = txt.innerText.slice(0, 2000); it.mt = Date.now(); save(); // (mt: when it was last written in)
   });
   txt.addEventListener('paste', e => { e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
   // ticking a checklist line: click its box

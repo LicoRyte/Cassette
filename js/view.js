@@ -58,7 +58,7 @@ async function miniOpen() {
 new MutationObserver(miniDraw).observe(timeText, { childList: true, characterData: true, subtree: true });
 new MutationObserver(miniDraw).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
 const miniB = deskBtn('Mini', () => miniOpen(), '', 'A small clock that stays on top of your other windows (M)');
-deskHomeB.parentNode.insertBefore(miniB, deskHomeB);
+tapesB.after(miniB);
 
 /* ---------- full-screen focus: only the clock ---------- */
 let fullOn = false, fullT = 0;

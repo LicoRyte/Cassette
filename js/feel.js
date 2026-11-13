@@ -118,7 +118,7 @@ new MutationObserver(hissSync).observe(root, { attributes: true, attributeFilter
 if (S.opts.dimAfter == null) S.opts.dimAfter = S.opts.dim === false ? 0 : 15;
 const DIM_LEVELS = { gentle: .65, medium: .4, deep: .2 };
 let stillT = 0, overPaper = false;
-addEventListener('pointerover', e => { overPaper = !!(e.target.closest && e.target.closest('.sx-bcard, .sx-tapes, .sx-recall, .sx-review')); }, { passive: true });
+addEventListener('pointerover', e => { overPaper = !!(e.target.closest && e.target.closest('.sx-bcard, .sx-tapes, .sx-recall')); }, { passive: true });
 let dimShown = null;
 function dimDraw() { const v = DIM_LEVELS[S.opts.dimLevel] || DIM_LEVELS.medium; if (v !== dimShown) { dimShown = v; root.style.setProperty('--dimto', v); } } // (only when it changes)
 function feelWake() {

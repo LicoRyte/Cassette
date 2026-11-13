@@ -243,7 +243,7 @@ function tapesOpen(k) {
   if (tapesTab === 'shelf' && typeof drawShelf === 'function') drawShelf(); else musicDraw();
 }
 const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Music and your shelf of tapes (T)');
-deskBar.querySelectorAll('.sx-ws-grp')[1].append(tapesB);
+deskTray.prepend(tapesB);
 addEventListener('keydown', e => {
   const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code === 'KeyT') { e.preventDefault(); e.stopPropagation(); tapesOpen(tapesDrawer.hidden ? true : null); }

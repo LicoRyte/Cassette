@@ -6,5 +6,6 @@ if (S.run && S.run.running) {
   else finish(true); // it finished while you were away
 }
 settingsPane.append(settingsPane.querySelector('.sx-sec-last'), el('p', { class: 'sx-version' }, 'Cassette Timer · version ' + APP_VERSION)); // (so you can see a new version has arrived) // Start over stays at the bottom of Settings, under what other files added
+drawBoard(); // (again, now that every kind of thing on the desk can be drawn: whiteboards and folders too)
 draw();
 document.addEventListener('visibilitychange', () => { if (!document.hidden && running && remaining() <= 0) finish(); });

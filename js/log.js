@@ -1,8 +1,7 @@
 /* Cassette Timer: what each session was for, and what stayed with you. Before you press Play, write on the label what
    this session is for. At 00:00 a small card asks what you remember, from memory (the surest way to learn it), and
    both go on the tape as one track. A full cycle is one tape: when the long break starts, it goes on the Shelf (in the
-   Tapes drawer), where its track listing and your notes stay to look back on. Each track also remembers which notes you
-   wrote in during it, and the shelf can be read by day too, as a study diary. */
+   Tapes drawer), where its track listing stays to look back on. */
 'use strict';
 
 S.tapes = Array.isArray(S.tapes) ? S.tapes : [];
@@ -51,15 +50,6 @@ function pinNote(title, body) { // a note on the desk, near the middle of the vi
   save(); drawBoard();
 }
 
-/* ---------- which notes you wrote in during this session (kept with the track when it ends) ---------- */
-S.touch = Array.isArray(S.touch) ? S.touch : [];
-document.addEventListener('input', e => {
-  if (mode !== 'focus' || !running && remaining() >= length(mode)) return; // (only once the session has started)
-  const c = e.target.closest && e.target.closest('.sx-bcard'); if (!c || !ws.contains(c)) return;
-  const id = c.dataset.id; if (id && !S.touch.includes(id)) { S.touch.push(id); save(); }
-});
-const noteTitle = it => (String(it.text || '').split('\n').map(l => l.trim()).find(Boolean) || (it.type === 'photo' ? 'A photo' : 'A note')).slice(0, 48);
-
 /* ---------- the tape: every focus session is a track, a cycle is a tape ---------- */
 function tapeNow() { let t = S.tapes[S.tapes.length - 1]; if (!t || t.done) { t = { id: 't' + Date.now(), at: Date.now(), sessions: [] }; S.tapes.push(t); } return t; }
 const finishLogBase = finish;
@@ -68,7 +58,6 @@ finish = function (quiet) {
   finishLogBase.apply(this, arguments);
   if (was !== 'focus') return;
   const t = tapeNow(), e = { at: Date.now(), min: S.set.focus, intent: why, recall: '' }; t.sessions.push(e);
-  const notes = S.touch.map(itemOf).filter(Boolean).slice(0, 12).map(it => ({ id: it.id, t: noteTitle(it) })); if (notes.length) e.notes = notes; S.touch = []; // (the titles stay even if a note is thrown away later)
   S.intent = ''; intent.value = ''; intentDraw();
   if (mode === 'long') { t.done = true; setTimeout(() => deskToast('That tape is full. It is on your shelf now (Tapes)'), 1600); } // a cycle done: on the shelf
   save(); if (!tapesDrawer.hidden) drawShelf();
@@ -79,31 +68,15 @@ finish = function (quiet) {
 const fmtDay = ts => new Date(ts).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 const fmtTime = ts => new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 let shelfOpenId = null;
-function trackNotes(s) { // the notes written in during a track: click one to go to it
-  if (!s.notes || !s.notes.length) return null;
-  return el('div', { class: 'sx-tn' }, ...s.notes.map(n => { const there = !!itemOf(n.id);
-    return el('button', { type: 'button', class: 'sx-tn-b' + (there ? '' : ' gone'), disabled: !there || null, title: there ? 'Go to this note' : 'This note was taken down', onclick: () => deskGoTo(n.id) }, n.t); }));
-}
-function trackLi(s) {
-  return el('li', {}, el('div', { class: 'sx-index-h' }, el('b', {}, s.intent || 'Untitled'), el('span', {}, s.min + ':00 · ' + fmtTime(s.at))),
-    s.recall ? el('p', {}, s.recall) : el('p', { class: 'sl-muted' }, 'Nothing written after this one.'), trackNotes(s));
-}
-// by day: every track from every tape, newest day first, like a diary
-function drawDays() {
-  const all = []; S.tapes.forEach(t => t.sessions.forEach(s => all.push(s))); all.sort((a, b) => b.at - a.at);
-  const days = new Map(); all.forEach(s => { const k = new Date(s.at).toDateString(); if (!days.has(k)) days.set(k, []); days.get(k).push(s); });
-  return [...days.values()].map(list => { const mins = list.reduce((a, s) => a + (s.min || 0), 0);
-    return el('div', { class: 'sx-day' }, el('div', { class: 'sx-day-h' }, el('b', {}, fmtDay(list[0].at)), el('span', {}, list.length + (list.length === 1 ? ' session · ' : ' sessions · ') + mins + ' min')),
-      el('ol', { class: 'sx-index sx-day-l' }, ...list.slice().reverse().map(s => trackLi(s)))); });
+function trackLi(s) { // a track: what it was for, when, and what you remembered (if you wrote it)
+  return el('li', {}, el('div', { class: 'sx-index-h' }, el('b', {}, s.intent || 'Untitled'), el('span', {}, fmtTime(s.at) + ' · ' + s.min + ' min')),
+    s.recall ? el('p', {}, s.recall) : null);
 }
 function drawShelf() {
   const tapes = S.tapes.filter(t => t.sessions.length).slice().reverse();
   if (!tapes.length) { tapesShelf.replaceChildren(el('p', { class: 'sl-muted sx-shelf-empty' }, 'Nothing recorded yet. Every session you finish goes on a tape as a track, with what it was for and what you remembered. A full cycle is one tape on this shelf.')); return; }
-  const view = S.opts.shelfView === 'days' ? 'days' : 'tapes';
-  const pick = el('div', { class: 'sx-shelf-v', role: 'tablist' }, ...[['tapes', 'By tape'], ['days', 'By day']].map(([k, n]) =>
-    el('button', { type: 'button', role: 'tab', class: 'sx-shelf-vb' + (view === k ? ' on' : ''), 'aria-selected': String(view === k), onclick: () => { S.opts.shelfView = k; save(); drawShelf(); } }, n)));
-  if (view === 'days') { tapesShelf.replaceChildren(pick, ...drawDays()); return; }
-  tapesShelf.replaceChildren(pick, ...tapes.map(t => {
+  delete S.opts.shelfView;
+  tapesShelf.replaceChildren(...tapes.map(t => {
     const mins = t.sessions.reduce((a, s) => a + (s.min || 0), 0), open = shelfOpenId === t.id;
     const title = (t.sessions.find(s => s.intent) || {}).intent || 'Untitled tape';
     const spine = el('button', { type: 'button', class: 'sx-spine' + (t.done ? '' : ' in') + (open ? ' open' : ''), 'aria-expanded': String(open), onclick: () => { shelfOpenId = open ? null : t.id; drawShelf(); } },
@@ -111,8 +84,8 @@ function drawShelf() {
     if (!open) return spine;
     const index = el('ol', { class: 'sx-index' }, ...t.sessions.map(s => trackLi(s)));
     const pin = el('button', { type: 'button', class: 'sx-ws-b', onclick: () => { pinNote(title + ' · ' + fmtDay(t.at), t.sessions.map((s, i) => (i + 1) + '. ' + (s.intent || 'Untitled') + (s.recall ? '\n' + s.recall : '')).join('\n')); deskToast('Pinned to the desk'); } }, 'Pin to the desk');
-    const del = armBtn('Throw it away', 'Sure? Click again', () => { S.tapes = S.tapes.filter(x => x !== t); shelfOpenId = null; save(); drawShelf(); }, 'sx-ws-b sx-quiet');
-    return el('div', { class: 'sx-tape-open' }, spine, el('div', { class: 'sx-index-side' }, 'Side A'), index, el('div', { class: 'sx-row' }, pin, del));
+    const del = armBtn('Throw away', 'Sure? Click again', () => { S.tapes = S.tapes.filter(x => x !== t); shelfOpenId = null; save(); drawShelf(); }, 'sx-shelf-del');
+    return el('div', { class: 'sx-tape-open' }, spine, index, el('div', { class: 'sx-shelf-acts' }, pin, del));
   }));
 }
 

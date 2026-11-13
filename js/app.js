@@ -15,14 +15,13 @@
      tape.js    the session strip, the tape-deck keys, the reels, the counter, the side flip
      music.js   the two sides of music, and the Tapes drawer
      log.js     the label (what a session is for), what you remember, the shelf of tapes
-     review.js  cards from your notes, reviewed on breaks, spaced out over days
      look.js    cassette skins, the clock's light, parallax
      view.js    the mini deck (a floating window) and full-screen focus
      help.js    the ? card
      start.js   pick up a running timer, and draw the first frame */
 'use strict';
 
-const APP_VERSION = 29; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 35; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {

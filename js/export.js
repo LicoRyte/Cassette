@@ -73,11 +73,10 @@ async function deskExportImage() {
     ctx.fillStyle = 'rgba(109, 138, 141, .22)'; for (let gx = Math.ceil(x0 / 44) * 44; gx < x1; gx += 44) for (let gy = Math.ceil(y0 / 44) * 44; gy < y1; gy += 44) ctx.fillRect(gx - .8, gy - .8, 1.6, 1.6);
     ctx.fillStyle = '#ffb762'; ctx.font = '700 26px "Barlow C", "Arial Narrow", sans-serif'; ctx.fillText((B.boards.find(b => b.id === B.cur) || {}).name || 'Board', x0 + 40, y0 + 56);
     ctx.fillStyle = '#6d8a8d'; ctx.font = '600 14px "Barlow C", "Arial Narrow", sans-serif'; ctx.fillText('Cassette Timer · ' + deskStamp(), x0 + 40, y0 + 78);
-    // frames
+    // labels: light areas
     items.filter(it => it.type === 'frame').forEach(it => {
       const c = els.get(it.id); if (!c) return; const col = inkOf(it.color || 'amber');
-      ctx.save(); ctx.globalAlpha = .05; ctx.fillStyle = col; ctx.fillRect(it.x, it.y, it.w, it.h); ctx.restore();
-      ctx.save(); ctx.globalAlpha = .55; ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.strokeRect(it.x + 1, it.y + 1, it.w - 2, it.h - 2); ctx.restore();
+      ctx.save(); ctx.globalAlpha = .09; ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect(it.x, it.y, it.w, it.h, 12); ctx.fill(); ctx.globalAlpha = .22; ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
       const lb = c.querySelector('.sx-frame-t'), r = lb.getBoundingClientRect();
       ctx.fillStyle = col; ctx.fillRect(r.left - o.x, r.top - o.y, r.width, r.height); paintText(ctx, lb, o);
     });
@@ -87,6 +86,15 @@ async function deskExportImage() {
     const stack = [...layer.children].filter(c => els.get(c.dataset.id) === c).sort((a, b) => (+a.style.zIndex || 0) - (+b.style.zIndex || 0));
     for (const c of stack) {
       const it = itemOf(c.dataset.id); if (!it) continue;
+      if (it.type === 'hop') { // a folder: its back and tab, the front, and the board it opens
+        const r = c.getBoundingClientRect(), x = r.left - o.x, y = r.top - o.y, nm = (S.board.boards.find(b => b.id === it.to) || {}).name || 'No board yet';
+        ctx.save(); ctx.fillStyle = 'rgba(3, 7, 16, .55)'; ctx.fillRect(x + 3, y + 18, r.width, r.height - 14); ctx.fillStyle = '#c99a52'; ctx.fillRect(x, y + 14, r.width, r.height - 14); ctx.fillRect(x + 10, y, r.width * .5, 16);
+        ctx.fillStyle = '#e9bd73'; ctx.fillRect(x, y + 30, r.width, r.height - 30); ctx.fillStyle = '#34111f'; ctx.font = '700 16px "Barlow C", "Arial Narrow", sans-serif'; ctx.fillText(nm.slice(0, 22), x + 12, y + r.height - 18); ctx.restore(); continue; }
+      if (it.type === 'wb') { // a whiteboard: its frame, the white surface, and what's drawn on it (inside its edges)
+        const r = c.getBoundingClientRect(), s = c.querySelector('.sx-wb-s').getBoundingClientRect(), sx = s.left - o.x, sy = s.top - o.y;
+        ctx.save(); ctx.fillStyle = 'rgba(3, 7, 16, .55)'; ctx.fillRect(r.left - o.x + 3, r.top - o.y + 4, r.width, r.height); ctx.fillStyle = '#c9d0d4'; ctx.fillRect(r.left - o.x, r.top - o.y, r.width, r.height);
+        ctx.fillStyle = '#f4f6f1'; ctx.fillRect(sx, sy, s.width, s.height); ctx.beginPath(); ctx.rect(sx, sy, s.width, s.height); ctx.clip(); ctx.translate(sx, sy); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        (it.strokes || []).forEach(st => strokeMarks(st).forEach(mk => { ctx.globalAlpha = mk.o; ctx.strokeStyle = inkOf(st.c); ctx.lineWidth = mk.w; ctx.stroke(new Path2D(mk.d)); })); ctx.restore(); continue; }
       if (it.type === 'draw') { ctx.save(); ctx.translate(it.x, it.y); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         (it.strokes || []).forEach(st => strokeMarks(st).forEach(mk => { ctx.globalAlpha = mk.o; ctx.strokeStyle = inkOf(st.c); ctx.lineWidth = mk.w; ctx.stroke(new Path2D(mk.d)); })); ctx.restore(); continue; }
       const r = c.getBoundingClientRect(), x = r.left - o.x, y = r.top - o.y, px = x + r.width / 2, py = y + 10;
@@ -130,15 +138,16 @@ function deskImportBackup() {
     const tag = '-' + Date.now().toString(36), num = v => isFinite(+v) ? Math.round(+v) : 0, str = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
     const bmap = new Map(), names = new Set(S.board.boards.map(b => b.name));
     const boards = d.boards.filter(b => b && b.id).slice(0, 50).map(b => { const id = 'b' + tag + bmap.size; bmap.set(b.id, id); let name = str(b.name, 40) || 'Board'; if (names.has(name)) name += ' (loaded)'; return { id, name }; });
-    const imap = new Map(), TYPES = ['note', 'photo', 'draw', 'frame'], TOOLS = ['pen', 'arrow', 'line', 'circle', 'box'];
+    const imap = new Map(), TYPES = ['note', 'photo', 'draw', 'frame', 'wb', 'hop'], TOOLS = ['pen', 'arrow', 'line', 'circle', 'box'];
     const items = d.items.filter(it => it && TYPES.includes(it.type) && bmap.has(it.board)).slice(0, 5000).map(it => {
       const id = String(it.id).replace(/[^\w-]/g, '').slice(0, 40) + tag; imap.set(it.id, id);
       const o = { id, type: it.type, board: bmap.get(it.board), x: num(it.x), y: num(it.y) };
       if (it.key >= 1 && it.key <= 9) o.key = num(it.key); if (it.group) o.group = str(it.group, 40) + tag;
       if (it.text) o.text = str(it.text, 2000);
       if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; }
+      if (it.type === 'hop' && bmap.has(it.to)) o.to = bmap.get(it.to); // (a folder to a board that came in the same backup)
       if (it.type === 'frame') Object.assign(o, { w: Math.max(200, num(it.w)), h: Math.max(140, num(it.h)), color: str(it.color, 12) || 'amber' });
-      if (it.type === 'draw') Object.assign(o, { w: num(it.w), h: num(it.h), strokes: (Array.isArray(it.strokes) ? it.strokes : []).filter(s => s && TOOLS.includes(s.t) && Array.isArray(s.p)).map(s => ({ t: s.t, c: str(s.c, 12), s: Math.max(1, Math.min(12, num(s.s))), seed: num(s.seed), p: s.p.filter(q => Array.isArray(q)).slice(0, 4000).map(q => [+q[0] || 0, +q[1] || 0]) })) });
+      if (it.type === 'draw' || it.type === 'wb') Object.assign(o, { w: num(it.w), h: num(it.h), strokes: (Array.isArray(it.strokes) ? it.strokes : []).filter(s => s && TOOLS.includes(s.t) && Array.isArray(s.p)).map(s => ({ t: s.t, c: str(s.c, 12), s: Math.max(1, Math.min(12, num(s.s))), seed: num(s.seed), p: s.p.filter(q => Array.isArray(q)).slice(0, 4000).map(q => [+q[0] || 0, +q[1] || 0]) })) });
       return o;
     });
     const links = (Array.isArray(d.links) ? d.links : []).filter(l => Array.isArray(l) && imap.has(l[0]) && imap.has(l[1])).map(l => [imap.get(l[0]), imap.get(l[1])]);

@@ -1,5 +1,5 @@
 /* Cassette Timer: finding things, and keeping them safe.
-   Find (Ctrl+F, or Find in the bar): type a word and the camera flies to every note, caption and frame that has it, on
+   Find (Ctrl+F, or Find in the bar): type a word and the camera flies to every note, caption and label that has it, on
    any board, with the words lit up where they are. Enter goes to the next one, Shift+Enter back, Esc closes.
    The backup reminder: everything lives in this browser only, so once a week (never in the middle of a focus session)
    a small card asks to save a backup file. Settings, Backup turns it off and shows when the last one was saved. */
@@ -16,7 +16,7 @@ findBar.addEventListener('pointerdown', e => e.stopPropagation());
 
 let findHits = [], findAt = -1, findQ = '', findT = 0;
 const findHL = typeof Highlight === 'function' && window.CSS && CSS.highlights; // (the words are lit without touching the notes themselves)
-function findWords(it) { // the plain words of a note, caption or frame name
+function findWords(it) { // the plain words of a note, caption or label
   if (it.text) return String(it.text);
   if (it.html) { const t = document.createElement('template'); t.innerHTML = it.html; return t.content.textContent || ''; }
   return '';
