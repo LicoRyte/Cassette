@@ -14,7 +14,7 @@ try {
 // what Cassette Timer keeps; anything else in an older save (worlds, crew, stories...) is put aside once, untouched,
 // under its own key, so the space game (git tag space-game) could still pick it up
 if (S.found && !store.get(KEY + '-space')) store.set(KEY + '-space', store.get(KEY));
-const KEEP = ['set', 'run', 'cycle', 'day', 'todayN', 'total', 'minutes', 'fc', 'opts', 'board', 'tapes', 'intent', 'music'];
+const KEEP = ['set', 'run', 'cycle', 'day', 'todayN', 'total', 'minutes', 'fc', 'opts', 'board', 'intent', 'music'];
 Object.keys(S).forEach(k => { if (!KEEP.includes(k)) delete S[k]; });
 ['reader', 'intro', 'aboard', 'typeSnd'].forEach(k => delete S.opts[k]);
 let wiping = false;

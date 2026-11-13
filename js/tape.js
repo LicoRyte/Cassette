@@ -124,11 +124,10 @@ new MutationObserver(sideDraw).observe(root, { attributes: true, attributeFilter
 sideDraw();
 
 /* ---------- the full rewind: hold Rewind (or Shift+R) to go back to the start of the tape: session 1, an empty strip ---------- */
-// (today's count and the tapes on your shelf stay; a tape that had tracks on it goes on the shelf, and a fresh one goes in)
+// (today's count stays)
 function fullRewind() {
   clearInterval(tickT); running = false; mode = 'focus'; left = length('focus'); S.cycle = 0; S.fc = { n: 0, broken: false };
-  const t = S.tapes && S.tapes[S.tapes.length - 1]; if (t && !t.done && t.sessions.length) t.done = true;
-  persistRun(); draw(); if (typeof drawShelf === 'function' && !tapesDrawer.hidden) drawShelf();
+  persistRun(); draw();
   if (!stillUI()) { reelV = -32; reelGo(); }
   if (feelSoundOn()) { const c = feelCtx(); if (c) { // the motor whirring back, then the clunk at the end of the tape
     const t0 = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(140, t0); o.frequency.exponentialRampToValueAtTime(520, t0 + .55);
@@ -193,7 +192,7 @@ addEventListener('keydown', e => {
   e.preventDefault(); e.stopPropagation(); fullRewind();
 }, true);
 // and in Settings, under Switch by hand
-{ const row = settingsPane.querySelector('.sl-modes'); if (row) row.after(el('div', { class: 'sx-row', style: 'margin-top:10px' }, armBtn('Rewind the whole tape', 'Back to session 1? Click again', () => { fullRewind(); tab('timer'); }), el('small', { class: 'sl-muted' }, 'Back to session 1 of the cycle, an empty strip. Today\'s count and your shelf stay.'))); }
+{ const row = settingsPane.querySelector('.sl-modes'); if (row) row.after(el('div', { class: 'sx-row', style: 'margin-top:10px' }, armBtn('Rewind the whole tape', 'Back to session 1? Click again', () => { fullRewind(); tab('timer'); }), el('small', { class: 'sl-muted' }, 'Back to session 1 of the cycle, an empty strip. Today\'s count stays.'))); }
 
 /* ---------- real tape: brown on the reels, and a ribbon of it running between them under the strip ---------- */
 const tapeRibbon = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); tapeRibbon.setAttribute('class', 'sx-ribbon'); tapeRibbon.setAttribute('aria-hidden', 'true');
@@ -284,7 +283,7 @@ tapeCounter = function (n) {
   for (let i = 1; i < rolled; i++) feelTone(c, t + .05 + i * .07, 150, { cat: 'keys', dur: .08, vol: .04, to: 90 }); // the carry: the next wheel goes over too
 };
 
-/* ---------- the end of a tape: the cassette ejects from the deck and flies to your shelf ---------- */
+/* ---------- the end of a tape: the cassette ejects from the deck and flies into the Tapes key ---------- */
 function ejectTape() {
   if (stillUI()) return;
   const d = deck.getBoundingClientRect(), to = tapesB.getBoundingClientRect();
@@ -293,10 +292,10 @@ function ejectTape() {
   document.body.append(cas); requestAnimationFrame(() => cas.classList.add('go'));
   if (feelSoundOn()) { const c = feelCtx(); if (c) { const t = c.currentTime; feelBurst(c, t, { cat: 'keys', dur: .03, type: 'highpass', f0: 1800, vol: .06 }); feelTone(c, t, 120, { cat: 'keys', dur: .09, vol: .05, to: 70 }); // the eject's clack
     if (tapeBuf) { const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1.15; g.gain.value = .45; s.connect(g).connect(soundOut(c, 'keys')); s.start(t + .03); }
-    feelBurst(c, t + 1.55, { cat: 'keys', dur: .07, type: 'lowpass', f0: 900, vol: .05 }); } } // and it lands on the shelf
+    feelBurst(c, t + 1.55, { cat: 'keys', dur: .07, type: 'lowpass', f0: 900, vol: .05 }); } } // and it lands
   setTimeout(() => cas.remove(), 1800);
 }
 const finishEject = finish;
 finish = function (quiet) { const was = mode; finishEject.apply(this, arguments); if (was === 'focus' && mode === 'long' && !quiet) setTimeout(ejectTape, 1100); };
 const fullRewindEject = fullRewind;
-fullRewind = function () { const t = S.tapes && S.tapes[S.tapes.length - 1], had = t && !t.done && t.sessions.length; fullRewindEject.apply(this, arguments); if (had) setTimeout(ejectTape, 650); };
+fullRewind = function () { const had = S.cycle > 0 || mode !== 'focus' || remaining() < length(mode); fullRewindEject.apply(this, arguments); if (had) setTimeout(ejectTape, 650); };

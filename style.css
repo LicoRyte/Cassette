@@ -700,22 +700,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-tapes .sx-ws-b.sx-quiet, .sx-recall .sx-ws-b.sx-quiet { color: #6d8a8d; box-shadow: 0 3px 0 rgba(109, 138, 141, .25); }
 .sx-tapes .btn.sx-ws-b.arm { color: #ff6157; }
 /* the shelf: a cassette spine for every tape */
-.sx-spine { display: flex; flex-direction: column; gap: 3px; width: 100%; margin: 0 0 8px; padding: 10px 12px 10px 18px; position: relative; background: #041528; border: 1px solid #293b49; border-radius: 3px; color: #ffffe4; text-align: left; cursor: pointer; }
-.sx-spine::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 4px; border-radius: 2px; background: var(--deck); }
-.sx-spine.in::before { background: #77d6c1; }
-.sx-spine:hover, .sx-spine.open { border-color: var(--deck); }
-.sx-spine-t { font: italic 15px/1.3 var(--text); color: #ffdaac; }
-.sx-spine-m { font: 600 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: #6d8a8d; }
-.sx-tape-open { margin-bottom: 14px; }
-.sx-tape-open .sx-spine { margin-bottom: 6px; }
-.sx-index-side { margin: 8px 0 4px; font: 700 11px var(--ui); letter-spacing: .22em; text-transform: uppercase; color: var(--deck); }
-.sx-index { margin: 0 0 10px; padding-left: 22px; color: #6d8a8d; }
-.sx-index li { margin: 0 0 8px; }
-.sx-index-h { display: flex; justify-content: space-between; gap: 10px; }
-.sx-index-h b { font: 600 15px var(--ui); color: #ffffe4; }
-.sx-index-h span { font: 12px var(--ui); color: #6d8a8d; white-space: nowrap; }
-.sx-index p { margin: 2px 0 0; font: 14px/1.45 var(--text); color: #bfc3c6; white-space: pre-wrap; }
-.sx-shelf-empty { margin: 4px 2px; font-size: 14px; line-height: 1.45; }
 /* the music: two sides */
 .sx-mus-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .sx-mus-vol { display: flex; align-items: center; gap: 8px; font: 13px var(--ui); color: #6d8a8d; }
@@ -1060,26 +1044,6 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-drawing .sx-wb-s { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--deck) 70%, transparent), inset 0 2px 6px rgba(41, 59, 73, .12); }
 .sx-world .sx-bwb .sx-resize { right: 0; bottom: 0; }
 
-/* the cassette, cleaner: quieter tabs, spines with more air, a plain track list with hairlines, and the actions small */
-.sx-world .sx-tapes .sx-tapes-h { padding: 10px 14px 0; gap: 2px; border-bottom: 1px solid #293b49; }
-.sx-world .sx-tapes .sx-tt { height: 30px; padding: 0 12px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; box-shadow: none; }
-.sx-world .sx-tapes .sx-tt.on { color: #ffffe4; border-bottom-color: var(--deck); box-shadow: none; }
-.sx-world .sx-tapes .sx-shelf { padding: 14px; }
-.sx-spine { margin: 0 0 6px; padding: 9px 12px 9px 18px; border-radius: 3px; }
-.sx-spine-t { font-size: 15px; }
-.sx-spine-m { font-size: 10px; letter-spacing: .16em; }
-.sx-tape-open { margin: 0 0 12px; }
-.sx-tape-open .sx-index { margin: 4px 0 8px; padding: 0 2px; list-style: none; counter-reset: trk; }
-.sx-tape-open .sx-index li { margin: 0; padding: 8px 0 8px 26px; position: relative; border-bottom: 1px solid #0b1a2b; counter-increment: trk; }
-.sx-tape-open .sx-index li::before { content: counter(trk, decimal-leading-zero); position: absolute; left: 0; top: 9px; font: 600 11px var(--ui); letter-spacing: .08em; color: var(--deck); }
-.sx-tape-open .sx-index li:last-child { border-bottom: 0; }
-.sx-tape-open .sx-index-h b { font: 600 14px var(--ui); letter-spacing: .02em; }
-.sx-tape-open .sx-index-h span { font: 11px var(--ui); letter-spacing: .08em; }
-.sx-tape-open .sx-index p { margin: 3px 0 0; font: 13px/1.45 var(--text); color: #8a9a9e; }
-.sx-shelf-acts { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.sx-shelf-acts .sx-ws-b { height: 28px; padding: 0 12px 1px; font-size: 11px; }
-.sx-tapes .btn.sx-shelf-del { padding: 4px 2px; background: none; border: 0; color: #6d8a8d; font: 600 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
-.sx-tapes .btn.sx-shelf-del:hover, .sx-tapes .btn.sx-shelf-del.arm { color: #ff6157; }
 
 /* a label: a light, softly tinted area with its name on a label-maker strip (it carries nothing) */
 .sx-world .sx-bcard.sx-bframe { border: 0; border-radius: 12px; background: color-mix(in srgb, var(--fc) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fc) 20%, transparent); }
@@ -1090,9 +1054,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* a hopper: a manila folder; the tab picks the board, the front says where it goes */
 .sx-world .sx-bcard.sx-bhop { width: 190px; height: 132px; padding: 0; background: none; box-shadow: none; transform-origin: 50% 50%; }
 .sx-hop-back { position: absolute; left: 0; right: 0; top: 16px; bottom: 0; border-radius: 3px 6px 4px 4px; background: linear-gradient(#c99a52, #b98a45); box-shadow: 3px 4px 0 rgba(3, 7, 16, .55); }
-.sx-hop-tab { position: absolute; left: 10px; top: 0; z-index: 1; height: 20px; max-width: 70%; padding: 0 4px 0 8px; border-radius: 5px 5px 0 0; background: #c99a52; }
-.sx-hop-pick { max-width: 100%; height: 20px; padding: 0 2px; background: none; border: 0; color: #34111f; font: 700 11px var(--ui); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; outline: none; }
-.sx-hop-pick option { background: #030710; color: #ffffe4; text-transform: none; letter-spacing: 0; }
+.sx-hop-tab { position: absolute; left: 10px; top: -4px; z-index: 1; height: 24px; max-width: 78%; border-radius: 6px 6px 0 0; background: #c99a52; }
 .sx-hop-paper { position: absolute; left: 12px; right: 14px; top: 24px; height: 40px; background: #ffffe4; border-radius: 1px; rotate: -2deg; box-shadow: 0 1px 2px rgba(3, 7, 16, .3); } /* (a page peeking out) */
 .sx-hop-front { position: absolute; left: 0; right: 0; top: 34px; bottom: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 1px; padding: 10px 12px; border-radius: 2px 2px 4px 4px; background: linear-gradient(#f0c57d, #e3b46a); box-shadow: 0 -1px 0 rgba(255, 255, 255, .35) inset, 0 2px 3px rgba(3, 7, 16, .2); transform-origin: 50% 100%; transition: transform .22s cubic-bezier(.3, 1.4, .5, 1); }
 .sx-hop-to { overflow: hidden; font: 700 17px/1.15 var(--ui); letter-spacing: .04em; color: #34111f; text-overflow: ellipsis; white-space: nowrap; }
@@ -1112,3 +1074,58 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 #app .sx-tray:hover, #app .sx-tray:focus-within { opacity: 1 !important; }
 #app.sx-full .sx-tray, #app.paged .sx-tray { opacity: 0; pointer-events: none; }
 .sx-full-b:not(.sx-hidecur) #app.sx-full .sx-tray { opacity: .85; pointer-events: auto; }
+
+/* the folder's tab: a button that opens the board menu */
+.sx-hop-tabb { display: block; max-width: 100%; height: 24px; padding: 0 10px; overflow: hidden; background: none; border: 0; border-radius: 6px 6px 0 0; color: #34111f; font: 700 11px/24px var(--ui); letter-spacing: .1em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.sx-hop-tabb:hover { background: #d9aa60; }
+.sx-hop-menu { position: fixed; z-index: 70; min-width: 190px; max-width: 280px; max-height: min(360px, 70vh); overflow-y: auto; padding: 6px; background: #030710; border: 1px solid #293b49; border-top: 3px solid #c99a52; box-shadow: 0 10px 26px rgba(3, 7, 16, .7); }
+.sx-hop-menu[hidden] { display: none; }
+.sx-hop-mh { padding: 4px 8px 6px; font: 600 10px var(--ui); letter-spacing: .18em; text-transform: uppercase; color: #6d8a8d; }
+.sx-hop-mi { display: block; width: 100%; padding: 8px 10px; background: none; border: 0; color: #ffdaac; font: 600 14px var(--ui); text-align: left; cursor: pointer; }
+.sx-hop-mi:hover { background: #041528; color: #ffffe4; }
+.sx-hop-mi.on { color: #ffffe4; } .sx-hop-mi.on::after { content: '  ✓'; color: #c99a52; }
+.sx-hop-msep { display: block; height: 1px; margin: 4px 6px; background: #293b49; }
+
+/* the cassette: two panels side by side, your music and the mixtape, each scrolling on its own */
+.sx-world .sx-tapes { width: 820px; height: 620px; }
+.sx-world .sx-tapes .sx-mus { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.15fr; gap: 0; padding: 0; overflow: hidden; }
+.sx-mcol { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.sx-mcol + .sx-mcol { border-left: 1px solid #293b49; }
+.sx-mcol-h { display: flex; align-items: center; gap: 8px; flex: none; height: 46px; padding: 0 14px; border-bottom: 1px solid #0b1a2b; }
+.sx-mcol-h > b { font: 700 13px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: #ffffe4; }
+.sx-mcol-h .sx-store { font: 600 11px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #6d8a8d; }
+.sx-mcol-h .sx-gap, .sx-libbox .sx-mcol-h .sx-store { flex: 1; }
+.sx-mcol-b { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #293b49 transparent; padding: 10px 12px; }
+.sx-mus-note { flex: none; margin: 0; padding: 8px 14px 10px; border-top: 1px solid #0b1a2b; font: 12px var(--ui); color: #6d8a8d; }
+.sx-mcol-h .sx-ws-b { height: 26px; padding: 0 10px; font-size: 11px; }
+.sx-mus-vol { display: flex; align-items: center; }
+.sx-mus-vol input { width: 90px; accent-color: var(--deck); }
+.sx-libbox.drop .sx-mcol-b, .sx-ms.drop { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--deck) 60%, transparent); }
+/* your music */
+.sx-libbox .sx-lib { margin: 0; padding: 0; list-style: none; }
+.sx-libbox .sx-lib li { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px; border-radius: 3px; }
+.sx-libbox .sx-lib li:hover { background: #041528; }
+.sx-libbox .sx-mz { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%; min-height: 200px; border: 1.5px dashed #293b49; border-radius: 6px; color: #ffdaac; font: 600 14px var(--ui); cursor: pointer; }
+.sx-libbox .sx-mz small { font-weight: 500; color: #6d8a8d; }
+.sx-libbox .sx-mz:hover { border-color: var(--deck); }
+/* the mixtape: which one, then the two sides as cards */
+.sx-mixbox .sx-mixrow { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 0; border: 0; }
+.sx-mixbox .sx-mixrow select { flex: 1; min-width: 0; height: 30px; }
+.sx-mix-acts { display: flex; gap: 4px; }
+.sx-mixbox .sx-ms { margin: 0 0 10px; padding: 10px 12px 8px; border: 1px solid #293b49; border-radius: 6px; background: rgba(4, 21, 40, .5); }
+.sx-mixbox .sx-ms.now { border-color: var(--deck); }
+.sx-mixbox .sx-ms h4 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; }
+.sx-mixbox .sx-ms h4 b { font: 700 13px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--deck); }
+.sx-mixbox .sx-ms h4 span { font: 600 11px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: #6d8a8d; }
+.sx-mixbox .sx-ms h4 .sx-ms-t { margin-left: auto; font: 12px var(--ui); font-style: normal; color: #6d8a8d; }
+.sx-mixbox .sx-radio { margin: 0 0 6px; }
+.sx-mixbox .sx-trks li { height: 32px; }
+.sx-mixbox .sx-empty { margin: 4px 0; font-size: 13px; }
+/* the lists scroll with their panel; a track's buttons show when you point at it, so the names get the room */
+.sx-libbox .sx-lib { max-height: none; overflow: visible; }
+.sx-libbox .sx-lib li .sx-trk-n, .sx-mixbox .sx-trks li .sx-trk-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx-libbox .sx-lib li .sx-trk-d, .sx-mixbox .sx-trks li .sx-trk-d { flex: none; font: 12px var(--ui); color: #6d8a8d; }
+.sx-libbox .sx-lib li .sx-add-b, .sx-libbox .sx-lib li .btn.sx-trk-del, .sx-mixbox .sx-trks li .sx-trk-x { display: none; }
+.sx-libbox .sx-lib li:hover .sx-add-b, .sx-libbox .sx-lib li:hover .btn.sx-trk-del, .sx-libbox .sx-lib li .btn.sx-trk-del.arm, .sx-mixbox .sx-trks li:hover .sx-trk-x { display: inline-block; }
+.sx-libbox .sx-lib li:hover .sx-on-tag { display: none; }
+.sx-mixbox .sx-trks { margin: 0; }

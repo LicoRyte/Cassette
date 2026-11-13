@@ -1,7 +1,7 @@
 /* Cassette Timer: the tapes. Two sides of music: Side A plays while you focus, Side B on breaks. Drop audio files on
    a side in the Tapes drawer (or anywhere on the desk: they go to the side that's playing now). Music plays only while
    the timer runs, fades in and out, and changes sides when the deck flips. The files are kept in this browser
-   (IndexedDB), like the photos. The drawer has a second tab, the Shelf (js/log.js). */
+   (IndexedDB), like the photos. The cassette opens on the desk with two panels: your music on the left, the mixtape on the right. */
 'use strict';
 
 // the browser's music storage
@@ -209,14 +209,12 @@ async function libLengths() { // tracks from before lengths were kept: measure t
   M.lib.forEach(t => delete t._tried); if (changed) { save(); musicDraw(); }
 }
 
-/* ---------- the Tapes drawer: the Shelf (js/log.js) and the Music ---------- */
-const tapesShelf = el('div', { class: 'sx-shelf' }), tapesMusic = el('div', { class: 'sx-mus' });
-const tapesTabs = ['shelf', 'music'].map(k => el('button', { type: 'button', class: 'sx-tt', 'data-k': k, onclick: () => tapesOpen(k) }, k === 'shelf' ? 'Shelf' : 'Music'));
+/* ---------- the cassette: your music and the mixtape, side by side ---------- */
+const tapesMusic = el('div', { class: 'sx-mus' });
 const tapesGrip = el('div', { class: 'sx-tapes-grip', title: 'Drag to move the cassette' }, el('i', { class: 'sx-hole' }), el('span', {}, 'Cassette'), el('i', { class: 'sx-hole' }));
 const tapesSave = el('button', { type: 'button', class: 'sx-ws-b sx-tapes-save', title: 'Save cassette and put it away (T or Esc)', onclick: () => tapesOpen(null) }, 'Save cassette');
 const tapesDrawer = el('div', { class: 'sx-tapes', role: 'dialog', 'aria-label': 'Tapes', hidden: true },
-  tapesGrip, el('div', { class: 'sx-tapes-h' }, ...tapesTabs),
-  tapesShelf, tapesMusic, el('div', { class: 'sx-tapes-f' }, el('i', { class: 'sx-screw' }), tapesSave, el('i', { class: 'sx-screw' })));
+  tapesGrip, tapesMusic, el('div', { class: 'sx-tapes-f' }, el('i', { class: 'sx-screw' }), tapesSave, el('i', { class: 'sx-screw' })));
 world.append(tapesDrawer); // it lives on the desk, next to the clock, and moves and zooms with it
 // where it sits on the desk (remembered); dragged by its top
 M.panel = M.panel && isFinite(M.panel.x) ? M.panel : null;
@@ -229,20 +227,16 @@ tapesGrip.addEventListener('pointerdown', e => {
   tapesGrip.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => tapesGrip.addEventListener(k, end));
 });
 tapesPlace();
-let tapesTab = 'shelf';
 function tapesOpen(k) {
   if (k == null || (!tapesDrawer.hidden && k === true)) { if (!tapesDrawer.hidden) { tapesDrawer.hidden = true; tapesB.classList.remove('on'); save(); deskSfx('drop'); if (typeof tapeSound === 'function') tapeSound(); } return; } // Save cassette: everything is already kept; it just goes away
-  if (k !== true) tapesTab = k;
   const was = tapesDrawer.hidden; tapesDrawer.hidden = false; tapesB.classList.add('on'); tapesPlace();
   if (was) { deskSfx('pick'); // if it's off screen, frame the clock and the cassette together
     const v = view(), cw = corner.offsetWidth / 2, ch = corner.offsetHeight / 2, L = tapesDrawer.offsetLeft, T = tapesDrawer.offsetTop, R = L + tapesDrawer.offsetWidth, Bt = T + tapesDrawer.offsetHeight;
     const inView = (L - cam.x) * cam.z > -v.w / 2 && (R - cam.x) * cam.z < v.w / 2 && (T - cam.y) * cam.z > -v.h / 2 + 50 && (Bt - cam.y) * cam.z < v.h / 2 - 80;
     if (!inView) { const x0 = Math.min(-cw, L), x1 = Math.max(cw, R), y0 = Math.min(-ch, T), y1 = Math.max(ch, Bt); glideTo((x0 + x1) / 2, (y0 + y1) / 2 + 20, Math.max(.35, Math.min(1, (v.w - 80) / (x1 - x0), (v.h - 200) / (y1 - y0)))); } }
-  tapesTabs.forEach(b => b.classList.toggle('on', b.dataset.k === tapesTab));
-  tapesShelf.hidden = tapesTab !== 'shelf'; tapesMusic.hidden = tapesTab !== 'music';
-  if (tapesTab === 'shelf' && typeof drawShelf === 'function') drawShelf(); else musicDraw();
+  musicDraw();
 }
-const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Music and your shelf of tapes (T)');
+const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Your music and mixtapes (T)');
 deskTray.prepend(tapesB);
 addEventListener('keydown', e => {
   const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -265,7 +259,7 @@ function dragRow(li, from, i) { li.draggable = true; li.addEventListener('dragst
 function musicDraw() {
   // the line under the clock: which side, and what's playing
   if (typeof sideTagNp !== 'undefined') { const tr = !player.paused && playSide && M[playSide].find(t => t.id === playId); sideTagNp.textContent = radio ? '▸ ' + STATIONS[radio.kind] + ' (radio)' : tr ? '▸ ' + tr.name : ''; }
-  if (tapesDrawer.hidden || tapesTab !== 'music') return;
+  if (tapesDrawer.hidden) return;
   const mx = mixNow();
   const onB = el('button', { type: 'button', class: 'sx-ws-b' + (M.on ? ' on' : ''), 'aria-pressed': String(M.on), onclick: () => { M.on = !M.on; save(); musicSync(); musicDraw(); } }, M.on ? 'Music on' : 'Music off');
   const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round(M.vol * 100), 'aria-label': 'Music volume' });
@@ -273,16 +267,16 @@ function musicDraw() {
   // the mixtape in the deck
   const pick = el('select', { 'aria-label': 'Mixtape in the deck' }, ...M.mixes.map(m => el('option', { value: m.id, selected: m.id === mx.id || null }, m.name)));
   pick.addEventListener('change', () => mixSwitch(pick.value));
-  const mixRow = el('div', { class: 'sx-mixrow' }, el('span', { class: 'sx-mix-l' }, 'Mixtape'), pick,
-    el('button', { type: 'button', class: 'sx-mini-b', title: 'A new, empty mixtape', onclick: mixNew }, 'New'), el('button', { type: 'button', class: 'sx-mini-b', title: 'Rename this mixtape', onclick: mixRename }, 'Rename'),
-    M.mixes.length > 1 ? armBtn('Delete', 'Sure?', mixDelete, 'sx-mini-b') : null);
+  const mixRow = el('div', { class: 'sx-mixrow' }, pick,
+    el('div', { class: 'sx-mix-acts' }, el('button', { type: 'button', class: 'sx-mini-b', title: 'A new, empty mixtape', onclick: mixNew }, 'New'), el('button', { type: 'button', class: 'sx-mini-b', title: 'Rename this mixtape', onclick: mixRename }, 'Rename'),
+      M.mixes.length > 1 ? armBtn('Delete', 'Sure?', mixDelete, 'sx-mini-b') : null));
   const side = sd => {
     const cur = (M.pos[sd] || 0) % Math.max(1, M[sd].length), total = M[sd].reduce((a, t) => a + (t.dur || 0), 0);
     const list = el('ol', { class: 'sx-trks' }, ...M[sd].map((t, i) => { const li = el('li', { class: (playId === t.id && playSide === sd && !player.paused ? 'play' : i === cur ? 'next' : ''), 'data-name': t.name },
       el('span', { class: 'sx-grip', 'aria-hidden': 'true' }, '⋮⋮'), el('span', { class: 'sx-trk-n', title: t.name }, t.name), el('span', { class: 'sx-trk-d' }, fmtDur(t.dur)),
       el('button', { type: 'button', class: 'sx-trk-x', 'aria-label': 'Take ' + t.name + ' off this side', title: 'Take it off this side (it stays in your music)', onclick: () => musicRemove(sd, t.id) }, '×')); dragRow(li, sd, i); return li; }));
     const box = el('section', { class: 'sx-ms' + (sideNow() === sd ? ' now' : '') },
-      el('h4', {}, el('b', {}, sd === 'A' ? 'Side A' : 'Side B'), el('span', {}, (sd === 'A' ? 'plays while you focus' : 'plays on breaks') + (total ? ' · ' + fmtDur(total) : ''))),
+      el('h4', {}, el('b', {}, sd === 'A' ? 'Side A' : 'Side B'), el('span', {}, sd === 'A' ? 'Focus' : 'Breaks'), el('i', { class: 'sx-ms-t' }, total ? fmtDur(total) : '')),
       el('div', { class: 'sx-radio', role: 'radiogroup', 'aria-label': 'Radio on ' + SIDE_NAME[sd] }, el('span', {}, 'Radio'), ...[[null, 'Off'], ...Object.entries(STATIONS).map(([k, n]) => [k, n.split(' ')[0]])].map(([k, n]) =>
         el('button', { type: 'button', class: 'sx-rb' + (M.radio[sd] === k ? ' on' : ''), role: 'radio', 'aria-checked': String(M.radio[sd] === k), title: k ? STATIONS[k] + ': plays instead of the tracks on this side' : 'Play the tracks', onclick: () => { M.radio[sd] = k; save(); musicSync(); musicDraw(); } }, n))),
       M[sd].length ? list : el('p', { class: 'sl-muted sx-empty' }, 'Drag tracks here from your music, or drop audio files.'));
@@ -301,13 +295,17 @@ function musicDraw() {
     armBtn('🗑', 'Delete?', () => libDelete(t.id), 'sx-trk-del')); dragRow(li, 'L', i);
     li.querySelector('.sx-trk-n').addEventListener('dblclick', () => { const n = (prompt('Rename this track:', t.name) || '').trim().slice(0, 80); if (n) { t.name = n; mixApply(); } });
     return li; }));
-  const libBox = el('section', { class: 'sx-ms sx-libbox' },
-    el('h4', {}, el('b', {}, 'Your music'), el('span', { class: 'sx-store' }, M.lib.length + (M.lib.length === 1 ? ' track' : ' tracks') + ', kept in this browser')),
-    M.lib.length ? lib : null,
-    el('div', { class: 'sx-mz', tabindex: '0', role: 'button', 'aria-label': 'Add music files', onclick: e => { if (e.target !== file) file.click(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } } }, 'Drop audio files here, or ', el('u', {}, 'choose some'), file));
+  const libBox = el('section', { class: 'sx-mcol sx-libbox' },
+    el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Your music'), el('span', { class: 'sx-store' }, M.lib.length + (M.lib.length === 1 ? ' track' : ' tracks')),
+      el('button', { type: 'button', class: 'sx-mini-b sx-addf', title: 'Add audio files (or drop them here)', onclick: () => file.click() }, '+ Add'), file),
+    el('div', { class: 'sx-mcol-b' }, M.lib.length ? lib : el('div', { class: 'sx-mz', tabindex: '0', role: 'button', 'aria-label': 'Add music files', onclick: () => file.click(), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } } }, 'Drop audio files here', el('small', {}, 'or click to choose some'))),
+    el('p', { class: 'sx-mus-note' }, 'Kept in this browser. Drag a track onto a side, or use +A / +B.'));
   dropZone(libBox, null, 'L');
   if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(est => { const st = libBox.querySelector('.sx-store'); if (st && est.usage) st.textContent += ' (' + Math.round(est.usage / 1048576) + ' MB used)'; }).catch(() => {});
-  tapesMusic.replaceChildren(el('div', { class: 'sx-mus-top' }, onB, el('label', { class: 'sx-mus-vol' }, 'Volume ', vol)), mixRow, side('A'), side('B'), libBox,
-    el('p', { class: 'sl-muted sx-mus-note' }, 'Music plays only while the timer runs. Drag tracks to put them in order, from side to side, or off a side.'));
+  const mixBox = el('section', { class: 'sx-mcol sx-mixbox' },
+    el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Mixtape'), el('span', { class: 'sx-gap' }), onB, el('label', { class: 'sx-mus-vol', title: 'Volume' }, vol)),
+    el('div', { class: 'sx-mcol-b' }, mixRow, side('A'), side('B')),
+    el('p', { class: 'sx-mus-note' }, 'Plays only while the timer runs. Drag to reorder, move between sides, or off.'));
+  tapesMusic.replaceChildren(libBox, mixBox);
   libLengths();
 }

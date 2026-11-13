@@ -92,7 +92,7 @@ function glideToItem(it) { // a frame fills the view; anything else comes to the
   const z = it.type === 'frame' ? Math.min(1.6, Math.max(.35, Math.min(v.w * .86 / w, (v.h - 150) * .86 / h))) : 1;
   glideTo(it.x + w / 2, it.y + h / 2 + (it.type === 'frame' ? 20 / z : 0), z); select(it.id);
 }
-function deskGoTo(id) { // go to something, on whichever board it is (search, the shelf's notes)
+function deskGoTo(id) { // go to something, on whichever board it is (search)
   const it = itemOf(id); if (!it) return false;
   if (it.board !== S.board.cur) { S.board.cur = it.board; select(null); save(); drawBoard(); deskBoardTools(); }
   glideToItem(it); return true;
@@ -453,7 +453,7 @@ ws.addEventListener('pointerdown', e => {
     const id = c.dataset.id, it = itemOf(id); if (!it) return;
     const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t');
     if (txt && document.activeElement === txt) { if (!picked.has(id)) select(id); return; } // already writing in it: the pointer selects text as usual
-    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-holdbar, .sx-wb-h button, .sx-hop-pick')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
+    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-holdbar, .sx-wb-h button, .sx-hop-tabb')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }
     e.preventDefault(); c.setPointerCapture(e.pointerId);
