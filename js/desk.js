@@ -258,6 +258,13 @@ function frameCard(it) { // a frame: a labelled area. Its name is the handle; th
 // sits one above the higher of the two cards it ties: over both of them, but under anything lying on top of them
 let layerTop = 0;
 const zOf = c => +c.style.zIndex || 0;
+// press a card and it comes to the front: the top level, and the end of the desk's list so it stays on top next time
+// (labels are areas under everything, so they stay where they are)
+function deskRaise(it, c) {
+  if (it.type === 'frame' || zOf(c) === layerTop) return;
+  c.style.zIndex = String(layerTop += 2);
+  const B = B_(); B.items = B.items.filter(x => x !== it); B.items.push(it); save(); strUpdate();
+}
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
   els.clear(); layer.replaceChildren(); frameLayer.replaceChildren();
@@ -466,6 +473,7 @@ ws.addEventListener('pointerdown', e => {
     if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }
+    deskRaise(it, c); // (whatever you press comes to the front)
     e.preventDefault(); c.setPointerCapture(e.pointerId);
     const start = { x: e.clientX, y: e.clientY, l: it.x, t: it.y };
     // one gesture, and it always ends: on release, on cancel, or if the browser takes the pointer away
