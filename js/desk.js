@@ -329,14 +329,16 @@ function wobStep() {
 }
 // cards swing from their pin while you carry them, and settle when you let go
 const swinging = new Set(); let swingRaf = 0;
-function swingTo(c, target) {
+function swingTo(c, target, held) {
   if (stillUI()) return;
-  const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.t = target; swinging.add(c); c.classList.add('swinging'); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
+  const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.t = target; s.held = !!held; swinging.add(c); c.classList.add('swinging'); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
 }
 function swingStep() {
   swingRaf = 0;
-  swinging.forEach(c => { const s = c._sw; s.v = (s.v + (s.t - s.a) * .1) * .87; s.a += s.v; s.t *= .86;
-    if (Math.abs(s.a) + Math.abs(s.v) + Math.abs(s.t) < .06) { s.a = 0; s.v = 0; swinging.delete(c); c.classList.remove('swinging'); }
+  // a pendulum hung from the pin: it leans toward where you're carrying it (the bottom trails behind), and when you stop,
+  // the lean lets go and it swings past the middle a few times, smaller each time, before it hangs still
+  swinging.forEach(c => { const s = c._sw; s.v = (s.v + (s.t - s.a) * .055) * .9; s.a += s.v; s.t *= s.held ? .8 : 0;
+    if (!s.held && Math.abs(s.a) + Math.abs(s.v) < .03) { s.a = 0; s.v = 0; swinging.delete(c); c.classList.remove('swinging'); }
     c.style.setProperty('--swing', s.a.toFixed(2) + 'deg'); });
   if (swinging.size) swingRaf = requestAnimationFrame(swingStep);
 }
@@ -484,7 +486,6 @@ ws.addEventListener('pointerdown', e => {
     // anywhere else on it, the words included: a drag moves it (with everything picked, and a frame's contents);
     // a click without moving puts the pen there
     let dragging = false, lx = e.clientX, ly = e.clientY, lt = e.timeStamp, vx = 0, movers = [], snap = null;
-    const swings = it.type === 'note' || it.type === 'photo';
     track(ev => {
       if (!dragging) {
         if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
@@ -502,11 +503,11 @@ ws.addEventListener('pointerdown', e => {
       movers.forEach(m => { m.it.x = Math.round(m.x + dx); m.it.y = Math.round(m.y + dy); m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; });
       const dt = Math.max(8, ev.timeStamp - lt), ddx = ev.clientX - lx, ddy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; lt = ev.timeStamp;
       vx = vx * .55 + (ddx * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
-      if (swings) swingTo(c, Math.max(-16, Math.min(16, vx * 1.2)));
+      const lean = Math.max(-14, Math.min(14, vx * .9)); movers.forEach(m => { if (m.it.type === 'note' || m.it.type === 'photo') swingTo(m.c, lean, true); });
       movers.forEach(m => wobKick(m.it.id, ddx / cam.z, ddy / cam.z)); strUpdate();
     }, ev => {
       if (dragging) {
-        c.classList.remove('lift'); if (swings) swingTo(c, 0); deskSfx('drop'); strUpdate();
+        c.classList.remove('lift'); movers.forEach(m => { if (m.c._sw) swingTo(m.c, m.c._sw.t * .6); }); deskSfx('drop'); strUpdate(); // (let go: it swings on from where it was leaning)
         if (it.type === 'sticker') { // dropped on a note or photo: it sticks there (and comes off when you pull it away)
           const r = c.getBoundingClientRect(), under = document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2).map(n => n.closest && n.closest('.sx-bnote, .sx-polaroid')).find(n => n && n !== c);
           if (under) { it.on = under.dataset.id; deskSfx('pin'); } else delete it.on; }

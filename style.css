@@ -1035,3 +1035,13 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 @property --lit { syntax: '<number>'; inherits: false; initial-value: 0; }
 .sx-world .sx-bnote .sx-note-t { text-shadow: .25px .15px 0 color-mix(in srgb, var(--ink, #34111f) 30%, transparent); -webkit-text-stroke: .15px color-mix(in srgb, var(--ink, #34111f) 45%, transparent); }
 .sx-world .sx-bnote .sx-note-t h2, .sx-world .sx-bnote .sx-note-t h3 { -webkit-text-stroke: 0; text-shadow: none; }
+
+/* picking paper up and putting it down: it rises a little and its shadow drops away as it leaves the board, then settles
+   back with a soft bounce. (The lean and the swing are the card's rotate, driven frame by frame from js/desk.js.) */
+.sx-world .sx-bcard { transition: rotate .35s cubic-bezier(.3, 1.4, .5, 1), scale .32s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease-out; }
+.sx-world .sx-bcard.swinging { transition: scale .32s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease-out; }
+.sx-world .sx-bcard.lift { scale: 1.05; box-shadow: 8px 14px 0 rgba(3, 7, 16, .38); transition: scale .22s cubic-bezier(.2, .9, .3, 1.2), box-shadow .22s ease-out; }
+.sx-world .sx-bcard.sx-bframe, .sx-world .sx-bcard.sx-bdraw { box-shadow: none; }
+.sx-world .sx-bcard.sx-bframe.lift, .sx-world .sx-bcard.sx-bdraw.lift { scale: 1; box-shadow: none; }
+.sx-world .sx-bcard.sx-bsticker.lift { box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .sx-world .sx-bcard, .sx-world .sx-bcard.lift, .sx-world .sx-bcard.swinging { transition: none; } }
