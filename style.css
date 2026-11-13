@@ -962,3 +962,12 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-lv-row input[type="range"] { width: 100%; accent-color: var(--deck); }
 .sx-lv-row output { font: 600 13px var(--ui); color: var(--deck); text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 520px) { .sx-lv-row { grid-template-columns: 1fr 48px; } .sx-lv-row input[type="range"] { grid-column: 1 / -1; grid-row: 2; } }
+
+/* how dim the desk goes (Settings, Feel): gentle, medium or deep */
+.sx-still[data-clock="focus"] .sx-world .sx-layer, .sx-still[data-clock="last"] .sx-world .sx-layer,
+.sx-still[data-clock="focus"] .sx-world .sx-strings, .sx-still[data-clock="last"] .sx-world .sx-strings,
+.sx-still[data-clock="focus"] .sx-world .sx-flayer, .sx-still[data-clock="last"] .sx-world .sx-flayer { opacity: var(--dimto, .4); }
+#app.sx-still[data-clock="focus"] .sx-ws-bar, #app.sx-still[data-clock="last"] .sx-ws-bar { opacity: calc(var(--dimto, .4) * .35); }
+.sx-still[data-clock="focus"] .sx-top, .sx-still[data-clock="last"] .sx-top { opacity: calc(var(--dimto, .4) * .5); }
+.sx-dimrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 2px; font: 15px var(--ui); color: #bfc3c6; }
+.sx-dimrow select { height: 28px; padding: 0 6px; background: #041528; border: 1px solid #293b49; color: #ffffe4; font: 600 14px var(--ui); }

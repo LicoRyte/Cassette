@@ -113,14 +113,33 @@ function hissSync() {
 new MutationObserver(hissSync).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
 
 /* ---------- the desk dims while you focus and leave it alone ---------- */
-let stillT = 0;
+// how long to wait (seconds; 0 is never) and how dim (Settings, Feel). Never while you're reading: the pointer resting on a
+// note or photo, something picked, or the pen in a note keeps the desk bright
+if (S.opts.dimAfter == null) S.opts.dimAfter = S.opts.dim === false ? 0 : 15;
+const DIM_LEVELS = { gentle: .65, medium: .4, deep: .2 };
+let stillT = 0, overPaper = false;
+addEventListener('pointerover', e => { overPaper = !!(e.target.closest && e.target.closest('.sx-bcard, .sx-tapes, .sx-recall, .sx-review')); }, { passive: true });
+function dimDraw() { root.style.setProperty('--dimto', DIM_LEVELS[S.opts.dimLevel] || DIM_LEVELS.medium); }
 function feelWake() {
-  root.classList.remove('sx-still'); clearTimeout(stillT);
-  stillT = setTimeout(() => { if (S.opts.dim === false || document.activeElement && document.activeElement.isContentEditable) return feelWake(); root.classList.add('sx-still'); }, 4000);
+  root.classList.remove('sx-still'); clearTimeout(stillT); dimDraw();
+  if (!S.opts.dimAfter) return;
+  stillT = setTimeout(() => {
+    const reading = overPaper || (typeof picked !== 'undefined' && picked.size) || document.activeElement && document.activeElement.isContentEditable;
+    if (reading) return feelWake(); root.classList.add('sx-still'); }, S.opts.dimAfter * 1000);
 }
 ['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach(k => addEventListener(k, feelWake, { passive: true }));
 feelWake();
 
 /* ---------- Settings, Feel ---------- */
 { const opt = (k, label) => { const box = el('input', { type: 'checkbox', checked: S.opts[k] !== false || null }); box.addEventListener('change', () => { S.opts[k] = box.checked; save(); if (k === 'dim') feelWake(); if (k === 'hiss') hissSync(); }); return el('label', { class: 'sx-check' }, box, ' ' + label); };
-  settingsPane.append(sec('Feel', opt('glow', 'A green glow around the screen on every second of a focus session'), opt('dim', 'The desk dims while you focus and leave it alone'), opt('deskSfx', 'Paper, pin and typewriter sounds (in notes and every place you type)'), opt('hiss', 'A faint tape hiss while you focus'))); }
+  settingsPane.append(sec('Feel', opt('glow', 'A green glow around the screen on every second of a focus session'), opt('deskSfx', 'Paper, pin and typewriter sounds (in notes and every place you type)'), opt('hiss', 'A faint tape hiss while you focus'))); }
+
+/* ---------- Settings, Feel: when the desk dims, and how much ---------- */
+{ const feelSec = [...settingsPane.querySelectorAll('.sx-sec')].find(x => (x.querySelector('h3') || {}).textContent === 'Feel');
+  const after = el('select', { 'aria-label': 'When the desk dims' }, ...[[0, 'never'], [5, 'after 5 seconds'], [15, 'after 15 seconds'], [30, 'after 30 seconds'], [60, 'after a minute']].map(([v, n]) => el('option', { value: v, selected: +S.opts.dimAfter === v || null }, n)));
+  after.addEventListener('change', () => { S.opts.dimAfter = +after.value; delete S.opts.dim; save(); feelWake(); });
+  const level = el('select', { 'aria-label': 'How dim' }, ...[['gentle', 'gentle'], ['medium', 'medium'], ['deep', 'deep']].map(([v, n]) => el('option', { value: v, selected: (S.opts.dimLevel || 'medium') === v || null }, n)));
+  level.addEventListener('change', () => { S.opts.dimLevel = level.value; save(); dimDraw(); });
+  if (feelSec) feelSec.append(el('div', { class: 'sx-dimrow' }, el('span', {}, 'While you focus, the desk dims'), after, el('span', {}, ', and goes'), level),
+    el('p', { class: 'sl-muted' }, 'It never dims while the pointer rests on a note or photo, something is picked, or you are writing.')); }
+dimDraw();
