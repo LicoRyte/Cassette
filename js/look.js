@@ -48,11 +48,11 @@ stringsSet(S.opts.strings || 'front');
 
 /* ---------- Settings, Sound levels: how loud each kind of sound is (each slider plays a little of its sound) ---------- */
 {
-  const LEVELS = [['master', 'Master', 'Everything at once'], ['music', 'Music and radio', 'The cassette (the same as its own volume)'], ['tick', 'Clock tick', 'Once a second while you focus'],
+  const LEVELS = [['master', 'Master', 'Everything at once'], ['music', 'Music', 'The cassette (the same as its own volume)'], ['tick', 'Clock tick', 'Once a second while you focus'],
     ['chime', 'Chimes', 'The bell at the end of a session or a break'], ['keys', 'Tape keys', 'Play, Pause, Rewind, the flip, the eject, the counter'], ['desk', 'Desk and typing', 'Paper, pins, stickers, the typewriter'],
     ['ui', 'Buttons', 'Clicks in the bars and menus'], ['hiss', 'Tape hiss', 'The faint hiss under a focus session']];
   const get = k => k === 'music' ? M.vol / .5 : k === 'tick' ? (S.opts.tickVol != null ? S.opts.tickVol : .35) / .35 : LV[k]; // (the sliders show 100% at each sound's own default)
-  const set = (k, v) => { if (k === 'music') { M.vol = v * .5; if (!player.paused) { clearInterval(player._ft); player.volume = Math.min(1, M.vol * duck); } radioLevel(.1); } else if (k === 'tick') S.opts.tickVol = v * .35; else LV[k] = v; lvApply(); save(); };
+  const set = (k, v) => { if (k === 'music') { M.vol = v * .5; if (!player.paused) { clearInterval(player._ft); player.volume = Math.min(1, M.vol * duck); } } else if (k === 'tick') S.opts.tickVol = v * .35; else LV[k] = v; lvApply(); save(); };
   const sample = k => { const c = feelCtx(); if (!c || !soundOn) return;
     if (k === 'chime') feelChime(true); else if (k === 'keys') tapeKeySound(resetB); else if (k === 'desk') deskSfx('pin'); else if (k === 'ui') sfxPlay('click');
     else if (k === 'tick' && tickBuf) { const s = c.createBufferSource(), g = c.createGain(); s.buffer = tickBuf; g.gain.value = S.opts.tickVol != null ? S.opts.tickVol : .35; s.connect(g).connect(soundOut(c, 'tick')); s.start(); }

@@ -21,7 +21,7 @@
      start.js   pick up a running timer, and draw the first frame */
 'use strict';
 
-const APP_VERSION = 40; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 41; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {
@@ -45,7 +45,7 @@ async function sfxPlay(k) {
   try { const c = audioCtx(); if (!c) return; if (c.state === 'suspended') await c.resume(); const b = await sfxLoad(k), s = c.createBufferSource(), g = c.createGain(); g.gain.value = SFX[k][1] * (S.opts.lv ? (S.opts.lv.ui != null ? S.opts.lv.ui : 1) * (S.opts.lv.master != null ? S.opts.lv.master : 1) : 1); s.buffer = b; s.connect(g).connect(c.destination); s.start(); } catch (e) { /* no audio here */ }
 }
 // a button clicked with the mouse lets go of the keyboard's focus afterwards, so Space always means Start/Pause
-// (otherwise Space would press that button again: Reset, a radio station...). Keyboard users moving with Tab keep it.
+// (otherwise Space would press that button again: Reset, a mixtape button...). Keyboard users moving with Tab keep it.
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('button'); if (!b || e.detail === 0) return; // (detail 0: pressed with the keyboard)
   setTimeout(() => { if (document.activeElement === b) b.blur(); }, 0);

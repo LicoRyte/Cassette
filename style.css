@@ -840,11 +840,6 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-vum .vu-pivot { fill: #34111f; }
 .sx-vum text { font: 700 6px var(--ui); fill: #73392e; text-anchor: end; }
 @media (max-width: 520px) { .sx-vu { display: none; } }
-/* ---------- the radio on each side (js/music.js) ---------- */
-.sx-radio { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 8px; }
-.sx-radio > span { margin-right: 4px; font: 700 11px var(--ui); letter-spacing: .18em; text-transform: uppercase; color: #6d8a8d; }
-.sx-rb { height: 24px; padding: 0 9px; background: none; border: 1px solid #293b49; border-radius: 12px; color: #bfc3c6; font: 600 12px var(--ui); cursor: pointer; }
-.sx-rb:hover { border-color: #6d8a8d; } .sx-rb.on { border-color: var(--deck); color: #ffffe4; background: #041528; }
 @media (prefers-reduced-motion: reduce) { #app .sx-ribbon .rb-shine { animation: none !important; } }
 .sx-ribbon .rb-tape { stroke: #833f34; stroke-width: 3; } .sx-reel .rl-pack { fill: #73392e; stroke: #833f34; } /* (tape you can see against the dark deck) */
 
@@ -1118,7 +1113,6 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-mixbox .sx-ms h4 b { font: 700 13px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--deck); }
 .sx-mixbox .sx-ms h4 span { font: 600 11px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: #6d8a8d; }
 .sx-mixbox .sx-ms h4 .sx-ms-t { margin-left: auto; font: 12px var(--ui); font-style: normal; color: #6d8a8d; }
-.sx-mixbox .sx-radio { margin: 0 0 6px; }
 .sx-mixbox .sx-trks li { height: 32px; }
 .sx-mixbox .sx-empty { margin: 4px 0; font-size: 13px; }
 /* the lists scroll with their panel; a track's buttons show when you point at it, so the names get the room */
