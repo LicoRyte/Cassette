@@ -279,9 +279,13 @@ function strHot() {
   strNodes.forEach(n => { const on = n.l.some(id => id === strOver || picked.has(id)); if (n.hot === on) return; n.hot = on;
     n.p.classList.toggle('hot', on); if (on) strings.append(n.p); else n.hit.after(n.p); }); // (a lit string comes to the top of the pile)
 }
-layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, e.movementX); } });
+layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
 // brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
 // (only when the pointer comes onto one, and only while it moves: nothing runs while the desk is still)
+// the mouse's speed, smoothed (the browser gives no movement on the event for arriving somewhere, only on moves)
+const brushV = { x: 0, y: 0, t: 0, cx: null, cy: null };
+addEventListener('pointermove', e => { const dt = Math.max(8, e.timeStamp - brushV.t), k = 16 / dt, mx = brushV.cx === null || dt > 200 ? 0 : e.clientX - brushV.cx, my = brushV.cx === null || dt > 200 ? 0 : e.clientY - brushV.cy;
+  brushV.t = e.timeStamp; brushV.cx = e.clientX; brushV.cy = e.clientY; brushV.x = brushV.x * .5 + mx * k * .5; brushV.y = brushV.y * .5 + my * k * .5; }, { passive: true, capture: true });
 function brushCard(c, mx) {
   if (stillUI() || !(c.classList.contains('sx-bnote') || c.classList.contains('sx-polaroid')) || c.classList.contains('lift') || c.contains(document.activeElement)) return;
   const k = Math.max(-.8, Math.min(.8, (mx || 0) * .06)); if (Math.abs(k) < .08) return;
@@ -291,7 +295,7 @@ function brushCard(c, mx) {
 function brushString(l, e) {
   if (stillUI() || e.buttons) return;
   const k = lk(l), w = wob.get(k) || { x: 0, y: 0, vx: 0, vy: 0 };
-  w.vx += Math.max(-6, Math.min(6, e.movementX * .35)); w.vy += Math.max(-6, Math.min(6, e.movementY * .35)); wob.set(k, w);
+  w.vx += Math.max(-6, Math.min(6, brushV.x * .35)); w.vy += Math.max(-6, Math.min(6, brushV.y * .35)); wob.set(k, w);
   if (!wobRaf) wobRaf = requestAnimationFrame(wobStep);
 }
 layer.addEventListener('pointerleave', () => { if (strOver) { strOver = null; strHot(); } });
