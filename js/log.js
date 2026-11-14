@@ -71,7 +71,7 @@ function memDraw() {
     el('div', { class: 'sx-mem-top' }, el('h3', {}, 'Remembered'), el('span', { class: 'sx-gap' }), el('button', { type: 'button', class: 'sx-ws-b', title: 'Write one now', onclick: () => recallOpen((S.intent || '').trim()) }, '+ Write')),
     list.length ? el('div', { class: 'sx-mem-l' }, ...list) : el('p', { class: 'sl-muted sx-mem-empty' }, 'Nothing yet. When a session ends, write what you remember from memory and keep it: it collects here.'));
 }
-function memOpen() { recallClose(false); memList.hidden = false; memB.classList.add('on'); memDraw(); requestAnimationFrame(() => memList.classList.add('on')); deskSfx('pick'); }
+function memOpen() { recallClose(false); if (typeof tapesOpen === 'function' && !tapesDrawer.hidden) tapesOpen(null); memList.hidden = false; memB.classList.add('on'); memDraw(); requestAnimationFrame(() => memList.classList.add('on')); deskSfx('pick'); }
 function memClose() { if (memList.hidden) return; memList.classList.remove('on'); memList.hidden = true; memB.classList.remove('on'); }
 addEventListener('pointerdown', e => { if (!memList.hidden && !e.target.closest('.sx-mem, .sx-mem-b, .sx-recall')) memClose(); }, true);
 addEventListener('keydown', e => { if (e.key === 'Escape' && !memList.hidden) { e.preventDefault(); e.stopPropagation(); memClose(); } }, true);

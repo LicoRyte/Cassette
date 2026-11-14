@@ -742,13 +742,13 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 @media (max-width: 520px) { #app .sx-world > .sx-corner .sx-sidetag .sx-np { display: none; } #app .sx-world > .sx-corner .sx-cmd { gap: 10px; } }
 
 /* ---------- the cassette on the desk (js/music.js) ---------- */
-.sx-world .sx-tapes { position: absolute; right: auto; top: 0; left: 0; z-index: 5; width: 380px; max-height: none; height: 560px; border: 2px solid var(--deck); border-radius: 10px; background: var(--k-041528); box-shadow: 4px 6px 0 rgba(3, 7, 16, .6), inset 0 0 0 4px var(--k-030710); overflow: hidden; transition: box-shadow .15s, scale .15s; }
-.sx-world .sx-tapes.lift { scale: 1.02; box-shadow: 8px 12px 0 rgba(3, 7, 16, .5), inset 0 0 0 4px var(--k-030710); }
+.sx-tapes.sx-dock { position: absolute; right: auto; top: 0; left: 0; z-index: 5; width: 380px; max-height: none; height: 560px; border: 2px solid var(--deck); border-radius: 10px; background: var(--k-041528); box-shadow: 4px 6px 0 rgba(3, 7, 16, .6), inset 0 0 0 4px var(--k-030710); overflow: hidden; transition: box-shadow .15s, scale .15s; }
+.sx-tapes.sx-dock.lift { scale: 1.02; box-shadow: 8px 12px 0 rgba(3, 7, 16, .5), inset 0 0 0 4px var(--k-030710); }
 .sx-tapes-grip { display: flex; align-items: center; justify-content: center; gap: 14px; flex: none; height: 30px; background: var(--deck); color: var(--k-030710); font: 700 11px var(--ui); letter-spacing: .3em; text-transform: uppercase; cursor: grab; user-select: none; touch-action: none; }
 .sx-tapes.lift .sx-tapes-grip { cursor: grabbing; }
 .sx-hole { width: 14px; height: 14px; border-radius: 50%; background: var(--k-030710); box-shadow: inset 0 0 0 3px var(--k-293b49); }
-.sx-world .sx-tapes .sx-tapes-h { border-bottom: 1px dashed var(--k-293b49); }
-.sx-world .sx-tapes .sx-shelf, .sx-world .sx-tapes .sx-mus { flex: 1; min-height: 0; }
+.sx-tapes.sx-dock .sx-tapes-h { border-bottom: 1px dashed var(--k-293b49); }
+.sx-tapes.sx-dock .sx-shelf, .sx-tapes.sx-dock .sx-mus { flex: 1; min-height: 0; }
 .sx-tapes-f { display: flex; align-items: center; justify-content: space-between; flex: none; padding: 10px 14px 12px; border-top: 1px dashed var(--k-293b49); }
 .sx-screw { width: 9px; height: 9px; border-radius: 50%; background: var(--k-293b49); box-shadow: inset -2px -2px 0 var(--k-030710); }
 .sx-tapes .sx-ws-b.sx-tapes-save { height: 34px; padding: 0 18px 1px; }
@@ -779,7 +779,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 html[data-skin="mint"] { --deck: var(--k-77d6c1); }
 html[data-skin="coral"] { --deck: var(--k-ff6157); }
 html[data-skin="clear"] { --deck: var(--k-ffffe4); }
-html[data-skin="clear"] .sx-world .sx-tapes { background: rgb(var(--k-041528-rgb) / .55); backdrop-filter: blur(4px); border-color: rgb(var(--k-ffffe4-rgb) / .65); }
+html[data-skin="clear"] .sx-tapes.sx-dock { background: rgb(var(--k-041528-rgb) / .55); backdrop-filter: blur(4px); border-color: rgb(var(--k-ffffe4-rgb) / .65); }
 html[data-skin="clear"] .sx-tapes-grip { background: rgb(var(--k-ffffe4-rgb) / .18); color: var(--k-ffffe4); box-shadow: inset 0 -1px 0 rgb(var(--k-ffffe4-rgb) / .35); }
 html[data-skin="clear"] #app .sx-corner .sx-tk { background: rgb(var(--k-ffffe4-rgb) / .05); border-color: rgb(var(--k-ffffe4-rgb) / .75); backdrop-filter: blur(2px); }
 html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
@@ -830,7 +830,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 @media (prefers-reduced-motion: reduce) { .sx-grain, .sx-par { translate: none; transition: none; } }
 
 /* ---------- full-screen focus (js/view.js): only the clock ---------- */
-#app.sx-full .sx-world .sx-layer, #app.sx-full .sx-world .sx-flayer, #app.sx-full .sx-world .sx-strings, #app.sx-full .sx-world .sx-tapes, #app.sx-full .sx-selbox,
+#app.sx-full .sx-world .sx-layer, #app.sx-full .sx-world .sx-flayer, #app.sx-full .sx-world .sx-strings, #app.sx-full .sx-tapes.sx-dock, #app.sx-full .sx-selbox,
 #app.sx-full .sx-top, .sx-full-b .sx-help-b, .sx-full-b .sx-pen { opacity: 0 !important; pointer-events: none !important; transition: opacity .6s; }
 #app.sx-full .sx-ws { background-image: none; cursor: default; }
 #app.sx-full .sx-ws-bar { opacity: 0 !important; transition: opacity .5s; }
@@ -850,7 +850,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 #app :is(.sx-ws-bar, .sx-tray) .sx-ws-b { white-space: nowrap; } /* (labels stay on one line) */
 
 /* ---------- the mixtape manager (js/music.js) ---------- */
-.sx-world .sx-tapes { height: 640px; }
+.sx-tapes.sx-dock { height: 640px; }
 .sx-mixrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; padding: 8px 10px; border: 1px dashed var(--k-293b49); border-radius: 3px; }
 .sx-mix-l { font: 700 11px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--deck); }
 .sx-mixrow select { flex: 1; min-width: 120px; height: 28px; padding: 0 6px; background: var(--k-041528); border: 1px solid var(--k-293b49); color: var(--k-ffffe4); font: 600 14px var(--ui); }
@@ -1037,8 +1037,8 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-hop-msep { display: block; height: 1px; margin: 4px 6px; background: var(--k-293b49); }
 
 /* the cassette: two panels side by side, your music and the mixtape, each scrolling on its own */
-.sx-world .sx-tapes { width: 820px; height: 620px; }
-.sx-world .sx-tapes .sx-mus { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.15fr; gap: 0; padding: 0; overflow: hidden; }
+.sx-tapes.sx-dock { width: 820px; height: 620px; }
+.sx-tapes.sx-dock .sx-mus { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.15fr; gap: 0; padding: 0; overflow: hidden; }
 .sx-mcol { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 .sx-mcol + .sx-mcol { border-left: 1px solid var(--k-293b49); }
 .sx-mcol-h { display: flex; align-items: center; gap: 8px; flex: none; height: 46px; padding: 0 14px; border-bottom: 1px solid var(--k-0b1a2b); }
@@ -1256,5 +1256,10 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* ---------- the deck and the cassette are solid things on the desk: a solid outline in the key colour, and a deeper
    bottom edge underneath (like the keys' own), so they stand up off the board on either desk ---------- */
 #app .sx-world > .sx-corner { box-shadow: 0 0 0 30px var(--k-030710), 0 0 0 32.5px var(--deck), 0 10px 0 32.5px var(--under), 0 18px 26px 30px rgb(var(--shade) / .3); transition: box-shadow .8s; }
-.sx-world .sx-tapes { box-shadow: 0 8px 0 var(--under), 0 16px 22px rgb(var(--shade) / .3), inset 0 0 0 4px var(--k-030710); }
-.sx-world .sx-tapes.lift { box-shadow: 0 12px 0 var(--under), 0 22px 28px rgb(var(--shade) / .3), inset 0 0 0 4px var(--k-030710); }
+.sx-tapes.sx-dock { box-shadow: 0 8px 0 var(--under), 0 16px 22px rgb(var(--shade) / .3), inset 0 0 0 4px var(--k-030710); }
+.sx-tapes.sx-dock.lift { box-shadow: 0 12px 0 var(--under), 0 22px 28px rgb(var(--shade) / .3), inset 0 0 0 4px var(--k-030710); }
+
+/* ---------- the cassette panel: a panel under the keys at the top left (js/music.js), no longer on the desk ---------- */
+.sx-tapes.sx-dock { position: fixed; left: max(16px, env(safe-area-inset-left)); top: 62px; right: auto; z-index: 8; width: min(820px, calc(100vw - 32px)); height: min(620px, calc(100vh - 150px)); }
+.sx-tapes.sx-dock .sx-tapes-grip { cursor: default; }
+body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focus is only the clock) */

@@ -166,29 +166,16 @@ async function libLengths() { // tracks from before lengths were kept: measure t
 
 /* ---------- the cassette: your music and the mixtape, side by side ---------- */
 const tapesMusic = el('div', { class: 'sx-mus' });
-const tapesGrip = el('div', { class: 'sx-tapes-grip', title: 'Drag to move the cassette' }, el('i', { class: 'sx-hole' }), el('span', {}, 'Cassette'), el('i', { class: 'sx-hole' }));
+const tapesGrip = el('div', { class: 'sx-tapes-grip' }, el('i', { class: 'sx-hole' }), el('span', {}, 'Cassette'), el('i', { class: 'sx-hole' }));
 const tapesSave = el('button', { type: 'button', class: 'sx-ws-b sx-tapes-save', title: 'Save cassette and put it away (T or Esc)', onclick: () => tapesOpen(null) }, 'Save cassette');
-const tapesDrawer = el('div', { class: 'sx-tapes', role: 'dialog', 'aria-label': 'Tapes', hidden: true },
+const tapesDrawer = el('div', { class: 'sx-tapes sx-dock', role: 'dialog', 'aria-label': 'Tapes', hidden: true },
   tapesGrip, tapesMusic, el('div', { class: 'sx-tapes-f' }, el('i', { class: 'sx-screw' }), tapesSave, el('i', { class: 'sx-screw' })));
-world.append(tapesDrawer); // it lives on the desk, next to the clock, and moves and zooms with it
-// where it sits on the desk (remembered); dragged by its top
-M.panel = M.panel && isFinite(M.panel.x) ? M.panel : null;
-function tapesPlace() { const p = M.panel || { x: Math.round(corner.offsetWidth / 2 + 90), y: -280 }; tapesDrawer.style.left = p.x + 'px'; tapesDrawer.style.top = p.y + 'px'; }
-tapesGrip.addEventListener('pointerdown', e => {
-  if (e.button !== 0) return; e.preventDefault(); e.stopPropagation(); tapesGrip.setPointerCapture(e.pointerId);
-  const s = { x: e.clientX, y: e.clientY, l: tapesDrawer.offsetLeft, t: tapesDrawer.offsetTop }; tapesDrawer.classList.add('lift'); deskSfx('pick');
-  const move = ev => { M.panel = { x: Math.round(s.l + (ev.clientX - s.x) / cam.z), y: Math.round(s.t + (ev.clientY - s.y) / cam.z) }; tapesPlace(); };
-  const end = () => { tapesGrip.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => tapesGrip.removeEventListener(k, end)); tapesDrawer.classList.remove('lift'); deskSfx('drop'); save(); };
-  tapesGrip.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => tapesGrip.addEventListener(k, end));
-});
-tapesPlace();
+document.body.append(tapesDrawer); // a panel under the keys at the top left (it used to sit on the desk)
+delete M.panel; // (where it sat on the desk, from then)
 function tapesOpen(k) {
   if (k == null || (!tapesDrawer.hidden && k === true)) { if (!tapesDrawer.hidden) { tapesDrawer.hidden = true; tapesB.classList.remove('on'); save(); deskSfx('drop'); if (typeof tapeSound === 'function') tapeSound(); } return; } // Save cassette: everything is already kept; it just goes away
-  const was = tapesDrawer.hidden; tapesDrawer.hidden = false; tapesB.classList.add('on'); tapesPlace();
-  if (was) { deskSfx('pick'); // if it's off screen, frame the clock and the cassette together
-    const v = view(), cw = corner.offsetWidth / 2, ch = corner.offsetHeight / 2, L = tapesDrawer.offsetLeft, T = tapesDrawer.offsetTop, R = L + tapesDrawer.offsetWidth, Bt = T + tapesDrawer.offsetHeight;
-    const inView = (L - cam.x) * cam.z > -v.w / 2 && (R - cam.x) * cam.z < v.w / 2 && (T - cam.y) * cam.z > -v.h / 2 + 50 && (Bt - cam.y) * cam.z < v.h / 2 - 80;
-    if (!inView) { const x0 = Math.min(-cw, L), x1 = Math.max(cw, R), y0 = Math.min(-ch, T), y1 = Math.max(ch, Bt); glideTo((x0 + x1) / 2, (y0 + y1) / 2 + 20, Math.max(.35, Math.min(1, (v.w - 80) / (x1 - x0), (v.h - 200) / (y1 - y0)))); } }
+  const was = tapesDrawer.hidden; tapesDrawer.hidden = false; tapesB.classList.add('on');
+  if (was) { deskSfx('pick'); if (typeof memClose === 'function') memClose(); }
   musicDraw();
 }
 const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Your music and mixtapes (T)');
