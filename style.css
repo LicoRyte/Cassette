@@ -934,7 +934,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* lots of paper on the desk: each card lays itself out on its own, and the one you carry gets its own layer, so moving it
    doesn't make the browser repaint everything under it */
 .sx-world .sx-bcard { contain: layout style; }
-.sx-world .sx-bcard.lift, .sx-world .sx-bcard.swinging { will-change: transform; }
+.sx-world .sx-bcard.lift, .sx-world .sx-bcard.swinging, .sx-world .sx-bcard.carry { will-change: transform, translate, rotate; }
 .sx-grain, .sx-par { will-change: translate; }
 
 /* long notes: the values that change while a card moves belong to the card alone, so the words inside it aren't restyled
