@@ -1375,3 +1375,15 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 @keyframes sx-tbl-pop { from { transform: scale(0); } }
 @keyframes sx-tbl-fade { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .sx-tbl-anim * { animation: none !important; } }
+
+/* which columns a graph shows: chips above it (a pie shows one) */
+.sx-tbl-pick { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 6px; }
+.sx-tbl-pick button { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 7px; background: none; border: 1.5px solid rgba(52, 17, 31, .22); border-radius: 12px; color: rgba(52, 17, 31, .5); font: 600 12px var(--ui); letter-spacing: .02em; cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
+.sx-tbl-pick button i { width: 9px; height: 9px; border-radius: 50%; opacity: .35; transition: opacity .15s, scale .2s cubic-bezier(.3, 1.8, .5, 1); }
+.sx-tbl-pick button:hover { color: #34111f; border-color: rgba(52, 17, 31, .45); }
+.sx-tbl-pick button.on { color: #34111f; border-color: rgba(52, 17, 31, .55); background: rgba(52, 17, 31, .06); }
+.sx-tbl-pick button.on i { opacity: 1; scale: 1.15; }
+.sx-tbl-pick button:not(.on) { text-decoration: line-through; text-decoration-color: rgba(52, 17, 31, .35); }
+.sx-tbl-pick.one button:not(.on) { text-decoration: none; }
+.sx-tbl-pick.one button i { display: none; }
+.sx-tbl-pick.one button.on { color: #1c92a7; border-color: #1c92a7; background: rgba(28, 146, 167, .1); }

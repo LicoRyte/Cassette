@@ -3,7 +3,7 @@
    table's cell to write in it; Tab and Enter move on (and make a new row at the end), the arrows move around, and cells
    copied from a spreadsheet paste in from where you are. The bar along the bottom adds and removes rows and columns,
    sorts, and adds a total. Graphs grow in when you switch to them: bars rise one after another, a line draws itself,
-   a pie sweeps round. Every column with numbers in it is a series; a pie shows the first one. */
+   a pie sweeps round. Every column with numbers in it can be on the graph: the chips above it pick which (a pie shows one). */
 'use strict';
 
 // series colours: palette colours that read on cream paper
@@ -29,7 +29,8 @@ function tblFix(it) { // always a rectangle of strings, at least a header and on
   if (!TBL_VIEWS.some(v => v[0] === it.view)) it.view = 'table';
   it.w = Math.max(240, Math.min(1400, +it.w || 360));
 }
-function tblClean(it) { const o = { rows: it.rows, view: it.view, w: it.w, total: it.total === true }; tblFix(o); if (!o.total) delete o.total; return o; } // (for backups, js/export.js)
+function tblClean(it) { const o = { rows: it.rows, view: it.view, w: it.w, total: it.total === true }; tblFix(o); if (!o.total) delete o.total;
+  const col = j => Number.isInteger(j) && j >= 0 && j < 26; if (Array.isArray(it.hide)) { const h = it.hide.filter(col).slice(0, 26); if (h.length) o.hide = h; } if (col(it.pie)) o.pie = it.pie; return o; } // (for backups, js/export.js)
 const tblNumCols = it => it.rows[0].map((_, j) => it.rows.slice(1).some(r => tblNum(r[j]) !== null));
 
 /* ---------- the card ---------- */
@@ -113,9 +114,9 @@ function tblPaste(e, it) {
 const tblOf = () => { const it = selId && itemOf(selId); return it && it.type === 'tbl' ? it : null; };
 const tblAt = it => tblCur && tblCur.id === it.id ? tblCur : null;
 function tblAddRow(it, after) { deskMark(); const r = after == null ? it.rows.length - 1 : after; it.rows.splice(r + 1, 0, Array(it.rows[0].length).fill('')); save(); tblRedraw(it); }
-function tblAddCol(it, after) { if (it.rows[0].length >= 26) return; deskMark(); const c = after == null ? it.rows[0].length - 1 : after; it.rows.forEach((r, i) => r.splice(c + 1, 0, i ? '' : 'Column ' + (it.rows[0].length + 1))); save(); tblRedraw(it); }
+function tblAddCol(it, after) { if (it.rows[0].length >= 26) return; deskMark(); const c = after == null ? it.rows[0].length - 1 : after; it.rows.forEach((r, i) => r.splice(c + 1, 0, i ? '' : 'Column ' + (it.rows[0].length + 1))); tblShift(it, c, 1); save(); tblRedraw(it); }
 function tblDelRow(it, r) { if (it.rows.length <= 2) return; if (r == null || r < 1) r = it.rows.length - 1; deskMark(); it.rows.splice(r, 1); save(); tblRedraw(it); tblCur = null; }
-function tblDelCol(it, c) { if (it.rows[0].length <= 1) return; if (c == null) c = it.rows[0].length - 1; deskMark(); it.rows.forEach(r => r.splice(c, 1)); save(); tblRedraw(it); tblCur = null; }
+function tblDelCol(it, c) { if (it.rows[0].length <= 1) return; if (c == null) c = it.rows[0].length - 1; deskMark(); it.rows.forEach(r => r.splice(c, 1)); tblShift(it, c, -1); save(); tblRedraw(it); tblCur = null; }
 function tblSort(it, c) { // by the column you're in (or the first with numbers): high to low, then low to high
   if (c == null) { const n = tblNumCols(it).indexOf(true); c = n < 0 ? 0 : n; }
   const body = it.rows.slice(1), key = r => tblNum(r[c]) ?? String(r[c]).toLowerCase();
@@ -150,8 +151,8 @@ noteBarTo = function (id) { noteBarToT(id); tblBarTo(id); };
 function tblSeries(it) {
   const R = it.rows, body = R.slice(1), labels = body.map((r, i) => String(r[0] || '').trim() || '#' + (i + 1)), series = [];
   for (let j = 1; j < R[0].length; j++) { const v = body.map(r => tblNum(r[j]));
-    if (v.some(x => x !== null)) series.push({ name: String(R[0][j] || '').trim() || 'Column ' + (j + 1), vals: v.map(x => x ?? 0), col: TBL_INK[series.length % TBL_INK.length] }); }
-  if (!series.length && body.some(r => tblNum(r[0]) !== null)) return { labels: body.map((_, i) => '#' + (i + 1)), series: [{ name: String(R[0][0] || 'Values'), vals: body.map(r => tblNum(r[0]) ?? 0), col: TBL_INK[0] }] };
+    if (v.some(x => x !== null)) series.push({ j, name: String(R[0][j] || '').trim() || 'Column ' + (j + 1), vals: v.map(x => x ?? 0), col: TBL_INK[series.length % TBL_INK.length] }); }
+  if (!series.length && body.some(r => tblNum(r[0]) !== null)) return { labels: body.map((_, i) => '#' + (i + 1)), series: [{ j: 0, name: String(R[0][0] || 'Values'), vals: body.map(r => tblNum(r[0]) ?? 0), col: TBL_INK[0] }] };
   return { labels, series };
 }
 function tblTicks(lo, hi) { // round steps for the side of the graph
@@ -161,15 +162,33 @@ function tblTicks(lo, hi) { // round steps for the side of the graph
   return out;
 }
 const tblCut = (s, n) => s.length > n ? s.slice(0, Math.max(1, n - 1)) + '…' : s;
+// which columns a graph shows: chips above it, one per column with numbers (Bars and Line: any of them; Pie: one)
+const tblPieCol = (it, all) => all.some(s => s.j === it.pie) ? it.pie : all[0].j;
+function tblPick(it, j, all) {
+  if (it.view === 'pie') { if (tblPieCol(it, all) === j) return; deskMark(); it.pie = j; }
+  else { const hide = new Set(it.hide || []); if (!hide.has(j) && all.filter(s => !hide.has(s.j)).length <= 1) { deskToast('One column at least stays on the graph'); return; }
+    deskMark(); if (hide.has(j)) hide.delete(j); else hide.add(j); it.hide = [...hide].sort((a, b) => a - b); if (!it.hide.length) delete it.hide; }
+  save(); tblRedraw(it, true); deskSfx('pick');
+}
+function tblShift(it, at, d) { // a column added (d 1, after at) or taken away (d -1, at): the picks follow their columns
+  const f = j => d > 0 ? (j > at ? j + 1 : j) : (j === at ? null : j > at ? j - 1 : j);
+  if (it.hide) { it.hide = it.hide.map(f).filter(j => j != null); if (!it.hide.length) delete it.hide; }
+  if (it.pie != null) { const p = f(it.pie); if (p == null) delete it.pie; else it.pie = p; }
+}
 function tblChart(it) {
-  const { labels, series } = tblSeries(it), wrap = el('div', { class: 'sx-tbl-g' + (tblAnim.has(it.id) ? ' sx-tbl-anim' : '') }); tblAnim.delete(it.id);
-  if (!series.length || !labels.length) { wrap.append(el('p', { class: 'sx-tbl-empty' }, 'Put some numbers in the table and they show here.')); return wrap; }
-  const W = 400, svg = it.view === 'pie' ? tblPie(it, labels, series[0], W) : tblAxes(it.view, labels, series, W);
-  wrap.innerHTML = svg;
-  const keys = it.view === 'pie' ? labels.map((l, i) => [l, TBL_INK[i % TBL_INK.length]]) : series.length > 1 ? series.map(s => [s.name, s.col]) : [];
+  const { labels, series: all } = tblSeries(it), wrap = el('div', { class: 'sx-tbl-g' + (tblAnim.has(it.id) ? ' sx-tbl-anim' : '') }); tblAnim.delete(it.id);
+  if (!all.length || !labels.length) { wrap.append(el('p', { class: 'sx-tbl-empty' }, 'Put some numbers in the table and they show here.')); return wrap; }
+  const pie = it.view === 'pie', hide = new Set(it.hide || []), pj = tblPieCol(it, all);
+  let series = pie ? all.filter(s => s.j === pj) : all.filter(s => !hide.has(s.j)); if (!series.length) series = [all[0]];
+  if (all.length > 1) wrap.append(el('div', { class: 'sx-tbl-pick' + (pie ? ' one' : ''), role: 'group', 'aria-label': pie ? 'Which column the pie shows' : 'Which columns the graph shows' },
+    ...all.map(s => { const on = series.includes(s);
+      return el('button', { type: 'button', class: on ? 'on' : null, 'aria-pressed': String(on), title: pie ? 'Show ' + s.name + ' as the pie' : (on ? 'Take ' + s.name + ' off the graph' : 'Put ' + s.name + ' on the graph'),
+        onclick: e => { e.stopPropagation(); tblPick(it, s.j, all); } }, el('i', { style: pie ? null : 'background:' + s.col }), s.name); })));
+  const W = 400, box = el('div'); box.innerHTML = pie ? tblPie(it, labels, series[0], W) : tblAxes(it.view, labels, series, W); wrap.append(...box.childNodes);
+  const keys = pie ? labels.map((l, i) => [l, TBL_INK[i % TBL_INK.length]]) : [];
   if (it.view === 'pie') { const tot = series[0].vals.reduce((a, v) => a + Math.max(0, v), 0); keys.forEach((k, i) => { const v = Math.max(0, series[0].vals[i]); k[0] += ' · ' + (tot ? Math.round(v / tot * 100) : 0) + '%'; }); }
   if (keys.length) wrap.append(el('div', { class: 'sx-tbl-key' }, ...keys.filter((k, i) => it.view !== 'pie' || series[0].vals[i] > 0).map(([n, col], i) => el('span', { style: '--d:' + i }, el('i', { style: 'background:' + col }), n))));
-  else wrap.append(el('div', { class: 'sx-tbl-key one' }, series[0].name));
+  else if (all.length === 1) wrap.append(el('div', { class: 'sx-tbl-key one' }, series[0].name));
   return wrap;
 }
 function tblAxes(kind, labels, series, W) {
