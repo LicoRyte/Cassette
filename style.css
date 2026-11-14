@@ -1415,10 +1415,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-room-live i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: sx-breathe 2.4s ease-in-out infinite; }
 .sx-room-note { margin: 14px 14px 14px !important; font-size: 13px; line-height: 1.45; }
 #app.paged ~ .sx-room { display: none; }
-#app .sx-ws-ctx > .sx-room-send { justify-content: center; flex-wrap: wrap; }
-#app .sx-ws-ctx > :not([hidden]) ~ .sx-room-send:not([hidden]) { padding-top: 8px; border-top: 1px solid var(--k-293b49); }
-#app .sx-ws-ctx .sx-room-send .sx-ws-b { display: inline-flex; align-items: center; gap: 7px; text-transform: none; letter-spacing: .04em; font-size: 13px; color: var(--k-77d6c1); }
-#app .sx-ws-ctx .sx-room-send .sx-ws-n { color: var(--k-6d8a8d); }
 .sx-world .sx-bcard > .sx-from { position: absolute; right: 8px; bottom: -11px; z-index: 4; height: 20px; padding: 0 8px; background: #34111f; border: 0; border-radius: 10px; color: #ffffe4; font: 600 11px/20px var(--ui); letter-spacing: .06em; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 0 rgba(3, 7, 16, .35); rotate: -2deg; }
 .sx-world .sx-bcard > .sx-from:hover { background: #d1401f; }
 .sx-world .sx-bcard > .sx-from:hover::after { content: ' \00d7'; }
@@ -1429,3 +1425,51 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-room-st { margin-top: 12px !important; margin-bottom: 0; padding: 8px 10px; border-left: 3px solid var(--k-6d8a8d); background: rgb(var(--k-293b49-rgb) / .25); font: 13px/1.45 var(--ui); color: var(--k-bfc3c6); }
 .sx-room-st.ok { border-color: var(--k-77d6c1); }
 .sx-room-st.bad { border-color: var(--k-ff6157); color: var(--k-ffffe4); }
+
+/* Send to: just above the bar along the bottom, at its left, as plain names (no frames); alone, the bar itself goes */
+#app .sx-ws-ctx > .sx-room-send { position: absolute; left: 2px; bottom: calc(100% + 8px); display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; padding: 0; border: 0; }
+#app .sx-ws-ctx:not(:has(> :not([hidden]):not(.sx-room-send))) { padding: 0; background: none; border: 0; box-shadow: none; }
+#app .sx-ws-ctx:not(:has(> :not([hidden]):not(.sx-room-send))) > .sx-room-send { position: static; }
+#app .sx-ws-ctx .sx-room-send .sx-ws-n { font: 700 11px var(--ui); letter-spacing: .16em; text-transform: uppercase; color: var(--k-6d8a8d); }
+#app .sx-ws-ctx .sx-room-send .sx-ws-b { display: inline-flex; align-items: center; gap: 7px; height: auto; padding: 2px 0; background: none; border: 0; border-radius: 0; box-shadow: none; transform: none; color: var(--k-77d6c1); font: 700 16px var(--ui); letter-spacing: .03em; text-transform: none; text-underline-offset: 4px; }
+#app .sx-ws-ctx .sx-room-send .sx-ws-b:hover:not(:disabled) { background: none; text-decoration: underline; text-decoration-thickness: 2px; }
+#app .sx-ws-ctx .sx-room-send .sx-ws-b:active:not(:disabled) { transform: translateY(1px); background: none; }
+#app .sx-ws-ctx .sx-room-send .sx-ws-b:disabled { color: var(--k-6d8a8d); box-shadow: none; opacity: .6; }
+
+/* the message box in the room panel: who to, then the words */
+.sx-room-to { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-bottom: 8px; }
+.sx-room-to button { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; background: none; border: 1px solid var(--k-293b49); border-radius: 13px; color: var(--k-bfc3c6); font: 600 13px var(--ui); cursor: pointer; }
+.sx-room-to button:hover { border-color: var(--deck); color: var(--k-ffffe4); }
+.sx-room-to button.on { border-color: var(--deck); background: color-mix(in srgb, var(--deck) 16%, transparent); color: var(--k-ffffe4); }
+.sx-room-to .sx-room-dot { width: 8px; height: 8px; }
+
+/* messages: they slide in at the top right; the newest on top, the others move down to make room */
+.sx-msgs { position: fixed; top: 58px; right: max(16px, env(safe-area-inset-right)); z-index: 70; display: flex; flex-direction: column; align-items: flex-end; width: min(320px, calc(100vw - 32px)); pointer-events: none; }
+.sx-msg { display: grid; grid-template-rows: 0fr; width: 100%; opacity: 0; translate: 110% 0; transition: grid-template-rows .32s cubic-bezier(.3, .9, .3, 1), translate .42s cubic-bezier(.2, 1.15, .4, 1), opacity .3s; pointer-events: auto; cursor: pointer; }
+.sx-msg.on { grid-template-rows: 1fr; opacity: 1; translate: 0 0; }
+.sx-msg.out { grid-template-rows: 0fr; opacity: 0; translate: 40% 0; transition-duration: .35s, .35s, .25s; }
+.sx-msg-in { min-height: 0; overflow: hidden; }
+.sx-msg-in { margin-bottom: 0; }
+.sx-msg.on .sx-msg-in { margin-bottom: 8px; }
+.sx-msg-in { padding: 0 12px; background: var(--k-030710); border: 1px solid var(--k-293b49); border-left: 3px solid var(--k-77d6c1); box-shadow: 0 8px 22px rgb(var(--shade) / .35); transition: margin .32s; }
+.sx-msg.on .sx-msg-in { padding: 9px 12px 10px; }
+.sx-msg.mine .sx-msg-in { border-left-color: var(--k-6d8a8d); opacity: .85; }
+.sx-msg-h { display: flex; align-items: center; gap: 7px; font: 11px var(--ui); letter-spacing: .06em; color: var(--k-6d8a8d); }
+.sx-msg-h b { font: 700 13px var(--ui); letter-spacing: .03em; color: var(--k-ffffe4); }
+.sx-msg p { margin: 4px 0 0; font: 15px/1.4 var(--ui); color: var(--k-ffffe4); overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .sx-msg, .sx-msg.out { translate: none; transition: opacity .2s; } }
+
+/* messages as chat bubbles: a friend's on the left of the stack with its tail at the bottom left, yours on the right
+   in the key colour with its tail at the bottom right; the name sits above, on the desk */
+.sx-msg-in, .sx-msg.on .sx-msg-in { display: flex; flex-direction: column; align-items: flex-start; padding: 0; background: none; border: 0; box-shadow: none; opacity: 1; }
+.sx-msg.mine .sx-msg-in { align-items: flex-end; opacity: 1; }
+.sx-msg-h { padding: 0 8px 4px; text-shadow: 0 1px 3px rgb(var(--shade) / .7); }
+.sx-msg .sx-msg-b { position: relative; max-width: 88%; margin: 0 0 0 6px; padding: 8px 14px 9px; border-radius: 18px 18px 18px 5px; background: var(--k-ffffe4); color: var(--k-030710); font: 500 15px/1.4 var(--ui); box-shadow: 0 6px 16px rgb(var(--shade) / .35); }
+.sx-msg .sx-msg-b::before { content: ''; position: absolute; left: -6px; bottom: 0; width: 12px; height: 12px; background: inherit; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.sx-msg.mine .sx-msg-b { margin: 0 6px 0 0; border-radius: 18px 18px 5px 18px; background: var(--deck); color: var(--k-030710); }
+.sx-msg.mine .sx-msg-b::before { left: auto; right: -6px; clip-path: polygon(0 0, 100% 100%, 0 100%); }
+.sx-msg:hover .sx-msg-b { filter: brightness(1.05); }
+/* every bubble sits on the right (the colour tells yours from a friend's): tails at the bottom right */
+.sx-msg-in, .sx-msg.on .sx-msg-in { align-items: flex-end; }
+.sx-msg .sx-msg-b { margin: 0 6px 0 0; border-radius: 18px 18px 5px 18px; }
+.sx-msg .sx-msg-b::before { left: auto; right: -6px; clip-path: polygon(0 0, 100% 100%, 0 100%); }

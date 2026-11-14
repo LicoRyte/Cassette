@@ -1,6 +1,6 @@
 /* Cassette Timer offline support. Every file is fetched fresh when online (so updates show up on the next reload)
    and saved, so the app also works offline. VERSION only needs bumping when this list of files changes. */
-const VERSION = 'cassette-102';
+const VERSION = 'cassette-105';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest', 'CREDITS.md',
   'js/app.js', 'js/state.js', 'js/screen.js', 'js/digits.js', 'js/feel.js', 'js/notes.js', 'js/typing.js', 'js/draw.js', 'js/desk.js', 'js/whiteboard.js', 'js/table.js', 'js/hopper.js', 'js/export.js', 'js/clock.js', 'js/tape.js', 'js/music.js', 'js/log.js', 'js/look.js', 'js/view.js', 'js/find.js', 'js/room.js', 'js/vendor/trystero/torrent.js', 'js/vendor/trystero/strategy.js', 'js/vendor/trystero/room.js', 'js/vendor/trystero/peer.js', 'js/vendor/trystero/crypto.js', 'js/vendor/trystero/utils.js', 'js/help.js', 'js/lively.js', 'js/start.js',
