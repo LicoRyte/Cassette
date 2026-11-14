@@ -6,7 +6,7 @@
 'use strict';
 
 // paper colours from the palette: [key, paper, ink]
-const NOTE_COLORS = [['yellow', '#ffd832', '#34111f'], ['cream', '#ffffe4', '#293b49'], ['peach', '#ffdaac', '#34111f'], ['amber', '#ffb762', '#34111f'],
+const NOTE_COLORS = [['yellow', '#ffd832', '#34111f'], ['cream', '#fcfcf9', '#293b49'], ['peach', '#ffdaac', '#34111f'], ['amber', '#ffb762', '#34111f'],
   ['coral', '#ff6157', '#34111f'], ['mint', '#77d6c1', '#041528'], ['green', '#9cb93b', '#041528'], ['slate', '#293b49', '#ffffe4']];
 const noteColor = it => NOTE_COLORS.find(c => c[0] === it.color) || NOTE_COLORS[0];
 function noteStyle(it) {
