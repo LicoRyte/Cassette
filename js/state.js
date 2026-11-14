@@ -51,4 +51,4 @@ function finish(quiet) {
   }
   persistRun(); draw();
 }
-document.documentElement.dataset.desk = S.opts && S.opts.desk === 'white' ? 'white' : 'night'; // (set early, so a white desk doesn't flash dark while loading; js/look.js)
+document.documentElement.dataset.desk = S.opts && S.opts.desk === 'night' ? 'night' : 'white'; // (set early, so the desk doesn't flash the wrong colour while loading; white unless you chose dark; js/look.js)

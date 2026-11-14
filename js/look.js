@@ -15,7 +15,7 @@ skinSet(S.opts.skin || 'amber');
 
 // the desk: dark (night) or white; on white, the deck, the bars and the panels turn cream and ink to match
 function deskTheme(k) {
-  k = k === 'white' ? 'white' : 'night'; S.opts.desk = k; document.documentElement.dataset.desk = k; save();
+  k = k === 'night' ? 'night' : 'white'; S.opts.desk = k; document.documentElement.dataset.desk = k; save();
   deskRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === k));
 }
 const deskRow = el('div', { class: 'sx-skins sx-desks', role: 'radiogroup', 'aria-label': 'Desk' }, ...[['night', 'Dark', '#030710'], ['white', 'White', '#f4f6f1']].map(([k, name, col]) =>
