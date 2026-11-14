@@ -28,17 +28,48 @@ function roomNorm(s) { // however it's typed or pasted (spaces, no dashes, small
   return t.length === 12 && [...t].every(ch => ROOM_ABC.includes(ch)) ? 'TAPE-' + t.match(/.{4}/g).join('-') : ''; }
 const roomHello = () => ({ id: ROOM.me, name: (ROOM.name || '').trim().slice(0, 24) || 'A friend' });
 
+/* ---------- how the connecting is going (shown in the panel, so a room that stays empty says why) ---------- */
+// every direct connection the room parts open goes through this: "connecting" means a friend's browser was found and
+// answered, "connected" that it worked, "failed" that your two networks wouldn't let the browsers reach each other
+let roomLib = null, roomWatchT = 0;
+const roomDiag = { at: 0, found: 0, ok: 0, failed: 0, insecure: false };
+const RoomPC = typeof RTCPeerConnection === 'function' ? class extends RTCPeerConnection {
+  constructor(c) { super(c); let seen = false;
+    this.addEventListener('connectionstatechange', () => { const s = this.connectionState;
+      if (s === 'connecting' && !seen) { seen = true; roomDiag.found++; } else if (s === 'connected') roomDiag.ok++; else if (s === 'failed') roomDiag.failed++; else return;
+      roomDraw(); }); }
+} : undefined;
+function roomTrackers() { // how many of the trackers answered: [open, all]
+  try { const ss = Object.values(roomLib.getRelaySockets()); return [ss.filter(s => s && s.readyState === 1).length, ss.length]; } catch (e) { return [0, 0]; }
+}
+function roomWatch() { clearTimeout(roomWatchT); if (!room) return; if (!roomPanel.hidden) roomDraw(); roomWatchT = setTimeout(roomWatch, 2000); }
+function roomStatus() { // one line of how it's going, and what to try
+  if (roomDiag.insecure) return ['bad', 'This page is ' + location.origin + ', a plain http:// address, so the browser turns off the encryption rooms need. Open the app from https:// or from localhost on each computer.'];
+  if (!room) return null;
+  const [open, all] = roomTrackers(), secs = (Date.now() - roomDiag.at) / 1000, n = roomOnline().length;
+  const line = 'Trackers ' + open + ' of ' + all + ' · found ' + roomDiag.found + ' · connected ' + roomDiag.ok + (roomDiag.failed ? ' · failed ' + roomDiag.failed : '');
+  if (n) return ['ok', line];
+  if (!open && secs > 8) return ['bad', line + '. Can\'t reach any tracker: you may be offline, or this network blocks them (try another Wi-Fi or a phone hotspot).'];
+  if (roomDiag.failed && !roomDiag.ok) return ['bad', line + '. A friend\'s browser was found, but your two networks wouldn\'t let them connect directly. This happens on some school, office and mobile networks: try both on the same Wi-Fi, or another network.'];
+  if (roomDiag.found > roomDiag.ok + roomDiag.failed) return ['wait', line + '. Found someone, connecting...'];
+  if (secs > 25) return ['wait', line + '. Nobody found with this code yet. Check you both have the same code, and the same version (' + APP_VERSION + ' here, at the bottom of Settings).'];
+  return ['wait', line + '. Looking for friends with this code...'];
+}
+
 /* ---------- joining and leaving ---------- */
 async function roomJoin(code) {
   code = roomNorm(code); if (!code) { deskToast('That room code doesn\'t look right (it\'s like TAPE-K7Q2-MX4R-9WPD)'); return; }
   if (!(ROOM.name || '').trim()) { deskToast('Give yourself a name first, so friends know who you are'); roomDraw(true); return; }
+  if (!window.isSecureContext || !(window.crypto && crypto.subtle)) { // (the browser turns off the encryption rooms use on a plain http:// page)
+    roomDiag.insecure = true; roomOpen(); roomDraw(); deskToast('Rooms need the app opened from https:// or localhost'); return; }
   if (roomBusy) return; roomLeave(true); roomBusy = true; roomDraw();
   let lib; try { lib = await import(new URL('js/vendor/trystero/torrent.js', document.baseURI).href); }
   catch (e) { roomBusy = false; roomDraw(); deskToast('Could not load the room parts'); return; }
-  const relayUrls = ['wss://tracker.webtorrent.dev', 'wss://tracker.openwebtorrent.com', 'wss://tracker.files.fm:7073/announce']; // (the trackers that answer; one of the library's own is gone)
-  try { room = lib.joinRoom({ appId: 'cassette-timer-rooms', password: code, relayUrls }, code); }
+  roomLib = lib; Object.assign(roomDiag, { at: Date.now(), found: 0, ok: 0, failed: 0, insecure: false });
+  const relayUrls = ['wss://tracker.webtorrent.dev', 'wss://tracker.openwebtorrent.com']; // (the trackers that answer; two of the library's own don't, Nov 2026)
+  try { room = lib.joinRoom({ appId: 'cassette-timer-rooms', password: code, relayUrls, rtcPolyfill: RoomPC }, code); }
   catch (e) { roomBusy = false; room = null; roomDraw(); deskToast('Could not open the room (are you online?)'); return; }
-  roomBusy = false; roomCode = code; ROOM.last = code; save();
+  roomBusy = false; roomCode = code; ROOM.last = code; save(); roomWatch();
   const [say, hear] = room.makeAction('hi'), [send, get] = room.makeAction('card');
   roomSay = say; roomCard = send;
   room.onPeerJoin(pid => say(roomHello(), pid));
@@ -52,7 +83,7 @@ async function roomJoin(code) {
 }
 function roomLeave(quiet) {
   if (!room) return; try { room.leave(); } catch (e) { /* already gone */ }
-  room = null; roomCode = ''; roomSay = roomCard = null; roomPeers.clear(); roomDraw(); roomSendState(); if (!quiet) deskToast('You left the room');
+  clearTimeout(roomWatchT); room = null; roomCode = ''; roomSay = roomCard = null; roomPeers.clear(); roomDraw(); roomSendState(); if (!quiet) deskToast('You left the room');
 }
 addEventListener('pagehide', () => roomLeave(true));
 
@@ -143,6 +174,7 @@ function roomDraw(focusName) {
   let nameT = 0; name.addEventListener('input', () => { ROOM.name = name.value.slice(0, 24); save(); clearTimeout(nameT); nameT = setTimeout(() => { if (roomSay) roomSay(roomHello()); }, 600); });
   const parts = [el('div', { class: 'sx-mem-top' }, el('h3', {}, 'Room'), el('span', { class: 'sx-gap' }), room ? el('span', { class: 'sx-room-live' }, el('i', {}), 'Online') : null),
     el('label', { class: 'sx-room-row' }, el('span', {}, 'You are'), name)];
+  const st = roomStatus(); if (st) parts.push(el('p', { class: 'sx-room-st ' + st[0], role: 'status' }, st[1]));
   if (!room) {
     const code = el('input', { class: 'sx-room-i sx-room-code-i', type: 'text', maxlength: 30, placeholder: 'TAPE-K7Q2-MX4R-9WPD', value: roomNorm(ROOM.last) || '', 'aria-label': 'Room code', spellcheck: 'false' });
     code.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); roomJoin(code.value); } });

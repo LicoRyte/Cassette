@@ -1425,3 +1425,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* the panels under the top-left keys (Remembered, Room) open beside the left column, not over it */
 .sx-mem { left: calc(max(16px, env(safe-area-inset-left)) + 66px); }
 @media (max-width: 520px) { .sx-mem { left: max(16px, env(safe-area-inset-left)); } }
+/* how the room connecting is going (js/room.js): grey while looking, mint once a friend is here, coral when something blocks it */
+.sx-room-st { margin-top: 12px !important; margin-bottom: 0; padding: 8px 10px; border-left: 3px solid var(--k-6d8a8d); background: rgb(var(--k-293b49-rgb) / .25); font: 13px/1.45 var(--ui); color: var(--k-bfc3c6); }
+.sx-room-st.ok { border-color: var(--k-77d6c1); }
+.sx-room-st.bad { border-color: var(--k-ff6157); color: var(--k-ffffe4); }
