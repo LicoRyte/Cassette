@@ -469,13 +469,16 @@ function deskEditAt(txt, x, y) {
   const t = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t');
   if (e.target.closest('.sx-bcard') && (!t || document.activeElement !== t)) e.preventDefault();
 }));
-ws.addEventListener('contextmenu', e => { if (!e.target.isContentEditable) e.preventDefault(); }); // the right button pans
+// the right button pans, over anything on the desk; only while you're writing in something does it bring up the usual menu there (copy, paste)
+const writingIn = t => { const a = document.activeElement; return !!(a && a.isContentEditable && t && a.contains(t)); };
+let panMovedAt = 0;
+ws.addEventListener('contextmenu', e => { if (!writingIn(e.target) || performance.now() - panMovedAt < 400) e.preventDefault(); });
 const centreOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + c.offsetHeight / 2 } : null; };
 function deskPan(e) {
   const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; let moved = false;
   e.preventDefault(); ws.setPointerCapture(e.pointerId); ws.classList.add('panning');
   const move = ev => { if (!moved && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 3) return; moved = true; cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeSoon(); };
-  const up = () => { ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, up)); ws.classList.remove('panning'); if (moved) camSave(); };
+  const up = () => { ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, up)); ws.classList.remove('panning'); if (moved) { camSave(); panMovedAt = performance.now(); } };
   ws.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.addEventListener(k, up));
 }
 function deskMarquee(e) { // Shift+drag on the empty desk: pick everything the box touches (frames only when wholly inside)
@@ -497,7 +500,7 @@ function deskMarquee(e) { // Shift+drag on the empty desk: pick everything the b
 ws.addEventListener('pointerdown', e => {
   if (page && !page.hidden || e.target.closest('.sx-tapes')) return; // (the cassette panel handles its own pointer: js/music.js)
   cancelAnimationFrame(glideRaf);
-  if (e.button === 1 || e.button === 2) { if (!e.target.isContentEditable) deskPan(e); return; } // the middle or right button always moves the desk
+  if (e.button === 1 || e.button === 2) { if (!writingIn(e.target)) deskPan(e); return; } // the middle or right button always moves the desk, notes and all
   if (e.button !== 0) return;
   const c = e.target.closest('.sx-bcard');
   if (c) {
