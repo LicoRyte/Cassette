@@ -194,7 +194,7 @@ async function deskDuplicate() { // Ctrl+D: a copy of what's picked, just beside
   }
   save(); drawBoard(); select(ids[0]); ids.slice(1).forEach(id => select(id, true)); deskSfx('pin');
 }
-function deskDelete() { const ids = [...picked].filter(id => { const it = itemOf(id); return !(it && it.lock); }); if (!ids.length) { if (picked.size) deskToast('That label is locked'); return; } crumple(ids, () => { deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }); }
+function deskDelete() { const ids = [...picked].filter(id => { const it = itemOf(id); return !(it && it.lock); }); if (!ids.length) { if (picked.size) deskToast('That label is locked'); return; } deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }
 function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
 /* ---------- what's on the desk ---------- */
@@ -208,17 +208,7 @@ function setKey(it, n) { // one number, one thing (on this board)
   if (!had) it.key = n; save(); drawBoard();
 }
 const keyBadge = it => it.key ? el('span', { class: 'sx-bkey', title: 'Press ' + it.key + ' to come here' }, String(it.key)) : null;
-function removeOne(it) { crumple([it.id], () => { deskMark(); deskSfx('pick'); removeItems([it.id]); picked.delete(it.id); if (selId === it.id) selId = null; save(); drawBoard(); }); }
-// taking something away: it scrunches up and drops out of sight first (a quarter of a second), then it's gone
-let crumpling = false;
-function crumple(ids, done) {
-  if (crumpling) return; const cs = ids.map(id => els.get(id)).filter(Boolean);
-  if (stillUI() || !cs.length) { done(); return; } crumpling = true;
-  cs.forEach(c => { c.style.pointerEvents = 'none'; const r = (Math.random() < .5 ? -1 : 1) * (6 + Math.random() * 8);
-    c.animate([{ scale: '1', opacity: 1, translate: '0 0', filter: 'none' }, { scale: '.9 .82', opacity: 1, translate: '0 -4px', rotate: (r / 2) + 'deg', filter: 'brightness(.92)', offset: .35 },
-      { scale: '.55 .45', opacity: 0, translate: '0 40px', rotate: r + 'deg', filter: 'brightness(.8)' }], { duration: 240, easing: 'cubic-bezier(.5, 0, .8, .4)', fill: 'forwards' }); });
-  setTimeout(() => { crumpling = false; done(); }, 230);
-}
+function removeOne(it) { deskMark(); deskSfx('pick'); removeItems([it.id]); picked.delete(it.id); if (selId === it.id) selId = null; save(); drawBoard(); }
 // instant film comes in three shapes: square (the classic), wide (for landscape photos) and mini (for tall ones).
 // The photo window takes the photo's own shape within each film's range, so 16:9, 3:2, 4:3, 3:4 and 9:16 all show whole
 function polFormat(c, ar) {
@@ -277,33 +267,6 @@ function boardViewBack() {
   const b = S.board.boards.find(x => x.id === S.board.cur), v = b && b.view; if (!v || !Number.isFinite(v.x)) return false;
   cancelAnimationFrame(glideRaf); Object.assign(cam, { x: v.x, y: v.y, z: Math.min(1.6, Math.max(.35, v.z || 1)) }); placeCam(); camSettle(); camSave(); return true;
 }
-// alignment guides: while you drag, when an edge (or the middle) of the card comes within a few pixels of a nearby card's,
-// a faint line shows and it lines up. Only very close: anything further and it moves freely, so cards can still overlap
-// however you like. (Alt while dragging: no lining up at all)
-const guideX = el('i', { class: 'sx-guide sx-guide-x', hidden: true }), guideY = el('i', { class: 'sx-guide sx-guide-y', hidden: true });
-world.append(guideX, guideY);
-let alignT = null;
-function alignStart(c, movers) {
-  const mine = new Set(movers.map(m => m.it.id)), m0 = movers.find(m => m.c === c) || movers[0]; if (!m0) { alignT = null; return; }
-  const others = []; els.forEach((o, id) => { if (mine.has(id)) return; others.push({ l: o.offsetLeft, t: o.offsetTop, r: o.offsetLeft + o.offsetWidth, b: o.offsetTop + o.offsetHeight }); });
-  alignT = { x0: m0.x, y0: m0.y, w: c.offsetWidth, h: c.offsetHeight, others };
-}
-function alignTo(dx, dy, off) {
-  guideX.hidden = guideY.hidden = true;
-  if (!alignT || off || stillUI()) return [dx, dy];
-  const A = alignT, T = 4 / cam.z, L = A.x0 + dx, Tp = A.y0 + dy, xs = [L, L + A.w / 2, L + A.w], ys = [Tp, Tp + A.h / 2, Tp + A.h];
-  let bx = null, by = null;
-  A.others.forEach(o => {
-    if (Math.max(o.t - (Tp + A.h), Tp - o.b, o.l - (L + A.w), L - o.r) > 500) return; // (only cards close by)
-    const oxs = [o.l, (o.l + o.r) / 2, o.r], oys = [o.t, (o.t + o.b) / 2, o.b];
-    xs.forEach(x => oxs.forEach(ox => { const d = ox - x; if (Math.abs(d) < T && (!bx || Math.abs(d) < Math.abs(bx.d))) bx = { d, at: ox, o }; }));
-    ys.forEach(y => oys.forEach(oy => { const d = oy - y; if (Math.abs(d) < T && (!by || Math.abs(d) < Math.abs(by.d))) by = { d, at: oy, o }; }));
-  });
-  if (bx) { dx += bx.d; const t0 = Math.min(bx.o.t, A.y0 + dy), t1 = Math.max(bx.o.b, A.y0 + dy + A.h); Object.assign(guideX.style, { left: bx.at + 'px', top: t0 + 'px', height: t1 - t0 + 'px' }); guideX.hidden = false; }
-  if (by) { dy += by.d; const l0 = Math.min(by.o.l, A.x0 + dx), l1 = Math.max(by.o.r, A.x0 + dx + A.w); Object.assign(guideY.style, { top: by.at + 'px', left: l0 + 'px', width: l1 - l0 + 'px' }); guideY.hidden = false; }
-  return [dx, dy];
-}
-function alignEnd() { alignT = null; guideX.hidden = guideY.hidden = true; }
 let layerTop = 0;
 const zOf = c => +c.style.zIndex || 0;
 // press a card and it comes to the front: the top level, and the end of the desk's list so it stays on top next time
@@ -605,9 +568,8 @@ ws.addEventListener('pointerdown', e => {
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })); // (a locked label stays behind)
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
-        alignStart(c, movers);
       }
-      const [dx, dy] = alignTo((ev.clientX - start.x) / cam.z, (ev.clientY - start.y) / cam.z, ev.altKey); // (lines up with a nearby card when an edge comes very close)
+      const dx = (ev.clientX - start.x) / cam.z, dy = (ev.clientY - start.y) / cam.z;
       movers.forEach(m => { m.it.x = Math.round(m.x + dx); m.it.y = Math.round(m.y + dy); m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; });
       const dt = Math.max(8, ev.timeStamp - lt), ddx = ev.clientX - lx, ddy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; lt = ev.timeStamp;
       vx = vx * .55 + (ddx * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
@@ -615,7 +577,7 @@ ws.addEventListener('pointerdown', e => {
       movers.forEach(m => wobKick(m.it.id, ddx / cam.z, ddy / cam.z)); strUpdate();
     }, ev => {
       if (dragging) {
-        alignEnd(); c.classList.remove('lift'); movers.forEach(m => { if (m.c._sw) swingTo(m.c, m.c._sw.t * .6); }); deskSfx('drop'); strUpdate(); // (let go: it swings on from where it was leaning)
+        c.classList.remove('lift'); movers.forEach(m => { if (m.c._sw) swingTo(m.c, m.c._sw.t * .6); }); deskSfx('drop'); strUpdate(); // (let go: it swings on from where it was leaning)
         const ids = new Set(movers.map(m => m.it.id)); B_().items = B_().items.filter(x => !ids.has(x.id)).concat(movers.map(m => m.it)); // what you moved is on top now
         if (snap && deskSnap() !== snap) deskMark(snap); save(); return;
       }

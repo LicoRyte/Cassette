@@ -13,6 +13,19 @@ const skinRow = el('div', { class: 'sx-skins', role: 'radiogroup', 'aria-label':
 settingsPane.append(sec('Look', el('p', { class: 'sl-muted' }, 'The cassette skin: the colour of the keys, the reels, the frame and the cassette on the desk.'), skinRow));
 skinSet(S.opts.skin || 'amber');
 
+// the desk: the colour of the surface everything sits on (all from the palette), with its dots and grain to match
+const DESKS = [['night', 'Night', '#030710'], ['slate', 'Slate', '#293b49'], ['sea', 'Deep sea', '#033e5e'], ['forest', 'Chalkboard', '#273b2d'],
+  ['cork', 'Cork', '#73392e'], ['wine', 'Wine', '#34111f'], ['plum', 'Plum', '#601761']];
+function deskTheme(k) {
+  if (!DESKS.some(d => d[0] === k)) k = 'night';
+  S.opts.desk = k; document.documentElement.dataset.desk = k; save();
+  deskRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+}
+const deskRow = el('div', { class: 'sx-skins sx-desks', role: 'radiogroup', 'aria-label': 'Desk colour' }, ...DESKS.map(([k, name, col]) =>
+  el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:' + col, onclick: () => deskTheme(k) }, el('i', {}), name)));
+settingsPane.querySelector('.sx-skins').closest('.sx-sec').append(el('p', { class: 'sl-muted', style: 'margin-top:14px' }, 'The desk:'), deskRow);
+deskTheme(S.opts.desk || 'night');
+
 /* ---------- the clock's light: every note and photo is lit on the side facing the clock, more the closer it is ---------- */
 function lightCards() {
   const todo = [];
