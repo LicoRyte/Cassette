@@ -596,7 +596,7 @@ ws.addEventListener('pointerdown', e => {
     const id = c.dataset.id, it = itemOf(id); if (!it) return;
     const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t, .sx-tc');
     if (txt && document.activeElement === txt) { if (!picked.has(id)) select(id); return; } // already writing in it: the pointer selects text as usual
-    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb, .sx-tbl-v, .sx-tbl-pick')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
+    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb, .sx-tbl-v, .sx-tbl-pick, .sx-from')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
     const wasPicked = picked.has(id); // (the first click picks it; a click on it once it's picked starts writing)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }

@@ -1,0 +1,3 @@
+Trystero 0.21.5 (https://github.com/dmotz/trystero, MIT: see LICENSE), the files from its src/ needed for the
+torrent strategy, as published on npm. One change for Cassette Timer: room.js lets go of a message over 5 MB while
+it arrives (maxMessageBytes, in handleData).

@@ -12,6 +12,7 @@
      notes.js   rich notes        draw.js   hand-drawn shapes
      desk.js    the desk around the clock (camera, notes, photos, strings, frames, picking, undo, the bottom bar)
      table.js   tables, graphs    export.js  image, backups
+     room.js    rooms with friends (sending cards; js/vendor/trystero)
      clock.js   colour by state, power-on, the soft landing
      tape.js    the session strip, the tape-deck keys, the reels, the counter, the side flip
      music.js   the two sides of music, and the Tapes drawer
@@ -23,7 +24,7 @@
      start.js   pick up a running timer, and draw the first frame */
 'use strict';
 
-const APP_VERSION = 99; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 101; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {
