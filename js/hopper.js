@@ -47,9 +47,10 @@ function addHopper() {
 // through the folder: the desk fades out, the board changes, and it fades back in by the folder that leads back
 function hopGo(it) {
   const B = S.board, to = B.boards.find(b => b.id === it.to); if (!to) { deskToast('Pick a board on the folder\'s tab'); return; }
-  const from = B.cur; deskSfx('pick');
+  const from = B.cur; deskSfx('flip');
   const go = () => {
     B.cur = to.id; select(null); save(); drawBoard(); deskBoardTools();
+    if (boardViewBack()) { deskSfx('drop'); deskToast(to.name); return; } // (back to where you were on that board)
     const back = B.items.find(x => x.type === 'hop' && x.board === to.id && x.to === from), c = back && els.get(back.id);
     if (c) Object.assign(cam, { x: back.x + c.offsetWidth / 2, y: back.y + c.offsetHeight / 2 + 140, z: 1 }); else Object.assign(cam, { x: 0, y: 0, z: 1 });
     placeCam(); camSettle(); camSave(); deskSfx('drop'); deskToast(to.name);

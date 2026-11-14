@@ -9,6 +9,7 @@
 let liveSeen = null, liveBoard = null;
 const drawBoardLively = drawBoard;
 drawBoard = function () {
+  if (liveBoard && liveBoard !== B_().cur && typeof boardViewKeep === 'function') boardViewKeep(liveBoard); // (leaving a board: it keeps where you were)
   const r = drawBoardLively.apply(this, arguments), B = B_(), ids = new Set(B.items.filter(it => it.board === B.cur).map(it => it.id));
   if (liveSeen && liveBoard === B.cur && !stillUI())
     ids.forEach(id => { if (liveSeen.has(id)) return; const c = els.get(id); if (!c) return;

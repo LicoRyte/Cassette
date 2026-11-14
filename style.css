@@ -1199,3 +1199,14 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-world .sx-bcard.kin:not(.sel) { outline: 2.5px dashed #ff3048; outline-offset: 5px; animation: sx-kin .35s ease-out; }
 @keyframes sx-kin { from { outline-color: rgba(255, 48, 72, 0); outline-offset: 12px; } }
 @media (prefers-reduced-motion: reduce) { .sx-world .sx-bcard.kin { animation: none; } }
+
+/* ---------- a card you've lifted floats higher: a softer, wider shadow, which settles back when you put it down ---------- */
+.sx-world .sx-bcard.lift { box-shadow: 14px 22px 26px rgba(3, 7, 16, .42), 4px 6px 0 rgba(3, 7, 16, .25); }
+.sx-world .sx-bcard:not(.lift) { transition: scale .26s cubic-bezier(.3, 1.8, .5, 1), box-shadow .3s ease-out; }
+.sx-world .sx-bcard.sx-bframe.lift, .sx-world .sx-bcard.sx-bdraw.lift { box-shadow: none; }
+
+/* ---------- alignment guides while dragging (js/desk.js): a faint line where two cards line up ---------- */
+.sx-world .sx-guide { position: absolute; z-index: 5; pointer-events: none; background: rgba(255, 255, 228, .55); }
+.sx-world .sx-guide[hidden] { display: none; }
+.sx-world .sx-guide-x { width: calc(1px / var(--cz, 1)); }
+.sx-world .sx-guide-y { height: calc(1px / var(--cz, 1)); }

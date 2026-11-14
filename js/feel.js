@@ -53,10 +53,11 @@ function feelChimeRing(high) {
 // the desk's sounds
 const DESK_SFX = {
   pick: c => { const t = c.currentTime; feelBurst(c, t, { dur: .12, f0: 2600, f1: 1800, q: .8, vol: .05, grain: 5 }); },
-  lift: c => { const t = c.currentTime; feelTone(c, t, 150 + Math.random() * 20, { dur: .07, vol: .045, to: 95 }); feelBurst(c, t, { dur: .02, type: 'lowpass', f0: 700, vol: .03 }); }, // a pinned note pulled off the board: a low, soft tock
+  lift: c => { const t = c.currentTime; feelTone(c, t, 150 + Math.random() * 20, { dur: .07, vol: .075, to: 95 }); feelBurst(c, t, { dur: .02, type: 'lowpass', f0: 700, vol: .05 }); }, // a pinned note pulled off the board: a low, soft tock
+  flip: c => { const t = c.currentTime; [0, .045, .09].forEach((d, i) => feelBurst(c, t + d, { dur: .05, type: 'lowpass', f0: 1500 - i * 250, vol: .04 - i * .008 })); feelTone(c, t + .1, 130, { dur: .06, vol: .02, to: 90 }); }, // a folder's pages riffling: soft, low, no hiss
   drop: c => { const t = c.currentTime; feelBurst(c, t, { dur: .07, type: 'lowpass', f0: 900, vol: .07 }); feelTone(c, t, 110, { dur: .06, vol: .03, to: 70 }); },
-  pin: c => { const t = c.currentTime; feelTone(c, t, 2100, { dur: .03, vol: .04, to: 1300 }); feelBurst(c, t, { dur: .02, type: 'highpass', f0: 3000, vol: .03 }); },
-  tie: c => { const t = c.currentTime; feelTone(c, t, 1900, { dur: .03, vol: .035, to: 1200 }); feelTone(c, t + .06, 330, { dur: .25, vol: .02, type: 'triangle', to: 300 }); }, // a pin, then the string going taut
+  pin: c => { const t = c.currentTime; feelTone(c, t, 2100, { dur: .03, vol: .065, to: 1300 }); feelBurst(c, t, { dur: .02, type: 'highpass', f0: 3000, vol: .05 }); },
+  tie: c => { const t = c.currentTime; feelTone(c, t, 1900, { dur: .03, vol: .06, to: 1200 }); feelTone(c, t + .06, 330, { dur: .25, vol: .03, type: 'triangle', to: 300 }); }, // a pin, then the string going taut
   tear: c => { const t = c.currentTime; feelBurst(c, t, { dur: .26, f0: 3200, f1: 800, q: 1.4, vol: .07, grain: 14 }); },
   shutter: c => { const t = c.currentTime; feelBurst(c, t, { dur: .025, type: 'highpass', f0: 2400, vol: .09 }); feelTone(c, t, 160, { dur: .04, vol: .04, to: 90 });
     feelBurst(c, t + .075, { dur: .03, type: 'highpass', f0: 2000, vol: .07 }); feelBurst(c, t + .09, { dur: .12, f0: 4000, f1: 2500, vol: .02 }); },
