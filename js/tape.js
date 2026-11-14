@@ -259,11 +259,11 @@ tapeCounter = function (n) {
   for (let i = 1; i < rolled; i++) feelTone(c, t + .05 + i * .07, 150, { cat: 'keys', dur: .08, vol: .04, to: 90 }); // the carry: the next wheel goes over too
 };
 
-/* ---------- the end of a tape: the cassette ejects from the deck and flies into the Tapes key ---------- */
+/* ---------- the end of a tape: a cassette pops up in the middle of the screen and flies into the Tapes key ---------- */
 function ejectTape() {
   if (stillUI()) return;
-  const d = deck.getBoundingClientRect(), to = tapesB.getBoundingClientRect();
-  const cas = el('div', { class: 'sx-eject', 'aria-hidden': 'true', style: 'left:' + (d.left + d.width / 2 - 45) + 'px;top:' + (d.top + d.height / 2 - 29) + 'px;--tx:' + Math.round(to.left + to.width / 2 - (d.left + d.width / 2)) + 'px;--ty:' + Math.round(to.top + to.height / 2 - (d.top + d.height / 2)) + 'px' });
+  const cx = innerWidth / 2, cy = innerHeight / 2, to = tapesB.getBoundingClientRect(); // (from the middle of the screen, wherever the deck is on the desk)
+  const cas = el('div', { class: 'sx-eject', 'aria-hidden': 'true', style: 'left:' + (cx - 45) + 'px;top:' + (cy - 29) + 'px;--tx:' + Math.round(to.left + to.width / 2 - cx) + 'px;--ty:' + Math.round(to.top + to.height / 2 - cy) + 'px' });
   cas.innerHTML = '<svg viewBox="0 0 30 19"><rect x=".5" y=".5" width="29" height="18" rx="1.5" fill="#041528" style="stroke:var(--deck)"/><rect x="3" y="2.5" width="24" height="5" fill="#ffdaac"/><rect x="5" y="4" width="11" height="1" fill="#34111f"/><rect x="7" y="9.5" width="16" height="5" fill="#030710" stroke="#293b49" stroke-width=".6"/><circle cx="11" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><circle cx="19" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><path d="M8 18.5l1.5-2.5h11l1.5 2.5" fill="none" style="stroke:var(--deck)" stroke-width=".7"/></svg>'; // (a fixed drawing)
   document.body.append(cas); requestAnimationFrame(() => cas.classList.add('go'));
   if (feelSoundOn()) { const c = feelCtx(); if (c) { const t = c.currentTime; feelBurst(c, t, { cat: 'keys', dur: .03, type: 'highpass', f0: 1800, vol: .06 }); feelTone(c, t, 120, { cat: 'keys', dur: .09, vol: .05, to: 70 }); // the eject's clack

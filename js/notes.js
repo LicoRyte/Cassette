@@ -15,7 +15,7 @@ function noteStyle(it) {
 }
 
 /* ---------- only the tags a note uses survive (pasting is plain text anyway) ---------- */
-const NOTE_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'MARK', 'CODE', 'H2', 'H3', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'BR', 'DIV', 'P']);
+const NOTE_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'MARK', 'CODE', 'H2', 'H3', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'BR', 'DIV', 'P', 'HR']);
 function noteClean(html) {
   const t = document.createElement('template'); t.innerHTML = String(html || ''); // (a template's content is inert: nothing in it loads or runs)
   const walk = node => [...node.childNodes].forEach(n => {
@@ -93,6 +93,9 @@ const NOTE_CMDS = {
   mark: t => noteInline(t, 'mark'), code: t => noteInline(t, 'code'),
   bullet: () => document.execCommand('insertUnorderedList'), num: () => document.execCommand('insertOrderedList'), check: t => noteCheck(t), quote: t => noteBlock(t, 'blockquote'),
   clear: t => noteClear(t),
+  indent: t => { if (noteClosest(t, 'li')) document.execCommand('indent'); }, outdent: t => { if (noteClosest(t, 'li')) document.execCommand('outdent'); }, // (lists only)
+  line: () => document.execCommand('insertHorizontalRule'),
+  date: () => document.execCommand('insertText', false, new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })),
 };
 function noteRun(k) {
   const n = selNote(); if (!n) return;
@@ -149,6 +152,9 @@ const noteBar = el('div', { class: 'sx-fmt', role: 'toolbar', 'aria-label': 'For
     fbtn('mark', 'Mark', 'Highlight (Ctrl+Shift+H)', 'mk'), fbtn('code', '</>', 'Code (Ctrl+`)'),
     el('i', { class: 'sx-fsep' }),
     fbtn('bullet', '•', 'Bullet list (- then space)'), fbtn('num', '1.', 'Numbered list (1. then space)'), fbtn('check', '☐', 'Checklist ([] then space)'), fbtn('quote', '❝', 'Quote (> then space)'),
+    fbtn('outdent', '⇤', 'Move a list line out (Shift+Tab)'), fbtn('indent', '⇥', 'Move a list line in (Tab)'),
+    el('i', { class: 'sx-fsep' }),
+    fbtn('line', '—', 'A divider line'), fbtn('date', 'Date', "Today's date, where the pen is"),
     fbtn('clear', 'Tx', 'Clear formatting (Ctrl+Alt+0)')),
   el('div', { class: 'sx-fmt-row' },
     ...NOTE_COLORS.map(([k, bg]) => el('button', { type: 'button', class: 'sx-sw', 'data-c': k, title: k[0].toUpperCase() + k.slice(1), 'aria-label': k + ' paper', style: 'background:' + bg })),
@@ -161,6 +167,7 @@ noteBar.addEventListener('click', e => {
   if (b.dataset.c || b.dataset.k === 'smaller' || b.dataset.k === 'bigger' || b.dataset.k === 'fit') deskMark();
   if (b.dataset.c) { n.it.color = b.dataset.c; if (b.dataset.c === 'yellow') delete n.it.color; n.c.setAttribute('style', n.c.getAttribute('style').replace(/;--note:[^;]*;--ink:[^;]*/, '') + ';--note:' + noteColor(n.it)[1] + ';--ink:' + noteColor(n.it)[2]); deskSfx('pick'); save(); noteBarState(); return; }
   const k = b.dataset.k;
+  if (k === 'dup') { deskDuplicate(); return; } if (k === 'del') { deskDelete(); return; }
   if (k === 'smaller' || k === 'bigger') { n.it.fs = Math.max(12, Math.min(26, (n.it.fs || 15) + (k === 'bigger' ? 1 : -1))); n.c.style.setProperty('--fs', n.it.fs + 'px'); save(); strUpdate(); return; }
   if (k === 'fit') { delete n.it.h; n.c.style.height = ''; n.c.classList.remove('sized'); save(); strUpdate(); return; }
   noteRun(k);
@@ -190,7 +197,8 @@ function paperSet(c, it) { if (it.paper && it.paper !== 'plain') c.dataset.paper
 const noteSetupPaper = noteSetup;
 noteSetup = function (it, txt, c) { noteSetupPaper(it, txt, c); delete it.fold; if (PAPER_WAS[it.paper]) it.paper = PAPER_WAS[it.paper]; paperSet(c, it); }; // (fold: from a version that could fold notes)
 // the paper, at the end of the toolbar's second row
-noteBar.lastElementChild.append(el('i', { class: 'sx-fsep' }), ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n)));
+noteBar.lastElementChild.append(el('i', { class: 'sx-fsep' }), ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n)),
+  el('i', { class: 'sx-fsep' }), fbtn('dup', 'Duplicate', 'A copy of this note beside it (Ctrl+D)'), fbtn('del', 'Delete', 'Take this note away (Delete)', 'del'));
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || !b.dataset.p) return; const n = selNote(); if (!n) return;
   e.stopImmediatePropagation(); deskMark(); n.it.paper = b.dataset.p; if (b.dataset.p === 'plain') delete n.it.paper; paperSet(n.c, n.it); deskSfx('pick'); save(); noteBarState();
