@@ -1271,3 +1271,8 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-note-t hr { height: 0; margin: .5em 0; border: 0; border-top: 1.5px solid color-mix(in srgb, var(--ink) 35%, transparent); }
 #app .sx-ws-bar > .sx-fmt .sx-fmt-row { justify-content: flex-start; flex-wrap: wrap; }
 :root[data-desk="white"] #app .sx-ws-bar > .sx-fmt { box-shadow: 0 6px 18px rgba(115, 57, 46, .16); }
+
+/* while things are carried: the strings drop their shadow (a shadow filter on a line that changes every frame is very costly),
+   and the box around what's picked slides as its own layer. Both come back the moment you let go */
+#app .sx-world.carrying .sx-string, #app[data-strings] .sx-world.carrying .sx-string.hot { filter: none; transition: none; }
+.sx-world.carrying .sx-selbox { will-change: translate; }

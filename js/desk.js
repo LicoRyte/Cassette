@@ -295,7 +295,7 @@ function deskRaise(it, c) {
 }
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
-  els.clear(); carried.clear(); layer.replaceChildren(); frameLayer.replaceChildren();
+  els.clear(); carried.clear(); world.classList.remove('carrying'); layer.replaceChildren(); frameLayer.replaceChildren();
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
     // (whiteboards and folders come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
@@ -591,7 +591,7 @@ ws.addEventListener('pointerdown', e => {
         const at = new Map(B_().items.map((x, i) => [x.id, i]));
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })) // (a locked label stays behind)
           .sort((a, b) => at.get(a.it.id) - at.get(b.it.id)); // (in the order they lie, so what was on top stays on top)
-        moverIds = new Set(movers.map(m => m.it.id)); movers.forEach(m => { carried.set(m.it.id, { it: m.it, w: m.c.offsetWidth }); m.c.classList.add('carry'); }); selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
+        world.classList.add('carrying'); moverIds = new Set(movers.map(m => m.it.id)); movers.forEach(m => { carried.set(m.it.id, { it: m.it, w: m.c.offsetWidth }); m.c.classList.add('carry'); }); selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
       }
@@ -599,13 +599,13 @@ ws.addEventListener('pointerdown', e => {
       movers.forEach(m => { m.it.x = Math.round(m.x + dx); m.it.y = Math.round(m.y + dy); m.c.style.translate = (m.it.x - m.x) + 'px ' + (m.it.y - m.y) + 'px'; });
       const dt = Math.max(8, ev.timeStamp - lt), ddx = ev.clientX - lx, ddy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; lt = ev.timeStamp;
       vx = vx * .55 + (ddx * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
-      const lean = Math.max(-14, Math.min(14, vx * .9)); if (it.type === 'note' || it.type === 'photo') swingTo(c, lean, true); // (the one in your hand swings; the rest come along steady: a swinging card is a layer of its own, and many of them are heavy)
-      if (selShift) { selBox.style.left = selShift.x + dx + 'px'; selBox.style.top = selShift.y + dy + 'px'; } // (the box just moves along: no measuring)
+      const lean = Math.max(-14, Math.min(14, vx * .9)); movers.forEach(m => { if (m.it.type === 'note' || m.it.type === 'photo') swingTo(m.c, lean, true); }); // (each is already a layer of its own while carried, so the swing costs little)
+      if (selShift) selBox.style.translate = dx + 'px ' + dy + 'px'; // (the box slides along as a layer: no measuring, no layout)
       wobKick(moverIds, ddx / cam.z, ddy / cam.z);
       if (wobRaf) { cancelAnimationFrame(wobRaf); wobStep(moverIds); } else strUpdate(moverIds); // (once a frame, and only the strings tied to what moves or sways)
     }, ev => {
       if (dragging) {
-        movers.forEach(m => { m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; m.c.style.translate = ''; m.c.classList.remove('carry'); }); carried.clear(); // (now it takes its place)
+        movers.forEach(m => { m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; m.c.style.translate = ''; m.c.classList.remove('carry'); }); carried.clear(); world.classList.remove('carrying'); selBox.style.translate = ''; // (now it takes its place)
         c.classList.remove('lift'); selShift = null; movers.forEach(m => { if (m.c._sw) swingTo(m.c, m.c._sw.t * .6); }); deskSfx('drop'); strUpdate(); // (let go: it swings on from where it was leaning)
         const ids = new Set(movers.map(m => m.it.id)); B_().items = B_().items.filter(x => !ids.has(x.id)).concat(movers.map(m => m.it)); // what you moved is on top now
         if (snap && deskSnap() !== snap) deskMark(snap); save(); return;
