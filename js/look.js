@@ -2,7 +2,7 @@
    cassette on the desk, the bar), in classic amber, mint, coral, or clear plastic you can see through. */
 'use strict';
 
-const SKINS = [['amber', 'Classic amber', '#ffb762'], ['mint', 'Mint', '#77d6c1'], ['coral', 'Coral', '#ff6157'], ['clear', 'Clear plastic', '#ffffe4']];
+const SKINS = [['amber', 'Classic', '#1c92a7'], ['mint', 'Mint', '#77d6c1'], ['coral', 'Coral', '#ff6157'], ['clear', 'Clear plastic', '#ffffe4']];
 function skinSet(k) {
   if (!SKINS.some(s => s[0] === k)) k = 'amber';
   S.opts.skin = k; document.documentElement.dataset.skin = k; save();
