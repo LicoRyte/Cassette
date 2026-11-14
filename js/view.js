@@ -67,7 +67,7 @@ function fullSet(on) {
   if (on === fullOn) return; fullOn = on;
   root.classList.toggle('sx-full', on); document.body.classList.toggle('sx-full-b', on);
   if (on) {
-    select(null); if (typeof drawModeSet === 'function') drawModeSet(false); if (!tapesDrawer.hidden) tapesOpen(null);
+    select(null); if (!tapesDrawer.hidden) tapesOpen(null);
     const v = view(); glideTo(0, 0, Math.max(.35, Math.min(2.2, v.w * .82 / corner.offsetWidth, v.h * .78 / corner.offsetHeight)));
     if (document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
     fullIdle();
@@ -84,7 +84,7 @@ miniB.after(fullB);
 
 addEventListener('keydown', e => {
   const t = e.target; if (e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea'))) || page && !page.hidden) return;
-  if (e.code === 'KeyF' && !(typeof drawOn !== 'undefined' && drawOn)) { e.preventDefault(); e.stopPropagation(); fullSet(!fullOn); }
+  if (e.code === 'KeyF') { e.preventDefault(); e.stopPropagation(); fullSet(!fullOn); }
   else if (e.code === 'KeyM') { e.preventDefault(); e.stopPropagation(); miniOpen(); }
   else if (e.key === 'Escape' && fullOn) { e.preventDefault(); e.stopPropagation(); fullSet(false); }
 }, true);

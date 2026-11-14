@@ -1322,3 +1322,56 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 #app .sx-ws-ctx > .sx-ws-selg { justify-content: center; padding-left: 0; border-left: 0; }
 #app .sx-ws-ctx > .sx-fmt ~ .sx-ws-selg:not([hidden]), #app .sx-ws-ctx > :not([hidden]) ~ .sx-pen:not([hidden]) { padding-top: 8px; border-top: 1px solid var(--k-293b49); }
 #app .sx-ws-ctx > .sx-pen { position: static; transform: none; width: auto; max-width: none; padding: 0; background: none; border: 0; box-shadow: none; }
+
+/* ---------- tables (js/table.js): cream paper with a grid, or a graph of its numbers ---------- */
+.sx-world .sx-bcard.sx-btbl { width: 360px; height: auto !important; padding: 34px 12px 14px; background: #ffffe4; color: #34111f; rotate: none; font: 14px/1.35 var(--text); }
+:root[data-desk="white"] .sx-world .sx-btbl:not(.lift) { box-shadow: 2px 3px 0 rgba(115, 57, 46, .25); }
+.sx-btbl .sx-tbl-v { position: absolute; left: 8px; top: 6px; display: flex; gap: 2px; }
+.sx-btbl .sx-tbl-v button { display: grid; place-items: center; width: 24px; height: 22px; padding: 0; background: none; border: 1px solid transparent; border-radius: 3px; color: rgba(52, 17, 31, .45); cursor: pointer; transition: color .15s, background .15s; }
+.sx-btbl .sx-tbl-v button:hover { color: #34111f; background: rgba(52, 17, 31, .07); }
+.sx-btbl .sx-tbl-v button.on { color: #1c92a7; border-color: rgba(28, 146, 167, .5); background: rgba(28, 146, 167, .1); }
+.sx-btbl .sx-tbl-ic, .sx-btbl .sx-tbl-ic svg { display: block; }
+.sx-btbl .sx-tbl-in { overflow-x: auto; scrollbar-width: thin; }
+.sx-btbl .sx-resize { opacity: 0; } .sx-btbl:hover .sx-resize, .sx-btbl.sel .sx-resize, .sx-btbl.sizing .sx-resize { opacity: 1; }
+.sx-tbl { width: 100%; border-collapse: collapse; }
+.sx-tbl th, .sx-tbl td { padding: 0; border: 1px solid rgba(52, 17, 31, .2); vertical-align: top; text-align: left; }
+.sx-tbl th { background: rgba(52, 17, 31, .07); font-weight: 700; }
+.sx-tbl .sx-tc { min-width: 3ch; min-height: 1.35em; padding: 5px 8px; outline: none; white-space: pre-wrap; overflow-wrap: anywhere; cursor: inherit; }
+.sx-btbl.sel .sx-tc { cursor: text; }
+.sx-tbl .n, .sx-tbl .n .sx-tc { text-align: right; font-variant-numeric: tabular-nums; }
+.sx-tbl .sx-tc:focus { background: rgba(28, 146, 167, .1); box-shadow: inset 0 0 0 2px #1c92a7; }
+.sx-tbl .sx-tc::selection { background: rgba(28, 146, 167, .3); }
+.sx-tbl .sx-tbl-tot td { padding: 5px 8px; border-top: 2px solid rgba(52, 17, 31, .7); font-weight: 700; }
+.sx-tbl-empty { margin: 18px 6px; color: rgba(52, 17, 31, .55); text-align: center; }
+
+/* the graph: drawn in the card's width; text in the paper's ink */
+.sx-tbl-g { padding-top: 2px; }
+.sx-tbl-svg { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--ui); }
+.sx-tbl-svg .gl { stroke: rgba(52, 17, 31, .12); stroke-width: 1; } .sx-tbl-svg .gl.z { stroke: rgba(52, 17, 31, .55); }
+.sx-tbl-svg .yl { fill: rgba(52, 17, 31, .6); font-size: 11px; text-anchor: end; }
+.sx-tbl-svg .xl { fill: rgba(52, 17, 31, .8); font-size: 11.5px; font-weight: 600; text-anchor: middle; }
+.sx-tbl-svg .vl { fill: #34111f; font-size: 11px; font-weight: 700; text-anchor: middle; }
+.sx-tbl-svg .bar { transition: filter .15s; } .sx-tbl-svg .bar:hover { filter: brightness(1.12) saturate(1.1); }
+.sx-tbl-svg .ln { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+.sx-tbl-svg .area { opacity: .13; }
+.sx-tbl-svg .dot { stroke: #ffffe4; stroke-width: 1.6; transition: r .15s; } .sx-tbl-svg .dot:hover { r: 5.5; }
+.sx-tbl-svg .sl { stroke: #ffffe4; stroke-width: 1.5; stroke-linejoin: round; transition: transform .2s cubic-bezier(.3, 1.6, .5, 1); } .sx-tbl-svg .sl:hover { transform: translate(var(--dx), var(--dy)); }
+.sx-tbl-svg .pl { fill: #ffffe4; font-size: 12px; font-weight: 700; text-anchor: middle; pointer-events: none; }
+.sx-tbl-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; margin-top: 6px; font: 600 12px var(--ui); letter-spacing: .02em; color: rgba(52, 17, 31, .85); }
+.sx-tbl-key span { display: inline-flex; align-items: center; gap: 5px; } .sx-tbl-key i { width: 10px; height: 10px; border-radius: 2px; }
+.sx-tbl-key.one { color: rgba(52, 17, 31, .6); letter-spacing: .1em; text-transform: uppercase; font-size: 11px; }
+
+/* growing in, when you switch to a graph: bars rise one after another, a line draws itself and its dots pop, a pie sweeps round */
+.sx-tbl-anim .bar { transform-box: fill-box; transform-origin: 50% 100%; animation: sx-tbl-rise .6s cubic-bezier(.2, .9, .3, 1.2) both; animation-delay: calc(var(--i) * 45ms); }
+.sx-tbl-anim .bar.neg { transform-origin: 50% 0; }
+.sx-tbl-anim .vl { animation: sx-tbl-fade .35s ease-out both; animation-delay: calc(var(--i) * 45ms + .35s); }
+.sx-tbl-anim .ln { stroke-dasharray: 1; animation: sx-tbl-draw .9s cubic-bezier(.45, 0, .3, 1) both; animation-delay: calc(var(--s) * 120ms); }
+.sx-tbl-anim .area { animation: sx-tbl-fade .6s ease-out both; animation-delay: .6s; }
+.sx-tbl-anim .dot { transform-box: fill-box; transform-origin: center; animation: sx-tbl-pop .35s cubic-bezier(.3, 1.8, .5, 1) both; animation-delay: calc(var(--i) / max(1, var(--n) - 1) * .8s + var(--s) * 120ms + .05s); }
+.sx-tbl-anim .sweep { stroke-dasharray: 1; animation: sx-tbl-draw .8s cubic-bezier(.45, 0, .3, 1) both; }
+.sx-tbl-anim .pls, .sx-tbl-anim .sx-tbl-key span { animation: sx-tbl-fade .35s ease-out both; animation-delay: calc(var(--d, 0) * 50ms + .5s); }
+@keyframes sx-tbl-rise { from { transform: scaleY(0); } }
+@keyframes sx-tbl-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes sx-tbl-pop { from { transform: scale(0); } }
+@keyframes sx-tbl-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sx-tbl-anim * { animation: none !important; } }

@@ -16,7 +16,8 @@ findBar.addEventListener('pointerdown', e => e.stopPropagation());
 
 let findHits = [], findAt = -1, findQ = '', findT = 0;
 const findHL = typeof Highlight === 'function' && window.CSS && CSS.highlights; // (the words are lit without touching the notes themselves)
-function findWords(it) { // the plain words of a note, caption or label
+function findWords(it) { // the plain words of a note, caption, label or table
+  if (it.type === 'tbl') return (it.rows || []).map(r => r.join(' ')).join(' ');
   if (it.text) return String(it.text);
   if (it.html) { const t = document.createElement('template'); t.innerHTML = it.html; return t.content.textContent || ''; }
   return '';
@@ -25,7 +26,7 @@ function findRun() {
   const q = findIn.value.trim().toLowerCase(); findQ = q;
   if (!q) { findHits = []; findAt = -1; findDraw(); return; }
   const B = S.board, order = new Map(B.boards.map((b, i) => [b.id, b.id === B.cur ? -1 : i])); // this board first, then the others in order
-  findHits = B.items.filter(it => (it.type === 'note' || it.type === 'photo' || it.type === 'frame') && findWords(it).toLowerCase().includes(q))
+  findHits = B.items.filter(it => (it.type === 'note' || it.type === 'photo' || it.type === 'frame' || it.type === 'tbl') && findWords(it).toLowerCase().includes(q))
     .sort((a, b) => (order.get(a.board) - order.get(b.board)) || (a.y - b.y) || (a.x - b.x));
   findAt = findHits.length ? 0 : -1; findDraw(); if (findAt >= 0) findGo();
 }

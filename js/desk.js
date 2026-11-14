@@ -49,8 +49,7 @@ const strings = document.createElementNS(SVGNS, 'svg'); strings.setAttribute('cl
 const layer = el('div', { class: 'sx-layer' });
 const selBox = el('div', { class: 'sx-selbox', hidden: true }), marquee = el('div', { class: 'sx-marquee', hidden: true });
 let selShift = null; // while several things are carried: where the box around them started (it moves with them)
-const draft = el('div', { class: 'sx-draftl' }); // the stroke you're drawing (js/ui/draw-mode.js)
-world.append(frameLayer, strings, corner, layer, selBox, marquee, draft); ws.append(world);
+world.append(frameLayer, strings, corner, layer, selBox, marquee); ws.append(world);
 root.append(ws); root.classList.add('sx-desk');
 
 const cam = S.board.cam; cam.z = Math.min(1.6, Math.max(.35, +cam.z || 1));
@@ -120,7 +119,7 @@ const DESK_ICONS = {
   boards: '<path d="M12 3.5l8.5 4.5-8.5 4.5L3.5 8z"/><path d="M3.5 12.5l8.5 4.5 8.5-4.5"/><path d="M3.5 16.5l8.5 4.5 8.5-4.5"/>',
   note: '<path d="M5 3.5h10l4 4v13H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 16h4.5"/>',
   photo: '<path d="M4 3.5h16v17H4z"/><path d="M7 6.5h10v9H7z"/><path d="M7 13.5l3-3 2.5 2.5 1.5-1.5 3 3"/>',
-  board: '<path d="M3.5 4.5h17v11h-17z"/><path d="M9 15.5l-2 5M15 15.5l2 5M12 2.5v2"/><path d="M7 12l3-3.5 2.5 2 4-3.5"/>',
+  table: '<path d="M3.5 4.5h17v15h-17z"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/>',
   label: '<path d="M4 9v11h16V9" stroke-dasharray="2.2 2.4"/><path d="M4 4.5h9V9H4z"/>',
   folder: '<path d="M3.5 5.5h6l2 2.5h9v12h-17z"/><path d="M3.5 11h17"/>',
   find: '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>',
@@ -168,12 +167,12 @@ const selCount = el('span', { class: 'sx-ws-n' });
 const delSelB = deskBtn(deskIcon('trash'), () => deskDelete(), 'sx-ws-ic sx-ws-del', 'Delete what is picked (Delete)');
 const grpB = deskBtn(deskIcon('group'), () => deskGroup(), 'sx-ws-ic', 'Group them, so they move together like one thing (Ctrl+G)'), ungrpB = deskBtn(deskIcon('ungroup'), () => deskUngroup(), 'sx-ws-ic', 'Ungroup (Ctrl+Shift+G)');
 const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, selCount, grpB, ungrpB, delSelB);
-const drawB = deskBtn(deskIcon('board'), () => addWhiteboard(), 'sx-ws-ic sx-ws-draw', 'Whiteboard: one to draw on (D picks up the pen)');
+const tableKey = deskBtn(deskIcon('table'), () => addTable(), 'sx-ws-ic', 'Table: rows and columns, and a graph of them (Bars, Line, Pie)');
 // the left side: a column of keys for making things, finding and undoing (the bar along the bottom holds what changes the thing you've picked)
 const menuB = deskBtn([deskIcon('boards'), el('span', { class: 'sx-ic-car', 'aria-hidden': 'true' }, '▸')], deskMenuOpen, 'sx-ws-ic sx-ws-menub', 'Boards');
 const deskBar = el('div', { class: 'sx-ws-bar sx-ws-side', role: 'toolbar', 'aria-orientation': 'vertical', 'aria-label': 'Desk' },
   el('div', { class: 'sx-ws-grp' }, menuB),
-  el('div', { class: 'sx-ws-grp' }, deskBtn(deskIcon('note'), () => addNoteAt(freeSpot()), 'sx-ws-ic', 'Note: pin a new one (or double-click the desk)'), deskBtn(deskIcon('photo'), () => deskFile.click(), 'sx-ws-ic', 'Photo: hang one (or drop or paste it on)'), drawB,
+  el('div', { class: 'sx-ws-grp' }, deskBtn(deskIcon('note'), () => addNoteAt(freeSpot()), 'sx-ws-ic', 'Note: pin a new one (or double-click the desk)'), deskBtn(deskIcon('photo'), () => deskFile.click(), 'sx-ws-ic', 'Photo: hang one (or drop or paste it on)'), tableKey,
     deskBtn(deskIcon('label'), () => addFrameAt(), 'sx-ws-ic', 'Label: a light, named area to keep part of the desk tidy'), deskBtn(deskIcon('folder'), () => addHopper(), 'sx-ws-ic', 'Hopper: a folder that opens another board'), deskFile),
   el('div', { class: 'sx-ws-grp' }, undoB, redoB),
   deskMenu);
@@ -329,8 +328,8 @@ function drawBoard() {
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
     // (whiteboards and folders come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
-    if (it.type === 'wb' && typeof wbCard !== 'function' || it.type === 'hop' && typeof hopCard !== 'function') return;
-    const c = it.type === 'frame' ? frameCard(it) : it.type === 'draw' ? drawCard(it) : it.type === 'wb' ? wbCard(it) : it.type === 'hop' ? hopCard(it) : paperCard(it);
+    if (it.type === 'wb' && typeof wbCard !== 'function' || it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function') return;
+    const c = it.type === 'frame' ? frameCard(it) : it.type === 'draw' ? drawCard(it) : it.type === 'wb' ? wbCard(it) : it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it);
     if (picked.has(it.id)) c.classList.add('sel');
     els.set(it.id, c); (it.type === 'frame' ? frameLayer : layer).append(c);
   });
@@ -527,7 +526,7 @@ addEventListener('paste', e => {
 /* ---------- hands: panning, picking, dragging, strings ---------- */
 // a click on a note's words (when you weren't already writing in it) puts the pen right there
 function deskWriteIn(id) {
-  const c = els.get(id), txt = c && c.querySelector('.sx-note-t, .sx-cap-t, .sx-frame-t'); if (!txt) return false;
+  const c = els.get(id), txt = c && c.querySelector('.sx-note-t, .sx-cap-t, .sx-frame-t, .sx-tc'); if (!txt) return false;
   txt.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(txt); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
   return true;
 }
@@ -543,7 +542,7 @@ function deskEditAt(txt, x, y) {
 // pressing on a card never starts a text selection or moves the pen by itself (the gesture decides: drag, or put the pen there)
 [layer, frameLayer].forEach(L => L.addEventListener('mousedown', e => {
   if (e.button !== 0 || e.target.closest('.sx-fmt, .sx-bnote-x, .sx-frame-sw')) return;
-  const t = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t');
+  const t = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t, .sx-tc');
   if (e.target.closest('.sx-bcard') && (!t || document.activeElement !== t)) e.preventDefault();
 }));
 // the right button pans, over anything on the desk; only while you're writing in something does it bring up the usual menu there (copy, paste)
@@ -595,9 +594,9 @@ ws.addEventListener('pointerdown', e => {
   const c = e.target.closest('.sx-bcard');
   if (c) {
     const id = c.dataset.id, it = itemOf(id); if (!it) return;
-    const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t');
+    const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t, .sx-tc');
     if (txt && document.activeElement === txt) { if (!picked.has(id)) select(id); return; } // already writing in it: the pointer selects text as usual
-    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
+    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb, .sx-tbl-v')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
     const wasPicked = picked.has(id); // (the first click picks it; a click on it once it's picked starts writing)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }
@@ -620,7 +619,7 @@ ws.addEventListener('pointerdown', e => {
       return;
     }
     if (e.target.classList.contains('sx-resize')) { // the corner: make it bigger or smaller
-      const w0 = c.offsetWidth, h0 = c.offsetHeight, snap = deskSnap(), fr = it.type === 'frame' || it.type === 'wb', lim = it.type === 'frame' ? [200, 6000, 140, 4000] : it.type === 'wb' ? [260, 4000, 180, 3000] : [160, 760, 90, 960];
+      const w0 = c.offsetWidth, h0 = c.offsetHeight, snap = deskSnap(), fr = it.type === 'frame' || it.type === 'wb', lim = it.type === 'frame' ? [200, 6000, 140, 4000] : it.type === 'wb' ? [260, 4000, 180, 3000] : it.type === 'tbl' ? [240, 1400, 80, 2000] : [160, 760, 90, 960];
       c.classList.add('sizing'); if (!fr) c.classList.add('sized');
       track(ev => { it.w = Math.round(Math.max(lim[0], Math.min(lim[1], w0 + (ev.clientX - start.x) / cam.z))); it.h = Math.round(Math.max(lim[2], Math.min(lim[3], h0 + (ev.clientY - start.y) / cam.z)));
         c.style.width = it.w + 'px'; c.style.height = it.h + 'px'; strUpdate(); },
@@ -689,7 +688,7 @@ ws.addEventListener('pointerdown', e => {
   select(null); if (document.activeElement && document.activeElement.isContentEditable) { document.activeElement.blur(); getSelection().removeAllRanges(); } // put the pen down, and let go of any highlighted words
   deskPan(e);
 });
-ws.addEventListener('dblclick', e => { if (drawOn || e.target.closest('.sx-bcard, .sx-corner, .sx-tapes')) return; addNoteAt((p => ({ x: p.x - 100, y: p.y - 20 }))(toWorld(e.clientX, e.clientY))); });
+ws.addEventListener('dblclick', e => { if (e.target.closest('.sx-bcard, .sx-corner, .sx-tapes')) return; addNoteAt((p => ({ x: p.x - 100, y: p.y - 20 }))(toWorld(e.clientX, e.clientY))); });
 ws.addEventListener('wheel', e => { // zoom around the pointer
   if (page && !page.hidden || e.target.closest('.sx-shelf, .sx-mus')) return; // (its lists scroll)
   e.preventDefault(); cancelAnimationFrame(glideRaf);
@@ -709,6 +708,7 @@ addEventListener('keydown', e => {
   const t = e.target;
   if (t && t.isContentEditable) { // writing: the keys are yours, Esc puts the pen down (Enter too, for a frame's name)
     if (t.classList.contains('sx-frame-t') && e.key === 'Enter') { e.preventDefault(); t.blur(); }
+    if (t.classList.contains('sx-tc')) { tblKeys(e, t); e.stopPropagation(); return; } // a table's cell: moving between cells (js/table.js)
     noteKeys(e, t);
     if (e.key === 'Escape') { e.preventDefault(); t.blur(); }
     e.stopPropagation(); return;
@@ -725,7 +725,6 @@ addEventListener('keydown', e => {
     return;
   }
   if (e.altKey || e.ctrlKey || e.metaKey) return;
-  if (drawKeys(e)) { stop(); return; } // D, and the pen's own keys (js/ui/draw-mode.js)
   if ((e.key === 'Delete' || e.key === 'Backspace') && picked.size) { stop(); deskDelete(); return; }
   if (e.key === 'Tab' && selId && strWalk(e.shiftKey)) { stop(); return; } // follow the strings from the picked card
   if (e.key === 'Enter' && !e.shiftKey && picked.size === 1 && deskWriteIn(selId)) { stop(); return; } // Enter: start writing in it, at the end

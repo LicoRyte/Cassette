@@ -1,6 +1,7 @@
 /* Cassette Timer: drawings on the desk, the shapes themselves. Every mark looks drawn by hand: lines bow a little and
    overshoot their ends, circles don't quite close, arrows get two quick strokes for a head. The wobble comes from a
-   seed saved with each stroke, so a drawing looks the same every time you open it. js/ui/draw-mode.js is the pen. */
+   seed saved with each stroke, so a drawing looks the same every time you open it. Draw mode is gone (tables took its
+   place, js/table.js): drawings and whiteboards made before stay on the desk as pictures you can move and delete. */
 'use strict';
 
 // the inks: from the palette, plus a dark one for writing on notes
