@@ -26,6 +26,7 @@ deskTheme(S.opts.desk);
 
 /* ---------- the clock's light: every note and photo is lit on the side facing the clock, more the closer it is ---------- */
 function lightCards() {
+  if (layer.querySelector(':scope > .lift')) return; // (not while something is carried: relighting every moved card each frame is costly; it's lit when you let go)
   const todo = [];
   els.forEach(c => { // measure them all first, then restyle only the ones that moved
     if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid') || c.classList.contains('lift')) return; // (the one you're carrying is lit when you put it down)

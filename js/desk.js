@@ -48,6 +48,7 @@ const frameLayer = el('div', { class: 'sx-flayer' });
 const strings = document.createElementNS(SVGNS, 'svg'); strings.setAttribute('class', 'sx-strings');
 const layer = el('div', { class: 'sx-layer' });
 const selBox = el('div', { class: 'sx-selbox', hidden: true }), marquee = el('div', { class: 'sx-marquee', hidden: true });
+let selShift = null; // while several things are carried: where the box around them started (it moves with them)
 const draft = el('div', { class: 'sx-draftl' }); // the stroke you're drawing (js/ui/draw-mode.js)
 world.append(frameLayer, strings, corner, layer, selBox, marquee, draft); ws.append(world);
 root.append(ws); root.classList.add('sx-desk');
@@ -388,12 +389,12 @@ function strUpdate() {
   strNodes.forEach((n, i) => { const d = ds[i]; if (d && d !== n.d) { n.d = d; n.p.setAttribute('d', d); n.hit.setAttribute('d', d); } if (zs[i] !== n.z) { n.z = zs[i]; n.sv.style.zIndex = String(n.z); } }); // (only the strings that moved)
   if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
   else if (strTempP) { strTempP.remove(); strTempP = null; }
-  if (picked.size > 1) selBoxUpdate();
+  if (picked.size > 1 && !selShift) selBoxUpdate();
 }
 let wobRaf = 0;
-function wobKick(id, vx, vy) { // the middle of the string lags behind the end you move
-  if (stillUI()) return;
-  B_().links.forEach(l => { if (!l.includes(id)) return; const k = lk(l), w = wob.get(k) || { x: 0, y: 0, vx: 0, vy: 0 }; w.vx -= vx * .2; w.vy -= vy * .2; wob.set(k, w); });
+function wobKick(id, vx, vy) { // the middle of the string lags behind the end you move (id: one card, or a Set of them)
+  if (stillUI()) return; const has = id instanceof Set ? x => id.has(x) : x => x === id;
+  B_().links.forEach(l => { if (!has(l[0]) && !has(l[1])) return; const k = lk(l), w = wob.get(k) || { x: 0, y: 0, vx: 0, vy: 0 }; w.vx -= vx * .2; w.vy -= vy * .2; wob.set(k, w); });
   if (wob.size && !wobRaf) wobRaf = requestAnimationFrame(wobStep);
 }
 function wobStep() {
@@ -575,7 +576,7 @@ ws.addEventListener('pointerdown', e => {
     }
     // anywhere else on it, the words included: a drag moves it (with everything picked);
     // a click without moving puts the pen there
-    let dragging = false, lx = e.clientX, ly = e.clientY, lt = e.timeStamp, vx = 0, movers = [], snap = null;
+    let dragging = false, lx = e.clientX, ly = e.clientY, lt = e.timeStamp, vx = 0, movers = [], moverIds = new Set(), snap = null;
     track(ev => {
       if (!dragging) {
         if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
@@ -584,6 +585,7 @@ ws.addEventListener('pointerdown', e => {
         const at = new Map(B_().items.map((x, i) => [x.id, i]));
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })) // (a locked label stays behind)
           .sort((a, b) => at.get(a.it.id) - at.get(b.it.id)); // (in the order they lie, so what was on top stays on top)
+        moverIds = new Set(movers.map(m => m.it.id)); selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
       }
@@ -592,10 +594,12 @@ ws.addEventListener('pointerdown', e => {
       const dt = Math.max(8, ev.timeStamp - lt), ddx = ev.clientX - lx, ddy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; lt = ev.timeStamp;
       vx = vx * .55 + (ddx * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
       const lean = Math.max(-14, Math.min(14, vx * .9)); movers.forEach(m => { if (m.it.type === 'note' || m.it.type === 'photo') swingTo(m.c, lean, true); });
-      movers.forEach(m => wobKick(m.it.id, ddx / cam.z, ddy / cam.z)); strUpdate();
+      if (selShift) { selBox.style.left = selShift.x + dx + 'px'; selBox.style.top = selShift.y + dy + 'px'; } // (the box just moves along: no measuring)
+      wobKick(moverIds, ddx / cam.z, ddy / cam.z);
+      if (wobRaf) { cancelAnimationFrame(wobRaf); wobStep(); } else strUpdate(); // (once a frame: the strings' own sway and the move share one redraw)
     }, ev => {
       if (dragging) {
-        c.classList.remove('lift'); movers.forEach(m => { if (m.c._sw) swingTo(m.c, m.c._sw.t * .6); }); deskSfx('drop'); strUpdate(); // (let go: it swings on from where it was leaning)
+        c.classList.remove('lift'); selShift = null; movers.forEach(m => { if (m.c._sw) swingTo(m.c, m.c._sw.t * .6); }); deskSfx('drop'); strUpdate(); // (let go: it swings on from where it was leaning)
         const ids = new Set(movers.map(m => m.it.id)); B_().items = B_().items.filter(x => !ids.has(x.id)).concat(movers.map(m => m.it)); // what you moved is on top now
         if (snap && deskSnap() !== snap) deskMark(snap); save(); return;
       }
