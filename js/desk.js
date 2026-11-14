@@ -280,9 +280,17 @@ const zOf = c => +c.style.zIndex || 0;
 // press a card and it comes to the front: the top level, and the end of the desk's list so it stays on top next time
 // (labels are areas under everything, so they stay where they are)
 function deskRaise(it, c) {
-  if (it.type === 'frame' || zOf(c) === layerTop) return;
+  if (it.type === 'frame') return;
+  const B = B_();
+  if (it.group) { // a group comes forward as one, keeping its own order inside (a small photo on a note stays on the note)
+    const ms = B.items.filter(x => x.group === it.group && x.board === it.board && x.type !== 'frame' && els.get(x.id));
+    if (ms.every((x, i) => zOf(els.get(x.id)) === layerTop - 2 * (ms.length - 1 - i))) return;
+    ms.forEach(x => { els.get(x.id).style.zIndex = String(layerTop += 2); });
+    const set = new Set(ms); B.items = B.items.filter(x => !set.has(x)).concat(ms); save(); strUpdate(); return;
+  }
+  if (zOf(c) === layerTop) return;
   c.style.zIndex = String(layerTop += 2);
-  const B = B_(); B.items = B.items.filter(x => x !== it); B.items.push(it); save(); strUpdate();
+  B.items = B.items.filter(x => x !== it); B.items.push(it); save(); strUpdate();
 }
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
@@ -573,7 +581,9 @@ ws.addEventListener('pointerdown', e => {
         if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
         dragging = true; snap = deskSnap(); c.classList.add('lift'); deskSfx('lift'); // (a low tock, like pulling it off its pin)
         const ids = new Set(picked.has(id) ? picked : [id]);
-        movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })); // (a locked label stays behind)
+        const at = new Map(B_().items.map((x, i) => [x.id, i]));
+        movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })) // (a locked label stays behind)
+          .sort((a, b) => at.get(a.it.id) - at.get(b.it.id)); // (in the order they lie, so what was on top stays on top)
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
       }
