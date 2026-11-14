@@ -295,7 +295,7 @@ function deskRaise(it, c) {
 }
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
-  els.clear(); carried.clear(); world.classList.remove('carrying'); layer.replaceChildren(); frameLayer.replaceChildren();
+  els.clear(); carried.clear(); strInner.clear(); world.classList.remove('carrying'); layer.replaceChildren(); frameLayer.replaceChildren();
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
     // (whiteboards and folders come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
@@ -313,6 +313,9 @@ const posOf = id => { const k = carried.get(id); if (k) return { x: k.it.x + k.w
 // what's being carried slides as its own layer (translate) and only takes its new place on the page when you let go:
 // moving it on the page every frame would make the browser lay out and repaint the desk under it every frame
 const carried = new Map(); // id -> { it, w }
+const strInner = new Set(); // the strings tied at both ends to carried cards: they keep their shape, so they slide instead of being redrawn
+// a nudge to a card's swing (when it's picked up, and when it's put down)
+function swingKick(c, v) { if (stillUI()) return; const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.v += v; s.t = 0; s.held = false; swinging.add(c); c.classList.add('swinging'); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep); }
 // strings: a gentle sag between two pins, plus a wobble when either end moves
 const wob = new Map(), lk = l => l[0] + '|' + l[1];
 const pathD = (a, b, w) => { const mx = (a.x + b.x) / 2 + (w ? w.x : 0), my = (a.y + b.y) / 2 + 36 + Math.hypot(b.x - a.x, b.y - a.y) * .15 + (w ? w.y : 0); return 'M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y; };
@@ -388,7 +391,8 @@ function drawStrings(temp) {
 }
 function strUpdate(only) { // only: a Set of card ids, to redraw just the strings tied to them (while you carry things, or while strings sway)
   // measure every end first, then redraw: measuring after each redraw would make the browser lay the page out again every time
-  const nodes = only instanceof Set ? strNodes.filter(n => only.has(n.l[0]) || only.has(n.l[1])) : strNodes;
+  let nodes = only instanceof Set ? strNodes.filter(n => only.has(n.l[0]) || only.has(n.l[1])) : strNodes;
+  if (strInner.size) nodes = nodes.filter(n => !strInner.has(n)); // (a string between two carried cards just slides along with them)
   const ds = nodes.map(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); return a && b ? pathD(a, b, wob.get(lk(n.l))) : null; });
   const back = root.dataset.strings === 'back', zs = nodes.map(n => { const a = els.get(n.l[0]), b = els.get(n.l[1]); return back ? 1 : a && b ? Math.max(zOf(a), zOf(b)) + 1 : 1; }); // (behind the paper, if that's how you like it: Settings, Look)
   // (the wider line you point at, for hovering and cutting, waits until things are put down)
@@ -582,7 +586,7 @@ ws.addEventListener('pointerdown', e => {
     }
     // anywhere else on it, the words included: a drag moves it (with everything picked);
     // a click without moving puts the pen there
-    let dragging = false, lx = e.clientX, ly = e.clientY, lt = e.timeStamp, vx = 0, movers = [], moverIds = new Set(), snap = null;
+    let dragging = false, lx = e.clientX, ly = e.clientY, lt = e.timeStamp, vx = 0, vy = 0, movers = [], moverIds = new Set(), snap = null;
     track(ev => {
       if (!dragging) {
         if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
@@ -593,20 +597,30 @@ ws.addEventListener('pointerdown', e => {
           .sort((a, b) => at.get(a.it.id) - at.get(b.it.id)); // (in the order they lie, so what was on top stays on top)
         world.classList.add('carrying'); moverIds = new Set(movers.map(m => m.it.id)); movers.forEach(m => { carried.set(m.it.id, { it: m.it, w: m.c.offsetWidth }); m.c.classList.add('carry'); }); selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
+        // carried things hold still while they move (the swing and the sway play when you pick them up and put them down):
+        // the cards slide as finished layers, strings inside the group slide with them, and only strings reaching out are redrawn
+        B_().links.forEach(l => { if (moverIds.has(l[0]) || moverIds.has(l[1])) wob.delete(lk(l)); });
+        strUpdate(moverIds); strNodes.forEach(n => { if (moverIds.has(n.l[0]) && moverIds.has(n.l[1])) strInner.add(n); });
+        movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo') swingKick(m.c, (i % 2 ? -1 : 1) * .9); }); // (a little wobble as it comes off the board)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
       }
       const dx = (ev.clientX - start.x) / cam.z, dy = (ev.clientY - start.y) / cam.z;
-      movers.forEach(m => { m.it.x = Math.round(m.x + dx); m.it.y = Math.round(m.y + dy); m.c.style.translate = (m.it.x - m.x) + 'px ' + (m.it.y - m.y) + 'px'; });
+      const rx = Math.round(dx), ry = Math.round(dy), tr = rx + 'px ' + ry + 'px';
+      movers.forEach(m => { m.it.x = m.x + rx; m.it.y = m.y + ry; m.c.style.translate = tr; });
+      strInner.forEach(n => { n.sv.style.translate = tr; });
       const dt = Math.max(8, ev.timeStamp - lt), ddx = ev.clientX - lx, ddy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; lt = ev.timeStamp;
-      vx = vx * .55 + (ddx * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
-      const lean = Math.max(-14, Math.min(14, vx * .9)); movers.forEach(m => { if (m.it.type === 'note' || m.it.type === 'photo') swingTo(m.c, lean, true); }); // (each is already a layer of its own while carried, so the swing costs little)
-      if (selShift) selBox.style.translate = dx + 'px ' + dy + 'px'; // (the box slides along as a layer: no measuring, no layout)
-      wobKick(moverIds, ddx / cam.z, ddy / cam.z);
-      if (wobRaf) { cancelAnimationFrame(wobRaf); wobStep(moverIds); } else strUpdate(moverIds); // (once a frame, and only the strings tied to what moves or sways)
+      vx = vx * .55 + (ddx * 16 / dt) * .45; vy = vy * .55 + (ddy * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
+      if (selShift) selBox.style.translate = tr; // (the box slides along as a layer: no measuring, no layout)
+      strUpdate(moverIds); // (only the strings reaching out to something that stays put)
     }, ev => {
       if (dragging) {
         movers.forEach(m => { m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; m.c.style.translate = ''; m.c.classList.remove('carry'); }); carried.clear(); world.classList.remove('carrying'); selBox.style.translate = ''; // (now it takes its place)
-        c.classList.remove('lift'); selShift = null; movers.forEach(m => { if (m.c._sw) swingTo(m.c, m.c._sw.t * .6); }); deskSfx('drop'); strUpdate(); // (let go: it swings on from where it was leaning)
+        strInner.forEach(n => { n.sv.style.translate = ''; }); strInner.clear();
+        c.classList.remove('lift'); selShift = null; deskSfx('drop'); strUpdate();
+        // let go: each card swings on in the way it was going (more the faster it moved; a still mouse gives just a settle), and the strings bounce
+        const fresh = Math.max(0, 1 - (ev.timeStamp - lt) / 120), sx = vx * fresh, sy = vy * fresh;
+        movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo') swingKick(m.c, Math.max(-2, Math.min(2, -sx * .12)) + (i % 2 ? -.5 : .5)); });
+        wobKick(moverIds, sx * 1.5 / cam.z, (sy * 1.5 - 14) / cam.z);
         const ids = new Set(movers.map(m => m.it.id)); B_().items = B_().items.filter(x => !ids.has(x.id)).concat(movers.map(m => m.it)); // what you moved is on top now
         if (snap && deskSnap() !== snap) deskMark(snap); save(); return;
       }
