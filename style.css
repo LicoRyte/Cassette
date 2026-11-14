@@ -1204,23 +1204,3 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-world .sx-bcard.lift { box-shadow: 14px 22px 26px rgba(3, 7, 16, .42), 4px 6px 0 rgba(3, 7, 16, .25); }
 .sx-world .sx-bcard:not(.lift) { transition: scale .26s cubic-bezier(.3, 1.8, .5, 1), box-shadow .3s ease-out; }
 .sx-world .sx-bcard.sx-bframe.lift, .sx-world .sx-bcard.sx-bdraw.lift { box-shadow: none; }
-
-/* ---------- desk colours (Settings, Look; js/look.js): the surface under everything, from the palette. The clock, the bars
-   and the panels stay night-dark, like a deck sitting on the desk ---------- */
-:root { --desk: #030710; --desk-grain: #041528; --desk-dot: rgba(109, 138, 141, .22); --desk-far: rgba(109, 138, 141, .14); }
-:root[data-desk="slate"]  { --desk: #293b49; --desk-grain: rgba(3, 7, 16, .35);  --desk-dot: rgba(191, 195, 198, .2);  --desk-far: rgba(191, 195, 198, .1); }
-:root[data-desk="sea"]    { --desk: #033e5e; --desk-grain: rgba(4, 21, 40, .45);  --desk-dot: rgba(119, 214, 193, .2);  --desk-far: rgba(119, 214, 193, .1); }
-:root[data-desk="forest"] { --desk: #273b2d; --desk-grain: rgba(3, 7, 16, .35);  --desk-dot: rgba(255, 255, 228, .14); --desk-far: rgba(255, 255, 228, .07); }
-:root[data-desk="cork"]   { --desk: #73392e; --desk-grain: rgba(52, 17, 31, .55); --desk-dot: rgba(52, 17, 31, .45);   --desk-far: rgba(235, 156, 110, .12); }
-:root[data-desk="wine"]   { --desk: #34111f; --desk-grain: rgba(3, 7, 16, .4);   --desk-dot: rgba(255, 136, 169, .16); --desk-far: rgba(255, 136, 169, .08); }
-:root[data-desk="plum"]   { --desk: #601761; --desk-grain: rgba(52, 17, 31, .45); --desk-dot: rgba(255, 224, 220, .18); --desk-far: rgba(255, 224, 220, .09); }
-html, body { background: var(--desk); transition: background-color .5s ease; }
-.sx-grain { background-image: radial-gradient(var(--desk-grain) 1px, transparent 1.3px); }
-.sx-dots { background-image: radial-gradient(var(--desk-dot) 1px, transparent 1.4px); }
-.sx-par { background-image: radial-gradient(var(--desk-far) 1px, transparent 1.6px); }
-#app .sx-world > .sx-corner { box-shadow: 0 0 0 30px var(--desk); }
-/* the keys and words that sit straight on the desk get a night backing, so they read on any colour */
-:root:not([data-desk="night"]) .sx-tray .sx-ws-b:not(:hover), :root:not([data-desk="night"]) .sx-help-b:not(:hover) { background: #030710; }
-:root:not([data-desk="night"]) .sx-nav button { padding: 2px 10px; background: #030710; }
-.sx-desks .sx-skin i { background: var(--sk); box-shadow: inset 0 0 0 2px #030710; border-color: #6d8a8d; }
-.sx-desks .sx-skin.on { border-color: #ffffe4; }
