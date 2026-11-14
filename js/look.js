@@ -1,4 +1,4 @@
-/* Cassette Timer: the look. Cassette skins: the console's accent colour (the keys, the reels, the frame's brackets, the
+/* Cassette Timer: the look. Cassette skins: the console's accent colour (the keys, the reels, the frame's outline, the
    cassette on the desk, the bar), in classic amber, mint, coral, or clear plastic you can see through. */
 'use strict';
 
@@ -12,6 +12,16 @@ const skinRow = el('div', { class: 'sx-skins', role: 'radiogroup', 'aria-label':
   el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:' + col, onclick: () => { skinSet(k); if (typeof tapeSound === 'function') tapeSound(); } }, el('i', {}), name)));
 settingsPane.append(sec('Look', el('p', { class: 'sl-muted' }, 'The cassette skin: the colour of the keys, the reels, the frame and the cassette on the desk.'), skinRow));
 skinSet(S.opts.skin || 'amber');
+
+// the desk: dark (night) or white; on white, the deck, the bars and the panels turn cream and ink to match
+function deskTheme(k) {
+  k = k === 'white' ? 'white' : 'night'; S.opts.desk = k; document.documentElement.dataset.desk = k; save();
+  deskRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+}
+const deskRow = el('div', { class: 'sx-skins sx-desks', role: 'radiogroup', 'aria-label': 'Desk' }, ...[['night', 'Dark', '#030710'], ['white', 'White', '#f4f6f1']].map(([k, name, col]) =>
+  el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:' + col, onclick: () => deskTheme(k) }, el('i', {}), name)));
+settingsPane.querySelector('.sx-skins').closest('.sx-sec').append(el('p', { class: 'sl-muted', style: 'margin-top:14px' }, 'The desk:'), deskRow);
+deskTheme(S.opts.desk);
 
 
 /* ---------- the clock's light: every note and photo is lit on the side facing the clock, more the closer it is ---------- */
