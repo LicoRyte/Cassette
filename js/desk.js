@@ -595,7 +595,7 @@ ws.addEventListener('pointerdown', e => {
         const at = new Map(B_().items.map((x, i) => [x.id, i]));
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })) // (a locked label stays behind)
           .sort((a, b) => at.get(a.it.id) - at.get(b.it.id)); // (in the order they lie, so what was on top stays on top)
-        world.classList.add('carrying'); moverIds = new Set(movers.map(m => m.it.id)); movers.forEach(m => { carried.set(m.it.id, { it: m.it, w: m.c.offsetWidth }); m.c.classList.add('carry'); }); selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
+        world.classList.add('carrying'); moverIds = new Set(movers.map(m => m.it.id)); movers.forEach(m => { carried.set(m.it.id, { it: m.it, w: m.c.offsetWidth }); m.c.classList.add('carry', 'lift'); }); // (everything carried lifts off the board with its shadow) selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
         movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         // carried things hold still while they move (the swing and the sway play when you pick them up and put them down):
         // the cards slide as finished layers, strings inside the group slide with them, and only strings reaching out are redrawn
@@ -616,7 +616,7 @@ ws.addEventListener('pointerdown', e => {
       if (dragging) {
         movers.forEach(m => { m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; m.c.style.translate = ''; m.c.classList.remove('carry'); }); carried.clear(); world.classList.remove('carrying'); selBox.style.translate = ''; // (now it takes its place)
         strInner.forEach(n => { n.sv.style.translate = ''; }); strInner.clear();
-        c.classList.remove('lift'); selShift = null; deskSfx('drop'); strUpdate();
+        c.classList.remove('lift'); movers.forEach(m => m.c.classList.remove('lift')); selShift = null; deskSfx('drop'); strUpdate();
         // let go: each card swings on in the way it was going (more the faster it moved; a still mouse gives just a settle), and the strings bounce
         const fresh = Math.max(0, 1 - (ev.timeStamp - lt) / 120), sx = vx * fresh, sy = vy * fresh;
         movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo') swingKick(m.c, Math.max(-2, Math.min(2, -sx * .12)) + (i % 2 ? -.5 : .5)); });

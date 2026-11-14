@@ -23,7 +23,7 @@
      start.js   pick up a running timer, and draw the first frame */
 'use strict';
 
-const APP_VERSION = 92; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 93; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {
