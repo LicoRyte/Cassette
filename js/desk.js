@@ -143,7 +143,8 @@ function deskBoardTools() { deskSel.replaceChildren(...S.board.boards.map(b => e
 // what's picked: a count, and what you can do with several things at once
 const selCount = el('span', { class: 'sx-ws-n' });
 const delSelB = deskBtn('Delete', () => deskDelete(), '', 'Delete what is picked (Delete)');
-const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, selCount, delSelB);
+const grpB = deskBtn('Group', () => deskGroup(), '', 'Group them, so they move together like one thing (Ctrl+G)'), ungrpB = deskBtn('Ungroup', () => deskUngroup(), '', 'Ungroup (Ctrl+Shift+G)');
+const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, selCount, grpB, ungrpB, delSelB);
 const drawB = deskBtn('Whiteboard', () => addWhiteboard(), 'sx-ws-draw', 'A whiteboard to draw on (D picks up the pen)');
 const deskBar = el('div', { class: 'sx-ws-bar' },
   el('div', { class: 'sx-ws-grp' }, deskSel, deskBtn('Board ▾', deskMenuOpen, 'sx-ws-menub', 'New, rename, delete, backup')),
@@ -164,10 +165,12 @@ const picked = new Set();
 const els = new Map();
 const B_ = () => S.board;
 const itemOf = id => B_().items.find(x => x.id === id);
+// a group: picking one of them picks them all, so they move (and duplicate, and go) together
+const groupOf = id => { const it = itemOf(id); return it && it.group ? B_().items.filter(x => x.group === it.group && x.board === it.board).map(x => x.id) : [id]; };
 function select(id, add) {
   if (id == null) { picked.clear(); selId = null; }
-  else if (add && picked.has(id)) { picked.delete(id); selId = picked.size ? [...picked].pop() : null; }
-  else { if (!add) picked.clear(); picked.add(id); selId = id; }
+  else if (add && picked.has(id)) { groupOf(id).forEach(x => picked.delete(x)); selId = picked.size ? [...picked].pop() : null; }
+  else { if (!add) picked.clear(); groupOf(id).forEach(x => picked.add(x)); selId = id; }
   els.forEach((c, k) => c.classList.toggle('sel', picked.has(k)));
   noteBarTo(selId); deskSelBar(); selBoxUpdate();
 }
@@ -175,6 +178,8 @@ function deskSelBar() {
   const items = [...picked].map(itemOf).filter(Boolean);
   deskSelGrp.hidden = items.length < 2;
   selCount.textContent = items.length + ' picked';
+  const groups = new Set(items.map(i => i.group || null));
+  grpB.hidden = items.length < 2 || groups.size === 1 && !groups.has(null); ungrpB.hidden = !items.some(i => i.group);
 }
 function selBoxUpdate() { // a dashed box around several picked things
   if (picked.size < 2) { selBox.hidden = true; return; }
@@ -186,14 +191,17 @@ function selBoxUpdate() { // a dashed box around several picked things
 function removeItems(ids) { const set = new Set(ids), B = B_(); B.items = B.items.filter(x => !set.has(x.id)); B.links = B.links.filter(l => !l.some(i => set.has(i))); }
 async function deskDuplicate() { // Ctrl+D: a copy of what's picked, just beside it (photos too); strings and bookmarks stay with the original
   const B = B_(), src = [...picked].map(itemOf).filter(it => it && it.board === B.cur); if (!src.length) return;
-  deskMark(); const now = Date.now(), ids = [];
+  deskMark(); const now = Date.now(), ids = [], gmap = {};
   for (const [k, it] of src.entries()) {
     const c = JSON.parse(JSON.stringify(it)); c.id = ((String(it.id).match(/^[a-z]+/i) || ['n'])[0]) + now + '-' + k; c.x = it.x + 28; c.y = it.y + 28; delete c.key;
+    if (c.group) c.group = gmap[c.group] || (gmap[c.group] = 'g' + now + '-' + k); // (a copied group is a group of its own)
     if (it.type === 'photo') { try { const p = await PHOTOS.get(it.id); if (p) await PHOTOS.put(c.id, p); } catch (e) { continue; } }
     B.items.push(c); ids.push(c.id);
   }
-  save(); drawBoard(); select(ids[0]); ids.slice(1).forEach(id => select(id, true)); deskSfx('pin');
+  save(); drawBoard(); select(ids[0]); ids.slice(1).forEach(id => { if (!picked.has(id)) select(id, true); }); deskSfx('pin');
 }
+function deskGroup() { if (picked.size < 2) return; deskMark(); const g = 'g' + Date.now(); picked.forEach(id => { const it = itemOf(id); if (it) it.group = g; }); save(); deskSfx('tie'); deskSelBar(); deskToast('Grouped: they move together now'); }
+function deskUngroup() { if (![...picked].some(id => (itemOf(id) || {}).group)) return; deskMark(); picked.forEach(id => { const it = itemOf(id); if (it) delete it.group; }); save(); deskSfx('pick'); deskSelBar(); } // (they stay picked, just no longer tied together)
 function deskDelete() { const ids = [...picked].filter(id => { const it = itemOf(id); return !(it && it.lock); }); if (!ids.length) { if (picked.size) deskToast('That label is locked'); return; } deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }
 function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
@@ -253,7 +261,7 @@ function frameCard(it) { // a frame: a labelled area. Its name is the handle; th
 }
 // (versions 49 and 50 lost the place of anything dragged: those come back in a neat row near the middle of their board, to be put where they belong)
 { const lost = {}; S.board.items.forEach(it => { if (Number.isFinite(it.x) && Number.isFinite(it.y)) return; const n = lost[it.board] = (lost[it.board] || 0) + 1; it.x = -300 + ((n - 1) % 4) * 340; it.y = 260 + Math.floor((n - 1) / 4) * 300; }); if (Object.keys(lost).length) save(); }
-{ const B = S.board; B.items = B.items.filter(it => it.type !== 'sticker'); B.items.forEach(it => { delete it.hold; delete it.group; delete it.on; }); } // (stickers, holders and groups were here once)
+{ const B = S.board; B.items = B.items.filter(it => it.type !== 'sticker'); B.items.forEach(it => { delete it.hold; delete it.on; }); } // (stickers and holders were here once)
 // the stacking: each card gets its own level, two apart in the order they lie on the desk (the last one on top), and each string
 // sits one above the higher of the two cards it ties: over both of them, but under anything lying on top of them
 // arriving: the card you've been brought to (a bookmark, Find, Tab along the strings) gives one small settle, so your eye lands on it
@@ -625,6 +633,7 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyZ') { stop(); if (e.shiftKey) deskRedo(); else deskUndo(); }
     else if (e.code === 'KeyY') { stop(); deskRedo(); }
     else if (e.code === 'KeyA') { stop(); deskSelectAll(); }
+    else if (e.code === 'KeyG') { stop(); if (e.shiftKey) deskUngroup(); else deskGroup(); }
     else if (e.code === 'KeyD' && !e.shiftKey) { stop(); deskDuplicate(); }
     return;
   }
