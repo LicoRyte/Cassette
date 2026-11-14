@@ -139,7 +139,7 @@ function noteKeys(e, t) {
   if (e.key === 'Tab' && noteClosest(t, 'li')) { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); t.dispatchEvent(new Event('input')); }
 }
 
-/* ---------- the toolbar above the selected note ---------- */
+/* ---------- the note toolbar: docked just above the desk's bottom bar while a note is picked ---------- */
 const fbtn = (k, label, title, cls) => el('button', { type: 'button', class: 'sx-fb' + (cls ? ' ' + cls : ''), 'data-k': k, title, 'aria-label': title }, label);
 const noteBar = el('div', { class: 'sx-fmt', role: 'toolbar', 'aria-label': 'Format this note' },
   el('div', { class: 'sx-fmt-row' },
@@ -177,9 +177,9 @@ function noteBarState() { // light up what's on where the pen is
   noteBar.querySelectorAll('[data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === noteColor(n.it)[0]));
 }
 document.addEventListener('selectionchange', () => { if (noteBar.isConnected) noteBarState(); });
-function noteBarTo(id) { // the toolbar follows the selected note
+function noteBarTo(id) { // the toolbar shows above the bottom bar (the same width) while a note is picked
   const c = id && layer.querySelector('.sx-bnote[data-id="' + id + '"]');
-  if (c) { if (noteBar.parentNode !== c) c.append(noteBar); noteBarState(); } else noteBar.remove();
+  if (c) { if (noteBar.parentNode !== deskBar) deskBar.prepend(noteBar); noteBarState(); } else noteBar.remove();
 }
 
 /* ---------- paper: plain, lined or grid ----------
@@ -189,8 +189,8 @@ const PAPER_WAS = { dots: 'grid', index: 'lined', torn: 'lined' }; // (kinds the
 function paperSet(c, it) { if (it.paper && it.paper !== 'plain') c.dataset.paper = it.paper; else delete c.dataset.paper; }
 const noteSetupPaper = noteSetup;
 noteSetup = function (it, txt, c) { noteSetupPaper(it, txt, c); delete it.fold; if (PAPER_WAS[it.paper]) it.paper = PAPER_WAS[it.paper]; paperSet(c, it); }; // (fold: from a version that could fold notes)
-// the toolbar's third row: the paper
-noteBar.append(el('div', { class: 'sx-fmt-row' }, ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n))));
+// the paper, at the end of the toolbar's second row
+noteBar.lastElementChild.append(el('i', { class: 'sx-fsep' }), ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n)));
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || !b.dataset.p) return; const n = selNote(); if (!n) return;
   e.stopImmediatePropagation(); deskMark(); n.it.paper = b.dataset.p; if (b.dataset.p === 'plain') delete n.it.paper; paperSet(n.c, n.it); deskSfx('pick'); save(); noteBarState();

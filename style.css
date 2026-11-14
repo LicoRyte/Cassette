@@ -1263,3 +1263,9 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-tapes.sx-dock { position: fixed; left: max(16px, env(safe-area-inset-left)); top: 62px; right: auto; z-index: 8; width: min(820px, calc(100vw - 32px)); height: min(620px, calc(100vh - 150px)); }
 .sx-tapes.sx-dock .sx-tapes-grip { cursor: default; }
 body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focus is only the clock) */
+
+/* ---------- the note toolbar docks just above the bottom bar, as wide as it ---------- */
+#app .sx-ws-bar > .sx-fmt { display: flex; position: absolute; left: -1px; right: -1px; bottom: calc(100% + 8px); z-index: 1; padding: 8px 10px; gap: 6px; scale: none; background: var(--k-030710); border: 1px solid var(--k-293b49); box-shadow: 0 6px 18px rgba(3, 7, 16, .45); }
+#app .sx-ws-bar > .sx-fmt { align-items: flex-start; }
+#app .sx-ws-bar > .sx-fmt .sx-fmt-row { justify-content: flex-start; flex-wrap: wrap; }
+:root[data-desk="white"] #app .sx-ws-bar > .sx-fmt { box-shadow: 0 6px 18px rgba(115, 57, 46, .16); }
