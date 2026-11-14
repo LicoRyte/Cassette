@@ -21,7 +21,7 @@ const penBar = el('div', { class: 'sx-pen', hidden: true, role: 'toolbar', 'aria
   el('div', { class: 'sx-pen-row' }, ...PEN_SIZES.map((s, i) => el('button', { type: 'button', class: 'sx-pb sx-ps', 'data-s': s, title: ['Thin', 'Medium', 'Thick'][i] + ' ([ and ])', 'aria-label': ['Thin', 'Medium', 'Thick'][i] }, el('i', { style: 'height:' + s + 'px' })))),
   el('i', { class: 'sx-fsep' }),
   el('button', { type: 'button', class: 'sx-pb sx-pdone', title: 'Put the pen down (D or Esc)' }, 'Done'));
-deskBar.before(penBar);
+deskCtx.append(penBar);
 penBar.addEventListener('mousedown', e => e.preventDefault());
 penBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -36,7 +36,7 @@ function penState() {
   root.dataset.pen = pen.t;
 }
 function drawModeSet(on) {
-  if (on && !drawOn && !B_().items.some(it => it.type === 'wb' && it.board === B_().cur)) { deskToast('Add a whiteboard to draw on (Whiteboard, in the bar)'); return; } // (nothing to draw on yet)
+  if (on && !drawOn && !B_().items.some(it => it.type === 'wb' && it.board === B_().cur)) { deskToast('Add a whiteboard to draw on (the Whiteboard key on the left)'); return; } // (nothing to draw on yet)
   if (on === drawOn) return; drawOn = on;
   penBar.hidden = !on; root.classList.toggle('sx-drawing', on); drawB.classList.toggle('on', on);
   if (on) { if (!(selId && (itemOf(selId) || {}).type === 'wb')) select(null); const ae = document.activeElement; if (ae && ae.isContentEditable) ae.blur(); penState(); }

@@ -72,7 +72,7 @@ const drawBoardFind = drawBoard;
 drawBoard = function () { drawBoardFind.apply(this, arguments); if (!findBar.hidden && findQ) requestAnimationFrame(findMark); };
 { let t = 0; document.addEventListener('input', e => { if (findBar.hidden || !findQ || e.target === findIn) return; clearTimeout(t); t = setTimeout(findMark, 300); }); }
 // a key for it in the bar, beside Undo
-{ const b = deskBtn('Find', () => findBar.hidden ? findOpen() : findClose(), 'sx-ws-findb', 'Find on your boards (Ctrl+F)'); undoB.parentNode.insertBefore(b, undoB); }
+{ const b = deskBtn(deskIcon('find'), () => findBar.hidden ? findOpen() : findClose(), 'sx-ws-ic sx-ws-findb', 'Find on your boards (Ctrl+F)'); undoB.parentNode.before(el('div', { class: 'sx-ws-grp' }, b)); }
 
 /* ---------- the backup reminder ---------- */
 const BACKUP_DAY = 864e5;

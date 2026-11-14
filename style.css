@@ -1276,3 +1276,49 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
    and the box around what's picked slides as its own layer. Both come back the moment you let go */
 #app .sx-world.carrying .sx-string, #app[data-strings] .sx-world.carrying .sx-string.hot { filter: none; transition: none; }
 .sx-world.carrying .sx-selbox { will-change: translate; }
+
+/* a new photo develops: milky and pale at first, the picture coming up over a couple of seconds (js/desk.js) */
+.sx-world .sx-polaroid.sx-dev .sx-pol-img img { animation: sx-develop 2.6s cubic-bezier(.3, .1, .4, 1) both; animation-delay: var(--dev-at, 0s); }
+@keyframes sx-develop {
+  0% { filter: brightness(1.9) contrast(.22) saturate(0) sepia(.3) blur(1.4px); }
+  40% { filter: brightness(1.35) contrast(.55) saturate(.35) sepia(.35) blur(.5px); }
+  100% { filter: none; }
+}
+/* a new note or photo lands: it drops in from a little above, its shadow tightens, and it squashes a touch as the pin goes in */
+.sx-world .sx-bcard.sx-land { animation: sx-land .36s cubic-bezier(.4, 0, .6, 1); }
+.sx-world .sx-bcard.sx-land > .sx-pin { animation: sx-land-pin .36s ease-out; }
+@keyframes sx-land {
+  0% { translate: 0 -20px; scale: 1.06; box-shadow: 14px 24px 26px rgb(var(--shade) / .38), 4px 6px 0 rgb(var(--shade) / .2); }
+  50% { translate: 0 0; scale: 1.025 .965; }
+  72% { scale: 1.012; }
+  100% { translate: 0 0; scale: 1; }
+}
+@keyframes sx-land-pin { 0%, 45% { scale: 1.5; } 60% { scale: .8; } 100% { scale: 1; } }
+@media (prefers-reduced-motion: reduce) { .sx-world .sx-polaroid.sx-dev .sx-pol-img img, .sx-world .sx-bcard.sx-land, .sx-world .sx-bcard.sx-land > .sx-pin { animation: none; } }
+
+/* the bottom bar's icon buttons (js/desk.js, DESK_ICONS): square keys, the icon in the key's own colour */
+#app .sx-ws-bar .sx-ws-ic { min-width: 34px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; }
+#app .sx-ws-bar .sx-ic { display: block; line-height: 0; } #app .sx-ws-bar .sx-ic svg { display: block; }
+#app .sx-ws-bar .sx-ic-car { font-size: 10px; line-height: 1; margin-right: -2px; }
+
+/* ---------- the left side: a column of keys for making things (js/desk.js) ---------- */
+#app .sx-ws-bar.sx-ws-side, #app[data-clock] .sx-ws-bar.sx-ws-side { left: max(16px, env(safe-area-inset-left)); top: 66px; bottom: auto; transform: none; width: auto; max-width: none; flex-direction: column; flex-wrap: nowrap; justify-content: flex-start; align-items: center; gap: 0; padding: 8px; }
+#app .sx-ws-side > .sx-ws-grp { flex-direction: column; gap: 7px; padding: 9px 0; }
+#app .sx-ws-side > .sx-ws-grp:first-child { padding-top: 0; } #app .sx-ws-side > .sx-ws-grp:nth-last-child(2) { padding-bottom: 0; }
+#app .sx-ws-side > .sx-ws-grp + .sx-ws-grp { border-top: 1px solid var(--k-293b49); }
+#app .sx-ws-side .sx-ws-ic { width: 36px; min-width: 0; padding: 0; }
+#app .sx-ws-side .sx-ic-car { position: absolute; right: 2px; bottom: 2px; font-size: 8px; margin: 0; }
+#app .sx-ws-side .sx-ws-menu { left: calc(100% + 12px); top: 0; bottom: auto; max-height: calc(100vh - 90px); overflow-y: auto; }
+#app .sx-ws-menu .sx-ws-mh { padding: 6px 12px 4px; font: 700 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--k-6d8a8d); }
+#app .sx-ws-bar .sx-ws-mb { display: flex; align-items: center; gap: 8px; }
+#app .sx-ws-bar .sx-ws-mb .sx-ws-tick { width: 12px; color: var(--deck); }
+#app .sx-ws-bar .sx-ws-mb.cur { color: var(--k-ffffe4); }
+@media (max-height: 560px) { #app .sx-ws-side > .sx-ws-grp { gap: 4px; padding: 6px 0; } #app .sx-ws-side .sx-ws-ic { height: 30px; } }
+
+/* ---------- the bottom: what changes the thing you've picked (the note's toolbar, several at once, the pen) ---------- */
+#app .sx-ws-bar.sx-ws-ctx { flex-direction: column; align-items: stretch; gap: 8px; width: max-content; max-width: min(980px, calc(100vw - 2 * (max(16px, env(safe-area-inset-left)) + 68px))); }
+#app .sx-ws-ctx:not(:has(> :not([hidden]))) { display: none; }
+#app .sx-ws-ctx > .sx-fmt { position: static; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 0; background: none; border: 0; box-shadow: none; }
+#app .sx-ws-ctx > .sx-ws-selg { justify-content: center; padding-left: 0; border-left: 0; }
+#app .sx-ws-ctx > .sx-fmt ~ .sx-ws-selg:not([hidden]), #app .sx-ws-ctx > :not([hidden]) ~ .sx-pen:not([hidden]) { padding-top: 8px; border-top: 1px solid var(--k-293b49); }
+#app .sx-ws-ctx > .sx-pen { position: static; transform: none; width: auto; max-width: none; padding: 0; background: none; border: 0; box-shadow: none; }

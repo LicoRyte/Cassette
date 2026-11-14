@@ -114,12 +114,28 @@ document.addEventListener('beforeinput', e => { if (!editSnap && e.target.isCont
 document.addEventListener('focusout', e => { if (e.target.isContentEditable && ws.contains(e.target)) editCommit(); });
 
 /* ---------- the bar along the bottom ---------- */
-const deskSel = el('select', { 'aria-label': 'Which board' });
-deskSel.addEventListener('change', () => { S.board.cur = deskSel.value; select(null); save(); drawBoard(); if (!boardViewBack()) glideHome(); }); // (back to where you were on that board)
+function deskBoardGo(id) { if (id === S.board.cur) return; S.board.cur = id; select(null); save(); drawBoard(); deskBoardTools(); if (!boardViewBack()) glideHome(); } // (back to where you were on that board)
+// the bar's icons: drawn in lines, in the button's own colour (currentColor), on a 24 px grid
+const DESK_ICONS = {
+  boards: '<path d="M12 3.5l8.5 4.5-8.5 4.5L3.5 8z"/><path d="M3.5 12.5l8.5 4.5 8.5-4.5"/><path d="M3.5 16.5l8.5 4.5 8.5-4.5"/>',
+  note: '<path d="M5 3.5h10l4 4v13H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 16h4.5"/>',
+  photo: '<path d="M4 3.5h16v17H4z"/><path d="M7 6.5h10v9H7z"/><path d="M7 13.5l3-3 2.5 2.5 1.5-1.5 3 3"/>',
+  board: '<path d="M3.5 4.5h17v11h-17z"/><path d="M9 15.5l-2 5M15 15.5l2 5M12 2.5v2"/><path d="M7 12l3-3.5 2.5 2 4-3.5"/>',
+  label: '<path d="M4 9v11h16V9" stroke-dasharray="2.2 2.4"/><path d="M4 4.5h9V9H4z"/>',
+  folder: '<path d="M3.5 5.5h6l2 2.5h9v12h-17z"/><path d="M3.5 11h17"/>',
+  find: '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>',
+  undo: '<path d="M8.5 13.5L4 9l4.5-4.5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  redo: '<path d="M15.5 13.5L20 9l-4.5-4.5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  group: '<path d="M3 3h18v18H3z" stroke-dasharray="2.2 2.4"/><path d="M7.5 7.5h4.5V12H7.5zM12 12h4.5v4.5H12z"/>',
+  ungroup: '<path d="M3.5 3.5h7v7h-7zM13.5 13.5h7v7h-7z"/><path d="M14 4h6v6M10 20H4v-6" stroke-dasharray="2 2.4"/>',
+  trash: '<path d="M3.5 6.5h17"/><path d="M9 6.5V3.5h6v3"/><path d="M5.5 6.5l1 14h11l1-14"/><path d="M10 10.5v6.5M14 10.5v6.5"/>',
+};
+const deskIcon = k => { const s = el('span', { class: 'sx-ic', 'aria-hidden': 'true' });
+  s.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="square" stroke-linejoin="miter">' + DESK_ICONS[k] + '</svg>'; return s; };
 const deskBtn = (label, fn, cls, title) => el('button', { type: 'button', class: 'sx-ws-b' + (cls ? ' ' + cls : ''), title: title || null, 'aria-label': title || null, onclick: e => { e.currentTarget.blur(); fn(e); } }, label);
 const deskFile = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
 const deskKeys = el('div', { class: 'sx-ws-keys', 'aria-label': 'Bookmarks' });
-const undoB = deskBtn('↶', deskUndo, 'sx-ws-ic', 'Undo (Ctrl+Z)'), redoB = deskBtn('↷', deskRedo, 'sx-ws-ic', 'Redo (Ctrl+Shift+Z)');
+const undoB = deskBtn(deskIcon('undo'), deskUndo, 'sx-ws-ic', 'Undo (Ctrl+Z)'), redoB = deskBtn(deskIcon('redo'), deskRedo, 'sx-ws-ic', 'Redo (Ctrl+Shift+Z)');
 function deskUndoState() { undoB.disabled = !undoS.length; redoB.disabled = !redoS.length; }
 // the board menu: boards, and saving or loading them
 const deskMenu = el('div', { class: 'sx-ws-menu', hidden: true, role: 'menu' });
@@ -128,6 +144,10 @@ function deskMenuOpen() {
   const B = S.board, cur = B.boards.find(b => b.id === B.cur), close = () => { deskMenu.hidden = true; };
   const item = (label, fn) => el('button', { type: 'button', class: 'sx-ws-mi', role: 'menuitem', onclick: () => { close(); fn(); } }, label);
   deskMenu.replaceChildren(...[
+    el('div', { class: 'sx-ws-mh' }, 'Boards'),
+    ...B.boards.map(b => el('button', { type: 'button', class: 'sx-ws-mi sx-ws-mb' + (b.id === B.cur ? ' cur' : ''), role: 'menuitemradio', 'aria-checked': String(b.id === B.cur), onclick: () => { close(); deskBoardGo(b.id); } },
+      el('span', { class: 'sx-ws-tick', 'aria-hidden': 'true' }, b.id === B.cur ? '✓' : ''), b.name)),
+    el('i', { class: 'sx-ws-msep' }),
     item('New board', () => { const name = (prompt('Name the new board:', 'Board ' + (B.boards.length + 1)) || '').trim().slice(0, 40); if (!name) return; deskMark(); const id = 'b' + Date.now(); B.boards.push({ id, name }); B.cur = id; select(null); save(); drawBoard(); glideHome(); }),
     item('Rename this board', () => { const name = (prompt('Rename this board:', cur.name) || '').trim().slice(0, 40); if (name) { deskMark(); cur.name = name; save(); deskBoardTools(); } }),
     B.boards.length > 1 ? armBtn('Delete this board', 'Sure? Everything on it goes (Undo brings it back)', () => { close(); deskMark(); const ids = new Set(B.items.filter(it => it.board === B.cur).map(it => it.id));
@@ -137,23 +157,31 @@ function deskMenuOpen() {
     item('Load a backup...', () => deskImportBackup()),
   ].filter(Boolean));
   deskMenu.hidden = false;
-  const mb = deskBar.querySelector('.sx-ws-menub'); if (mb) deskMenu.style.left = Math.max(0, mb.offsetLeft) + 'px'; // over the Board button, not the bar's far end
+  const mb = deskBar.querySelector('.sx-ws-menub'); if (mb) deskMenu.style.top = Math.max(0, mb.offsetTop) + 'px'; // beside the Boards button, opening to the right
 }
 addEventListener('pointerdown', e => { if (!deskMenu.hidden && !e.target.closest('.sx-ws-menu, .sx-ws-menub')) deskMenu.hidden = true; }, true);
-function deskBoardTools() { deskSel.replaceChildren(...S.board.boards.map(b => el('option', { value: b.id, selected: b.id === S.board.cur || null }, b.name))); }
+function deskBoardTools() { // the Boards button names the board you're on
+  const cur = S.board.boards.find(b => b.id === S.board.cur), t = 'Boards: on ' + (cur ? cur.name : '') + ' (switch, new, rename, delete, backup)';
+  if (typeof menuB !== 'undefined') { menuB.title = t; menuB.setAttribute('aria-label', t); } }
 // what's picked: a count, and what you can do with several things at once
 const selCount = el('span', { class: 'sx-ws-n' });
-const delSelB = deskBtn('Delete', () => deskDelete(), '', 'Delete what is picked (Delete)');
-const grpB = deskBtn('Group', () => deskGroup(), '', 'Group them, so they move together like one thing (Ctrl+G)'), ungrpB = deskBtn('Ungroup', () => deskUngroup(), '', 'Ungroup (Ctrl+Shift+G)');
+const delSelB = deskBtn(deskIcon('trash'), () => deskDelete(), 'sx-ws-ic sx-ws-del', 'Delete what is picked (Delete)');
+const grpB = deskBtn(deskIcon('group'), () => deskGroup(), 'sx-ws-ic', 'Group them, so they move together like one thing (Ctrl+G)'), ungrpB = deskBtn(deskIcon('ungroup'), () => deskUngroup(), 'sx-ws-ic', 'Ungroup (Ctrl+Shift+G)');
 const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, selCount, grpB, ungrpB, delSelB);
-const drawB = deskBtn('Whiteboard', () => addWhiteboard(), 'sx-ws-draw', 'A whiteboard to draw on (D picks up the pen)');
-const deskBar = el('div', { class: 'sx-ws-bar' },
-  el('div', { class: 'sx-ws-grp' }, deskSel, deskBtn('Board ▾', deskMenuOpen, 'sx-ws-menub', 'New, rename, delete, backup')),
-  el('div', { class: 'sx-ws-grp' }, deskBtn('Note', () => addNoteAt(freeSpot())), deskBtn('Photo', () => deskFile.click()), drawB, deskBtn('Label', () => addFrameAt(), '', 'A light, named area to keep part of the desk tidy'), deskBtn('Hopper', () => addHopper(), '', 'A folder that opens another board'), deskFile),
+const drawB = deskBtn(deskIcon('board'), () => addWhiteboard(), 'sx-ws-ic sx-ws-draw', 'Whiteboard: one to draw on (D picks up the pen)');
+// the left side: a column of keys for making things, finding and undoing (the bar along the bottom holds what changes the thing you've picked)
+const menuB = deskBtn([deskIcon('boards'), el('span', { class: 'sx-ic-car', 'aria-hidden': 'true' }, '▸')], deskMenuOpen, 'sx-ws-ic sx-ws-menub', 'Boards');
+const deskBar = el('div', { class: 'sx-ws-bar sx-ws-side', role: 'toolbar', 'aria-orientation': 'vertical', 'aria-label': 'Desk' },
+  el('div', { class: 'sx-ws-grp' }, menuB),
+  el('div', { class: 'sx-ws-grp' }, deskBtn(deskIcon('note'), () => addNoteAt(freeSpot()), 'sx-ws-ic', 'Note: pin a new one (or double-click the desk)'), deskBtn(deskIcon('photo'), () => deskFile.click(), 'sx-ws-ic', 'Photo: hang one (or drop or paste it on)'), drawB,
+    deskBtn(deskIcon('label'), () => addFrameAt(), 'sx-ws-ic', 'Label: a light, named area to keep part of the desk tidy'), deskBtn(deskIcon('folder'), () => addHopper(), 'sx-ws-ic', 'Hopper: a folder that opens another board'), deskFile),
   el('div', { class: 'sx-ws-grp' }, undoB, redoB),
-  deskSelGrp,
   deskMenu);
 ws.after(deskBar);
+// the bottom: what you can do with what's picked (the note's toolbar, several things at once, the pen); empty, it's not there
+const deskCtx = el('div', { class: 'sx-ws-bar sx-ws-ctx', role: 'toolbar', 'aria-label': 'What is picked' }, deskSelGrp);
+deskBar.after(deskCtx);
+deskBoardTools();
 // the top left, beside the ? key: the cassette, the views and your bookmarks (js/music.js and js/view.js add theirs)
 const deskTray = el('div', { class: 'sx-tray', role: 'toolbar', 'aria-label': 'Views and bookmarks' }, deskKeys);
 deskBar.after(deskTray);
@@ -237,7 +265,9 @@ function paperCard(it) { // a note or a photo
     if (it.ar) polFormat(c, it.ar);
     img.addEventListener('load', () => { // the frame takes the photo's shape (measured once, then remembered)
       const ar = img.naturalWidth && img.naturalHeight ? Math.round(img.naturalWidth / img.naturalHeight * 1000) / 1000 : 1;
-      if (it.ar !== ar) { it.ar = ar; save(); } polFormat(c, ar); drawStrings(); selBoxUpdate(); });
+      if (it.ar !== ar) { it.ar = ar; save(); } polFormat(c, ar); drawStrings(); selBoxUpdate();
+      const t0 = devFresh.get(it.id), age = t0 ? performance.now() - t0 : 1e9; // (a new photo develops: milky first, the picture coming up over a couple of seconds)
+      if (age < 2600) { c.style.setProperty('--dev-at', -age + 'ms'); c.classList.add('sx-dev'); } });
     return c;
   }
   const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
@@ -436,8 +466,16 @@ function freeSpot() {
   if (Math.abs(x + 100) < cw + 100 && Math.abs(y + 60) < ch + 60) x = cw + 20 + Math.random() * 60;
   return { x, y };
 }
+// a new note or photo lands: it drops in from a little above, its shadow tightens, and it gives a small squash as the pin goes in (with the pin's sound)
+function deskLand(id, sfx) {
+  const c = els.get(id); if (!c) return;
+  if (stillUI()) { if (sfx) deskSfx('pin'); return; }
+  c.classList.remove('sx-land'); void c.offsetWidth; c.classList.add('sx-land');
+  c.addEventListener('animationend', e => { if (e.target === c) c.classList.remove('sx-land'); });
+  if (sfx) setTimeout(() => deskSfx('pin'), 170);
+}
 function addNoteAt(p) {
-  deskMark(); deskSfx('pin'); const id = 'n' + Date.now(); B_().items.push({ id, type: 'note', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); save(); select(id); drawBoard();
+  deskMark(); const id = 'n' + Date.now(); B_().items.push({ id, type: 'note', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); save(); select(id); drawBoard(); deskLand(id, true);
   const t = layer.querySelector('[data-id="' + id + '"] .sx-note-t'); if (t) { editSnap = null; t.focus({ preventScroll: true }); }
 }
 function addFrameAt(r) {
@@ -446,15 +484,16 @@ function addFrameAt(r) {
   B_().items.push({ id, type: 'frame', board: B_().cur, x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h), text: '', color: 'amber' }); save(); select(id); drawBoard();
   const t = els.get(id) && els.get(id).querySelector('.sx-frame-t'); if (t) { editSnap = null; t.focus({ preventScroll: true }); }
 }
+const devFresh = new Map(); // photos just added (id -> when): they develop when they first show, picking up where they were if the desk is drawn again
 async function addPhotos(files, at) {
-  let k = 0;
+  let k = 0; const added = [];
   for (const f of [...files].filter(f => /^image\//.test(f.type))) {
     try { const src = await shrinkPhoto(f), id = 'p' + Date.now() + '-' + k; await PHOTOS.put(id, src);
       if (!k) deskMark();
-      const p = at ? { x: at.x - 120 + k * 30, y: at.y - 40 + k * 30 } : freeSpot(); B_().items.push({ id, type: 'photo', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); k++; }
+      const p = at ? { x: at.x - 120 + k * 30, y: at.y - 40 + k * 30 } : freeSpot(); B_().items.push({ id, type: 'photo', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); added.push(id); k++; }
     catch (e) { /* not a picture the browser can read: skip it */ }
   }
-  if (k) { deskSfx('shutter'); save(); drawBoard(); }
+  if (k) { deskSfx('shutter'); save(); const t = performance.now(); added.forEach(id => { devFresh.set(id, t); setTimeout(() => devFresh.delete(id), 3000); }); drawBoard(); added.forEach(deskLand); }
 }
 deskFile.addEventListener('change', () => { addPhotos(deskFile.files); deskFile.value = ''; });
 
@@ -479,9 +518,9 @@ addEventListener('paste', e => {
   const text = e.clipboardData && e.clipboardData.getData('text/plain');
   if (text && text.trim()) { // text on the desk: a new note with it
     e.preventDefault(); const p = pasteSpot() || freeSpot();
-    deskMark(); deskSfx('pin'); const id = 'n' + Date.now(), body = text.trim().slice(0, 2000);
+    deskMark(); const id = 'n' + Date.now(), body = text.trim().slice(0, 2000);
     B_().items.push({ id, type: 'note', board: B_().cur, mt: Date.now(), x: Math.round(p.x - 100), y: Math.round(p.y - 20), text: body, html: noteFromText(body) });
-    save(); drawBoard(); select(id); deskToast('Pasted as a note');
+    save(); drawBoard(); select(id); deskLand(id, true); deskToast('Pasted as a note');
   }
 }, true);
 
@@ -512,11 +551,24 @@ const writingIn = t => { const a = document.activeElement; return !!(a && a.isCo
 let panMovedAt = 0;
 ws.addEventListener('contextmenu', e => { if (!writingIn(e.target) || performance.now() - panMovedAt < 400) e.preventDefault(); });
 const centreOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + c.offsetHeight / 2 } : null; };
+// let go of the desk while it's moving and it keeps sliding, easing to a stop (any press, scroll or glide catches it)
+function deskFling(samp) {
+  if (stillUI()) return false;
+  const now = performance.now(), r = samp.filter(q => now - q[0] < 90); if (r.length < 2 || now - r[r.length - 1][0] > 50) return false; // (held still before letting go: no slide)
+  const a = r[0], b = r[r.length - 1], dt = Math.max(8, b[0] - a[0]); let vx = (b[1] - a[1]) / dt, vy = (b[2] - a[2]) / dt;
+  const sp = Math.hypot(vx, vy) * cam.z; if (sp < .3) return false; // (in screen px per ms)
+  if (sp > 4) { vx *= 4 / sp; vy *= 4 / sp; }
+  let prev = now; cancelAnimationFrame(glideRaf);
+  const step = t => { const d = Math.min(32, Math.max(0, t - prev)); prev = t; cam.x += vx * d; cam.y += vy * d; const f = Math.pow(.5, d / 150); vx *= f; vy *= f; placeCam();
+    if (Math.hypot(vx, vy) * cam.z > .02) glideRaf = requestAnimationFrame(step); else camSave(); };
+  glideRaf = requestAnimationFrame(step); return true;
+}
 function deskPan(e) {
-  const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; let moved = false;
+  const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }, samp = []; let moved = false;
   e.preventDefault(); ws.setPointerCapture(e.pointerId); ws.classList.add('panning');
-  const move = ev => { if (!moved && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 3) return; moved = true; cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeSoon(); };
-  const up = () => { ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, up)); ws.classList.remove('panning'); if (moved) { camSave(); panMovedAt = performance.now(); } };
+  const move = ev => { if (!moved && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 3) return; moved = true; cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeSoon();
+    samp.push([performance.now(), cam.x, cam.y]); if (samp.length > 8) samp.shift(); };
+  const up = () => { ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, up)); ws.classList.remove('panning'); if (moved) { panMovedAt = performance.now(); if (!deskFling(samp)) camSave(); } };
   ws.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.addEventListener(k, up));
 }
 function deskMarquee(e) { // Shift+drag on the empty desk: pick everything the box touches (frames only when wholly inside)

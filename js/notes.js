@@ -184,9 +184,9 @@ function noteBarState() { // light up what's on where the pen is
   noteBar.querySelectorAll('[data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === noteColor(n.it)[0]));
 }
 document.addEventListener('selectionchange', () => { if (noteBar.isConnected) noteBarState(); });
-function noteBarTo(id) { // the toolbar shows above the bottom bar (the same width) while a note is picked
+function noteBarTo(id) { // the toolbar shows in the bar along the bottom while a note is picked
   const c = id && layer.querySelector('.sx-bnote[data-id="' + id + '"]');
-  if (c) { if (noteBar.parentNode !== deskBar) deskBar.prepend(noteBar); noteBarState(); } else noteBar.remove();
+  if (c) { if (noteBar.parentNode !== deskCtx) deskCtx.prepend(noteBar); noteBarState(); } else noteBar.remove();
 }
 
 /* ---------- paper: plain, lined or grid ----------
