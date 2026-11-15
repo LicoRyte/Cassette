@@ -341,7 +341,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-ending .sx-dig.chg { animation-duration: .95s; }
 /* the power-on, and the soft landing at zero */
 .sx-digits { transform-origin: 50% 50%; }
-.sx-digits.poweron { animation: sx-power .6s ease-out; }
 @keyframes sx-power { 0% { transform: scale(1.06, .02); filter: brightness(3); } 30% { transform: scale(1, .05); filter: brightness(2); } 70% { transform: scale(1, 1.03); } 100% { transform: none; filter: none; } }
 .sx-digits.landed { animation: sx-land 2.6s ease-out; }
 @keyframes sx-land { 0% { color: var(--k-ffffe4); text-shadow: 0 0 0 rgba(255, 216, 50, 0); } 18% { color: #ffd832; text-shadow: 0 0 30px rgba(255, 216, 50, .7); } 100% { text-shadow: 0 0 0 rgba(255, 216, 50, 0); } }
@@ -1747,3 +1746,20 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 @media (prefers-reduced-motion: reduce) { #app[data-clock="paused"] .sx-pl-led { animation: none; } .sx-pl-led { transition: none; } }
 /* the player stands taller off the desk, like a portable deck: a deeper front edge, with a seam where the lid meets the body */
 #app .sx-world > .sx-corner.sx-player { box-shadow: 0 0 0 30px var(--k-030710), 0 0 0 32.5px var(--deck), 0 12px 0 32.5px var(--under), 0 13.5px 0 32.5px color-mix(in srgb, var(--under) 70%, #030710), 0 24px 0 32.5px var(--under), 0 32px 30px 30px rgb(var(--shade) / .3); }
+
+/* ---------- the keys' own tooltips (js/tips.js): a small dark card beside the key, at once. The name in the key colour,
+   its shortcut as a little key, and a line on what it does; a small arrow points at the key ---------- */
+.sx-tip { position: fixed; z-index: 90; max-width: 250px; padding: 8px 11px 9px; background: var(--k-030710); border: 1px solid color-mix(in srgb, var(--deck) 55%, transparent); border-radius: 4px;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--deck) 22%, transparent), 0 10px 22px rgb(var(--shade) / .28); pointer-events: none; opacity: 0; translate: var(--tx, 0) var(--ty, 0); transition: opacity .09s ease-out, translate .09s ease-out; }
+.sx-tip[data-side="r"] { --tx: -4px; } .sx-tip[data-side="b"] { --ty: -4px; } .sx-tip[data-side="t"] { --ty: 4px; }
+.sx-tip.on { opacity: 1; --tx: 0; --ty: 0; }
+.sx-tip::before { content: ''; position: absolute; width: 8px; height: 8px; background: var(--k-030710); border: 1px solid color-mix(in srgb, var(--deck) 55%, transparent); rotate: 45deg; }
+.sx-tip[data-side="r"]::before { left: -5px; top: calc(var(--ay) - 4px); border-top: 0; border-right: 0; }
+.sx-tip[data-side="b"]::before { top: -5px; left: calc(var(--ax) - 4px); border-right: 0; border-bottom: 0; }
+.sx-tip[data-side="t"]::before { bottom: -5px; left: calc(var(--ax) - 4px); border-left: 0; border-top: 0; }
+.sx-tip-h { display: flex; align-items: center; gap: 8px; }
+.sx-tip-n { font: 700 13px/1.2 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--deck); white-space: nowrap; }
+.sx-tip-k { margin-left: auto; padding: 2px 6px 3px; border: 1px solid color-mix(in srgb, var(--deck) 60%, transparent); border-radius: 2px; box-shadow: 0 2px 0 color-mix(in srgb, var(--deck) 25%, transparent); color: var(--k-ffdaac); font: 700 10px/1 var(--ui); letter-spacing: .08em; white-space: nowrap; }
+.sx-tip-d { display: block; margin-top: 4px; font: 500 13px/1.35 var(--ui); color: var(--k-bfc3c6); }
+.sx-tip-k[hidden], .sx-tip-d[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .sx-tip { transition: none; } }

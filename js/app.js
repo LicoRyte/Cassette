@@ -20,10 +20,12 @@
      view.js    the mini deck (a floating window) and full-screen focus
      help.js    the ? card
      lively.js  small touches of life: cards land, strings draw out, keys light up
+     player.js  the cassette player: the glass window and the five piano keys
+     tips.js    the keys' own tooltips, shown at once
      start.js   pick up a running timer, and draw the first frame */
 'use strict';
 
-const APP_VERSION = 132; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 134; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {

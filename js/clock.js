@@ -1,5 +1,5 @@
 /* Cassette Timer: the clock's moods. Colour tells you where you are (ready, focus, the last minute, a break, paused),
-   the colon beats once a second, Start switches the digits on like an old screen, the last ten seconds fade slower,
+   the colon beats once a second, the colour eases between paused and playing, the last ten seconds fade slower,
    and at 00:00 the digits hold and glow while the screen breathes out. Breaks don't tick: the digits breathe. */
 'use strict';
 
@@ -25,11 +25,10 @@ let clockLastText = '';
 new MutationObserver(() => { const t = timeText.textContent; if (t !== clockLastText) { clockLastText = t; clockTick(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
 new MutationObserver(() => { clockState = ''; clockTick(); }).observe(root, { attributes: true, attributeFilter: ['data-mode'] });
 
-// the power-on: pressing Start switches the digits on like an old screen
+// pressing Play: the digits' colour eases from paused to playing (style.css), like pausing does the other way
 const startClockBase = start;
 start = function () {
-  const was = running; startClockBase.apply(this, arguments);
-  if (!was && running && !stillUI()) { digits.classList.remove('poweron'); void digits.offsetWidth; digits.classList.add('poweron'); }
+  startClockBase.apply(this, arguments);
   clockState = ''; clockTick();
 };
 const pauseClockBase = pause;
