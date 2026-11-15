@@ -1659,7 +1659,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* ---------- the player (js/player.js): a portable cassette player. A dark glass window with the cassette behind the
    time, then a row of five piano keys. The glass is dark on either desk, so inside it the colours are the night ones ---------- */
 #app .sx-corner.sx-player { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "label" "win" "keys" "meta"; align-items: center; row-gap: 0; }
-#app .sx-player .sx-intent { grid-area: label; justify-self: center; margin-bottom: 10px; }
+#app .sx-player .sx-intent { display: none; } /* (the side and the session take the label's place) */
 .sx-pl-win { grid-area: win; position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: stretch; padding: 14px 20px 16px; overflow: hidden; border-radius: 10px;
   background: var(--pl-glass); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--deck) 55%, var(--pl-frame)), inset 0 0 0 7px var(--pl-frame), inset 0 10px 22px rgb(var(--pl-shade) / .7);
   --k-030710: #030710; --k-041528: var(--pl-glass); --k-0b1a2b: var(--pl-shell); --k-293b49: var(--pl-line); --k-6d8a8d: var(--pl-dim); --k-bfc3c6: #bfc3c6; --k-ffffe4: #ffffe4; --k-ffdaac: var(--pl-sand); --k-77d6c1: var(--pl-brk);
@@ -1677,10 +1677,10 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 #app .sx-pl-win .sx-pl-reel .rl-pack { fill: var(--pl-tape); stroke: var(--pl-tape-edge); }
 #app .sx-pl-win .sx-pl-reel .rl-rim { stroke-width: 1; }
 /* in front: the side and the session along the top, the time, and the strip in the slot */
-.sx-pl-top { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 0 6px; }
+.sx-pl-top { grid-area: label; position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 10px; padding: 0 8px; text-shadow: none; }
 #app .sx-player .sx-pl-top .sx-sidetag { order: 0; margin: 0; justify-content: flex-start; min-width: 0; }
 #app .sx-player .sx-pl-top .sl-big { margin: 0; text-align: right; white-space: nowrap; }
-#app .sx-player .sx-pl-win .sx-digits { position: relative; z-index: 2; margin: 6px 0 8px; text-align: center; text-shadow: 0 0 18px rgb(var(--pl-shade) / .9), 0 0 3px rgb(var(--pl-shade) / .9); }
+#app .sx-player .sx-pl-win .sx-digits { position: relative; z-index: 2; margin: 4px 0 8px; text-align: center; text-shadow: 0 0 18px rgb(var(--pl-shade) / .9), 0 0 3px rgb(var(--pl-shade) / .9); }
 :root[data-desk="white"] #app[data-clock="paused"] .sx-pl-win .sx-digits { color: var(--pl-dim); }
 #app .sx-player .sx-pl-win .sx-deck { position: relative; z-index: 2; align-self: center; width: 54%; }
 #app .sx-player .sx-pl-win .sx-ribbon { display: none; }

@@ -1,6 +1,6 @@
 /* Cassette Timer: the player. The deck is one portable cassette player: a dark glass window with the cassette inside
-   (its shell and two big reels, turning, dimmed behind the glass) and the time over it in big digits, the side and the
-   session along the top of the glass and the session strip along the bottom. Under the window, a row of five piano keys:
+   (its shell and two big reels, turning, dimmed behind the glass) and the time over it in big digits, with the session
+   strip along the bottom. Above the window, printed on the body: the side on the left, the session on the right. Under the window, a row of five piano keys:
    Play/Pause, Rew (hold it: the time winds back), Prev (the track before), F.F (the next track) and Reset (this part
    from the start, at once). */
 'use strict';
@@ -10,8 +10,8 @@ corner.classList.add('sx-player');
 /* ---------- the window ---------- */
 const plCas = el('div', { class: 'sx-pl-cas', 'aria-hidden': 'true' }, el('i', { class: 'sx-pl-lab' }), el('i', { class: 'sx-pl-slot' }));
 const plTop = el('div', { class: 'sx-pl-top' }, sideTag, corner.querySelector('.sl-big'));
-const plWin = el('div', { class: 'sx-pl-win' }, plCas, reelL, reelR, plTop, digits, deck);
-corner.querySelector('.sx-cmd').before(plWin);
+const plWin = el('div', { class: 'sx-pl-win' }, plCas, reelL, reelR, digits, deck);
+corner.querySelector('.sx-cmd').before(plTop, plWin);
 reelL.classList.add('sx-pl-reel', 'l'); reelR.classList.add('sx-pl-reel', 'r');
 requestAnimationFrame(fitDigits);
 
