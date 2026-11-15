@@ -1,6 +1,6 @@
 /* Cassette Timer: the desk. The whole screen is one big desk with the clock in the middle. Drag the empty space to move
    around (or drag with the right mouse button), scroll to zoom, double-click anywhere to pin a note there, drop photos
-   straight on (they hang as Polaroids), and drag from a red pin onto something else to tie a string. Press D to draw
+   straight on (they hang whole, in their own shape: as Polaroids, taped prints or clipped sheets), and drag from a red pin onto something else to tie a string. Press D to draw
    (js/ui/draw-mode.js). Labels are light, named areas to keep a part of the desk tidy (they don't carry anything). Hoppers are folders that open another board (js/hopper.js).
    Shift+drag on the empty desk (or Shift+click) picks several things; Ctrl+G groups them so they move together.
    Ctrl+Z undoes, Ctrl+Shift+Z redoes. Bookmarks: Shift+1 to 9 on something picked; 1 to 9 glides there, 0 to the clock.
@@ -33,11 +33,26 @@ const PHOTOS = (() => {
 })();
 // photos are only thrown away when the app starts (so Undo can bring a removed one back while you work)
 PHOTOS.keys().then(keys => (keys || []).forEach(k => { if (!S.board.items.some(it => it.id === k)) PHOTOS.del(k).catch(() => {}); })).catch(() => {});
-function shrinkPhoto(file) { // at most 640 pixels on the long side, as a JPEG
+// a photo is kept sharp: up to 2000 pixels on the long side. A file already that small (and not huge) is kept exactly as
+// it came, so a PNG screenshot stays crisp and an animated GIF keeps moving; a bigger one is scaled down (a PNG stays a PNG
+// when it can, so text stays sharp; otherwise a good JPEG)
+const PHOTO_MAX = 2000, PHOTO_KEEP = 2.5e6;
+const fileUrl = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(f); });
+function photoScale(img, max, png) { // a picture drawn smaller (at most max on the long side), as a data URL
+  const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  let out = png ? c.toDataURL('image/png') : ''; if (!out || out.length > 3e6) out = c.toDataURL('image/jpeg', .88); return out;
+}
+function shrinkPhoto(file) {
   return new Promise((res, rej) => { const img = new Image(), url = URL.createObjectURL(file);
-    img.onload = () => { const k = Math.min(1, 640 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .85)); };
+    img.onload = async () => { URL.revokeObjectURL(url);
+      const kind = /^image\/(png|jpeg|webp|gif)$/.test(file.type), small = Math.max(img.width, img.height) <= PHOTO_MAX || file.type === 'image/gif';
+      if (kind && small && file.size <= PHOTO_KEEP) { try { res(await fileUrl(file)); return; } catch (e) { /* draw it instead */ } }
+      res(photoScale(img, PHOTO_MAX, file.type === 'image/png')); };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('not an image')); }; img.src = url; });
+}
+function shrinkSrc(src, max) { // a stored picture made smaller (for sending to a friend)
+  return new Promise(res => { const img = new Image(); img.onload = () => res(photoScale(img, max, false)); img.onerror = () => res(src); img.src = src; });
 }
 const tilt = id => { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return ((h % 50) - 25) / 10; }; // everything hangs a little crooked
 
@@ -154,6 +169,9 @@ function deskMenuOpen() {
     el('i', { class: 'sx-ws-msep' }),
     item('Save a backup of all boards', () => deskExportBackup()),
     item('Load a backup...', () => deskImportBackup()),
+    el('i', { class: 'sx-ws-msep' }),
+    item('Import a Markdown file...', () => mdImportAsk()),
+    item('Import a Markdown folder...', () => mdImportFolder()),
   ].filter(Boolean));
   deskMenu.hidden = false;
   const mb = deskBar.querySelector('.sx-ws-menub'); if (mb) deskMenu.style.top = Math.max(0, mb.offsetTop) + 'px'; // beside the Boards button, opening to the right
@@ -245,22 +263,24 @@ function setKey(it, n) { // one number, one thing (on this board)
 }
 const keyBadge = it => it.key ? el('span', { class: 'sx-bkey', title: 'Press ' + it.key + ' to come here' }, String(it.key)) : null;
 function removeOne(it) { deskMark(); deskSfx('pick'); removeItems([it.id]); picked.delete(it.id); if (selId === it.id) selId = null; save(); drawBoard(); }
-// instant film comes in three shapes: square (the classic), wide (for landscape photos) and mini (for tall ones).
-// The photo window takes the photo's own shape within each film's range, so 16:9, 3:2, 4:3, 3:4 and 9:16 all show whole
+// a picture always shows whole, in its own shape; what it hangs in follows that shape: instant film for everyday ones
+// (square, wide for landscape, mini for tall), a print held up with two strips of tape for a long panorama, and a sheet
+// hung from a binder clip for a very tall one (a phone screenshot, a page)
 function polFormat(c, ar) {
-  const f = ar >= 1.15 ? 'wide' : ar <= .87 ? 'mini' : 'square', win = f === 'wide' ? Math.min(2, ar) : f === 'mini' ? Math.max(.56, ar) : 1;
-  c.classList.toggle('sx-pol-wide', f === 'wide'); c.classList.toggle('sx-pol-mini', f === 'mini'); c.style.setProperty('--par', win);
+  const f = ar > 2.1 ? 'print' : ar < .5 ? 'clip' : ar >= 1.15 ? 'wide' : ar <= .87 ? 'mini' : 'square';
+  ['wide', 'mini', 'print', 'clip'].forEach(k => c.classList.toggle('sx-pol-' + k, f === k)); c.style.setProperty('--par', ar);
 }
 function paperCard(it) { // a note or a photo
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': it.type === 'photo' ? 'Take the photo down' : 'Take the note down', onclick: () => removeOne(it) }, '×');
   const txt = el('div', { class: it.type === 'photo' ? 'sx-cap-t' : 'sx-note-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': it.type === 'photo' ? 'Caption' : 'Note', 'data-ph': it.type === 'photo' ? 'Write a caption...' : 'Write something...' }, it.text || '');
   txt.addEventListener('input', () => { it.text = txt.innerText.slice(0, 2000); save(); });
   const pin = el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' });
-  const style = 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + tilt(it.id) + 'deg' + (it.type === 'note' ? noteStyle(it) : '');
+  const style = 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + tilt(it.id) + 'deg' + (it.type === 'note' ? noteStyle(it) : it.w ? ';width:' + it.w + 'px' : '');
   if (it.type === 'photo') {
     const img = el('img', { alt: it.text || 'A photo', draggable: 'false' });
     PHOTOS.get(it.id).then(src => { if (src) img.src = src; else img.alt = 'This photo is missing (it lives in the browser it was added in).'; drawStrings(); }).catch(() => {});
-    const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt].filter(Boolean));
+    const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[el('i', { class: 'sx-pol-hold', 'aria-hidden': 'true' }), pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt,
+      el('span', { class: 'sx-resize', title: 'Drag to make it bigger or smaller' })].filter(Boolean)); // (the tape or the clip it hangs by, when it has one)
     if (it.ar) polFormat(c, it.ar);
     img.addEventListener('load', () => { // the frame takes the photo's shape (measured once, then remembered)
       const ar = img.naturalWidth && img.naturalHeight ? Math.round(img.naturalWidth / img.naturalHeight * 1000) / 1000 : 1;
@@ -618,6 +638,12 @@ ws.addEventListener('pointerdown', e => {
         ev => { ws.classList.remove('panning'); if (panned) { camSave(); return; } if (ev.type === 'pointerup' && txt && wasPicked) deskEditAt(txt, ev.clientX, ev.clientY); });
       return;
     }
+    if (e.target.classList.contains('sx-resize') && it.type === 'photo') { // a photo's corner: bigger or smaller, keeping its shape
+      const w0 = c.offsetWidth, snap = deskSnap(); c.classList.add('sizing');
+      track(ev => { it.w = Math.round(Math.max(120, Math.min(1600, w0 + (ev.clientX - start.x) / cam.z))); c.style.width = it.w + 'px'; strUpdate(); },
+        () => { c.classList.remove('sizing'); if (deskSnap() !== snap) deskMark(snap); save(); });
+      return;
+    }
     if (e.target.classList.contains('sx-resize')) { // the corner: make it bigger or smaller
       const w0 = c.offsetWidth, h0 = c.offsetHeight, snap = deskSnap(), fr = it.type === 'frame' || it.type === 'wb', lim = it.type === 'frame' ? [200, 6000, 140, 4000] : it.type === 'wb' ? [260, 4000, 180, 3000] : it.type === 'tbl' ? [240, 1400, 80, 2000] : [160, 760, 90, 960];
       c.classList.add('sizing'); if (!fr) c.classList.add('sized');
@@ -698,6 +724,7 @@ ws.addEventListener('wheel', e => { // zoom around the pointer
 ws.addEventListener('dragover', e => { if ([...(e.dataTransfer.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); ws.classList.add('drop'); } });
 ws.addEventListener('dragleave', () => ws.classList.remove('drop'));
 ws.addEventListener('drop', e => { e.preventDefault(); ws.classList.remove('drop'); const fs = e.dataTransfer.files;
+  if (typeof mdDrop === 'function' && mdDrop(e)) return; // a Markdown file (or its folder): js/mdimport.js
   if ([...fs].some(f => /^audio\//.test(f.type)) && typeof musicAdd === 'function') musicAdd(fs, mode === 'focus' ? 'A' : 'B'); // music goes on the side that's playing (js/music.js)
   addPhotos(fs, toWorld(e.clientX, e.clientY)); });
 addEventListener('resize', placeCam);

@@ -1763,3 +1763,22 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-tip-d { display: block; margin-top: 4px; font: 500 13px/1.35 var(--ui); color: var(--k-bfc3c6); }
 .sx-tip-k[hidden], .sx-tip-d[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .sx-tip { transition: none; } }
+
+/* ---------- pictures of any shape (js/desk.js polFormat): always whole. Instant film for everyday shapes, a taped print
+   for a panorama, a sheet on a binder clip for a very tall one; any of them resizes from its corner, keeping its shape ---------- */
+.sx-pol-img img { object-fit: contain; }
+.sx-world .sx-polaroid.sx-pol-print { width: 460px; padding: 7px 7px 4px; }
+.sx-world .sx-polaroid.sx-pol-clip { width: 230px; padding: 8px 8px 4px; }
+.sx-world .sx-polaroid:is(.sx-pol-print, .sx-pol-clip) .sx-cap-t { min-height: 22px; margin-top: 4px; font-size: 15px; }
+.sx-pol-hold { display: none; position: absolute; pointer-events: none; z-index: 2; }
+/* the print: two strips of washi tape over its top corners (the pin still holds the strings, in the middle) */
+.sx-pol-print .sx-pol-hold { display: block; inset: 0; }
+.sx-pol-print .sx-pol-hold::before, .sx-pol-print .sx-pol-hold::after { content: ''; position: absolute; top: -9px; width: 62px; height: 20px; background: color-mix(in srgb, #9cb93b 62%, transparent); box-shadow: 0 1px 1px rgb(3 7 16 / .12); }
+.sx-pol-print .sx-pol-hold::before { left: -16px; rotate: -32deg; } .sx-pol-print .sx-pol-hold::after { right: -16px; rotate: 32deg; }
+/* the sheet: a black binder clip at the top, hanging from the pin */
+.sx-pol-clip .sx-pol-hold { display: block; left: 50%; top: -14px; width: 48px; height: 22px; margin-left: -24px; background: #34111f; border-radius: 3px 3px 2px 2px; box-shadow: inset 0 -5px 0 #030710, 0 2px 2px rgb(3 7 16 / .3); }
+.sx-pol-clip .sx-pol-hold::before { content: ''; position: absolute; left: 8px; right: 8px; top: -11px; height: 14px; border: 2.5px solid #bfc3c6; border-bottom: 0; border-radius: 10px 10px 0 0; }
+.sx-pol-clip > .sx-pin { top: -20px; }
+/* the corner to resize a picture, like a note's */
+.sx-polaroid .sx-resize { z-index: 3; }
+.sx-polaroid:hover .sx-resize, .sx-polaroid.sel .sx-resize, .sx-polaroid.sizing .sx-resize { opacity: 1; }

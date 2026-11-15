@@ -130,7 +130,7 @@ async function roomSend(to) { // to: one friend's browser id, or null for everyo
   const targets = to ? [to] : roomOnline().map(([pid]) => pid); if (!targets.length) return;
   const ids = new Set(its.map(it => it.id)), x0 = Math.min(...its.map(it => it.x)), y0 = Math.min(...its.map(it => it.y));
   const items = its.map(it => { const o = JSON.parse(JSON.stringify(it)); o.x -= x0; o.y -= y0; delete o.key; delete o.board; delete o.from; return o; });
-  const photos = {}; for (const it of its) if (it.type === 'photo') { try { const src = await PHOTOS.get(it.id); if (src) photos[it.id] = src; } catch (e) { /* skip */ } }
+  const photos = {}; for (const it of its) if (it.type === 'photo') { try { let src = await PHOTOS.get(it.id); if (src && src.length > 2.9e6) src = await shrinkSrc(src, 1400); if (src) photos[it.id] = src; } catch (e) { /* skip */ } } // (a big one goes smaller)
   roomSentAt = Date.now(); roomSendState();
   try { await roomCard({ name: roomHello().name, items, links: B_().links.filter(l => ids.has(l[0]) && ids.has(l[1])), photos }, targets); }
   catch (e) { deskToast('That didn\'t send: try again in a moment'); return; }
@@ -222,7 +222,7 @@ async function roomReceive(d, pid) {
     if (it.type === 'tbl') Object.assign(o, tblClean(it));
     if (it.type === 'frame') Object.assign(o, { w: Math.max(200, Math.min(6000, num(it.w))), h: Math.max(140, Math.min(4000, num(it.h))), color: str(it.color, 12) || 'amber' });
     if (it.type === 'photo') { const src = d.photos && d.photos[it.id]; if (typeof src !== 'string' || !/^data:image\/(jpeg|png|webp|gif);base64,/.test(src) || src.length > 3e6) continue;
-      if (it.ar) o.ar = Math.max(.2, Math.min(5, +it.ar || 1)); try { await PHOTOS.put(id, src); } catch (e) { continue; } }
+      if (it.ar) o.ar = Math.max(.1, Math.min(10, +it.ar || 1)); if (it.w) o.w = Math.max(120, Math.min(1600, num(it.w))); try { await PHOTOS.put(id, src); } catch (e) { continue; } }
     if (typeof it.group === 'string') o.group = gmap[it.group] || (gmap[it.group] = 'g' + tag + out.length);
     imap.set(it.id, id); out.push(o);
   }
