@@ -1644,3 +1644,87 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* pop-up messages: no scrolling column, and a click puts one away */
 .sx-talk .sx-msgs.pop { max-height: none; overflow: visible; mask-image: none; -webkit-mask-image: none; pointer-events: none; }
 .sx-msgs.pop .sx-msg { cursor: pointer; }
+
+/* a friend's face hops into the top-right line when they come in, and shrinks away when they leave (js/chrome.js) */
+.sx-net-f.hi { animation: sx-face-hi .55s cubic-bezier(.3, 1.6, .5, 1) both; }
+.sx-net-f.bye { animation: sx-face-bye .3s ease-in both; pointer-events: none; }
+@keyframes sx-face-hi { 0% { transform: translateY(-14px) scale(.4); opacity: 0; } 60% { transform: translateY(2px) scale(1.08); opacity: 1; } 100% { transform: none; } }
+@keyframes sx-face-bye { to { transform: scale(.3); opacity: 0; margin-right: -26px; } }
+/* copying the code: the icon becomes a tick, in the mint of "it worked" */
+.sx-room .done, .sx-room .done .sx-rp-svg { color: var(--k-77d6c1); border-color: var(--k-77d6c1); }
+.sx-room .done .sx-rp-svg { animation: sx-tick .35s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes sx-tick { from { transform: scale(.5); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sx-net-f.hi, .sx-net-f.bye, .sx-room .done .sx-rp-svg { animation: none; } }
+
+/* ---------- the player (js/player.js): a portable cassette player. A dark glass window with the cassette behind the
+   time, then a row of five piano keys. The glass is dark on either desk, so inside it the colours are the night ones ---------- */
+#app .sx-corner.sx-player { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "label" "win" "keys" "meta"; align-items: center; row-gap: 0; }
+#app .sx-player .sx-intent { grid-area: label; justify-self: center; margin-bottom: 10px; }
+.sx-pl-win { grid-area: win; position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: stretch; padding: 14px 20px 16px; overflow: hidden; border-radius: 10px;
+  background: var(--pl-glass); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--deck) 55%, var(--pl-frame)), inset 0 0 0 7px var(--pl-frame), inset 0 10px 22px rgb(var(--pl-shade) / .7);
+  --k-030710: #030710; --k-041528: var(--pl-glass); --k-0b1a2b: var(--pl-shell); --k-293b49: var(--pl-line); --k-6d8a8d: var(--pl-dim); --k-bfc3c6: #bfc3c6; --k-ffffe4: #ffffe4; --k-ffdaac: var(--pl-sand); --k-77d6c1: var(--pl-brk);
+  --k-030710-rgb: 3 7 16; --k-ffffe4-rgb: 255 255 228; --k-293b49-rgb: 41 59 73; --k-041528-rgb: 4 21 40; --k-6d8a8d-rgb: 109 138 141;
+  --mute: var(--pl-dim); --soft: var(--pl-dim); --ink: #bfc3c6; --white: #ffffe4; --sky: #bfc3c6; color-scheme: dark; }
+/* a sheen across the glass */
+.sx-pl-win::after { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: linear-gradient(115deg, rgb(255 255 228 / .07) 0 18%, transparent 18% 26%, rgb(255 255 228 / .035) 26% 30%, transparent 30%); }
+/* the cassette behind it: the shell, the label, the slot at the bottom, and the two reels, all dimmed */
+.sx-pl-cas { position: absolute; inset: 16px 26px 14px; z-index: 0; border: 2px solid var(--pl-line); border-radius: 9px; background: var(--pl-shell); opacity: .75; }
+.sx-pl-lab { position: absolute; left: 14px; right: 14px; top: 12px; height: 26%; border-radius: 3px; background: var(--pl-line); opacity: .55; }
+.sx-pl-lab::before { content: ''; position: absolute; inset: 0 0 auto; height: 5px; border-radius: 3px 3px 0 0; background: var(--deck); opacity: .8; }
+.sx-pl-slot { position: absolute; left: 20%; right: 20%; bottom: -2px; height: 18%; background: var(--pl-glass); border: 2px solid var(--pl-line); border-bottom: 0; clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%); }
+#app .sx-pl-win .sx-pl-reel { position: absolute; z-index: 1; top: 52%; width: 31%; height: auto; aspect-ratio: 1; translate: 0 -50%; opacity: .4; }
+#app .sx-pl-win .sx-pl-reel.l { left: 9%; } #app .sx-pl-win .sx-pl-reel.r { right: 9%; }
+#app .sx-pl-win .sx-pl-reel .rl-pack { fill: var(--pl-tape); stroke: var(--pl-tape-edge); }
+#app .sx-pl-win .sx-pl-reel .rl-rim { stroke-width: 1; }
+/* in front: the side and the session along the top, the time, and the strip in the slot */
+.sx-pl-top { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 0 6px; }
+#app .sx-player .sx-pl-top .sx-sidetag { order: 0; margin: 0; justify-content: flex-start; min-width: 0; }
+#app .sx-player .sx-pl-top .sl-big { margin: 0; text-align: right; white-space: nowrap; }
+#app .sx-player .sx-pl-win .sx-digits { position: relative; z-index: 2; margin: 6px 0 8px; text-align: center; text-shadow: 0 0 18px rgb(var(--pl-shade) / .9), 0 0 3px rgb(var(--pl-shade) / .9); }
+:root[data-desk="white"] #app[data-clock="paused"] .sx-pl-win .sx-digits { color: var(--pl-dim); }
+#app .sx-player .sx-pl-win .sx-deck { position: relative; z-index: 2; align-self: center; width: 54%; }
+#app .sx-player .sx-pl-win .sx-ribbon { display: none; }
+#app .sx-player .sx-pl-win .sx-cycle.sx-tape-strip .sg { height: 9px; background: var(--pl-line); box-shadow: inset 0 0 0 1px var(--pl-line-hi); }
+#app .sx-player .sx-pl-win .sx-cycle.sx-tape-strip .fs.done { background: var(--seg-focus); } #app .sx-player .sx-pl-win .sx-cycle.sx-tape-strip :is(.sb, .lb).done { background: var(--pl-brk); }
+/* the keys: five piano keys side by side in a dark well, each name printed on the body above its key */
+#app .sx-corner.sx-player .sx-cmd, #app .sx-world > .sx-corner.sx-player .sx-cmd { grid-area: keys; justify-self: stretch; position: relative; isolation: isolate; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin: 16px 0 0; padding: 0 6px; }
+#app .sx-player .sx-cmd::before { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 64px; z-index: -1; border-radius: 6px; background: var(--pk-well); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--deck) 30%, var(--pk-well)); }
+#app .sx-player .sx-cmd .btn.sx-tape { flex-direction: column-reverse; align-items: stretch; gap: 0; min-width: 0; }
+#app .sx-player .sx-tape .sx-tlw { display: flex; flex-direction: row; justify-content: center; align-items: baseline; gap: 6px; padding: 0 2px 9px; }
+#app .sx-player .sx-tape .sx-tl { font-size: 13px; letter-spacing: .14em; }
+#app .sx-player .sx-tape .sx-th { font-size: 9px; letter-spacing: .14em; white-space: nowrap; }
+#app .sx-player .sx-tk { width: auto; height: 50px; margin: 6px 3px 0; border: 0; border-radius: 3px 3px 5px 5px; background: var(--pk-face); color: var(--pk-ink);
+  box-shadow: inset 0 -12px 0 var(--pk-edge), inset 0 1px 0 rgb(255 255 228 / .12), 0 2px 0 var(--pk-well); transition: transform .08s ease-out, box-shadow .08s ease-out, background .15s; }
+#app .sx-player .sx-tk svg { width: 20px; height: 20px; margin-top: -10px; }
+#app .sx-player .sx-tape:hover:not(:disabled) .sx-tk { background: var(--pk-hover); }
+#app .sx-player .sx-tape:active:not(:disabled) .sx-tk, #app .sx-player .sx-tape.press .sx-tk { transform: translateY(5px); box-shadow: inset 0 -7px 0 var(--pk-edge), inset 0 1px 0 rgb(255 255 228 / .08), 0 0 0 var(--pk-well); background: var(--pk-face); }
+/* a key that's latched stays down: Play while it plays, Pause while it's paused, Rew while held */
+#app .sx-player .sx-tape.go .ic-pause { display: none; } #app .sx-player .sx-tape.go .ic-play { display: block; }
+#app:is([data-clock="focus"], [data-clock="last"], [data-clock="break"]) .sx-player .sx-tape.go .sx-tk, #app[data-clock="paused"] .sx-player .sx-pause-k .sx-tk, #app .sx-player .sx-tape.holding .sx-tk { transform: translateY(5px); box-shadow: inset 0 -7px 0 var(--pk-edge), inset 0 1px 0 rgb(255 255 228 / .08), 0 0 0 var(--pk-well); }
+#app:is([data-clock="focus"], [data-clock="last"]) .sx-player .sx-tape.go .sx-tk, #app[data-clock="paused"] .sx-player .sx-pause-k .sx-tk { color: var(--deck); }
+#app[data-clock="break"] .sx-player .sx-tape.go .sx-tk { color: var(--pl-brk); }
+#app .sx-player .sx-cmd .btn.sx-tape, #app[data-clock] .sx-player .sx-cmd .btn.sx-tape.go { color: var(--deck); }
+/* Reset: the red key */
+#app .sx-player .sx-reset-k .sx-tk { background: #d9243c; color: #ffffe4; box-shadow: inset 0 -12px 0 #73392e, inset 0 1px 0 rgb(255 255 228 / .25), 0 2px 0 var(--pk-well); }
+#app .sx-player .sx-reset-k:hover .sx-tk { background: #ff6157; }
+#app .sx-player .sx-reset-k:active .sx-tk, #app .sx-player .sx-reset-k.press .sx-tk { background: #d9243c; box-shadow: inset 0 -7px 0 #73392e, 0 0 0 var(--pk-well); }
+#app .sx-player .sx-cmd .btn.sx-reset-k { color: var(--k-ff6157); }
+/* the meters and the counter: under the keys, on the right */
+#app .sx-world > .sx-corner.sx-player .sx-tally, #app .sx-corner.sx-player .sx-tally { grid-area: meta; justify-self: end; margin: 14px 0 0; }
+@media (max-width: 560px) {
+  #app .sx-player .sx-tape .sx-th { display: none; }
+  #app .sx-player .sx-tape .sx-tl { font-size: 11px; letter-spacing: .08em; }
+  #app .sx-player .sx-pl-top .sx-sidetag .sx-np { display: none; }
+  .sx-pl-win { padding: 10px 10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) { #app .sx-player .sx-tk { transition: none; } }
+
+/* the player's own colours: cool navy glass and slate keys on the dark desk; on the white desk the same dark, but warm:
+   wine-brown glass, a copper-brown cassette, brown keys, sand and cream words */
+#app .sx-player { --pl-glass: #041528; --pl-frame: #030710; --pl-shell: #0b1a2b; --pl-line: #293b49; --pl-line-hi: #41566a; --pl-tape: #73392e; --pl-tape-edge: #34111f;
+  --pl-brk: #77d6c1; --pl-dim: #6d8a8d; --pl-sand: #ffffe4; --pl-shade: 3 7 16;
+  --pk-face: #293b49; --pk-edge: #0b1a2b; --pk-hover: #41566a; --pk-ink: #bfc3c6; --pk-well: #030710; }
+:root[data-desk="white"] #app .sx-player { --pl-glass: color-mix(in srgb, #34111f 90%, #030710); --pl-frame: color-mix(in srgb, #34111f 55%, #030710); --pl-shell: color-mix(in srgb, #34111f 72%, #73392e);
+  --pl-line: #73392e; --pl-line-hi: #833f34; --pl-tape: #c76e46; --pl-tape-edge: #34111f; --pl-brk: #9cb93b; --pl-dim: color-mix(in srgb, #ffdaac 55%, #34111f); --pl-sand: #ffdaac; --pl-shade: 32 10 18;
+  --pk-face: #73392e; --pk-edge: #34111f; --pk-hover: #833f34; --pk-ink: #ffdaac; --pk-well: color-mix(in srgb, #34111f 75%, #030710); }
+:root[data-desk="white"] .sx-pl-win { --k-030710: var(--pl-frame); --k-030710-rgb: 32 10 18; --ink: #ffdaac; --sky: #ffdaac; --k-bfc3c6: #ffdaac; }

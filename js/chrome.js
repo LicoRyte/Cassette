@@ -17,16 +17,22 @@ const chrMe = el('button', { type: 'button', class: 'sx-net-me', title: 'You, an
 const chrNet = el('div', { class: 'sx-net', role: 'toolbar', 'aria-label': 'Online' }, roomB, chrFaces, roomTalkBox, chrMe);
 document.body.append(chrNet);
 roomB.title = 'A room with friends: send each other notes, photos, tables and labels, and messages';
+let chrSeen = null; // (who was here at the last look: null until the first, so nobody hops on load)
 function chrNetDraw() {
   const online = room ? roomOnline() : [], many = online.length > 1;
   roomB.replaceChildren(...(room ? [el('i', { class: 'sx-net-dot' + (online.length ? ' on' : '') }), online.length ? 'Room' : 'Room · waiting'] : ['Join a room']));
   chrNet.classList.toggle('in', !!room); chrNet.classList.toggle('with', online.length > 0);
   // the faces of who's here; with two or more, click one to write only to them (click again: everyone)
+  // a friend who just came in drops into the line with a little hop; one who left shrinks away
+  const now = new Set(online.map(([pid]) => pid)), fresh = chrSeen ? online.filter(([pid]) => !chrSeen.has(pid)).map(([pid]) => pid) : [];
+  const gone = chrSeen ? [...chrFaces.querySelectorAll('.sx-net-f[data-pid]')].filter(b => !now.has(b.dataset.pid)) : [];
+  chrSeen = now;
   chrFaces.replaceChildren(...online.map(([pid, p]) => {
     const on = many && roomMsgTo === pid;
-    return el('button', { type: 'button', class: 'sx-net-f' + (on ? ' on' : ''), title: many ? (on ? 'Writing only to ' + p.name + ' (click for everyone)' : p.name + ': click to write only to them') : p.name, 'aria-label': p.name, 'aria-pressed': many ? String(on) : null,
+    return el('button', { type: 'button', 'data-pid': pid, class: 'sx-net-f' + (on ? ' on' : '') + (fresh.includes(pid) ? ' hi' : ''), title: many ? (on ? 'Writing only to ' + p.name + ' (click for everyone)' : p.name + ': click to write only to them') : p.name, 'aria-label': p.name, 'aria-pressed': many ? String(on) : null,
       onmousedown: e => e.preventDefault(), onclick: () => { if (!many) { roomMsgI.focus(); return; } roomMsgTo = on ? null : pid; roomTalkDraw(); chrNetDraw(); roomMsgI.focus(); } }, roomAv(p, true));
   }));
+  gone.forEach(b => { if (stillUI()) return; b.classList.remove('hi', 'on'); b.classList.add('bye'); b.disabled = true; chrFaces.append(b); setTimeout(() => b.remove(), 320); });
   chrMe.replaceChildren(roomAv(roomMe()));
 }
 { const draw0 = roomDraw; roomDraw = function (...a) { const r = draw0.apply(this, a); chrNetDraw(); return r; }; }
@@ -38,6 +44,16 @@ roomNameI.addEventListener('input', () => chrNetDraw());
 addEventListener('pointerdown', e => { if (!roomPanel.hidden && !e.target.closest('.sx-room, .sx-net')) roomClose(); }, true);
 addEventListener('keydown', e => { if (e.key === 'Escape' && !roomPanel.hidden && !e.target.closest('.sx-net')) { e.preventDefault(); e.stopPropagation(); roomClose(); } }, true);
 chrNetDraw();
+
+/* ---------- copying the room code: the copy icon itself turns into a tick for a moment ---------- */
+const CHR_TICK = '<path d="M3 8.5l3.2 3.2L13 4.8"/>';
+roomCopy = function (e) {
+  const b = e && e.currentTarget, ic = b && b.querySelector('.sx-rp-svg svg');
+  const done = () => { if (!ic || b.classList.contains('done')) return; const was = ic.innerHTML, word = [...b.childNodes].find(n => n.nodeType === 3 && n.textContent.trim() === 'Copy');
+    ic.innerHTML = CHR_TICK; b.classList.add('done'); if (word) word.textContent = 'Copied';
+    setTimeout(() => { ic.innerHTML = was; b.classList.remove('done'); if (word) word.textContent = 'Copy'; }, 1400); };
+  if (navigator.clipboard) navigator.clipboard.writeText(roomCode).then(() => { if (ic) done(); else deskToast('Copied the room code'); }, () => deskToast('Could not copy: select the code and copy it'));
+};
 
 /* ---------- messages: a friend's also shows on the mini deck; leaving the room clears the bubbles ---------- */
 { const show0 = roomMsgShow; roomMsgShow = function (who, to, text, person, mine) { if (!mine && typeof miniMsg === 'function') miniMsg(who, text); return show0.apply(this, arguments); }; }
