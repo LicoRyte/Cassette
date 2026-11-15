@@ -1632,3 +1632,15 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-msg-h span { white-space: nowrap; }
 /* the room panel sits over the message bubbles, not under them */
 .sx-mem.sx-room { z-index: 75; }
+
+/* the room panel's Messages switch: Keep history or Pop up */
+.sx-rp-mode { display: flex; align-items: center; gap: 10px; }
+.sx-rp-mode .sx-rp-lbl { margin: 0; }
+.sx-rp-seg { display: inline-flex; margin-left: auto; border: 1.5px solid color-mix(in srgb, var(--deck) 45%, transparent); border-radius: 3px; overflow: hidden; }
+.sx-rp-seg button { height: 26px; padding: 0 10px 1px; background: none; border: 0; color: color-mix(in srgb, var(--deck) 72%, var(--k-030710)); font: 700 11px/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.sx-rp-seg button + button { box-shadow: inset 1.5px 0 0 color-mix(in srgb, var(--deck) 45%, transparent); }
+.sx-rp-seg button:hover { background: color-mix(in srgb, var(--deck) 10%, transparent); }
+.sx-rp-seg button.on { background: var(--deck); color: var(--k-030710); }
+/* pop-up messages: no scrolling column, and a click puts one away */
+.sx-talk .sx-msgs.pop { max-height: none; overflow: visible; mask-image: none; -webkit-mask-image: none; pointer-events: none; }
+.sx-msgs.pop .sx-msg { cursor: pointer; }

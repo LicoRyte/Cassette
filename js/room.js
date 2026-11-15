@@ -164,13 +164,32 @@ const roomTalkBox = el('div', { class: 'sx-talk-box', hidden: true });
 const roomTalkEl = el('div', { class: 'sx-talk' }, roomTalkBox, roomMsgs);
 document.body.append(roomTalkEl);
 const ROOM_MSG_KEEP = 20;
+// two ways to show messages (the room panel switches them): 'keep' holds the last twenty to scroll back through;
+// 'pop' shows each for a few seconds and lets it go (five at most; hover to hold one, click to put it away)
+const roomMsgPop = () => ROOM.msgs === 'pop';
+function roomMsgTimer(slip, life) {
+  let t = 0, left = life, from = 0;
+  const go = () => { slip.classList.add('out'); setTimeout(() => slip.remove(), 400); };
+  const run = () => { from = Date.now(); t = setTimeout(go, left); };
+  slip.addEventListener('mouseenter', () => { clearTimeout(t); left -= Date.now() - from; }); // (it waits while you read it)
+  slip.addEventListener('mouseleave', () => { if (!slip.classList.contains('out')) run(); });
+  slip.addEventListener('click', go); slip._go = go;
+  run();
+}
 function roomMsgShow(who, to, text, person, mine) {
   const when = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const slip = el('div', { class: 'sx-msg' + (mine ? ' mine' : '') },
     el('div', { class: 'sx-msg-in' }, el('div', { class: 'sx-msg-h' }, roomAv(person, true), el('b', {}, who), el('span', {}, to + ' \u00b7 ' + when)), el('p', { class: 'sx-msg-b' }, text)));
   roomMsgs.prepend(slip); requestAnimationFrame(() => requestAnimationFrame(() => slip.classList.add('on')));
-  [...roomMsgs.children].slice(ROOM_MSG_KEEP).forEach(x => x.remove()); // (the oldest go past twenty)
+  if (roomMsgPop()) { slip.title = 'Click to put it away'; roomMsgTimer(slip, Math.min(12000, 6000 + text.length * 45)); }
+  [...roomMsgs.children].slice(roomMsgPop() ? 5 : ROOM_MSG_KEEP).forEach(x => x.remove()); // (the oldest go)
 }
+function roomMsgMode(m) { // switching: to pop-up, what's showing goes the pop-up way too
+  ROOM.msgs = m === 'pop' ? 'pop' : 'keep'; save(); roomMsgs.classList.toggle('pop', roomMsgPop());
+  if (roomMsgPop()) [...roomMsgs.children].forEach((x, i) => { if (!x._go) { x.title = 'Click to put it away'; roomMsgTimer(x, 2500 + i * 300); } });
+  roomDraw();
+}
+roomMsgs.classList.toggle('pop', roomMsgPop());
 function roomTalk(text) {
   text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, ROOM_MSG_LEN); if (!text || !room || !roomTell) return false;
   const left = ROOM_MSG_COOL - (Date.now() - roomMsgAt); if (left > 0) return false;
@@ -300,6 +319,10 @@ function roomDraw(focusName) {
       el('div', { class: 'sx-rp-mini' }, el('code', {}, roomCode), el('button', { type: 'button', class: 'sx-rp-icon', title: 'Copy the room code', 'aria-label': 'Copy the room code', onclick: roomCopy }, roomSvg(ROOM_ICON.copy)))));
     const me = roomEditName || !(ROOM.name || '').trim() ? roomNameI
       : el('button', { type: 'button', class: 'sx-rp-me', title: 'Change your name', onclick: () => { roomEditName = true; roomDraw(); roomNameI.focus(); roomNameI.select(); } }, 'You appear as ', el('b', {}, ROOM.name), ' \u270e');
+    parts.push(sec('sx-rp-mode', el('div', { class: 'sx-rp-lbl' }, 'Messages'), el('div', { class: 'sx-rp-seg', role: 'radiogroup', 'aria-label': 'How messages show' },
+      ...[['keep', 'Keep history', 'The last twenty stay; scroll them to read back'], ['pop', 'Pop up', 'Each shows for a few seconds, then goes']].map(([k, n, t]) => {
+        const on = (ROOM.msgs === 'pop' ? 'pop' : 'keep') === k;
+        return el('button', { type: 'button', role: 'radio', 'aria-checked': String(on), class: on ? 'on' : null, title: t, onclick: () => roomMsgMode(k) }, n); }))));
     parts.push(sec('sx-rp-foot', face, me, btn('Leave', () => roomLeave(), 'sx-rp-leave', 'Leave the room')));
   }
   if (ROOM.block.length) parts.push(sec('', el('div', { class: 'sx-rp-lbl' }, 'Blocked'), el('ul', { class: 'sx-rp-friends' }, ...ROOM.block.map(b => el('li', {}, roomAv(b), el('b', {}, b.name),
