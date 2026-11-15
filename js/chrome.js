@@ -35,6 +35,9 @@ function chrNetDraw() {
   roomOpen = function (...a) { if (typeof tapesOpen === 'function' && !tapesDrawer.hidden) tapesOpen(null); const r = open0.apply(this, a); chrMe.classList.add('on'); return r; };
   roomClose = function (...a) { const r = close0.apply(this, a); chrMe.classList.remove('on'); return r; }; }
 roomNameI.addEventListener('input', () => chrNetDraw());
+// like Remembered and the others: a click anywhere else, or Esc, puts the room panel away (the online line toggles it itself)
+addEventListener('pointerdown', e => { if (!roomPanel.hidden && !e.target.closest('.sx-room, .sx-net')) roomClose(); }, true);
+addEventListener('keydown', e => { if (e.key === 'Escape' && !roomPanel.hidden && !e.target.closest('.sx-net')) { e.preventDefault(); e.stopPropagation(); roomClose(); } }, true);
 chrNetDraw();
 
 /* ---------- the corners fade while the timer runs and you leave the mouse alone ---------- */
