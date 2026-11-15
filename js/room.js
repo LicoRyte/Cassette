@@ -7,7 +7,7 @@
    A message over 5 MB is let go while it arrives (a small change in js/vendor/trystero/room.js). */
 'use strict';
 
-const ROOM = S.opts.room = Object.assign({ name: '', me: '', block: [], last: '' }, S.opts.room || {});
+const ROOM = S.opts.room = Object.assign({ name: '', me: '', block: [], last: '', pic: '' }, S.opts.room || {});
 if (!ROOM.me) { ROOM.me = 'u' + Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(36)).join('').slice(0, 14); save(); }
 const ROOM_COOL = 8000, ROOM_GAP = 4000, ROOM_MAX = 20; // you: one send every 8 s; each friend: one delivery taken every 4 s; at most 20 cards at once
 const ROOM_TYPES = ['note', 'photo', 'tbl', 'frame'];
@@ -26,7 +26,31 @@ function roomNewCode() { const v = new Uint32Array(12); crypto.getRandomValues(v
 function roomNorm(s) { // however it's typed or pasted (spaces, no dashes, small letters): TAPE-XXXX-XXXX-XXXX, or '' if it isn't one
   const t = String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^TAPE/, '');
   return t.length === 12 && [...t].every(ch => ROOM_ABC.includes(ch)) ? 'TAPE-' + t.match(/.{4}/g).join('-') : ''; }
-const roomHello = () => ({ id: ROOM.me, name: (ROOM.name || '').trim().slice(0, 24) || 'A friend' });
+const roomHello = () => ({ id: ROOM.me, name: (ROOM.name || '').trim().slice(0, 24) || 'A friend', pic: ROOM.pic || '' });
+// a picture is a small square image (96 px, a few KB); one from a friend is only ever shown as an image, and only if it is one
+const roomPicOk = v => typeof v === 'string' && v.length < 40000 && /^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(v);
+// someone's round face: their picture, or the first letter of their name in their colour (s: the small one)
+function roomAv(p, small) {
+  const a = el('span', { class: 'sx-av' + (small ? ' s' : ''), style: 'background:' + roomDot(p.id), 'aria-hidden': 'true' });
+  if (roomPicOk(p.pic)) a.append(el('img', { src: p.pic, alt: '' })); else a.textContent = (Array.from(String(p.name || '?').trim())[0] || '?').toUpperCase();
+  return a;
+}
+const roomMe = () => ({ id: ROOM.me, name: roomHello().name, pic: ROOM.pic });
+const roomPicFile = el('input', { type: 'file', accept: 'image/*', hidden: true });
+document.body.append(roomPicFile);
+roomPicFile.addEventListener('change', async () => {
+  const f = roomPicFile.files && roomPicFile.files[0]; roomPicFile.value = ''; if (!f || !/^image\//.test(f.type)) return;
+  try {
+    const url = URL.createObjectURL(f), img = new Image(); await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = url; }); URL.revokeObjectURL(url);
+    const c = document.createElement('canvas'), S2 = 96; c.width = c.height = S2; const g = c.getContext('2d'), m = Math.min(img.naturalWidth, img.naturalHeight);
+    g.drawImage(img, (img.naturalWidth - m) / 2, (img.naturalHeight - m) / 2, m, m, 0, 0, S2, S2); // (the middle square, like a face crop)
+    let out = c.toDataURL('image/webp', .82); if (!out.startsWith('data:image/webp')) out = c.toDataURL('image/jpeg', .82);
+    if (!roomPicOk(out)) out = c.toDataURL('image/jpeg', .6);
+    if (!roomPicOk(out)) { deskToast('That picture didn\'t work: try another'); return; }
+    ROOM.pic = out; save(); if (roomSay) roomSay(roomHello()); roomDraw(); deskToast('Your picture is set');
+  } catch (e) { deskToast('That picture didn\'t work: try another'); }
+});
+function roomPicRemove() { ROOM.pic = ''; save(); if (roomSay) roomSay(roomHello()); roomDraw(); }
 
 /* ---------- how the connecting is going (shown in the panel, so a room that stays empty says why) ---------- */
 // every direct connection the room parts open goes through this: "connecting" means a friend's browser was found and
@@ -43,19 +67,26 @@ function roomTrackers() { // how many of the trackers answered: [open, all]
   try { const ss = Object.values(roomLib.getRelaySockets()); return [ss.filter(s => s && s.readyState === 1).length, ss.length]; } catch (e) { return [0, 0]; }
 }
 function roomWatch() { clearTimeout(roomWatchT); if (!room) return;
-  const p = !roomPanel.hidden && roomPanel.querySelector('.sx-room-st'), st = roomStatus(); if (p && st) { p.className = 'sx-room-st ' + st[0]; p.textContent = st[1]; }
+  const old = !roomPanel.hidden && roomPanel.querySelector('.sx-rp-st'), now = roomStatusEl();
+  if (old && now) old.replaceWith(now); else if (!!old !== !!now && !roomPanel.hidden) roomDraw();
   roomWatchT = setTimeout(roomWatch, 2000); }
-function roomStatus() { // one line of how it's going, and what to try
-  if (roomDiag.insecure) return ['bad', 'This page is ' + location.origin + ', a plain http:// address, so the browser turns off the encryption rooms need. Open the app from https:// or from localhost on each computer.'];
-  if (!room) return null;
-  const [open, all] = roomTrackers(), secs = (Date.now() - roomDiag.at) / 1000, n = roomOnline().length;
-  const line = 'Trackers ' + open + ' of ' + all + ' · found ' + roomDiag.found + ' · connected ' + roomDiag.ok + (roomDiag.failed ? ' · failed ' + roomDiag.failed : '');
-  if (n) return ['ok', line];
-  if (!open && secs > 8) return ['bad', line + '. Can\'t reach any tracker: you may be offline, or this network blocks them (try another Wi-Fi or a phone hotspot).'];
-  if (roomDiag.failed && !roomDiag.ok) return ['bad', line + '. A friend\'s browser was found, but your two networks wouldn\'t let them connect directly. This happens on some school, office and mobile networks: try both on the same Wi-Fi, or another network.'];
-  if (roomDiag.found > roomDiag.ok + roomDiag.failed) return ['wait', line + '. Found someone, connecting...'];
-  if (secs > 25) return ['wait', line + '. Nobody found with this code yet. Check you both have the same code, and the same version (' + APP_VERSION + ' here, at the bottom of Settings).'];
-  return ['wait', line + '. Looking for friends with this code...'];
+let roomDiagOpen = false;
+function roomStatus() { // how it's going while you wait: { kind: 'wait' or 'bad', text, more }; nothing once friends are here
+  if (roomDiag.insecure) return { kind: 'bad', text: 'Rooms need https:// or localhost', more: 'This page is ' + location.origin + ', a plain http:// address, so the browser turns off the encryption rooms need. Open the app from https:// or from localhost on each computer.' };
+  if (!room || roomOnline().length) return null;
+  const [open, all] = roomTrackers(), secs = (Date.now() - roomDiag.at) / 1000;
+  const nums = 'Trackers ' + open + ' of ' + all + ' · found ' + roomDiag.found + ' · connected ' + roomDiag.ok + (roomDiag.failed ? ' · failed ' + roomDiag.failed : '') + '.';
+  if (!open && secs > 8) return { kind: 'bad', text: 'Can\'t reach the trackers', more: nums + ' You may be offline, or this network blocks them: try another Wi-Fi or a phone hotspot.' };
+  if (roomDiag.failed && !roomDiag.ok) return { kind: 'bad', text: 'Found a friend, but couldn\'t connect', more: nums + ' Your two networks wouldn\'t let the browsers reach each other directly. This happens on some school, office and mobile networks: try both on the same Wi-Fi, or another network.' };
+  if (roomDiag.found > roomDiag.ok + roomDiag.failed) return { kind: 'wait', text: 'Found someone, connecting...', more: nums };
+  if (secs > 25) return { kind: 'wait', text: 'Nobody here with this code yet', more: nums + ' Check you both have the same code, and the same version (' + APP_VERSION + ' here, at the bottom of Settings).' };
+  return { kind: 'wait', text: 'Looking for friends...', more: nums };
+}
+function roomStatusEl() {
+  const st = roomStatus(); if (!st) return null;
+  return el('div', { class: 'sx-rp-st ' + st.kind, role: 'status' }, el('i', {}), el('span', {}, st.text),
+    el('button', { type: 'button', 'aria-expanded': String(roomDiagOpen), onclick: () => { roomDiagOpen = !roomDiagOpen; roomWatch(); } }, roomDiagOpen ? 'hide' : 'details'),
+    roomDiagOpen ? el('p', {}, st.more) : null);
 }
 
 /* ---------- joining and leaving ---------- */
@@ -78,7 +109,7 @@ async function roomJoin(code) {
   room.onPeerJoin(pid => say(roomHello(), pid));
   room.onPeerLeave(pid => { const p = roomPeers.get(pid); roomPeers.delete(pid); if (p && !roomBlocked(p.id)) deskToast(p.name + ' left the room'); roomDraw(); roomSendState(); });
   hear((d, pid) => { if (!d || typeof d.id !== 'string') return;
-    const p = { id: d.id.slice(0, 24), name: String(d.name || '').trim().slice(0, 24) || 'A friend' }, had = roomPeers.get(pid);
+    const p = { id: d.id.slice(0, 24), name: String(d.name || '').trim().slice(0, 24) || 'A friend', pic: roomPicOk(d.pic) ? d.pic : '' }, had = roomPeers.get(pid);
     roomPeers.set(pid, p); if (!had && !roomBlocked(p.id)) { deskToast(p.name + ' is here'); deskSfx('pin'); }
     roomDraw(); roomSendState(); });
   get((d, pid) => roomReceive(d, pid));
@@ -114,9 +145,9 @@ function roomSendState() {
   const online = roomOnline(), can = room && picked.size && [...picked].some(id => ROOM_TYPES.includes((itemOf(id) || {}).type));
   roomSendRow.hidden = !(can && online.length); if (roomSendRow.hidden) return;
   const left = ROOM_COOL - (Date.now() - roomSentAt), cool = left > 0;
-  const b = (label, title, fn, dot) => { const x = deskBtn([dot ? el('i', { class: 'sx-room-dot', style: 'background:' + dot }) : null, label], fn, 'sx-room-b', title); x.disabled = cool; return x; };
+  const b = (label, title, fn, who) => { const x = deskBtn([who ? roomAv(who, true) : null, label], fn, 'sx-room-b', title); x.disabled = cool; return x; };
   roomSendRow.replaceChildren(el('span', { class: 'sx-ws-n' }, cool ? 'Send again in ' + Math.ceil(left / 1000) + ' s' : 'Send to'),
-    ...online.map(([pid, p]) => b(p.name, 'Send what is picked to ' + p.name, () => roomSend(pid), roomDot(p.id))),
+    ...online.map(([pid, p]) => b(p.name, 'Send what is picked to ' + p.name, () => roomSend(pid), p)),
     ...(online.length > 1 ? [b('Everyone', 'Send what is picked to everyone in the room', () => roomSend(null))] : []));
   if (cool) roomTick = setTimeout(roomSendState, Math.min(1000, left % 1000 || 1000));
 }
@@ -132,10 +163,10 @@ const roomMsgs = el('div', { class: 'sx-msgs', role: 'log', 'aria-live': 'polite
 const roomTalkBox = el('div', { class: 'sx-talk-box', hidden: true });
 const roomTalkEl = el('div', { class: 'sx-talk' }, roomTalkBox, roomMsgs);
 document.body.append(roomTalkEl);
-function roomMsgShow(who, to, text, dot, mine) {
+function roomMsgShow(who, to, text, person, mine) {
   const life = Math.min(12000, 6000 + text.length * 45);
   const slip = el('div', { class: 'sx-msg' + (mine ? ' mine' : ''), title: 'Click to put it away' },
-    el('div', { class: 'sx-msg-in' }, el('div', { class: 'sx-msg-h' }, el('i', { class: 'sx-room-dot', style: 'background:' + dot }), el('b', {}, who), el('span', {}, to)), el('p', { class: 'sx-msg-b' }, text)));
+    el('div', { class: 'sx-msg-in' }, el('div', { class: 'sx-msg-h' }, roomAv(person, true), el('b', {}, who), el('span', {}, to)), el('p', { class: 'sx-msg-b' }, text)));
   let t = 0, left = life, from = 0;
   const go = () => { slip.classList.add('out'); setTimeout(() => slip.remove(), 400); };
   const run = () => { from = Date.now(); t = setTimeout(go, left); };
@@ -152,14 +183,14 @@ function roomTalk(text) {
   const online = roomOnline(), to = roomMsgTo && roomPeers.has(roomMsgTo) && !roomBlocked(roomPeers.get(roomMsgTo).id) ? roomMsgTo : null;
   const targets = to ? [to] : online.map(([pid]) => pid); if (!targets.length) { deskToast('Nobody in the room to hear it yet'); return false; }
   roomMsgAt = Date.now(); roomTell({ text, all: !to }, targets).catch(() => {});
-  roomMsgShow('You', to ? 'to ' + roomPeers.get(to).name : 'to everyone', text, roomDot(ROOM.me), true);
+  roomMsgShow('You', to ? 'to ' + roomPeers.get(to).name : 'to everyone', text, roomMe(), true);
   return true;
 }
 function roomHeard(d, pid) {
   const p = roomPeers.get(pid); if (!p || roomBlocked(p.id) || !d || typeof d.text !== 'string') return;
   const now = Date.now(); if (now - (roomHeardAt.get(p.id) || 0) < ROOM_MSG_GAP) return; roomHeardAt.set(p.id, now);
   const text = d.text.replace(/\s+/g, ' ').trim().slice(0, ROOM_MSG_LEN); if (!text) return;
-  roomMsgShow(p.name, d.all ? 'to everyone' : 'to you', text, roomDot(p.id));
+  roomMsgShow(p.name, d.all ? 'to everyone' : 'to you', text, p);
   if (typeof sfxPlay === 'function') sfxPlay('ui'); // (the soft notification blip)
 }
 
@@ -226,44 +257,60 @@ function roomTalkDraw() { // the box shows while you're in a room with someone; 
   const online = room ? roomOnline() : [], show = online.length > 0; roomTalkBox.hidden = !show; if (!show) return;
   if (roomMsgTo && !online.some(([pid]) => pid === roomMsgTo)) roomMsgTo = null;
   const keep = document.activeElement === roomMsgI && [roomMsgI.selectionStart, roomMsgI.selectionEnd];
-  const to = online.length > 1 ? el('div', { class: 'sx-talk-to', role: 'radiogroup', 'aria-label': 'Who to' }, ...[[null, 'Everyone', null]].concat(online.map(([pid, p]) => [pid, p.name, roomDot(p.id)])).map(([pid, n, dot]) => {
+  const to = online.length > 1 ? el('div', { class: 'sx-talk-to', role: 'radiogroup', 'aria-label': 'Who to' }, ...[[null, 'Everyone', null]].concat(online.map(([pid, p]) => [pid, p.name, p])).map(([pid, n, who]) => {
     const on = roomMsgTo === pid;
-    return el('button', { type: 'button', class: on ? 'on' : null, role: 'radio', 'aria-checked': String(on), onmousedown: e => e.preventDefault(), onclick: () => { roomMsgTo = pid; roomTalkDraw(); roomMsgI.focus(); } }, dot ? el('i', { class: 'sx-room-dot', style: 'background:' + dot }) : null, n); })) : null;
+    return el('button', { type: 'button', class: on ? 'on' : null, role: 'radio', 'aria-checked': String(on), onmousedown: e => e.preventDefault(), onclick: () => { roomMsgTo = pid; roomTalkDraw(); roomMsgI.focus(); } }, who ? roomAv(who, true) : null, n); })) : null;
   roomMsgI.placeholder = online.length > 1 ? (roomMsgTo ? 'To ' + roomPeers.get(roomMsgTo).name + '...' : 'To everyone...') : 'To ' + online[0][1].name + '...';
   roomTalkBox.replaceChildren(...[to, el('div', { class: 'sx-talk-row' }, roomMsgI,
     el('button', { type: 'button', class: 'sx-talk-send', title: 'Send (Enter)', 'aria-label': 'Send', onmousedown: e => e.preventDefault(), onclick: () => { if (roomTalk(roomMsgI.value)) roomMsgI.value = ''; } }, '\u27a4'))].filter(Boolean));
   if (keep) { roomMsgI.focus(); try { roomMsgI.setSelectionRange(keep[0], keep[1]); } catch (e) { /* fine */ } }
 }
+let roomEditName = false;
+roomNameI.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); if (room && ROOM.name.trim()) { roomEditName = false; roomDraw(); } } });
+roomNameI.addEventListener('blur', () => { if (room && roomEditName && ROOM.name.trim()) setTimeout(() => { if (document.activeElement !== roomNameI) { roomEditName = false; roomDraw(); } }, 0); });
+const roomSvg = d => { const s2 = el('span', { class: 'sx-rp-svg', 'aria-hidden': 'true' }); s2.innerHTML = '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' + d + '</svg>'; return s2; };
+const ROOM_ICON = { copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v6.5a1 1 0 0 0 1 1h.5"/>', ban: '<circle cx="8" cy="8" r="6"/><path d="M3.8 12.2l8.4-8.4"/>' };
+function roomCopy() { if (navigator.clipboard) navigator.clipboard.writeText(roomCode).then(() => deskToast('Copied the room code'), () => {}); }
 function roomDraw(focusName) {
   const online = roomOnline(); roomN.textContent = room ? String(online.length) : ''; roomN.hidden = !room || !online.length;
   roomB.classList.toggle('live', !!room); roomTalkDraw();
   if (roomPanel.hidden) return;
-  const btn = (label, fn, cls, title) => el('button', { type: 'button', class: 'sx-ws-b' + (cls ? ' ' + cls : ''), title: title || null, onclick: fn }, label);
-  const name = roomNameI, ae = document.activeElement, keep = ae === roomNameI && [ae, ae.selectionStart, ae.selectionEnd];
-  const parts = [el('div', { class: 'sx-mem-top' }, el('h3', {}, 'Room'), el('span', { class: 'sx-gap' }), room ? el('span', { class: 'sx-room-live' }, el('i', {}), 'Online') : null),
-    el('label', { class: 'sx-room-row' }, el('span', {}, 'You are'), name)];
-  const st = roomStatus(); if (st) parts.push(el('p', { class: 'sx-room-st ' + st[0], role: 'status' }, st[1]));
+  const btn = (label, fn, cls, title) => el('button', { type: 'button', class: 'sx-ws-b' + (cls ? ' ' + cls : ''), title: title || null, 'aria-label': title || null, onclick: fn }, label);
+  const sec = (cls, ...kids) => el('div', { class: 'sx-rp-sec' + (cls ? ' ' + cls : '') }, ...kids);
+  const ae = document.activeElement, keep = ae === roomNameI && [roomNameI.selectionStart, roomNameI.selectionEnd];
+  // your face: click it to pick a picture (and the small x takes it off)
+  const face = el('span', { class: 'sx-rp-face' }, el('button', { type: 'button', class: 'sx-rp-avb', title: ROOM.pic ? 'Change your picture' : 'Add a picture', 'aria-label': ROOM.pic ? 'Change your picture' : 'Add a picture', onclick: () => roomPicFile.click() }, roomAv(roomMe())),
+    ROOM.pic ? el('button', { type: 'button', class: 'sx-rp-avx', title: 'Take your picture off', 'aria-label': 'Take your picture off', onclick: roomPicRemove }, '\u00d7') : null);
+  const state = room ? el('span', { class: 'sx-rp-state on' }, el('i', {}), online.length ? online.length + (online.length === 1 ? ' friend here' : ' friends here') : 'online') : el('span', { class: 'sx-rp-state' }, 'offline');
+  const parts = [el('div', { class: 'sx-mem-top' }, el('h3', {}, 'Room'), el('span', { class: 'sx-gap' }), state)];
   if (!room) {
-    const code = el('input', { class: 'sx-room-i sx-room-code-i', type: 'text', maxlength: 30, placeholder: 'TAPE-K7Q2-MX4R-9WPD', value: roomNorm(ROOM.last) || '', 'aria-label': 'Room code', spellcheck: 'false' });
+    const code = el('input', { class: 'sx-room-i sx-room-code-i', type: 'text', maxlength: 30, placeholder: 'TAPE-XXXX-XXXX-XXXX', value: roomNorm(ROOM.last) || '', 'aria-label': 'Room code', spellcheck: 'false' });
     code.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); roomJoin(code.value); } });
-    parts.push(
-      el('div', { class: 'sx-room-sec' }, btn(roomBusy ? 'Opening...' : 'Make a room', () => roomJoin(roomNewCode()), 'sx-room-go')),
-      el('div', { class: 'sx-room-sec' }, el('p', { class: 'sl-muted' }, 'Or join a friend\'s room with its code:'), el('div', { class: 'sx-room-row' }, code, btn('Join', () => roomJoin(code.value)))),
-      el('p', { class: 'sl-muted sx-room-note' }, 'In a room you can send notes, photos, tables and labels to friends; they pop onto their desk. Cards go straight between your browsers, and only people with the code can join.'));
+    parts.push(sec('', el('div', { class: 'sx-rp-lbl' }, 'You appear as'), el('div', { class: 'sx-rp-row' }, face, roomNameI)));
+    const st = roomStatusEl(); if (st) parts.push(st);
+    parts.push(sec('', btn(roomBusy ? 'Opening...' : 'Make a room', () => roomJoin(roomNewCode()), 'sx-rp-go'),
+      el('div', { class: 'sx-rp-or' }, 'or join one'), el('div', { class: 'sx-rp-row' }, code, btn('Join', () => roomJoin(code.value)))),
+      el('p', { class: 'sx-rp-foot-note' }, 'Only people with the code can join. Cards and messages go straight between your browsers.'));
   } else {
-    parts.push(...[
-      el('div', { class: 'sx-room-sec sx-room-codebox' }, el('b', { class: 'sx-room-code' }, roomCode),
-        btn('Copy', () => { navigator.clipboard && navigator.clipboard.writeText(roomCode).then(() => deskToast('Copied the room code'), () => {}); }, '', 'Copy the code to give to friends'),
-        btn('Leave', () => roomLeave(), 'sx-room-leave')),
-      el('div', { class: 'sx-room-sec' }, el('h4', {}, 'Here now'),
-        online.length ? el('ul', { class: 'sx-room-list' }, ...online.map(([pid, p]) => el('li', {}, el('i', { class: 'sx-room-dot', style: 'background:' + roomDot(p.id) }), el('b', {}, p.name), el('span', { class: 'sx-gap' }),
-          btn('Block', () => { ROOM.block.push({ id: p.id, name: p.name }); save(); deskToast('Blocked ' + p.name + ': their cards won\'t reach you'); roomDraw(); roomSendState(); }, 'sx-room-block', 'Stop cards from ' + p.name))))
-          : el('p', { class: 'sl-muted' }, 'Nobody else yet. Give friends the code, and they show up here.')),
-      el('p', { class: 'sl-muted sx-room-note' }, 'Write to friends in the box under Settings, at the top right. Pick a card on your desk and choose who to send it to just above the bar at the bottom. You can send once every ' + ROOM_COOL / 1000 + ' seconds; a friend\'s cards come at most every ' + ROOM_GAP / 1000 + ' seconds.')].filter(Boolean));
+    if (!online.length) parts.push(sec('sx-rp-code', el('div', { class: 'sx-rp-lbl' }, 'Share this code'), el('b', {}, roomCode), btn([roomSvg(ROOM_ICON.copy), 'Copy'], roomCopy, 'sx-rp-copy', 'Copy the code to give to friends')));
+    const st = roomStatusEl(); if (st) parts.push(st);
+    parts.push(sec('', el('div', { class: 'sx-rp-lbl' }, 'Here now'), online.length
+      ? el('ul', { class: 'sx-rp-friends' }, ...online.map(([pid, p]) => { let armT = 0;
+          const ban = el('button', { type: 'button', class: 'sx-rp-ban', title: 'Block ' + p.name, 'aria-label': 'Block ' + p.name, onclick: () => {
+            if (!ban.classList.contains('arm')) { ban.classList.add('arm'); ban.lastChild.textContent = 'Block?'; armT = setTimeout(() => { ban.classList.remove('arm'); ban.lastChild.textContent = ''; }, 3000); return; }
+            clearTimeout(armT); ROOM.block.push({ id: p.id, name: p.name }); save(); deskToast('Blocked ' + p.name + ': their cards and messages won\'t reach you'); roomDraw(); roomSendState(); } }, roomSvg(ROOM_ICON.ban), el('span', {}, ''));
+          return el('li', {}, roomAv(p), el('b', {}, p.name), ban); }))
+      : el('p', { class: 'sx-rp-empty' }, 'Nobody yet. Send them the code.')));
+    if (online.length) parts.push(sec('', el('div', { class: 'sx-rp-hint' }, el('kbd', {}, '/'), 'chat with them'),
+      el('div', { class: 'sx-rp-hint' }, el('kbd', {}, '\u2197'), 'pick a card, then Send to'),
+      el('div', { class: 'sx-rp-mini' }, el('code', {}, roomCode), el('button', { type: 'button', class: 'sx-rp-icon', title: 'Copy the room code', 'aria-label': 'Copy the room code', onclick: roomCopy }, roomSvg(ROOM_ICON.copy)))));
+    const me = roomEditName || !(ROOM.name || '').trim() ? roomNameI
+      : el('button', { type: 'button', class: 'sx-rp-me', title: 'Change your name', onclick: () => { roomEditName = true; roomDraw(); roomNameI.focus(); roomNameI.select(); } }, 'You appear as ', el('b', {}, ROOM.name), ' \u270e');
+    parts.push(sec('sx-rp-foot', face, me, btn('Leave', () => roomLeave(), 'sx-rp-leave', 'Leave the room')));
   }
-  if (ROOM.block.length) parts.push(el('div', { class: 'sx-room-sec' }, el('h4', {}, 'Blocked'), el('ul', { class: 'sx-room-list' }, ...ROOM.block.map(b => el('li', {}, el('b', {}, b.name), el('span', { class: 'sx-gap' }),
-    btn('Unblock', () => { ROOM.block = ROOM.block.filter(x => x !== b); S.opts.room.block = ROOM.block; save(); roomDraw(); roomSendState(); }, 'sx-room-block'))))));
+  if (ROOM.block.length) parts.push(sec('', el('div', { class: 'sx-rp-lbl' }, 'Blocked'), el('ul', { class: 'sx-rp-friends' }, ...ROOM.block.map(b => el('li', {}, roomAv(b), el('b', {}, b.name),
+    btn('Unblock', () => { ROOM.block = ROOM.block.filter(x => x !== b); save(); roomDraw(); roomSendState(); }, 'sx-rp-unblock'))))));
   roomPanel.replaceChildren(...parts);
-  if (keep) { keep[0].focus(); try { keep[0].setSelectionRange(keep[1], keep[2]); } catch (e) { /* fine */ } } else if (focusName) name.focus();
+  if (keep) { roomNameI.focus(); try { roomNameI.setSelectionRange(keep[0], keep[1]); } catch (e) { /* fine */ } } else if (focusName) roomNameI.focus();
 }
 roomDraw();
