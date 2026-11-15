@@ -1324,7 +1324,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 #app .sx-ws-ctx > .sx-pen { position: static; transform: none; width: auto; max-width: none; padding: 0; background: none; border: 0; box-shadow: none; }
 
 /* ---------- tables (js/table.js): cream paper with a grid, or a graph of its numbers ---------- */
-.sx-world .sx-bcard.sx-btbl { width: 360px; height: auto !important; padding: 34px 12px 14px; background: #ffffe4; color: #34111f; rotate: none; font: 14px/1.35 var(--text); }
+.sx-world .sx-bcard.sx-btbl { width: 360px; height: auto !important; padding: 34px 12px 14px; background: #ffffe4; color: #34111f; font: 14px/1.35 var(--text); }
 :root[data-desk="white"] .sx-world .sx-btbl:not(.lift) { box-shadow: 2px 3px 0 rgba(115, 57, 46, .25); }
 .sx-btbl .sx-tbl-v { position: absolute; left: 8px; top: 6px; display: flex; gap: 2px; }
 .sx-btbl .sx-tbl-v button { display: grid; place-items: center; width: 24px; height: 22px; padding: 0; background: none; border: 1px solid transparent; border-radius: 3px; color: rgba(52, 17, 31, .45); cursor: pointer; transition: color .15s, background .15s; }
@@ -1473,3 +1473,34 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-msg-in, .sx-msg.on .sx-msg-in { align-items: flex-end; }
 .sx-msg .sx-msg-b { margin: 0 6px 0 0; border-radius: 18px 18px 5px 18px; }
 .sx-msg .sx-msg-b::before { left: auto; right: -6px; clip-path: polygon(0 0, 100% 100%, 0 100%); }
+
+/* the shadow of each note, photo and table falls away from the clock (js/look.js sets --sx and --sy) */
+.sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: var(--sx, 3px) var(--sy, 4px) 0 rgba(3, 7, 16, .55); }
+:root[data-desk="white"] .sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: calc(var(--sx, 3px) * .75) calc(var(--sy, 4px) * .75) 0 rgba(115, 57, 46, .25); }
+
+/* a card you send: a ghost of it flies off to the right; a card a friend sends flies in from the right and lands */
+.sx-world .sx-whoosh { pointer-events: none; animation: sx-whoosh .55s cubic-bezier(.5, 0, .9, .4) both; }
+@keyframes sx-whoosh { 0% { translate: 0 0; opacity: .9; } 20% { translate: -14px 4px; opacity: .9; } 100% { translate: calc(85vw / var(--cz, 1)) calc(-12vh / var(--cz, 1)); rotate: 14deg; opacity: 0; scale: .8; } }
+.sx-world .sx-bcard.sx-arrive { animation: sx-arrive .7s cubic-bezier(.2, .75, .3, 1) both; }
+@keyframes sx-arrive { 0% { translate: calc(80vw / var(--cz, 1)) calc(-16vh / var(--cz, 1)); rotate: 16deg; opacity: 0; scale: .85; } 15% { opacity: 1; } 78% { translate: 0 0; rotate: -2deg; scale: 1.02 1; } 88% { scale: 1.02 .97; } 100% { translate: 0 0; scale: 1; } }
+@media (prefers-reduced-motion: reduce) { .sx-world .sx-whoosh { display: none; } .sx-world .sx-bcard.sx-arrive { animation: none; } }
+
+/* the talk corner, under Settings: the box to write in, then the messages */
+.sx-talk { position: fixed; top: 54px; right: max(16px, env(safe-area-inset-right)); z-index: 70; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: min(320px, calc(100vw - 32px)); pointer-events: none; }
+.sx-talk .sx-msgs { position: static; width: 100%; }
+.sx-talk-box { width: 100%; pointer-events: auto; transition: opacity .3s; }
+.sx-talk-box[hidden] { display: none; }
+.sx-talk-row { display: flex; align-items: center; gap: 6px; }
+.sx-talk-i { flex: 1; min-width: 0; height: 36px; padding: 0 14px; background: var(--k-030710); border: 1.5px solid var(--k-293b49); border-radius: 18px 18px 5px 18px; color: var(--k-ffffe4); font: 15px var(--ui); outline: none; box-shadow: 0 6px 16px rgb(var(--shade) / .3); transition: border-color .15s; }
+.sx-talk-i:focus { border-color: var(--deck); }
+.sx-talk-i::placeholder { color: var(--k-6d8a8d); }
+.sx-talk-send { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0 0 0 2px; background: var(--deck); border: 0; border-radius: 50%; color: var(--k-030710); font: 16px/1 var(--ui); cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--deck) 45%, #030710); transition: transform .07s, box-shadow .07s, filter .15s; }
+.sx-talk-send:hover { filter: brightness(1.08); }
+.sx-talk-send:active { transform: translateY(3px); box-shadow: none; }
+.sx-talk-to { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 6px; margin-bottom: 6px; }
+.sx-talk-to button { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; background: var(--k-030710); border: 1px solid var(--k-293b49); border-radius: 12px; color: var(--k-bfc3c6); font: 600 12px var(--ui); cursor: pointer; }
+.sx-talk-to button:hover { border-color: var(--deck); color: var(--k-ffffe4); }
+.sx-talk-to button.on { border-color: var(--deck); background: color-mix(in srgb, var(--deck) 18%, var(--k-030710)); color: var(--k-ffffe4); }
+.sx-talk-to .sx-room-dot { width: 8px; height: 8px; }
+#app.paged ~ .sx-talk { display: none; }
+#app[data-clock="focus"] ~ .sx-talk .sx-talk-box:not(:focus-within):not(:hover) { opacity: .35; }

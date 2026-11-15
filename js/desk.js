@@ -392,7 +392,7 @@ const brushV = { x: 0, y: 0, t: 0, cx: null, cy: null };
 addEventListener('pointermove', e => { const dt = Math.max(8, e.timeStamp - brushV.t), k = 16 / dt, mx = brushV.cx === null || dt > 200 ? 0 : e.clientX - brushV.cx, my = brushV.cx === null || dt > 200 ? 0 : e.clientY - brushV.cy;
   brushV.t = e.timeStamp; brushV.cx = e.clientX; brushV.cy = e.clientY; brushV.x = brushV.x * .5 + mx * k * .5; brushV.y = brushV.y * .5 + my * k * .5; }, { passive: true, capture: true });
 function brushCard(c, mx) {
-  if (stillUI() || !(c.classList.contains('sx-bnote') || c.classList.contains('sx-polaroid')) || c.classList.contains('lift') || c.contains(document.activeElement)) return;
+  if (stillUI() || !(c.classList.contains('sx-bnote') || c.classList.contains('sx-polaroid') || c.classList.contains('sx-btbl')) || c.classList.contains('lift') || c.contains(document.activeElement)) return;
   const k = Math.max(-.8, Math.min(.8, (mx || 0) * .06)); if (Math.abs(k) < .08) return;
   const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.v += k; s.t = 0; s.held = false;
   swinging.add(c); c.classList.add('swinging'); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
@@ -652,7 +652,7 @@ ws.addEventListener('pointerdown', e => {
         // the cards slide as finished layers, strings inside the group slide with them, and only strings reaching out are redrawn
         B_().links.forEach(l => { if (moverIds.has(l[0]) || moverIds.has(l[1])) wob.delete(lk(l)); });
         strUpdate(moverIds); strNodes.forEach(n => { if (moverIds.has(n.l[0]) && moverIds.has(n.l[1])) strInner.add(n); });
-        movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo') swingKick(m.c, (i % 2 ? -1 : 1) * .9); }); // (a little wobble as it comes off the board)
+        movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo' || m.it.type === 'tbl') swingKick(m.c, (i % 2 ? -1 : 1) * .9); }); // (a little wobble as it comes off the board)
         const ae = document.activeElement; if (ae && ae.isContentEditable && !c.contains(ae)) ae.blur();
       }
       const dx = (ev.clientX - start.x) / cam.z, dy = (ev.clientY - start.y) / cam.z;
@@ -670,7 +670,7 @@ ws.addEventListener('pointerdown', e => {
         c.classList.remove('lift'); movers.forEach(m => m.c.classList.remove('lift')); selShift = null; deskSfx('drop'); strUpdate();
         // let go: each card swings on in the way it was going (more the faster it moved; a still mouse gives just a settle), and the strings bounce
         const fresh = Math.max(0, 1 - (ev.timeStamp - lt) / 120), sx = vx * fresh, sy = vy * fresh;
-        movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo') swingKick(m.c, Math.max(-2, Math.min(2, -sx * .12)) + (i % 2 ? -.5 : .5)); });
+        movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo' || m.it.type === 'tbl') swingKick(m.c, Math.max(-2, Math.min(2, -sx * .12)) + (i % 2 ? -.5 : .5)); });
         wobKick(moverIds, sx * 1.5 / cam.z, (sy * 1.5 - 14) / cam.z);
         const ids = new Set(movers.map(m => m.it.id)); B_().items = B_().items.filter(x => !ids.has(x.id)).concat(movers.map(m => m.it)); // what you moved is on top now
         if (snap && deskSnap() !== snap) deskMark(snap); save(); return;

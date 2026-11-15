@@ -100,11 +100,18 @@ async function roomSend(to) { // to: one friend's browser id, or null for everyo
   const ids = new Set(its.map(it => it.id)), x0 = Math.min(...its.map(it => it.x)), y0 = Math.min(...its.map(it => it.y));
   const items = its.map(it => { const o = JSON.parse(JSON.stringify(it)); o.x -= x0; o.y -= y0; delete o.key; delete o.board; delete o.from; return o; });
   const photos = {}; for (const it of its) if (it.type === 'photo') { try { const src = await PHOTOS.get(it.id); if (src) photos[it.id] = src; } catch (e) { /* skip */ } }
-  roomSentAt = Date.now(); roomSendState();
+  roomSentAt = Date.now(); roomSendState(); roomWhoosh(its);
   try { await roomCard({ name: roomHello().name, items, links: B_().links.filter(l => ids.has(l[0]) && ids.has(l[1])), photos }, targets); }
   catch (e) { deskToast('That didn\'t send: try again in a moment'); return; }
   const what = its.length > 1 ? its.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', frame: 'a label' }[its[0].type];
   deskSfx('lift'); deskToast('Sent ' + what + ' to ' + (to ? (roomPeers.get(to) || {}).name || 'your friend' : 'everyone'));
+}
+function roomWhoosh(its) { // a ghost of each card flies off to the right, the way it's going
+  if (stillUI()) return;
+  its.forEach((it, i) => { const c = els.get(it.id); if (!c) return; const g = c.cloneNode(true);
+    g.classList.remove('sel', 'lift', 'carry', 'swinging', 'sx-land'); g.classList.add('sx-whoosh'); g.removeAttribute('data-id'); g.setAttribute('aria-hidden', 'true'); g.style.animationDelay = i * 60 + 'ms';
+    g.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+    (c.parentNode || layer).append(g); g.addEventListener('animationend', () => g.remove()); setTimeout(() => g.remove(), 1500); });
 }
 // the row in the bar along the bottom while something is picked: who to send it to (and how long until you can send again)
 const roomSendRow = el('div', { class: 'sx-ws-grp sx-room-send', hidden: true, role: 'group', 'aria-label': 'Send to a friend' });
@@ -127,8 +134,11 @@ deskSelBar = function () { deskSelBarR.apply(this, arguments); roomSendState(); 
    and fades; nothing is kept. Several at once stack, the newest on top pushing the others down ---------- */
 const ROOM_MSG_LEN = 140, ROOM_MSG_COOL = 1200, ROOM_MSG_GAP = 800; // you: one every 1.2 s; each friend: one taken every 0.8 s
 let roomMsgTo = null, roomMsgAt = 0; const roomHeardAt = new Map();
+// the talk corner, just under Settings: the box to write in (while friends are here), and the messages under it
 const roomMsgs = el('div', { class: 'sx-msgs', role: 'log', 'aria-live': 'polite', 'aria-label': 'Messages from friends' });
-document.body.append(roomMsgs);
+const roomTalkBox = el('div', { class: 'sx-talk-box', hidden: true });
+const roomTalkEl = el('div', { class: 'sx-talk' }, roomTalkBox, roomMsgs);
+document.body.append(roomTalkEl);
 function roomMsgShow(who, to, text, dot, mine) {
   const life = Math.min(12000, 6000 + text.length * 45);
   const slip = el('div', { class: 'sx-msg' + (mine ? ' mine' : ''), title: 'Click to put it away' },
@@ -184,7 +194,11 @@ async function roomReceive(d, pid) {
   out.forEach(o => { o.x = Math.round(cam.x - w / 2 + o.x); o.y = Math.round(cam.y - h / 2 + o.y); });
   deskMark(); B_().items.push(...out);
   (Array.isArray(d.links) ? d.links : []).forEach(l => { if (Array.isArray(l) && imap.has(l[0]) && imap.has(l[1])) B_().links.push([imap.get(l[0]), imap.get(l[1])]); });
-  save(); drawBoard(); out.forEach((o, i) => setTimeout(() => deskLand(o.id, i === 0), i * 70));
+  save(); drawBoard();
+  if (stillUI()) out.forEach((o, i) => deskLand(o.id, i === 0));
+  else { deskSfx('lift'); out.forEach((o, i) => { const c = els.get(o.id); if (!c) return; c.style.animationDelay = i * 90 + 'ms'; c.classList.add('sx-arrive');
+    c.addEventListener('animationend', function done(e) { if (e.target !== c) return; c.classList.remove('sx-arrive'); c.style.animationDelay = ''; c.removeEventListener('animationend', done); }); });
+    setTimeout(() => deskSfx('pin'), 620 + (out.length - 1) * 90); }
   const what = out.length > 1 ? out.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', frame: 'a label' }[out[0].type];
   deskToast(p.name + ' sent you ' + what);
 }
@@ -207,14 +221,35 @@ function roomClose() { if (roomPanel.hidden) return; roomPanel.classList.remove(
 memB.addEventListener('click', () => roomClose(), true);
 const roomNameI = el('input', { class: 'sx-room-i', type: 'text', maxlength: 24, placeholder: 'Your name', value: ROOM.name || '', 'aria-label': 'Your name in rooms' });
 let roomNameT = 0; roomNameI.addEventListener('input', () => { ROOM.name = roomNameI.value.slice(0, 24); save(); clearTimeout(roomNameT); roomNameT = setTimeout(() => { if (roomSay) roomSay(roomHello()); }, 600); });
-const roomMsgI = el('input', { class: 'sx-room-i', type: 'text', maxlength: ROOM_MSG_LEN, placeholder: 'Say something...', 'aria-label': 'A message', enterkeyhint: 'send' });
-roomMsgI.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); if (roomTalk(roomMsgI.value)) roomMsgI.value = ''; } });
+const roomMsgI = el('input', { class: 'sx-talk-i', type: 'text', maxlength: ROOM_MSG_LEN, placeholder: 'Say something...', 'aria-label': 'A message to friends', enterkeyhint: 'send' });
+roomMsgI.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); if (roomTalk(roomMsgI.value)) roomMsgI.value = ''; } else if (e.key === 'Escape') { e.preventDefault(); roomMsgI.blur(); } });
+// "/" anywhere (except while writing in something): straight into the message box
+addEventListener('keydown', e => {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  const t = e.target; if (t && (t.isContentEditable || (t.closest && t.closest('input, textarea, select')))) return;
+  if (page && !page.hidden) return;
+  e.preventDefault(); e.stopPropagation();
+  if (roomTalkBox.hidden) { deskToast(room ? 'Nobody else is in the room yet' : 'Join a room with friends to chat (Room, at the top left)'); return; }
+  roomMsgI.focus(); roomMsgI.select();
+}, true);
+function roomTalkDraw() { // the box shows while you're in a room with someone; with two or more, who it's to
+  const online = room ? roomOnline() : [], show = online.length > 0; roomTalkBox.hidden = !show; if (!show) return;
+  if (roomMsgTo && !online.some(([pid]) => pid === roomMsgTo)) roomMsgTo = null;
+  const keep = document.activeElement === roomMsgI && [roomMsgI.selectionStart, roomMsgI.selectionEnd];
+  const to = online.length > 1 ? el('div', { class: 'sx-talk-to', role: 'radiogroup', 'aria-label': 'Who to' }, ...[[null, 'Everyone', null]].concat(online.map(([pid, p]) => [pid, p.name, roomDot(p.id)])).map(([pid, n, dot]) => {
+    const on = roomMsgTo === pid;
+    return el('button', { type: 'button', class: on ? 'on' : null, role: 'radio', 'aria-checked': String(on), onmousedown: e => e.preventDefault(), onclick: () => { roomMsgTo = pid; roomTalkDraw(); roomMsgI.focus(); } }, dot ? el('i', { class: 'sx-room-dot', style: 'background:' + dot }) : null, n); })) : null;
+  roomMsgI.placeholder = online.length > 1 ? (roomMsgTo ? 'To ' + roomPeers.get(roomMsgTo).name + '...' : 'To everyone...') : 'To ' + online[0][1].name + '...';
+  roomTalkBox.replaceChildren(...[to, el('div', { class: 'sx-talk-row' }, roomMsgI,
+    el('button', { type: 'button', class: 'sx-talk-send', title: 'Send (Enter)', 'aria-label': 'Send', onmousedown: e => e.preventDefault(), onclick: () => { if (roomTalk(roomMsgI.value)) roomMsgI.value = ''; } }, '\u27a4'))].filter(Boolean));
+  if (keep) { roomMsgI.focus(); try { roomMsgI.setSelectionRange(keep[0], keep[1]); } catch (e) { /* fine */ } }
+}
 function roomDraw(focusName) {
   const online = roomOnline(); roomN.textContent = room ? String(online.length) : ''; roomN.hidden = !room || !online.length;
-  roomB.classList.toggle('live', !!room);
+  roomB.classList.toggle('live', !!room); roomTalkDraw();
   if (roomPanel.hidden) return;
   const btn = (label, fn, cls, title) => el('button', { type: 'button', class: 'sx-ws-b' + (cls ? ' ' + cls : ''), title: title || null, onclick: fn }, label);
-  const name = roomNameI, ae = document.activeElement, keep = (ae === roomNameI || ae === roomMsgI) && [ae, ae.selectionStart, ae.selectionEnd];
+  const name = roomNameI, ae = document.activeElement, keep = ae === roomNameI && [ae, ae.selectionStart, ae.selectionEnd];
   const parts = [el('div', { class: 'sx-mem-top' }, el('h3', {}, 'Room'), el('span', { class: 'sx-gap' }), room ? el('span', { class: 'sx-room-live' }, el('i', {}), 'Online') : null),
     el('label', { class: 'sx-room-row' }, el('span', {}, 'You are'), name)];
   const st = roomStatus(); if (st) parts.push(el('p', { class: 'sx-room-st ' + st[0], role: 'status' }, st[1]));
@@ -234,13 +269,7 @@ function roomDraw(focusName) {
         online.length ? el('ul', { class: 'sx-room-list' }, ...online.map(([pid, p]) => el('li', {}, el('i', { class: 'sx-room-dot', style: 'background:' + roomDot(p.id) }), el('b', {}, p.name), el('span', { class: 'sx-gap' }),
           btn('Block', () => { ROOM.block.push({ id: p.id, name: p.name }); save(); deskToast('Blocked ' + p.name + ': their cards won\'t reach you'); roomDraw(); roomSendState(); }, 'sx-room-block', 'Stop cards from ' + p.name))))
           : el('p', { class: 'sl-muted' }, 'Nobody else yet. Give friends the code, and they show up here.')),
-      online.length ? el('div', { class: 'sx-room-sec' }, el('h4', {}, 'Message'),
-        el('div', { class: 'sx-room-to', role: 'radiogroup', 'aria-label': 'Who to' }, ...[[null, 'Everyone', null]].concat(online.map(([pid, p]) => [pid, p.name, roomDot(p.id)])).map(([pid, n, dot]) => {
-          const on = (roomMsgTo && roomPeers.has(roomMsgTo) ? roomMsgTo : null) === pid;
-          return el('button', { type: 'button', class: on ? 'on' : null, role: 'radio', 'aria-checked': String(on), onclick: () => { roomMsgTo = pid; roomDraw(); roomMsgI.focus(); } }, dot ? el('i', { class: 'sx-room-dot', style: 'background:' + dot }) : null, n); })),
-        el('div', { class: 'sx-room-row' }, roomMsgI, btn('Send', () => { if (roomTalk(roomMsgI.value)) roomMsgI.value = ''; roomMsgI.focus(); })),
-        el('p', { class: 'sl-muted', style: 'margin-top:6px' }, 'It slides in at the top right of their screen for a few seconds; nothing is kept.')) : null,
-      el('p', { class: 'sl-muted sx-room-note' }, 'Pick a card on your desk and choose who to send it to just above the bar at the bottom. You can send once every ' + ROOM_COOL / 1000 + ' seconds; a friend\'s cards come at most every ' + ROOM_GAP / 1000 + ' seconds.')].filter(Boolean));
+      el('p', { class: 'sl-muted sx-room-note' }, 'Write to friends in the box under Settings, at the top right. Pick a card on your desk and choose who to send it to just above the bar at the bottom. You can send once every ' + ROOM_COOL / 1000 + ' seconds; a friend\'s cards come at most every ' + ROOM_GAP / 1000 + ' seconds.')].filter(Boolean));
   }
   if (ROOM.block.length) parts.push(el('div', { class: 'sx-room-sec' }, el('h4', {}, 'Blocked'), el('ul', { class: 'sx-room-list' }, ...ROOM.block.map(b => el('li', {}, el('b', {}, b.name), el('span', { class: 'sx-gap' }),
     btn('Unblock', () => { ROOM.block = ROOM.block.filter(x => x !== b); S.opts.room.block = ROOM.block; save(); roomDraw(); roomSendState(); }, 'sx-room-block'))))));

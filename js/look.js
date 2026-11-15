@@ -29,12 +29,15 @@ function lightCards() {
   if (layer.querySelector(':scope > .lift')) return; // (not while something is carried: relighting every moved card each frame is costly; it's lit when you let go)
   const todo = [];
   els.forEach(c => { // measure them all first, then restyle only the ones that moved
-    if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid') || c.classList.contains('lift')) return; // (the one you're carrying is lit when you put it down)
+    if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid') && !c.classList.contains('sx-btbl') || c.classList.contains('lift')) return; // (the one you're carrying is lit when you put it down)
     const x = c.offsetLeft + c.offsetWidth / 2, y = c.offsetTop + c.offsetHeight / 2;
     if (c._lx === x && c._ly === y) return; c._lx = x; c._ly = y; todo.push([c, x, y]);
   });
   todo.forEach(([c, x, y]) => { const lit = Math.pow(Math.max(0, 1 - Math.hypot(x, y) / 950), 1.4);
-    c.style.setProperty('--lit', lit.toFixed(3)); c.style.setProperty('--lang', (Math.atan2(x, -y) * 180 / Math.PI).toFixed(0) + 'deg'); }); // (the gradient runs away from the clock)
+    c.style.setProperty('--lit', lit.toFixed(3)); c.style.setProperty('--lang', (Math.atan2(x, -y) * 180 / Math.PI).toFixed(0) + 'deg'); // (the gradient runs away from the clock)
+    // and its shadow falls away from the clock too, a little longer the further it is from the light
+    const d = Math.hypot(x, y) || 1, len = 3 + 3 * (1 - lit);
+    c.style.setProperty('--sx', (x / d * len).toFixed(1) + 'px'); c.style.setProperty('--sy', (y / d * len + 1).toFixed(1) + 'px'); });
 }
 const strUpdateLight = strUpdate;
 strUpdate = function () { strUpdateLight.apply(this, arguments); lightCards(); };

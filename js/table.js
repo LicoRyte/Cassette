@@ -60,7 +60,7 @@ function tblGrid(it) {
 function tblTotals(it, t) { // the total row and which columns line up as numbers, as you type
   const nums = tblNumCols(it), tot = t.querySelector('.sx-tbl-tot');
   t.querySelectorAll('tr').forEach(tr => [...tr.children].forEach((td, j) => td.classList.toggle('n', !!nums[j])));
-  if (tot) [...tot.children].forEach((td, j) => { if (j) td.textContent = nums[j] ? tblFmt(it.rows.slice(1).reduce((s, r) => s + (tblNum(r[j]) || 0), 0)) : ''; });
+  if (tot) [...tot.children].forEach((td, j) => { if (!j) return; const v = it.rows.slice(1).reduce((s, r) => s + (tblNum(r[j]) || 0), 0); td.textContent = nums[j] ? tblFmt(v) : ''; if (nums[j]) td.dataset.v = v; else delete td.dataset.v; });
 }
 function tblLive(it, c) { const t = c.querySelector('.sx-tbl'); if (t) tblTotals(it, t); strUpdate(); selBoxUpdate(); }
 function tblRedraw(it, anim) {
@@ -124,7 +124,17 @@ function tblSort(it, c) { // by the column you're in (or the first with numbers)
   let sorted = body.slice().sort(cmp); if (JSON.stringify(sorted) === JSON.stringify(body)) sorted.reverse();
   deskMark(); it.rows = [it.rows[0], ...sorted]; save(); tblRedraw(it, true);
 }
-function tblTotal(it) { deskMark(); it.total = !it.total; if (!it.total) delete it.total; save(); tblRedraw(it); }
+function tblTotal(it) { deskMark(); it.total = !it.total; if (!it.total) delete it.total; save(); tblRedraw(it);
+  const c = it.total && els.get(it.id), tot = c && c.querySelector('.sx-tbl-tot'); if (tot) tblCount(tot, () => 0); }
+// numbers that count up from 0 to what they are (each after its own wait, ms), as a bar rises or a total appears
+function tblCount(root, wait) {
+  if (stillUI()) return;
+  root.querySelectorAll('[data-v]').forEach(n => { const to = +n.dataset.v, suf = n.dataset.s || '', dur = 650, delay = wait(n), whole = Number.isInteger(to); if (!isFinite(to)) return;
+    n.textContent = (whole ? '0' : tblFmt(0)) + suf; let t0 = 0;
+    const step = t => { if (!n.isConnected) return; if (!t0) t0 = t + delay; const k = Math.max(0, Math.min(1, (t - t0) / dur)), e = 1 - Math.pow(1 - k, 3), v = to * e;
+      n.textContent = (whole ? String(Math.round(v)) : tblFmt(v)) + suf; if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step); });
+}
 
 const tblB = (label, title, fn, cls) => el('button', { type: 'button', class: 'sx-fb' + (cls ? ' ' + cls : ''), title, 'aria-label': title, onclick: () => { const it = tblOf(); if (it) fn(it); } }, label);
 const tblViewBs = TBL_VIEWS.map(([k, name]) => tblB(name, 'Show it as ' + name.toLowerCase(), it => tblView(it, k), 'sx-tbl-vb'));
@@ -185,6 +195,7 @@ function tblChart(it) {
       return el('button', { type: 'button', class: on ? 'on' : null, 'aria-pressed': String(on), title: pie ? 'Show ' + s.name + ' as the pie' : (on ? 'Take ' + s.name + ' off the graph' : 'Put ' + s.name + ' on the graph'),
         onclick: e => { e.stopPropagation(); tblPick(it, s.j, all); } }, el('i', { style: pie ? null : 'background:' + s.col }), s.name); })));
   const W = 400, box = el('div'); box.innerHTML = pie ? tblPie(it, labels, series[0], W) : tblAxes(it.view, labels, series, W); wrap.append(...box.childNodes);
+  if (wrap.classList.contains('sx-tbl-anim')) tblCount(wrap, n => n.classList.contains('pl') ? 500 : 350 + (+(n.style.getPropertyValue('--i')) || 0) * 45);
   const keys = pie ? labels.map((l, i) => [l, TBL_INK[i % TBL_INK.length]]) : [];
   if (it.view === 'pie') { const tot = series[0].vals.reduce((a, v) => a + Math.max(0, v), 0); keys.forEach((k, i) => { const v = Math.max(0, series[0].vals[i]); k[0] += ' · ' + (tot ? Math.round(v / tot * 100) : 0) + '%'; }); }
   if (keys.length) wrap.append(el('div', { class: 'sx-tbl-key' }, ...keys.filter((k, i) => it.view !== 'pie' || series[0].vals[i] > 0).map(([n, col], i) => el('span', { style: '--d:' + i }, el('i', { style: 'background:' + col }), n))));
@@ -202,7 +213,7 @@ function tblAxes(kind, labels, series, W) {
     series.forEach((s, si) => s.vals.forEach((v, i) => {
       const x = pl + gw * i + (gw - bw * series.length) / 2 + bw * si, y0 = y(Math.max(v, 0)), y1 = y(Math.min(v, 0)), d = k++;
       g += '<rect class="bar' + (v < 0 ? ' neg' : '') + '" style="--i:' + d + '" x="' + x.toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + Math.max(1, bw - 2).toFixed(1) + '" height="' + Math.max(.5, y1 - y0).toFixed(1) + '" rx="1.5" fill="' + s.col + '"><title>' + tblEsc(labels[i] + ' · ' + s.name + ': ' + tblFmt(v)) + '</title></rect>';
-      if (few) g += '<text class="vl" style="--i:' + d + '" x="' + (x + (bw - 2) / 2).toFixed(1) + '" y="' + (v < 0 ? y1 + 12 : y0 - 4).toFixed(1) + '">' + tblFmt(v) + '</text>';
+      if (few) g += '<text class="vl" data-v="' + v + '" style="--i:' + d + '" x="' + (x + (bw - 2) / 2).toFixed(1) + '" y="' + (v < 0 ? y1 + 12 : y0 - 4).toFixed(1) + '">' + tblFmt(v) + '</text>';
     }));
   } else {
     const xs = i => n === 1 ? pl + pw / 2 : pl + 12 + (pw - 24) * i / (n - 1);
@@ -228,7 +239,7 @@ function tblPie(it, labels, s, W) {
     const d = v === tot ? 'M' + cx + ' ' + (cy - R) + ' A' + R + ' ' + R + ' 0 1 1 ' + (cx - .01) + ' ' + (cy - R) + 'Z'
       : 'M' + cx + ' ' + cy + ' L' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' A' + R + ' ' + R + ' 0 ' + (a2 - a > Math.PI ? 1 : 0) + ' 1 ' + x2.toFixed(2) + ' ' + y2.toFixed(2) + 'Z';
     g += '<path class="sl" style="--dx:' + (Math.sin(mid) * 6).toFixed(1) + 'px;--dy:' + (-Math.cos(mid) * 6).toFixed(1) + 'px" d="' + d + '" fill="' + col + '"><title>' + tblEsc(labels[i] + ': ' + tblFmt(s.vals[i]) + ' (' + Math.round(v / tot * 100) + '%)') + '</title></path>';
-    if (v / tot >= .07) t += '<text class="pl" x="' + (cx + Math.sin(mid) * R * .64).toFixed(1) + '" y="' + (cy - Math.cos(mid) * R * .64 + 4).toFixed(1) + '">' + Math.round(v / tot * 100) + '%</text>';
+    if (v / tot >= .07) t += '<text class="pl" data-v="' + Math.round(v / tot * 100) + '" data-s="%" x="' + (cx + Math.sin(mid) * R * .64).toFixed(1) + '" y="' + (cy - Math.cos(mid) * R * .64 + 4).toFixed(1) + '">' + Math.round(v / tot * 100) + '%</text>';
     a = a2; });
   const mid = 'tm' + String(it.id).replace(/\W/g, '');
   const mask = '<mask id="' + mid + '"><circle class="sweep" cx="' + cx + '" cy="' + cy + '" r="' + (R / 2 + 4) + '" fill="none" stroke="#fff" stroke-width="' + (R + 12) + '" pathLength="1" transform="rotate(-90 ' + cx + ' ' + cy + ')"/></mask>';
