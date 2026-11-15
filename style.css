@@ -1554,3 +1554,73 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-rp-avx:hover { color: var(--k-ff6157); }
 .sx-msg-h .sx-av.s { width: 16px; height: 16px; font-size: 9px; }
 #app .sx-ws-ctx .sx-room-send .sx-ws-b .sx-av.s { width: 18px; height: 18px; }
+
+/* ---------- the top left (js/chrome.js): plain words, no frames. Settings and ?, then Tapes and Remembered, then Mini and Full.
+   The one that's open is underlined in the key colour ---------- */
+#app .sx-top { visibility: hidden; } /* (Settings moved to the top left) */
+#app .sx-tray { left: max(16px, env(safe-area-inset-left)); gap: 2px; }
+#app .sx-tray > .sx-ws-b, #app .sx-tray .sx-tray-pair .sx-ws-b, #app .sx-tray > .sx-help-b { position: relative; left: auto; top: auto; width: auto; height: 32px; padding: 0 9px 1px; background: none; border: 0; border-radius: 0; box-shadow: none; transform: none; color: color-mix(in srgb, var(--deck) 72%, var(--k-030710)); -webkit-text-fill-color: currentColor; font: 700 12px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: color .15s, box-shadow .15s; }
+#app .sx-tray > .sx-help-b { padding: 0 8px 1px; font-size: 15px; letter-spacing: 0; }
+#app .sx-tray > .sx-ws-b:hover:not(:disabled), #app .sx-tray .sx-tray-pair .sx-ws-b:hover, #app .sx-tray > .sx-help-b:hover { background: none; color: var(--deck); -webkit-text-fill-color: var(--deck); box-shadow: inset 0 -1.5px 0 color-mix(in srgb, var(--deck) 40%, transparent); }
+#app .sx-tray > .sx-ws-b.on, #app .sx-tray > .sx-help-b.on, #app .sx-tray > .sx-set-b[aria-current] { background: none; transform: none; color: var(--deck); -webkit-text-fill-color: var(--deck); box-shadow: inset 0 -2px 0 var(--deck); }
+#app .sx-tray .sx-tray-sep { flex: none; width: 1.5px; height: 16px; margin: 0 7px; background: var(--deck); opacity: .3; }
+#app .sx-tray .sx-tray-pair { display: inline-flex; margin-left: 2px; border: 1.5px solid color-mix(in srgb, var(--deck) 45%, transparent); border-radius: 3px; overflow: hidden; }
+#app .sx-tray .sx-tray-pair .sx-ws-b { height: 26px; padding: 0 9px 1px; font-size: 11px; }
+#app .sx-tray .sx-tray-pair .sx-ws-b + .sx-ws-b { box-shadow: inset 1.5px 0 0 color-mix(in srgb, var(--deck) 45%, transparent); }
+#app .sx-tray .sx-tray-pair .sx-ws-b:hover { box-shadow: none; background: color-mix(in srgb, var(--deck) 10%, transparent); }
+#app .sx-tray .sx-tray-pair .sx-ws-b.on { background: var(--deck); color: var(--k-030710); -webkit-text-fill-color: var(--k-030710); }
+#app .sx-tray .sx-mem-n { margin-left: 6px; }
+#app .sx-tray .sx-ws-b.lit::after { display: none; }
+
+/* ---------- the top right (js/chrome.js): everything online, in one line ---------- */
+.sx-net { position: fixed; top: 16px; right: max(16px, env(safe-area-inset-right)); z-index: 70; display: flex; align-items: center; gap: 10px; height: 34px; transition: opacity .35s ease-out; }
+.sx-net > .sx-ws-b { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 4px 1px; background: none; border: 0; box-shadow: none; color: color-mix(in srgb, var(--deck) 72%, var(--k-030710)); font: 700 12px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: color .15s, box-shadow .15s; }
+.sx-net > .sx-ws-b:hover, .sx-net > .sx-ws-b.on { color: var(--deck); box-shadow: inset 0 -2px 0 var(--deck); }
+.sx-net-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--k-ffdaac); box-sizing: border-box; }
+.sx-net-dot.on { border: 0; background: var(--k-77d6c1); animation: sx-breathe 2.4s ease-in-out infinite; }
+.sx-net-faces { display: inline-flex; align-items: center; }
+.sx-net-faces:empty { display: none; }
+.sx-net-f { display: inline-grid; padding: 0; margin-left: -7px; background: none; border: 2px solid var(--k-030710); border-radius: 50%; cursor: pointer; transition: transform .12s; }
+.sx-net-f:first-child { margin-left: 0; }
+.sx-net-f .sx-av { width: 26px; height: 26px; font-size: 12px; }
+.sx-net-f:hover { transform: translateY(-2px); z-index: 1; }
+.sx-net-f.on { border-color: var(--deck); z-index: 1; }
+.sx-net .sx-talk-box { width: 220px; }
+.sx-net .sx-talk-to { display: none; }
+.sx-net .sx-talk-i { height: 32px; padding: 0 12px; border-radius: 16px; box-shadow: none; font-size: 14px; }
+.sx-net .sx-talk-send { width: 32px; height: 32px; box-shadow: none; }
+.sx-net-me { display: inline-grid; padding: 0; background: none; border: 2px solid transparent; border-radius: 50%; cursor: pointer; transition: border-color .15s; }
+.sx-net-me .sx-av { width: 30px; height: 30px; }
+.sx-net-me:hover, .sx-net-me.on { border-color: var(--deck); }
+#app.paged ~ .sx-net { display: none; }
+.sx-full-b .sx-net { opacity: 0; pointer-events: none; }
+.sx-talk { top: 60px; } /* (messages drop in under the line) */
+/* the room panel drops down from the top right now */
+.sx-mem.sx-room { left: auto; right: max(16px, env(safe-area-inset-right)); top: 60px; }
+@media (max-width: 520px) { .sx-net .sx-talk-box { width: 130px; } .sx-net > .sx-ws-b { letter-spacing: .06em; } }
+
+/* ---------- the corners fade while the timer runs and the mouse rests (js/chrome.js) ---------- */
+body.sx-calm #app .sx-tray, body.sx-calm #app .sx-ws-side, body.sx-calm .sx-net:not(.ping) { opacity: .25; transition: opacity .9s ease-out; }
+body.sx-calm #app .sx-tray:hover, body.sx-calm #app .sx-ws-side:hover, body.sx-calm .sx-net:hover, body.sx-calm .sx-net:focus-within { opacity: 1; transition-duration: .2s; }
+@media (prefers-reduced-motion: reduce) { body.sx-calm #app .sx-tray, body.sx-calm #app .sx-ws-side, body.sx-calm .sx-net { transition: none; } }
+
+/* ---------- Tapes: a panel like Remembered and Room (a thin frame, the key colour along the top), still two sides ---------- */
+.sx-tapes.sx-dock { left: calc(max(16px, env(safe-area-inset-left)) + 66px); top: 62px; width: min(820px, calc(100vw - 98px)); border: 1px solid var(--k-293b49); border-top: 3px solid var(--deck); border-radius: 0; background: var(--k-030710); box-shadow: 0 12px 30px rgb(var(--shade) / .3); }
+.sx-tapes.sx-dock .sx-tapes-grip { justify-content: flex-start; height: 42px; padding: 0 14px; background: none; color: var(--deck); font: 700 13px var(--ui); letter-spacing: .2em; border-bottom: 1px solid var(--k-0b1a2b); }
+.sx-tapes.sx-dock .sx-tapes-grip .sx-hole, .sx-tapes-f .sx-screw { display: none; }
+.sx-tapes.sx-dock .sx-tapes-f { justify-content: flex-end; padding: 8px 12px; border-top: 1px solid var(--k-0b1a2b); }
+.sx-tapes .sx-ws-b.sx-tapes-save { height: 28px; padding: 0 12px 1px; font-size: 11px; box-shadow: none; }
+.sx-tapes .sx-ws-b { box-shadow: none; }
+.sx-tapes .sx-mcol + .sx-mcol { border-left-color: var(--k-0b1a2b); }
+.sx-mixbox .sx-ms { background: none; border-radius: 3px; }
+@media (max-width: 520px) { .sx-tapes.sx-dock { left: max(16px, env(safe-area-inset-left)); width: calc(100vw - 32px); } }
+/* narrow windows and phones: the online line drops under the top left, and everything tightens */
+@media (max-width: 720px) {
+  #app .sx-tray > .sx-ws-b, #app .sx-tray > .sx-help-b { padding: 0 5px 1px; letter-spacing: .06em; }
+  #app .sx-tray .sx-tray-pair .sx-ws-b { padding: 0 6px 1px; letter-spacing: .06em; }
+  #app .sx-tray .sx-tray-sep { margin: 0 3px; }
+  .sx-net { top: 54px; left: calc(max(16px, env(safe-area-inset-left)) + 66px); justify-content: flex-end; gap: 8px; }
+  .sx-net .sx-talk-box { flex: 1; width: auto; min-width: 0; max-width: 220px; }
+  .sx-talk { top: 98px; }
+  .sx-mem.sx-room { top: 98px; }
+}

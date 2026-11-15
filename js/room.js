@@ -158,7 +158,7 @@ deskSelBar = function () { deskSelBarR.apply(this, arguments); roomSendState(); 
    and fades; nothing is kept. Several at once stack, the newest on top pushing the others down ---------- */
 const ROOM_MSG_LEN = 140, ROOM_MSG_COOL = 1200, ROOM_MSG_GAP = 800; // you: one every 1.2 s; each friend: one taken every 0.8 s
 let roomMsgTo = null, roomMsgAt = 0; const roomHeardAt = new Map();
-// the talk corner, just under Settings: the box to write in (while friends are here), and the messages under it
+// the talk line, at the top right (js/chrome.js moves the box into it): the box to write in (while friends are here), and the messages under it
 const roomMsgs = el('div', { class: 'sx-msgs', role: 'log', 'aria-live': 'polite', 'aria-label': 'Messages from friends' });
 const roomTalkBox = el('div', { class: 'sx-talk-box', hidden: true });
 const roomTalkEl = el('div', { class: 'sx-talk' }, roomTalkBox, roomMsgs);
@@ -231,7 +231,7 @@ drawBoard = function () {
     c.append(el('button', { type: 'button', class: 'sx-from', title: 'From ' + it.from + ': click to take the tag off', onclick: e => { e.stopPropagation(); deskMark(); delete it.from; save(); e.currentTarget.remove(); } }, 'from ' + it.from)); });
 };
 
-/* ---------- the Room key (top left) and its panel ---------- */
+/* ---------- the Room key (top right, js/chrome.js) and its panel ---------- */
 const roomN = el('span', { class: 'sx-mem-n', hidden: true });
 const roomB = deskBtn('Room', () => roomPanel.hidden ? roomOpen() : roomClose(), 'sx-room-key', 'A room with friends: send each other notes, photos, tables and labels');
 roomB.append(roomN); memB.after(roomB);
@@ -250,7 +250,7 @@ addEventListener('keydown', e => {
   const t = e.target; if (t && (t.isContentEditable || (t.closest && t.closest('input, textarea, select')))) return;
   if (page && !page.hidden) return;
   e.preventDefault(); e.stopPropagation();
-  if (roomTalkBox.hidden) { deskToast(room ? 'Nobody else is in the room yet' : 'Join a room with friends to chat (Room, at the top left)'); return; }
+  if (roomTalkBox.hidden) { deskToast(room ? 'Nobody else is in the room yet' : 'Join a room with friends to chat (Room, at the top right)'); return; }
   roomMsgI.focus(); roomMsgI.select();
 }, true);
 function roomTalkDraw() { // the box shows while you're in a room with someone; with two or more, who it's to
