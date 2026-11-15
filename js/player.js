@@ -46,3 +46,12 @@ const plResetB = el('button', { type: 'button', class: 'btn sx-reset-k', title: 
 } }, 'Reset');
 nextB.after(plResetB); tapeKey(plResetB, ['reset'], 'This part');
 function plPress(b) { if (stillUI()) return; b.classList.remove('press'); void b.offsetWidth; b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 180); }
+
+/* ---------- the keys don't keep the focus: a click leaves no box around the key, and Space is always Play/Pause ---------- */
+const plCmd = corner.querySelector('.sx-cmd');
+plCmd.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); }); // (a click doesn't focus the key; holding Rew still works)
+addEventListener('keydown', e => {
+  if (e.key !== ' ' || !e.target.closest || !e.target.closest('.sx-player .sx-cmd')) return; // (a key reached with Tab: Space still plays or pauses)
+  e.preventDefault(); e.stopPropagation(); if (!e.repeat) startB.click();
+}, true);
+addEventListener('keyup', e => { if (e.key === ' ' && e.target.closest && e.target.closest('.sx-player .sx-cmd')) e.preventDefault(); }, true);
