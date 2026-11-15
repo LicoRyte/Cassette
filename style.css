@@ -1727,3 +1727,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
   --pl-line: #73392e; --pl-line-hi: #833f34; --pl-tape: #c76e46; --pl-tape-edge: #34111f; --pl-brk: #9cb93b; --pl-dim: color-mix(in srgb, #ffdaac 55%, #34111f); --pl-sand: #ffdaac; --pl-shade: 32 10 18;
   --pk-face: #73392e; --pk-edge: #34111f; --pk-hover: #833f34; --pk-ink: #ffdaac; --pk-well: color-mix(in srgb, #34111f 75%, #030710); }
 :root[data-desk="white"] .sx-pl-win { --k-030710: var(--pl-frame); --k-030710-rgb: 32 10 18; --ink: #ffdaac; --sky: #ffdaac; --k-bfc3c6: #ffdaac; }
+/* the reels' spoked wheels show in every state: light sand spokes over the tape (mint on breaks, as before) */
+#app:not([data-clock="break"]) .sx-pl-win .sx-pl-reel .rl-hub :is(circle, path) { stroke: var(--pl-sand); }
+#app .sx-pl-win .sx-pl-reel .rl-hub path { stroke-width: 2; }

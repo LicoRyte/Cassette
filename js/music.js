@@ -178,7 +178,7 @@ delete M.panel; // (where it sat on the desk, from then)
 function tapesOpen(k) {
   if (k == null || (!tapesDrawer.hidden && k === true)) { if (!tapesDrawer.hidden) { tapesDrawer.hidden = true; tapesB.classList.remove('on'); save(); deskSfx('drop'); if (typeof tapeSound === 'function') tapeSound(); } return; } // Save cassette: everything is already kept; it just goes away
   const was = tapesDrawer.hidden; tapesDrawer.hidden = false; tapesB.classList.add('on');
-  if (was) { deskSfx('pick'); if (typeof memClose === 'function') memClose(); }
+  if (was) deskSfx('pick');
   musicDraw();
 }
 const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Your music and mixtapes (T)');

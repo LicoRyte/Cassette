@@ -1,5 +1,5 @@
 /* The two top corners.
-   Top left: the app and the timer's keys as plain words: Settings and ?, then Tapes and Remembered, then Mini and Full.
+   Top left: the app and the timer's keys as plain words: Settings and ?, then Tapes, then Mini and Full.
    Top right: everything online in one line: the Room key, who's here, the message line, and your face.
    Nothing on the screen ever fades: the keys, the panels and the desk stay as they are while you focus. */
 
@@ -8,7 +8,7 @@ tabSet.classList.add('sx-ws-b', 'sx-set-b'); tabSet.title = 'Settings';
 helpB.classList.add('sx-ws-b');
 const chrSep = () => el('i', { class: 'sx-tray-sep', 'aria-hidden': 'true' });
 const chrPair = el('span', { class: 'sx-tray-pair' }, miniB, fullB); // (Mini and Full: two ways of looking at the clock)
-deskTray.prepend(tabSet, helpB, chrSep(), tapesB, memB, chrSep(), chrPair);
+deskTray.prepend(tabSet, helpB, chrSep(), tapesB, chrSep(), chrPair);
 
 /* ---------- top right: the room ---------- */
 roomN.remove();
@@ -40,7 +40,7 @@ function chrNetDraw() {
   roomOpen = function (...a) { if (typeof tapesOpen === 'function' && !tapesDrawer.hidden) tapesOpen(null); const r = open0.apply(this, a); chrMe.classList.add('on'); return r; };
   roomClose = function (...a) { const r = close0.apply(this, a); chrMe.classList.remove('on'); return r; }; }
 roomNameI.addEventListener('input', () => chrNetDraw());
-// like Remembered and the others: a click anywhere else, or Esc, puts the room panel away (the online line toggles it itself)
+// like the other panels: a click anywhere else, or Esc, puts the room panel away (the online line toggles it itself)
 addEventListener('pointerdown', e => { if (!roomPanel.hidden && !e.target.closest('.sx-room, .sx-net')) roomClose(); }, true);
 addEventListener('keydown', e => { if (e.key === 'Escape' && !roomPanel.hidden && !e.target.closest('.sx-net')) { e.preventDefault(); e.stopPropagation(); roomClose(); } }, true);
 chrNetDraw();

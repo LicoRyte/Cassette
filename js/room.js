@@ -247,12 +247,11 @@ drawBoard = function () {
 /* ---------- the Room key (top right, js/chrome.js) and its panel ---------- */
 const roomN = el('span', { class: 'sx-mem-n', hidden: true });
 const roomB = deskBtn('Room', () => roomPanel.hidden ? roomOpen() : roomClose(), 'sx-room-key', 'A room with friends: send each other notes, photos, tables and labels');
-roomB.append(roomN); memB.after(roomB);
+roomB.append(roomN); deskKeys.before(roomB);
 const roomPanel = el('div', { class: 'sx-mem sx-room', hidden: true, role: 'dialog', 'aria-label': 'Room' });
 document.body.append(roomPanel);
-function roomOpen() { if (typeof memClose === 'function') memClose(); roomPanel.hidden = false; roomB.classList.add('on'); roomDraw(); requestAnimationFrame(() => roomPanel.classList.add('on')); deskSfx('pick'); }
+function roomOpen() { roomPanel.hidden = false; roomB.classList.add('on'); roomDraw(); requestAnimationFrame(() => roomPanel.classList.add('on')); deskSfx('pick'); }
 function roomClose() { if (roomPanel.hidden) return; roomPanel.classList.remove('on'); roomPanel.hidden = true; roomB.classList.remove('on'); }
-memB.addEventListener('click', () => roomClose(), true);
 const roomNameI = el('input', { class: 'sx-room-i', type: 'text', maxlength: 24, placeholder: 'Your name', value: ROOM.name || '', 'aria-label': 'Your name in rooms' });
 let roomNameT = 0; roomNameI.addEventListener('input', () => { ROOM.name = roomNameI.value.slice(0, 24); save(); clearTimeout(roomNameT); roomNameT = setTimeout(() => { if (roomSay) roomSay(roomHello()); }, 600); });
 const roomMsgI = el('input', { class: 'sx-talk-i', type: 'text', maxlength: ROOM_MSG_LEN, placeholder: 'Say something...', 'aria-label': 'A message to friends', enterkeyhint: 'send' });
