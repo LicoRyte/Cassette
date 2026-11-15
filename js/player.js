@@ -1,7 +1,8 @@
 /* Cassette Timer: the player. The deck is one portable cassette player: a dark glass window with the cassette inside
    (its shell and two big reels, turning, dimmed behind the glass) and the time over it in big digits, the side and the
    session along the top of the glass and the session strip along the bottom. Under the window, a row of five piano keys:
-   Play, Pause, Rew (hold it: the time winds back), F.F (the next track) and Reset (this part from the start, at once). */
+   Play/Pause, Rew (hold it: the time winds back), Prev (the track before), F.F (the next track) and Reset (this part
+   from the start, at once). */
 'use strict';
 
 corner.classList.add('sx-player');
@@ -14,19 +15,26 @@ corner.querySelector('.sx-cmd').before(plWin);
 reelL.classList.add('sx-pl-reel', 'l'); reelR.classList.add('sx-pl-reel', 'r');
 requestAnimationFrame(fitDigits);
 
-/* ---------- the keys: Play and Pause apart, as on a real deck ---------- */
+/* ---------- the keys ---------- */
 TAPE_ICONS.reset = 'M12 4.5a7.5 7.5 0 1 1-7.1 5.1l2.2.7A5.2 5.2 0 1 0 12 6.8V10L6.8 5.65 12 1.3z';
-// Play only plays: the timer's own words (Start, Resume, Pause...) no longer change it
-Object.defineProperty(startB, 'textContent', { configurable: true, get: () => tapePlayLbl.textContent, set: () => { startB.dataset.act = 'play'; } });
-tapePlayLbl.textContent = 'Play'; startB.dataset.act = 'play'; startB.title = 'Play (Space)';
-startB.addEventListener('click', e => { if (running && e.isTrusted) { e.stopImmediatePropagation(); e.preventDefault(); } }, true); // (pressing Play while it plays does nothing; Space still pauses)
-// Pause: holds the tape; press it again (or Play) to go on
-const pauseB = el('button', { type: 'button', class: 'btn sx-pause-k', title: 'Pause (Space)', onclick: () => {
-  const paused = !running && left > 0 && left < length(mode);
-  if (running) pause(); else if (paused) start(); else return;
-  tapeKeySound(pauseB); plPress(pauseB);
-} }, 'Pause');
-startB.after(pauseB); tapeKey(pauseB, ['pause'], 'Space'); pauseB.dataset.act = 'pause';
+TAPE_ICONS.prev = 'M21 6v12l-8-6zM13 6v12l-8-6zM2.5 6h2v12h-2z';
+// Play/Pause: one key. It says Play while stopped and Pause while it plays (the icon follows), and stays down while it plays
+Object.defineProperty(startB, 'textContent', { configurable: true, get: () => tapePlayLbl.textContent,
+  set: v => { const act = v === 'Pause' ? 'pause' : 'play'; startB.dataset.act = act; const w = act === 'pause' ? 'Pause' : 'Play'; if (tapePlayLbl.textContent !== w) tapePlayLbl.textContent = w; } });
+startB.textContent = running ? 'Pause' : 'Start'; startB.title = 'Play or pause (Space)';
+// Prev: the track before, on the side that's playing (Shift+N)
+function musicPrev() {
+  const s = sideNow(), n = M[s].length; if (!n) { deskToast('Nothing on ' + SIDE_NAME[s] + ' yet: add music in Tapes'); return; }
+  if (!player.paused && player._side === s) { M.pos[s] = ((M.pos[s] || 0) - 2 + 2 * n) % n; player._xf = true; nextTrack(700); } // (it steps on by one from here: the track before fades in)
+  else { M.pos[s] = ((M.pos[s] || 0) - 1 + n) % n; save(); musicDraw(); } // (not playing: the one before is lined up)
+  const tr = M[s][(M.pos[s] || 0) % n]; if (tr) deskToast('◂ ' + tr.name);
+}
+const prevB = el('button', { type: 'button', class: 'btn', title: 'Previous track (Shift+N)', onclick: () => { tapeKeySound(resetB); plPress(prevB); musicPrev(); } }, 'Prev');
+resetB.after(prevB); tapeKey(prevB, ['prev'], 'Shift N');
+addEventListener('keydown', e => {
+  const t = e.target; if (e.code !== 'KeyN' || !e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || e.repeat || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea'))) || page && !page.hidden) return;
+  e.preventDefault(); e.stopPropagation(); prevB.click();
+}, true);
 // Rew and F.F: the keys that were there, under their deck names
 resetB.querySelector('.sx-tl').textContent = 'Rew';
 nextB.querySelector('.sx-tl').textContent = 'F.F'; nextB.title = 'Fast forward: the next track (N)';

@@ -1698,10 +1698,9 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 #app .sx-player .sx-tk svg { width: 20px; height: 20px; margin-top: -10px; }
 #app .sx-player .sx-tape:hover:not(:disabled) .sx-tk { background: var(--pk-hover); }
 #app .sx-player .sx-tape:active:not(:disabled) .sx-tk, #app .sx-player .sx-tape.press .sx-tk { transform: translateY(5px); box-shadow: inset 0 -7px 0 var(--pk-edge), inset 0 1px 0 rgb(255 255 228 / .08), 0 0 0 var(--pk-well); background: var(--pk-face); }
-/* a key that's latched stays down: Play while it plays, Pause while it's paused, Rew while held */
-#app .sx-player .sx-tape.go .ic-pause { display: none; } #app .sx-player .sx-tape.go .ic-play { display: block; }
-#app:is([data-clock="focus"], [data-clock="last"], [data-clock="break"]) .sx-player .sx-tape.go .sx-tk, #app[data-clock="paused"] .sx-player .sx-pause-k .sx-tk, #app .sx-player .sx-tape.holding .sx-tk { transform: translateY(5px); box-shadow: inset 0 -7px 0 var(--pk-edge), inset 0 1px 0 rgb(255 255 228 / .08), 0 0 0 var(--pk-well); }
-#app:is([data-clock="focus"], [data-clock="last"]) .sx-player .sx-tape.go .sx-tk, #app[data-clock="paused"] .sx-player .sx-pause-k .sx-tk { color: var(--deck); }
+/* a key that's latched stays down: Play/Pause while it plays, Rew while held */
+#app:is([data-clock="focus"], [data-clock="last"], [data-clock="break"]) .sx-player .sx-tape.go .sx-tk, #app .sx-player .sx-tape.holding .sx-tk { transform: translateY(5px); box-shadow: inset 0 -7px 0 var(--pk-edge), inset 0 1px 0 rgb(255 255 228 / .08), 0 0 0 var(--pk-well); }
+#app:is([data-clock="focus"], [data-clock="last"]) .sx-player .sx-tape.go .sx-tk { color: var(--deck); }
 #app[data-clock="break"] .sx-player .sx-tape.go .sx-tk { color: var(--pl-brk); }
 #app .sx-player .sx-cmd .btn.sx-tape, #app[data-clock] .sx-player .sx-cmd .btn.sx-tape.go { color: var(--deck); }
 /* Reset: the red key */
