@@ -100,18 +100,11 @@ async function roomSend(to) { // to: one friend's browser id, or null for everyo
   const ids = new Set(its.map(it => it.id)), x0 = Math.min(...its.map(it => it.x)), y0 = Math.min(...its.map(it => it.y));
   const items = its.map(it => { const o = JSON.parse(JSON.stringify(it)); o.x -= x0; o.y -= y0; delete o.key; delete o.board; delete o.from; return o; });
   const photos = {}; for (const it of its) if (it.type === 'photo') { try { const src = await PHOTOS.get(it.id); if (src) photos[it.id] = src; } catch (e) { /* skip */ } }
-  roomSentAt = Date.now(); roomSendState(); roomWhoosh(its);
+  roomSentAt = Date.now(); roomSendState();
   try { await roomCard({ name: roomHello().name, items, links: B_().links.filter(l => ids.has(l[0]) && ids.has(l[1])), photos }, targets); }
   catch (e) { deskToast('That didn\'t send: try again in a moment'); return; }
   const what = its.length > 1 ? its.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', frame: 'a label' }[its[0].type];
   deskSfx('lift'); deskToast('Sent ' + what + ' to ' + (to ? (roomPeers.get(to) || {}).name || 'your friend' : 'everyone'));
-}
-function roomWhoosh(its) { // a ghost of each card flies off to the right, the way it's going
-  if (stillUI()) return;
-  its.forEach((it, i) => { const c = els.get(it.id); if (!c) return; const g = c.cloneNode(true);
-    g.classList.remove('sel', 'lift', 'carry', 'swinging', 'sx-land'); g.classList.add('sx-whoosh'); g.removeAttribute('data-id'); g.setAttribute('aria-hidden', 'true'); g.style.animationDelay = i * 60 + 'ms';
-    g.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
-    (c.parentNode || layer).append(g); g.addEventListener('animationend', () => g.remove()); setTimeout(() => g.remove(), 1500); });
 }
 // the row in the bar along the bottom while something is picked: who to send it to (and how long until you can send again)
 const roomSendRow = el('div', { class: 'sx-ws-grp sx-room-send', hidden: true, role: 'group', 'aria-label': 'Send to a friend' });
@@ -195,10 +188,7 @@ async function roomReceive(d, pid) {
   deskMark(); B_().items.push(...out);
   (Array.isArray(d.links) ? d.links : []).forEach(l => { if (Array.isArray(l) && imap.has(l[0]) && imap.has(l[1])) B_().links.push([imap.get(l[0]), imap.get(l[1])]); });
   save(); drawBoard();
-  if (stillUI()) out.forEach((o, i) => deskLand(o.id, i === 0));
-  else { deskSfx('lift'); out.forEach((o, i) => { const c = els.get(o.id); if (!c) return; c.style.animationDelay = i * 90 + 'ms'; c.classList.add('sx-arrive');
-    c.addEventListener('animationend', function done(e) { if (e.target !== c) return; c.classList.remove('sx-arrive'); c.style.animationDelay = ''; c.removeEventListener('animationend', done); }); });
-    setTimeout(() => deskSfx('pin'), 620 + (out.length - 1) * 90); }
+  out.forEach((o, i) => setTimeout(() => deskLand(o.id, i === 0), i * 70)); // (they land one after another, with the pin)
   const what = out.length > 1 ? out.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', frame: 'a label' }[out[0].type];
   deskToast(p.name + ' sent you ' + what);
 }

@@ -1478,12 +1478,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: var(--sx, 3px) var(--sy, 4px) 0 rgba(3, 7, 16, .55); }
 :root[data-desk="white"] .sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: calc(var(--sx, 3px) * .75) calc(var(--sy, 4px) * .75) 0 rgba(115, 57, 46, .25); }
 
-/* a card you send: a ghost of it flies off to the right; a card a friend sends flies in from the right and lands */
-.sx-world .sx-whoosh { pointer-events: none; animation: sx-whoosh .55s cubic-bezier(.5, 0, .9, .4) both; }
-@keyframes sx-whoosh { 0% { translate: 0 0; opacity: .9; } 20% { translate: -14px 4px; opacity: .9; } 100% { translate: calc(85vw / var(--cz, 1)) calc(-12vh / var(--cz, 1)); rotate: 14deg; opacity: 0; scale: .8; } }
-.sx-world .sx-bcard.sx-arrive { animation: sx-arrive .7s cubic-bezier(.2, .75, .3, 1) both; }
-@keyframes sx-arrive { 0% { translate: calc(80vw / var(--cz, 1)) calc(-16vh / var(--cz, 1)); rotate: 16deg; opacity: 0; scale: .85; } 15% { opacity: 1; } 78% { translate: 0 0; rotate: -2deg; scale: 1.02 1; } 88% { scale: 1.02 .97; } 100% { translate: 0 0; scale: 1; } }
-@media (prefers-reduced-motion: reduce) { .sx-world .sx-whoosh { display: none; } .sx-world .sx-bcard.sx-arrive { animation: none; } }
 
 /* the talk corner, under Settings: the box to write in, then the messages */
 .sx-talk { position: fixed; top: 54px; right: max(16px, env(safe-area-inset-right)); z-index: 70; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: min(320px, calc(100vw - 32px)); pointer-events: none; }
