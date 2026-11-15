@@ -29,7 +29,10 @@ const MINI_CSS = `
 .mini[data-clock="break"] { --deck: var(--mint); } .mini[data-clock="break"] .mini-time { color: var(--mint); }
 .mini[data-clock="paused"] .mini-time { color: var(--muted); } .mini[data-clock="paused"] { --deck: var(--pause); }
 .mini[data-clock="last"] .mini-time { color: var(--last); }
-@media (prefers-reduced-motion: reduce) { .mini.run .mini-reel svg { animation: none; } }`;
+.mini { position: relative; }
+.mini-msg { position: absolute; left: 10px; right: 10px; top: 6px; padding: 5px 10px 6px; background: var(--deck); color: var(--bg); border-radius: 10px 10px 2px 10px; font: 600 13px/1.2 'Barlow C'; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .25s; pointer-events: none; }
+.mini-msg.on { opacity: 1; transform: none; } .mini-msg b { font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .mini.run .mini-reel svg { animation: none; } .mini-msg { transition: none; } }`;
 const MINI_REEL = '<svg viewBox="-18 -18 36 36"><circle r="16" fill="none" stroke="currentColor" stroke-width="2"/><circle class="hub" r="9"/><circle class="hole" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M0-4V-8M3.5 2L6.9 4M-3.5 2L-6.9 4" stroke="currentColor" stroke-width="1.6"/></svg>';
 const MINI_ICON = { play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>', pause: '<svg viewBox="0 0 24 24"><path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/></svg>', rew: '<svg viewBox="0 0 24 24"><path d="M11.5 6v12L3.5 12zM20.5 6v12l-8-6z"/></svg>', next: '<svg viewBox="0 0 24 24"><path d="M3 6v12l8-6zM11 6v12l8-6zM19.5 6h2v12h-2z"/></svg>' };
 function miniDraw() {
@@ -50,13 +53,20 @@ function miniTheme(d, skin) {
     '--mint': v('--k-77d6c1'), '--pause': v('--k-ffd832') || v('--k-ffdaac'), '--last': v('--k-ffdaac'), '--hub': v('--k-ffdaac'), '--deck': v('--deck') || skin, '--under': v('--under') || v('--deck') || skin };
   for (const k in set) if (set[k] && t.getPropertyValue(k) !== set[k]) t.setProperty(k, set[k]);
 }
+// a friend's message (js/chrome.js): one line across the top of the mini deck for a few seconds, so you see it in another app
+let miniMsgT = 0;
+function miniMsg(who, text) {
+  if (!miniWin) return; const d = miniWin.document, m = d.querySelector('.mini-msg'); if (!m) return;
+  m.replaceChildren(Object.assign(d.createElement('b'), { textContent: who + ': ' }), d.createTextNode(text)); m.title = who + ': ' + text;
+  m.classList.add('on'); clearTimeout(miniMsgT); miniMsgT = setTimeout(() => m.classList.remove('on'), Math.min(12000, 6000 + text.length * 45));
+}
 async function miniOpen() {
   if (miniWin) { miniWin.close(); return; }
   if (!('documentPictureInPicture' in window)) { deskToast('Your browser has no floating window. Chrome and Edge do'); return; }
   try { miniWin = await documentPictureInPicture.requestWindow({ width: 300, height: 190 }); } catch (e) { deskToast('Could not open the mini deck'); return; }
   const d = miniWin.document;
   d.head.append(Object.assign(d.createElement('style'), { textContent: MINI_CSS }));
-  d.body.innerHTML = '<div class="mini"><div class="mini-top"><b></b><span></span></div><div class="mini-mid"><span class="mini-reel">' + MINI_REEL + '</span><div class="mini-time"></div><span class="mini-reel">' + MINI_REEL + '</span></div><div class="mini-bar"><i></i></div><div class="mini-keys"><button type="button" data-k="go" aria-label="Start or pause"></button><button type="button" data-k="rew" aria-label="Rewind">' + MINI_ICON.rew + '</button><button type="button" data-k="next" aria-label="Next track" title="Next track (N)">' + MINI_ICON.next + '</button></div></div>'; // (fixed markup)
+  d.body.innerHTML = '<div class="mini"><div class="mini-msg" role="status"></div><div class="mini-top"><b></b><span></span></div><div class="mini-mid"><span class="mini-reel">' + MINI_REEL + '</span><div class="mini-time"></div><span class="mini-reel">' + MINI_REEL + '</span></div><div class="mini-bar"><i></i></div><div class="mini-keys"><button type="button" data-k="go" aria-label="Start or pause"></button><button type="button" data-k="rew" aria-label="Rewind">' + MINI_ICON.rew + '</button><button type="button" data-k="next" aria-label="Next track" title="Next track (N)">' + MINI_ICON.next + '</button></div></div>'; // (fixed markup)
   d.querySelector('[data-k="go"]').addEventListener('click', () => startB.click());
   d.querySelector('[data-k="next"]').addEventListener('click', () => nextB.click());
   const mr = d.querySelector('[data-k="rew"]'); mr.addEventListener('pointerdown', () => rewStart()); ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => mr.addEventListener(k, rewStop)); // (held, like the big one)

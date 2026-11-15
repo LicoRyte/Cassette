@@ -1622,3 +1622,12 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* nothing fades any more: the keys, the panels and the desk stay as they are while you focus (only Full hides things, on purpose) */
 #app[data-clock] .sx-ws-bar, #app[data-clock] .sx-tray, #app .sx-top, .sx-help-b, #app .sx-world .sx-layer, #app .sx-world .sx-strings, #app .sx-world .sx-flayer { filter: none; }
 #app:not(.sx-full)[data-clock] .sx-ws-bar, #app:not(.sx-full)[data-clock] .sx-tray, #app:not(.sx-full) .sx-world .sx-layer, #app:not(.sx-full) .sx-world .sx-strings, #app:not(.sx-full) .sx-world .sx-flayer { opacity: 1; }
+
+
+/* the message bubbles stay (the last twenty): the column scrolls to read back, and fades at its bottom edge when there's more */
+.sx-talk .sx-msgs { max-height: min(460px, calc(100vh - 150px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; pointer-events: auto; padding: 0 2px 6px 0; }
+.sx-talk .sx-msgs::-webkit-scrollbar { display: none; }
+.sx-talk .sx-msgs:hover { scrollbar-width: thin; scrollbar-color: var(--k-293b49) transparent; }
+.sx-talk .sx-msgs.more { mask-image: linear-gradient(to bottom, #000 calc(100% - 46px), transparent); -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 46px), transparent); }
+.sx-msg { cursor: default; }
+.sx-msg-h span { white-space: nowrap; }

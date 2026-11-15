@@ -39,4 +39,11 @@ addEventListener('pointerdown', e => { if (!roomPanel.hidden && !e.target.closes
 addEventListener('keydown', e => { if (e.key === 'Escape' && !roomPanel.hidden && !e.target.closest('.sx-net')) { e.preventDefault(); e.stopPropagation(); roomClose(); } }, true);
 chrNetDraw();
 
+/* ---------- messages: a friend's also shows on the mini deck; leaving the room clears the bubbles ---------- */
+{ const show0 = roomMsgShow; roomMsgShow = function (who, to, text, person, mine) { if (!mine && typeof miniMsg === 'function') miniMsg(who, text); return show0.apply(this, arguments); }; }
+{ const leave0 = roomLeave; roomLeave = function (...a) { roomMsgs.replaceChildren(); return leave0.apply(this, a); }; }
 tapesGrip.querySelector('span').textContent = 'Tapes'; // (the panel says what the key says)
+// the bubbles' column fades at its bottom edge while there are older ones further down to scroll to
+function chrMsgsMore() { roomMsgs.classList.toggle('more', roomMsgs.scrollHeight - roomMsgs.scrollTop - roomMsgs.clientHeight > 4); }
+roomMsgs.addEventListener('scroll', chrMsgsMore, { passive: true });
+new MutationObserver(() => setTimeout(chrMsgsMore, 450)).observe(roomMsgs, { childList: true });

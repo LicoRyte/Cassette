@@ -154,8 +154,8 @@ function roomSendState() {
 const deskSelBarR = deskSelBar;
 deskSelBar = function () { deskSelBarR.apply(this, arguments); roomSendState(); };
 
-/* ---------- messages: a line of words to a friend (or everyone) that slides in at their top right, stays a few seconds
-   and fades; nothing is kept. Several at once stack, the newest on top pushing the others down ---------- */
+/* ---------- messages: a line of words to a friend (or everyone) that slides in at their top right. The bubbles stay:
+   the last twenty, the newest on top pushing the others down; scroll the column to read back. Leaving the room clears them ---------- */
 const ROOM_MSG_LEN = 140, ROOM_MSG_COOL = 1200, ROOM_MSG_GAP = 800; // you: one every 1.2 s; each friend: one taken every 0.8 s
 let roomMsgTo = null, roomMsgAt = 0; const roomHeardAt = new Map();
 // the talk line, at the top right (js/chrome.js moves the box into it): the box to write in (while friends are here), and the messages under it
@@ -163,19 +163,13 @@ const roomMsgs = el('div', { class: 'sx-msgs', role: 'log', 'aria-live': 'polite
 const roomTalkBox = el('div', { class: 'sx-talk-box', hidden: true });
 const roomTalkEl = el('div', { class: 'sx-talk' }, roomTalkBox, roomMsgs);
 document.body.append(roomTalkEl);
+const ROOM_MSG_KEEP = 20;
 function roomMsgShow(who, to, text, person, mine) {
-  const life = Math.min(12000, 6000 + text.length * 45);
-  const slip = el('div', { class: 'sx-msg' + (mine ? ' mine' : ''), title: 'Click to put it away' },
-    el('div', { class: 'sx-msg-in' }, el('div', { class: 'sx-msg-h' }, roomAv(person, true), el('b', {}, who), el('span', {}, to)), el('p', { class: 'sx-msg-b' }, text)));
-  let t = 0, left = life, from = 0;
-  const go = () => { slip.classList.add('out'); setTimeout(() => slip.remove(), 400); };
-  const run = () => { from = Date.now(); t = setTimeout(go, left); };
-  slip.addEventListener('mouseenter', () => { clearTimeout(t); left -= Date.now() - from; }); // (it waits while you read it)
-  slip.addEventListener('mouseleave', () => { if (!slip.classList.contains('out')) run(); });
-  slip.addEventListener('click', go);
+  const when = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const slip = el('div', { class: 'sx-msg' + (mine ? ' mine' : '') },
+    el('div', { class: 'sx-msg-in' }, el('div', { class: 'sx-msg-h' }, roomAv(person, true), el('b', {}, who), el('span', {}, to + ' \u00b7 ' + when)), el('p', { class: 'sx-msg-b' }, text)));
   roomMsgs.prepend(slip); requestAnimationFrame(() => requestAnimationFrame(() => slip.classList.add('on')));
-  [...roomMsgs.children].slice(5).forEach(x => x.remove()); // (five at most)
-  run();
+  [...roomMsgs.children].slice(ROOM_MSG_KEEP).forEach(x => x.remove()); // (the oldest go past twenty)
 }
 function roomTalk(text) {
   text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, ROOM_MSG_LEN); if (!text || !room || !roomTell) return false;
