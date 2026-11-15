@@ -1509,7 +1509,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-rp-state i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .sx-rp-row { display: flex; align-items: center; gap: 8px; }
 .sx-room .sx-rp-go { width: 100%; height: 36px; background: var(--deck); border-color: var(--deck); color: var(--k-030710); font-size: 12px; }
-.sx-room .sx-rp-go:hover { filter: brightness(1.08); }
+.sx-mem.sx-room .sx-rp-go:hover { background: none; color: var(--deck); -webkit-text-fill-color: var(--deck); border-color: var(--deck); filter: none; }
 .sx-rp-or { display: flex; align-items: center; gap: 10px; margin: 12px 0 8px; font: 600 11px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: var(--k-6d8a8d); }
 .sx-rp-or::before, .sx-rp-or::after { content: ''; flex: 1; height: 1px; background: var(--k-0b1a2b); }
 .sx-rp-foot-note { margin: 0 !important; padding: 10px 14px 12px; font: 12px/1.45 var(--ui); color: var(--k-6d8a8d); }
