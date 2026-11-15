@@ -1730,3 +1730,20 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* the reels' spoked wheels show in every state: light sand spokes over the tape (mint on breaks, as before) */
 #app:not([data-clock="break"]) .sx-pl-win .sx-pl-reel .rl-hub :is(circle, path) { stroke: var(--pl-sand); }
 #app .sx-pl-win .sx-pl-reel .rl-hub path { stroke-width: 2; }
+
+/* the cassette's label, behind the glass: the side's letter and the track in handwriting */
+.sx-pl-lt { position: absolute; left: 24px; right: 24px; top: 22px; display: flex; align-items: baseline; gap: 10px; overflow: hidden; color: var(--pl-sand); white-space: nowrap; }
+.sx-pl-lt b { font: 700 22px/1 var(--ui); color: var(--deck); }
+.sx-pl-lt span { min-width: 0; overflow: hidden; text-overflow: ellipsis; font: italic 14px/1 var(--text); opacity: .85; }
+#app[data-side="B"] .sx-pl-lt b { color: var(--pl-brk); }
+/* the light beside the side */
+.sx-pl-top { justify-content: flex-start; }
+#app .sx-player .sx-pl-top .sl-big { margin-left: auto; }
+.sx-pl-led { flex: none; align-self: center; width: 8px; height: 8px; border-radius: 50%; background: color-mix(in srgb, var(--k-6d8a8d) 45%, transparent); box-shadow: inset 0 1px 1px rgb(var(--shade) / .4); transition: background .3s, box-shadow .3s; }
+#app:is([data-clock="focus"], [data-clock="last"]) .sx-pl-led { background: var(--deck); box-shadow: 0 0 6px 1px color-mix(in srgb, var(--deck) 70%, transparent); }
+#app[data-clock="break"] .sx-pl-led { background: var(--k-77d6c1); box-shadow: 0 0 6px 1px color-mix(in srgb, var(--k-77d6c1) 70%, transparent); }
+#app[data-clock="paused"] .sx-pl-led { background: var(--deck); animation: sx-led-blink 1.1s steps(1) infinite; }
+@keyframes sx-led-blink { 50% { background: color-mix(in srgb, var(--k-6d8a8d) 45%, transparent); } }
+@media (prefers-reduced-motion: reduce) { #app[data-clock="paused"] .sx-pl-led { animation: none; } .sx-pl-led { transition: none; } }
+/* the player stands taller off the desk, like a portable deck: a deeper front edge, with a seam where the lid meets the body */
+#app .sx-world > .sx-corner.sx-player { box-shadow: 0 0 0 30px var(--k-030710), 0 0 0 32.5px var(--deck), 0 12px 0 32.5px var(--under), 0 13.5px 0 32.5px color-mix(in srgb, var(--under) 70%, #030710), 0 24px 0 32.5px var(--under), 0 32px 30px 30px rgb(var(--shade) / .3); }

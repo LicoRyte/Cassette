@@ -55,3 +55,26 @@ addEventListener('keydown', e => {
   e.preventDefault(); e.stopPropagation(); if (!e.repeat) startB.click();
 }, true);
 addEventListener('keyup', e => { if (e.key === ' ' && e.target.closest && e.target.closest('.sx-player .sx-cmd')) e.preventDefault(); }, true);
+
+/* ---------- the tape moves from reel to reel through each part: the left one full when a part starts, the right one full
+   at its end (then the tape turns over for the next part). Wider than the old deck's, so you can see it go ---------- */
+reelPacks = function () {
+  const l = 4.5 + 11 * Math.sqrt(1 - reelProg), r = 4.5 + 11 * Math.sqrt(reelProg); // (the square root keeps the tape's area even)
+  reelL.querySelector('.rl-pack').setAttribute('r', l.toFixed(2)); reelR.querySelector('.rl-pack').setAttribute('r', r.toFixed(2));
+};
+{ const draw0 = drawCycle; drawCycle = function (pct) { draw0(pct); reelProg = Math.max(0, Math.min(1, (pct || 0) / 100)); reelPacks(); }; }
+drawClock();
+
+/* ---------- the cassette's label: the side's big letter, and the track playing in handwriting (or what the side is for) ---------- */
+const plLabSide = el('b', {}), plLabTrack = el('span', {});
+plCas.append(el('div', { class: 'sx-pl-lt' }, plLabSide, plLabTrack));
+function plLabDraw() {
+  const s = root.dataset.side || (mode === 'focus' ? 'A' : 'B'), np = sideTagNp.textContent.trim();
+  plLabSide.textContent = s; plLabTrack.textContent = np || (s === 'A' ? 'focus' : 'breaks');
+}
+new MutationObserver(plLabDraw).observe(sideTag, { childList: true, characterData: true, subtree: true });
+new MutationObserver(plLabDraw).observe(root, { attributes: true, attributeFilter: ['data-side'] });
+plLabDraw();
+
+/* ---------- a little light beside the side: on in the key colour while it plays, blinking while paused, green on breaks ---------- */
+plTop.prepend(el('i', { class: 'sx-pl-led', 'aria-hidden': 'true' }));
