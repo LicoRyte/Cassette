@@ -9,37 +9,46 @@ let miniWin = null;
 const MINI_CSS = `
 @font-face { font-family: 'Barlow C'; src: url(${new URL('fonts/barlow-condensed-latin-700-normal.woff2', location.href)}) format('woff2'); font-weight: 700; }
 @font-face { font-family: 'Barlow C'; src: url(${new URL('fonts/barlow-condensed-latin-600-normal.woff2', location.href)}) format('woff2'); font-weight: 600; }
-* { box-sizing: border-box; } html, body { margin: 0; height: 100%; background: #030710; color: #ffffe4; font-family: 'Barlow C', 'Arial Narrow', sans-serif; overflow: hidden; user-select: none; }
-.mini { --deck: #ffb762; height: 100%; display: grid; grid-template-rows: auto 1fr auto auto; gap: 4px; padding: 10px 14px 12px; border: 2px solid var(--deck); border-radius: 8px; }
-.mini-top { display: flex; justify-content: space-between; font: 700 11px/1.2 'Barlow C'; letter-spacing: .2em; text-transform: uppercase; color: #6d8a8d; }
+* { box-sizing: border-box; } html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: 'Barlow C', 'Arial Narrow', sans-serif; overflow: hidden; user-select: none; }
+:root { --bg: #030710; --ink: #ffffe4; --muted: #6d8a8d; --track: #041528; --line: #0b1a2b; --mint: #77d6c1; --pause: #ffd832; --last: #ffdaac; --hub: #73392e; --deck: #ffb762; --under: #73392e; }
+.mini { height: 100%; display: grid; grid-template-rows: auto 1fr auto auto; gap: 4px; padding: 10px 14px 12px; border: 2px solid var(--deck); border-bottom-width: 7px; border-bottom-color: var(--under); border-radius: 6px; }
+.mini-top { display: flex; justify-content: space-between; font: 700 11px/1.2 'Barlow C'; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
 .mini-top b { color: var(--deck); }
 .mini-mid { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .mini-time { font: 700 64px/1 'Barlow C'; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .mini-reel { width: 26px; height: 26px; color: var(--deck); }
-.mini-reel svg { width: 100%; height: 100%; display: block; }
+.mini-reel svg { width: 100%; height: 100%; display: block; } .mini-reel .hub { fill: var(--hub); } .mini-reel .hole { fill: var(--bg); }
 .mini.run .mini-reel svg { animation: spin 3s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.mini-bar { height: 6px; background: #041528; box-shadow: inset 0 0 0 1px #0b1a2b; } .mini-bar i { display: block; height: 100%; background: #ffffe4; }
+.mini-bar { height: 6px; background: var(--track); box-shadow: inset 0 0 0 1px var(--line); } .mini-bar i { display: block; height: 100%; background: var(--deck); }
 .mini-keys { display: flex; justify-content: center; gap: 10px; margin-top: 4px; }
 .mini-keys button { width: 52px; height: 34px; display: grid; place-items: center; background: none; border: 2px solid var(--deck); border-radius: 3px; color: var(--deck); cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--deck) 30%, transparent); }
+.mini-keys button:hover { background: color-mix(in srgb, var(--deck) 10%, transparent); }
 .mini-keys button:active { transform: translateY(3px); box-shadow: none; }
 .mini-keys svg { width: 18px; height: 18px; fill: currentColor; }
-.mini[data-clock="break"] { --deck: #77d6c1; } .mini[data-clock="break"] .mini-time { color: #77d6c1; } .mini[data-clock="break"] .mini-bar i { background: #77d6c1; }
-.mini[data-clock="paused"] .mini-time { color: #6d8a8d; } .mini[data-clock="paused"] { --deck: #ffd832; }
-.mini[data-clock="last"] .mini-time { color: #ffdaac; }
+.mini[data-clock="break"] { --deck: var(--mint); } .mini[data-clock="break"] .mini-time { color: var(--mint); }
+.mini[data-clock="paused"] .mini-time { color: var(--muted); } .mini[data-clock="paused"] { --deck: var(--pause); }
+.mini[data-clock="last"] .mini-time { color: var(--last); }
 @media (prefers-reduced-motion: reduce) { .mini.run .mini-reel svg { animation: none; } }`;
-const MINI_REEL = '<svg viewBox="-18 -18 36 36"><circle r="16" fill="none" stroke="currentColor" stroke-width="2"/><circle r="9" fill="#73392e"/><circle r="4" fill="#030710" stroke="currentColor" stroke-width="1.5"/><path d="M0-4V-8M3.5 2L6.9 4M-3.5 2L-6.9 4" stroke="currentColor" stroke-width="1.6"/></svg>';
+const MINI_REEL = '<svg viewBox="-18 -18 36 36"><circle r="16" fill="none" stroke="currentColor" stroke-width="2"/><circle class="hub" r="9"/><circle class="hole" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M0-4V-8M3.5 2L6.9 4M-3.5 2L-6.9 4" stroke="currentColor" stroke-width="1.6"/></svg>';
 const MINI_ICON = { play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>', pause: '<svg viewBox="0 0 24 24"><path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/></svg>', rew: '<svg viewBox="0 0 24 24"><path d="M11.5 6v12L3.5 12zM20.5 6v12l-8-6z"/></svg>', next: '<svg viewBox="0 0 24 24"><path d="M3 6v12l8-6zM11 6v12l8-6zM19.5 6h2v12h-2z"/></svg>' };
 function miniDraw() {
   if (!miniWin) return; const d = miniWin.document, m = d.querySelector('.mini'); if (!m) return;
   const r = remaining(), pct = Math.min(100, Math.max(0, 100 - r / length(mode) * 100)), skin = { amber: '#ffb762', mint: '#77d6c1', coral: '#ff6157', clear: '#ffffe4' }[S.opts.skin || 'amber'];
-  m.dataset.clock = root.dataset.clock || 'ready'; m.classList.toggle('run', running); m.style.setProperty('--deck', skin);
+  m.dataset.clock = root.dataset.clock || 'ready'; m.classList.toggle('run', running); miniTheme(d, skin);
   d.querySelector('.mini-time').textContent = fmt(r);
   d.querySelector('.mini-top b').textContent = 'Side ' + (mode === 'focus' ? 'A' : 'B');
   d.querySelector('.mini-top span').textContent = bigText.textContent;
   d.querySelector('.mini-bar i').style.width = pct + '%';
   d.querySelector('[data-k="go"]').innerHTML = running ? MINI_ICON.pause : MINI_ICON.play; // (fixed icons)
   d.title = document.title;
+}
+// the mini wears the same colours as the deck on the desk (white or night, and the key colour), and follows when they change
+function miniTheme(d, skin) {
+  const c = getComputedStyle(corner), v = k => c.getPropertyValue(k).trim(), t = d.documentElement.style;
+  const set = { '--bg': c.backgroundColor, '--ink': getComputedStyle(timeText).color, '--muted': v('--k-6d8a8d'), '--track': v('--k-041528'), '--line': v('--k-0b1a2b'),
+    '--mint': v('--k-77d6c1'), '--pause': v('--k-ffd832') || v('--k-ffdaac'), '--last': v('--k-ffdaac'), '--hub': v('--k-ffdaac'), '--deck': v('--deck') || skin, '--under': v('--under') || v('--deck') || skin };
+  for (const k in set) if (set[k] && t.getPropertyValue(k) !== set[k]) t.setProperty(k, set[k]);
 }
 async function miniOpen() {
   if (miniWin) { miniWin.close(); return; }
@@ -58,6 +67,7 @@ async function miniOpen() {
 }
 new MutationObserver(miniDraw).observe(timeText, { childList: true, characterData: true, subtree: true });
 new MutationObserver(miniDraw).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
+new MutationObserver(miniDraw).observe(document.documentElement, { attributes: true }); // (white or night desk, the key colour)
 const miniB = deskBtn('Mini', () => miniOpen(), '', 'A small clock that stays on top of your other windows (M)');
 tapesB.after(miniB);
 
