@@ -54,8 +54,10 @@ function rampRate(a, from, to, ms) { // the motor: playback speed (and so pitch)
   const t0 = performance.now(); a.playbackRate = from;
   a._rt = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms), e = 1 - Math.pow(1 - k, 2); a.playbackRate = Math.max(.25, from + (to - from) * e); if (k >= 1) clearInterval(a._rt); }, 30);
 }
-async function startOn(a, side, ms, wind) { if (!(await loadInto(a, side))) return false; musicGraph(); a.volume = 0; if (wind) rampRate(a, .45, 1, 750); else { clearInterval(a._rt); a.playbackRate = 1; } try { await a.play(); } catch (e) { return false; } setActive(a); fadeEl(a, vol(), ms); return true; }
-function stopEl(a, ms, wind) { if (a.paused) return; if (wind) rampRate(a, a.playbackRate || 1, .3, ms); fadeEl(a, 0, ms, () => { a.pause(); clearInterval(a._rt); a.playbackRate = 1; musicDraw(); }); }
+async function startOn(a, side, ms, wind) { if (!(await loadInto(a, side))) return false; musicGraph(); a.volume = 0; a._down = false; if (wind) rampRate(a, .45, 1, 750); else { clearInterval(a._rt); a.playbackRate = 1; } try { await a.play(); } catch (e) { return false; } setActive(a); fadeEl(a, vol(), ms); return true; }
+function stopEl(a, ms, wind) { if (a.paused) return; if (wind) { a._down = true; rampRate(a, a.playbackRate || 1, .3, ms); } fadeEl(a, 0, ms, () => { a.pause(); clearInterval(a._rt); a.playbackRate = 1; a._down = false; musicDraw(); }); }
+// play again while the tape is still winding down: the motor speeds back up from wherever it got to (not stuck slow)
+function windBack(a) { if (!a._down) return; a._down = false; rampRate(a, a.playbackRate || 1, 1, 450); }
 async function nextTrack(ms) { // on to the next track: it comes in underneath while this one fades
   const was = player, s = was._side; if (!s) return;
   M.pos[s] = ((M.pos[s] || 0) + 1) % Math.max(1, M[s].length); save();
@@ -77,7 +79,8 @@ async function musicSync() {
   try {
     const side = sideNow(), want = running && M.on && soundOn && M[side].length > 0;
     if (!want) { decks.forEach(a => stopEl(a, 900, true)); return; } // the tape winds down
-    if (!player.paused && player._side === side) { fadeEl(player, vol(), 400); return; } // already playing this side
+    decks.forEach(a => { if (a !== player || a._side !== side) return; windBack(a); });
+    if (!player.paused && player._side === side) { fadeEl(player, vol(), 400); return; } // already playing this side (or caught while winding down)
     const tr = trackAt(side);
     if (player.paused && player._side === side && player._url && tr && player._id === tr.id && player.currentTime > 0) { // a pause: carry on where it stopped
       player.volume = 0; rampRate(player, .45, 1, 750); try { await player.play(); } catch (e) { return; } setActive(player); fadeEl(player, vol(), 900); return; // and speeds up again
