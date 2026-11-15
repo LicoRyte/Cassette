@@ -1708,8 +1708,8 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 #app .sx-player .sx-reset-k:hover .sx-tk { background: #ff6157; }
 #app .sx-player .sx-reset-k:active .sx-tk, #app .sx-player .sx-reset-k.press .sx-tk { background: #d9243c; box-shadow: inset 0 -7px 0 #73392e, 0 0 0 var(--pk-well); }
 #app .sx-player .sx-cmd .btn.sx-reset-k { color: var(--k-ff6157); }
-/* the meters and the counter: under the keys, on the right */
-#app .sx-world > .sx-corner.sx-player .sx-tally, #app .sx-corner.sx-player .sx-tally { grid-area: meta; justify-self: end; margin: 14px 0 0; }
+/* no meters or counter on the player: the keys are its bottom edge */
+#app .sx-world > .sx-corner.sx-player .sx-tally, #app .sx-corner.sx-player .sx-tally { display: none; }
 @media (max-width: 560px) {
   #app .sx-player .sx-tape .sx-th { display: none; }
   #app .sx-player .sx-tape .sx-tl { font-size: 11px; letter-spacing: .08em; }
