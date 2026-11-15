@@ -169,9 +169,6 @@ function deskMenuOpen() {
     el('i', { class: 'sx-ws-msep' }),
     item('Save a backup of all boards', () => deskExportBackup()),
     item('Load a backup...', () => deskImportBackup()),
-    el('i', { class: 'sx-ws-msep' }),
-    item('Import a Markdown file...', () => mdImportAsk()),
-    item('Import a Markdown folder...', () => mdImportFolder()),
   ].filter(Boolean));
   deskMenu.hidden = false;
   const mb = deskBar.querySelector('.sx-ws-menub'); if (mb) deskMenu.style.top = Math.max(0, mb.offsetTop) + 'px'; // beside the Boards button, opening to the right
@@ -724,7 +721,6 @@ ws.addEventListener('wheel', e => { // zoom around the pointer
 ws.addEventListener('dragover', e => { if ([...(e.dataTransfer.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); ws.classList.add('drop'); } });
 ws.addEventListener('dragleave', () => ws.classList.remove('drop'));
 ws.addEventListener('drop', e => { e.preventDefault(); ws.classList.remove('drop'); const fs = e.dataTransfer.files;
-  if (typeof mdDrop === 'function' && mdDrop(e)) return; // a Markdown file (or its folder): js/mdimport.js
   if ([...fs].some(f => /^audio\//.test(f.type)) && typeof musicAdd === 'function') musicAdd(fs, mode === 'focus' ? 'A' : 'B'); // music goes on the side that's playing (js/music.js)
   addPhotos(fs, toWorld(e.clientX, e.clientY)); });
 addEventListener('resize', placeCam);
