@@ -3,9 +3,6 @@
    and at 00:00 the digits hold and glow while the screen breathes out. Breaks don't tick: the digits breathe. */
 'use strict';
 
-// the small tally under the buttons
-const tally = el('p', { class: 'sx-tally' });
-corner.append(tally);
 // the background: a slow drifting grain, and one faint line sweeping down the screen once a minute
 document.body.append(el('div', { class: 'sx-grain', 'aria-hidden': 'true' }), el('div', { class: 'sx-sweep', 'aria-hidden': 'true' }));
 const vignette = el('div', { class: 'sx-vig', 'aria-hidden': 'true' }); document.body.append(vignette); // (the end of a session)
@@ -17,7 +14,6 @@ function clockTick() {
   const st = paused ? 'paused' : !running ? 'ready' : mode !== 'focus' ? 'break' : rem <= 60000 ? 'last' : 'focus';
   if (st !== clockState) { clockState = st; root.dataset.clock = st; }
   root.classList.toggle('sx-ending', running && mode === 'focus' && rem <= 10000); // the last seconds fade slower
-  if (typeof tapeCounter === 'function') tapeCounter(S.todayN || 0); else tally.textContent = S.todayN ? S.todayN + ' today' : ''; // (the tape counter, js/ui/tape.js)
   const colon = digits.querySelector('.sx-colon');
   if (colon && running && mode === 'focus' && !stillUI()) { colon.classList.remove('beat'); void colon.offsetWidth; colon.classList.add('beat'); } // the colon's heartbeat
 }

@@ -99,18 +99,13 @@ function musicDuck(ms) {
   hooks.tada = () => { musicDuck(4200); if (tadaBase) tadaBase(); };
   hooks.ding = () => { musicDuck(3000); if (dingBase) dingBase(); }; }
 
-/* ---------- the audio runs through one bus, so the VU meters can listen ---------- */
+/* ---------- the audio runs through one bus, on to the sound levels ---------- */
 let mGraph = null;
 function musicGraph() {
   if (mGraph) return mGraph; const c = feelCtx(); if (!c) return null;
-  const bus = c.createGain(), an = c.createAnalyser(); an.fftSize = 512; bus.connect(an); an.connect(soundOut(c));
+  const bus = c.createGain(); bus.connect(soundOut(c));
   decks.forEach(a => { try { c.createMediaElementSource(a).connect(bus); } catch (e) { /* already routed */ } });
-  return mGraph = { c, bus, an, buf: new Uint8Array(512) };
-}
-function vuLevel() { // how loud it is right now, 0 to 1
-  if (!mGraph) return 0; mGraph.an.getByteTimeDomainData(mGraph.buf); let s = 0;
-  for (let i = 0; i < mGraph.buf.length; i++) { const x = (mGraph.buf[i] - 128) / 128; s += x * x; }
-  return Math.min(1, Math.sqrt(s / mGraph.buf.length) * 4.5);
+  return mGraph = { c, bus };
 }
 
 /* ---------- the library and the mixtapes ---------- */

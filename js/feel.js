@@ -76,7 +76,7 @@ function deskSfx(k) {
 hooks.tada = () => feelChime(false);
 hooks.ding = () => feelChime(true);
 // writing on a note: a soft key click (not for every character of a paste)
-// typing anywhere (notes, captions, frame names, the label, what you remember, any text field): a typewriter
+// typing anywhere (notes, captions, frame names, any text field): a typewriter
 const typingIn = t => !!t && (t.isContentEditable || (t.matches && t.matches('textarea, input:not([type]), input[type="text"], input[type="search"]')));
 document.addEventListener('input', e => { // a letter (the input event, so it follows what was really typed)
   const k = e.inputType || ''; if (typingIn(e.target) && k.startsWith('insert') && !/^insert(FromPaste|FromDrop|Paragraph|LineBreak)$/.test(k)) deskSfx('key');

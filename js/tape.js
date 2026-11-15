@@ -90,26 +90,6 @@ drawCycle = function (pct) {
 };
 reelPacks();
 
-/* ---------- the counter: today's sessions on three little wheels that roll up ---------- */
-// (tally: the line under the keys, made in js/ui/clock.js)
-const ctrWheels = el('span', { class: 'sx-ctr', 'aria-hidden': 'true' }), ctrLbl = el('span', { class: 'sx-ctr-l' }, 'today');
-const ctrSr = el('span', { class: 'sx-sr' });
-if (tally) tally.replaceChildren(ctrWheels, ctrLbl, ctrSr);
-let ctrLast = null;
-function tapeCounter(n) {
-  if (n === ctrLast) return;
-  const s = String(Math.max(0, n)).padStart(3, '0'), was = ctrLast == null ? null : String(ctrLast).padStart(3, '0'); ctrLast = n; ctrSr.textContent = n + ' sessions today';
-  if (ctrWheels.children.length !== s.length) ctrWheels.replaceChildren(...[...s].map(() => el('span', { class: 'sx-cw' }, el('span', { class: 'sx-cs' }))));
-  [...s].forEach((ch, i) => {
-    const stack = ctrWheels.children[i].firstChild, old = was && was.length === s.length ? was[i] : null;
-    if (old === ch) return;
-    if (old == null || stillUI() || n < (+was)) { stack.replaceChildren(el('b', {}, ch)); stack.classList.remove('roll'); return; }
-    stack.replaceChildren(el('b', {}, old), el('b', {}, ch)); stack.classList.remove('roll'); void stack.offsetWidth; stack.classList.add('roll'); // the wheel turns up one
-    setTimeout(() => { if (stack.lastChild && stack.lastChild.textContent === ch) { stack.replaceChildren(el('b', {}, ch)); stack.classList.remove('roll'); } }, 700);
-  });
-}
-tapeCounter(S.todayN || 0);
-
 /* ---------- the side: A while you focus, B on breaks; the deck flips over when one turns into the other ---------- */
 const sideTagB = el('b', {}), sideTagNp = el('span', { class: 'sx-np' }); // (what's playing: js/music.js)
 const sideTag = el('div', { class: 'sx-sidetag' }, sideTagB, sideTagNp);
@@ -197,43 +177,6 @@ addEventListener('keydown', e => {
 // and in Settings, under Switch by hand
 { const row = settingsPane.querySelector('.sl-modes'); if (row) row.after(el('div', { class: 'sx-row', style: 'margin-top:10px' }, armBtn('Rewind the whole tape', 'Back to session 1? Click again', () => { fullRewind(); tab('timer'); }), el('small', { class: 'sl-muted' }, 'Back to session 1 of the cycle, an empty strip. Today\'s count stays.'))); }
 
-/* ---------- real tape: brown on the reels, and a ribbon of it running between them under the strip ---------- */
-const tapeRibbon = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); tapeRibbon.setAttribute('class', 'sx-ribbon'); tapeRibbon.setAttribute('aria-hidden', 'true');
-tapeRibbon.innerHTML = '<path class="rb-tape"/><path class="rb-shine"/><circle class="rb-guide" r="2.2"/><circle class="rb-guide" r="2.2"/>'; // (fixed drawing)
-deck.prepend(tapeRibbon);
-const reelPacksBase = reelPacks;
-reelPacks = function () {
-  reelPacksBase();
-  const w = deck.clientWidth, h = deck.clientHeight; if (!w || !reelL.offsetWidth) return;
-  const k = reelL.offsetWidth / 36, cy = reelL.offsetTop + reelL.offsetHeight / 2; // (the reels are drawn 36 units across)
-  const lx = reelL.offsetLeft + reelL.offsetWidth / 2, rx = reelR.offsetLeft + reelR.offsetWidth / 2;
-  const lr = +reelL.querySelector('.rl-pack').getAttribute('r') * k, rr = +reelR.querySelector('.rl-pack').getAttribute('r') * k;
-  const gy = cy + 16 * k, gl = lx + 22 * k, gr = rx - 22 * k; // two guide rollers under the strip, like inside a cassette
-  const d = 'M' + lx.toFixed(1) + ' ' + (cy + lr).toFixed(1) + ' L' + gl.toFixed(1) + ' ' + gy.toFixed(1) + ' L' + gr.toFixed(1) + ' ' + gy.toFixed(1) + ' L' + rx.toFixed(1) + ' ' + (cy + rr).toFixed(1);
-  tapeRibbon.setAttribute('viewBox', '0 0 ' + w + ' ' + h); tapeRibbon.querySelectorAll('path').forEach(p => p.setAttribute('d', d));
-  const [g1, g2] = tapeRibbon.querySelectorAll('.rb-guide'); g1.setAttribute('cx', gl); g1.setAttribute('cy', gy); g2.setAttribute('cx', gr); g2.setAttribute('cy', gy);
-};
-addEventListener('resize', () => reelPacks()); requestAnimationFrame(() => reelPacks());
-
-/* ---------- VU meters: two needles that swing with the music (or flick with the tick when nothing plays) ---------- */
-const vuMeter = side => { const s = el('span', { class: 'sx-vum', 'aria-hidden': 'true' });
-  s.innerHTML = '<svg viewBox="0 0 44 28"><path class="vu-scale" d="M6 23 A17 17 0 0 1 38 23"/><path class="vu-red" d="M31.5 11.2 A17 17 0 0 1 38 23"/><path class="vu-ticks" d="M8.6 15.8l1.7 1M13.4 10.6l1.1 1.6M22 8v2M30.6 10.6l-1.1 1.6M35.4 15.8l-1.7 1"/><line class="vu-needle" x1="22" y1="25" x2="22" y2="9" transform="rotate(-52 22 25)"/><circle class="vu-pivot" cx="22" cy="25" r="2"/><text x="40" y="27">' + side + '</text></svg>'; return s; }; // (fixed drawing)
-const vu = el('span', { class: 'sx-vu' }, vuMeter('L'), vuMeter('R'));
-tally.prepend(vu);
-const vuNeedles = [...vu.querySelectorAll('.vu-needle')];
-let vuRaf = 0, vuKick = 0; const vuA = [-52, -52];
-function vuStep() {
-  vuRaf = 0; if (!vu.offsetParent) return; // (hidden: no needles to move, and no music to measure every frame)
-  const lv = typeof vuLevel === 'function' ? vuLevel() : 0; vuKick *= .84;
-  const base = running ? Math.max(lv, vuKick) : 0;
-  vuA.forEach((a, i) => { const t = -52 + 104 * Math.min(1, base * (.88 + Math.random() * .24)); vuA[i] += (t - a) * (t > a ? .38 : .1); vuNeedles[i].setAttribute('transform', 'rotate(' + vuA[i].toFixed(1) + ' 22 25)'); }); // quick up, slow back, like a real needle
-  if (running || vuA.some(a => a > -51.5)) vuRaf = requestAnimationFrame(vuStep);
-}
-const vuGo = () => { if (!vuRaf && !stillUI()) vuRaf = requestAnimationFrame(vuStep); };
-new MutationObserver(() => { if (running && mode === 'focus') { vuKick = Math.max(vuKick, .32 + Math.random() * .12); vuGo(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
-new MutationObserver(vuGo).observe(root, { attributes: true, attributeFilter: ['data-clock'] });
-vuStep();
-
 /* ---------- each key sounds like itself: Play latches, Pause pops back up, Rewind whirrs ---------- */
 function tapeKeySound(b) {
   if (!feelSoundOn()) return; const c = feelCtx(); if (!c) return; const t = c.currentTime;
@@ -247,17 +190,6 @@ function tapeKeySound(b) {
   else { clip(1.3, .3); feelBurst(c, t, { cat: 'keys', dur: .03, type: 'highpass', f0: 2100, vol: .03 }); feelTone(c, t, 330, { cat: 'keys', dur: .05, vol: .02, to: 520 }); } // Pause: it pops back up
 }
 
-
-/* ---------- the counter clicks as its wheels roll, with a heavier thunk when a digit carries over ---------- */
-const tapeCounterBase = tapeCounter;
-tapeCounter = function (n) {
-  const before = ctrLast; tapeCounterBase(n);
-  if (before == null || n <= before || stillUI() || S.opts.deskSfx === false || !feelSoundOn()) return;
-  const a = String(before).padStart(3, '0'), b = String(n).padStart(3, '0'), rolled = [...b].filter((ch, i) => ch !== a[i]).length;
-  const c = feelCtx(); if (!c) return; const t = c.currentTime;
-  feelBurst(c, t + .05, { cat: 'keys', dur: .012, type: 'highpass', f0: 2700, vol: .035 }); feelTone(c, t + .05, 620, { cat: 'keys', dur: .03, vol: .012, to: 420 }); // the wheel's click
-  for (let i = 1; i < rolled; i++) feelTone(c, t + .05 + i * .07, 150, { cat: 'keys', dur: .08, vol: .04, to: 90 }); // the carry: the next wheel goes over too
-};
 
 /* ---------- the end of a tape: a cassette pops up in the middle of the screen and flies into the Tapes key ---------- */
 function ejectTape() {
