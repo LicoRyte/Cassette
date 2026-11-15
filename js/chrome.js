@@ -1,8 +1,7 @@
 /* The two top corners.
    Top left: the app and the timer's keys as plain words: Settings and ?, then Tapes and Remembered, then Mini and Full.
    Top right: everything online in one line: the Room key, who's here, the message line, and your face.
-   While the timer runs and you leave the mouse alone for a few seconds, both corners and the left column fade back,
-   and come back the moment you move (a message from a friend brings the top right back for a moment). */
+   Nothing on the screen ever fades: the keys, the panels and the desk stay as they are while you focus. */
 
 /* ---------- top left ---------- */
 tabSet.classList.add('sx-ws-b', 'sx-set-b'); tabSet.title = 'Settings';
@@ -40,17 +39,4 @@ addEventListener('pointerdown', e => { if (!roomPanel.hidden && !e.target.closes
 addEventListener('keydown', e => { if (e.key === 'Escape' && !roomPanel.hidden && !e.target.closest('.sx-net')) { e.preventDefault(); e.stopPropagation(); roomClose(); } }, true);
 chrNetDraw();
 
-/* ---------- the corners fade while the timer runs and you leave the mouse alone ---------- */
-let chrCalmT = 0, chrPingT = 0;
-function chrWake() {
-  document.body.classList.remove('sx-calm'); clearTimeout(chrCalmT);
-  chrCalmT = setTimeout(() => {
-    const ae = document.activeElement, busy = !running || fullOn || (page && !page.hidden) || !tapesDrawer.hidden || !memList.hidden || !roomPanel.hidden || !helpCard.hidden
-      || (typeof picked !== 'undefined' && picked.size) || (ae && (ae.isContentEditable || (ae.closest && ae.closest('input, textarea, select'))));
-    if (busy) return chrWake(); document.body.classList.add('sx-calm');
-  }, 3000);
-}
-['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach(k => addEventListener(k, chrWake, { passive: true }));
-chrWake();
-{ const show0 = roomMsgShow; roomMsgShow = function (...a) { chrNet.classList.add('ping'); clearTimeout(chrPingT); chrPingT = setTimeout(() => chrNet.classList.remove('ping'), 5000); return show0.apply(this, a); }; }
 tapesGrip.querySelector('span').textContent = 'Tapes'; // (the panel says what the key says)
