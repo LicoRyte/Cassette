@@ -1625,7 +1625,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 
 
 /* the message bubbles stay (the last twenty): the column scrolls to read back, and fades at its bottom edge when there's more */
-.sx-talk .sx-msgs { max-height: min(300px, calc(100vh - 150px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; pointer-events: auto; padding: 0 2px 6px 0; }
+.sx-talk .sx-msgs { max-height: min(225px, calc(100vh - 150px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; pointer-events: auto; padding: 0 2px 6px 0; }
 .sx-talk .sx-msgs::-webkit-scrollbar { display: none; }
 .sx-talk .sx-msgs.more { mask-image: linear-gradient(to bottom, #000 calc(100% - 46px), transparent); -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 46px), transparent); }
 .sx-msg { cursor: default; }
