@@ -36,7 +36,9 @@ function pause() { if (!running) return; left = remaining(); running = false; cl
 function reset() { running = false; clearInterval(tickT); left = length(mode); persistRun(); draw(); }
 function skip() { running = false; clearInterval(tickT); S.fc.broken = true; if (mode === 'focus') toBreak(); else setMode('focus'); persistRun(); }
 function toBreak() { setMode(S.cycle > 0 && S.cycle % S.set.every === 0 ? 'long' : 'short'); }
-function loop() { clearInterval(tickT); tickT = setInterval(() => { if (remaining() <= 0) finish(); else drawClock(); }, 250); }
+// it checks four times a second, but only redraws when the shown second changes (everything that watches the time wakes once a second)
+let loopSec = -1;
+function loop() { clearInterval(tickT); loopSec = -1; tickT = setInterval(() => { const r = remaining(); if (r <= 0) { finish(); return; } const s = Math.ceil(r / 1000); if (s !== loopSec) { loopSec = s; drawClock(); } }, 250); }
 // the end of a session or a break: a chime, a note if you're elsewhere, and on to the next part
 function finish(quiet) {
   clearInterval(tickT); running = false; left = 0;

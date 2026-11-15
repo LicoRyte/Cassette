@@ -63,7 +63,7 @@ function tapeSound() {
 // the left one holds what's left of the cycle, the right one what's done; they ease to a stop on pause and spin back on Rewind
 const reelSvg = () => { const s = el('span', { class: 'sx-reel', 'aria-hidden': 'true' });
   s.innerHTML = '<svg viewBox="-18 -18 36 36"><circle class="rl-rim" r="16.5"/><circle class="rl-pack" r="10"/><g class="rl-hub"><circle r="4.2"/><path d="M0-4.2V-8M3.64 2.1L6.93 4M-3.64 2.1L-6.93 4"/></g></svg>'; return s; }; // (fixed drawing, written here)
-const reelL = reelSvg(), reelR = reelSvg();
+const reelL = reelSvg(), reelR = reelSvg(), reelLs = reelL.firstChild, reelRs = reelR.firstChild; // (the reels are rings around the hub, so turning the whole drawing turns the hub)
 const deck = el('div', { class: 'sx-deck' }); cycleBar.replaceWith(deck); deck.append(reelL, cycleBar, reelR);
 let reelA = 0, reelV = 0, reelRaf = 0, reelProg = 0;
 function reelPacks() { // how much tape sits on each reel
@@ -75,7 +75,7 @@ function reelStep() {
   const target = running ? 1.6 : 0; reelV += (target - reelV) * (reelV < 0 ? .045 : .06); // degrees a frame: up to speed, or easing down
   if (Math.abs(reelV) < .01 && !running) { reelV = 0; return; }
   reelA = (reelA + reelV) % 360;
-  reelL.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (-reelA).toFixed(1) + ')'); reelR.querySelector('.rl-hub').setAttribute('transform', 'rotate(' + (-reelA * 1.3).toFixed(1) + ')'); // (shown mirrored: playing turns them counter-clockwise, the way the tape runs off the bottom)
+  reelLs.style.transform = 'rotate(' + (-reelA).toFixed(1) + 'deg)'; reelRs.style.transform = 'rotate(' + (-reelA * 1.3).toFixed(1) + 'deg)'; // (shown mirrored: playing turns them counter-clockwise, the way the tape runs off the bottom)
   reelRaf = requestAnimationFrame(reelStep);
 }
 const reelGo = () => { if (!stillUI() && !reelRaf) reelRaf = requestAnimationFrame(reelStep); };
@@ -223,7 +223,7 @@ tally.prepend(vu);
 const vuNeedles = [...vu.querySelectorAll('.vu-needle')];
 let vuRaf = 0, vuKick = 0; const vuA = [-52, -52];
 function vuStep() {
-  vuRaf = 0;
+  vuRaf = 0; if (!vu.offsetParent) return; // (hidden: no needles to move, and no music to measure every frame)
   const lv = typeof vuLevel === 'function' ? vuLevel() : 0; vuKick *= .84;
   const base = running ? Math.max(lv, vuKick) : 0;
   vuA.forEach((a, i) => { const t = -52 + 104 * Math.min(1, base * (.88 + Math.random() * .24)); vuA[i] += (t - a) * (t > a ? .38 : .1); vuNeedles[i].setAttribute('transform', 'rotate(' + vuA[i].toFixed(1) + ' 22 25)'); }); // quick up, slow back, like a real needle

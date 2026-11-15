@@ -1782,3 +1782,9 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* the corner to resize a picture, like a note's */
 .sx-polaroid .sx-resize { z-index: 3; }
 .sx-polaroid:hover .sx-resize, .sx-polaroid.sel .sx-resize, .sx-polaroid.sizing .sx-resize { opacity: 1; }
+
+/* ---------- lighter on the machine: the scan line moves as its own layer (no repaint of the screen every frame), and the
+   turning reels are their own layers too ---------- */
+.sx-sweep::after { top: 0; animation-name: sx-scan2; will-change: transform; }
+@keyframes sx-scan2 { from { transform: translateY(-3vh); } to { transform: translateY(103vh); } }
+.sx-reel svg { will-change: transform; }

@@ -69,10 +69,10 @@ document.addEventListener('keydown', e => {
 /* ---------- drawing ---------- */
 function drawClock() {
   const r = remaining(), pct = Math.min(100, Math.max(0, 100 - (r / length(mode)) * 100));
-  timeText.textContent = fmt(r);
+  const t = fmt(r); if (timeText.textContent !== t) timeText.textContent = t; // (an unchanged write would still wake everything watching it)
   const hl = headline(); if (bigText.textContent !== hl) bigText.textContent = hl;
   drawCycle(pct);
-  document.title = running ? fmt(r) + ' · ' + (mode === 'focus' ? 'Focus' : MODES[mode]) : 'Cassette Timer'; // the time in the browser tab (and what the session is for)
+  const title = running ? t + ' · ' + (mode === 'focus' ? 'Focus' : MODES[mode]) : 'Cassette Timer'; if (document.title !== title) document.title = title; // the time in the browser tab
 }
 function draw() {
   drawClock();

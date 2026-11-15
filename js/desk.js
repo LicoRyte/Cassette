@@ -51,6 +51,25 @@ function shrinkPhoto(file) {
       res(photoScale(img, PHOTO_MAX, file.type === 'image/png')); };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('not an image')); }; img.src = url; });
 }
+// each photo, made once per session: its full picture and (for a big one) a lighter copy, kept as files in memory
+// (not as long text), so drawing the desk again reuses them; the browser picks which to show from how big it is on screen
+const PHOTO_VIEW = 900, photoCache = new Map();
+function photoUrls(id) {
+  if (!photoCache.has(id)) photoCache.set(id, (async () => {
+    const src = await PHOTOS.get(id); if (!src) { photoCache.delete(id); return null; }
+    const blob = await (await fetch(src)).blob(), full = URL.createObjectURL(blob);
+    const img = new Image(); if (!(await new Promise(r => { img.onload = () => r(true); img.onerror = () => r(false); img.src = full; }))) return { full, w: 0 }; // (its size is known once it has loaded)
+    const w = img.naturalWidth, h = img.naturalHeight, long = Math.max(w, h);
+    if (long <= PHOTO_VIEW * 1.25 || blob.type === 'image/gif') return { full, w }; // (small enough, or it moves)
+    const k = PHOTO_VIEW / long, c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    const sb = await new Promise(r => c.toBlob(r, blob.type === 'image/png' ? 'image/png' : 'image/jpeg', .9));
+    return sb ? { full, w, small: URL.createObjectURL(sb), sw: c.width } : { full, w };
+  })());
+  return photoCache.get(id);
+}
+// how wide a photo is on the screen right now (its width times the zoom): the browser takes the copy that's sharp enough
+function photoSizes(img, it) { const c = img.closest('.sx-bcard'), w = (it && it.w) || (c && c.offsetWidth) || 300; img.sizes = Math.max(60, Math.round(w * cam.z)) + 'px'; }
+function photoSizesAll() { layer.querySelectorAll('.sx-polaroid img[srcset]').forEach(img => { const c = img.closest('.sx-bcard'); photoSizes(img, c && itemOf(c.dataset.id)); }); }
 function shrinkSrc(src, max) { // a stored picture made smaller (for sending to a friend)
   return new Promise(res => { const img = new Image(); img.onload = () => res(photoScale(img, max, false)); img.onerror = () => res(src); img.src = src; });
 }
@@ -82,7 +101,7 @@ function placeCam() {
   if (key !== dotsKey) { dotsKey = key; deskDots.style.cssText = 'width:' + (w + 2 * g) + 'px;height:' + (h + 2 * g) + 'px;background-size:' + g + 'px ' + g + 'px'; }
   deskDots.style.transform = 'translate3d(' + (((tx % g) + g) % g - g) + 'px,' + (((ty % g) + g) % g - g) + 'px,0)'; // the dots move with you
 }
-function camSettle() { world.classList.remove('moving'); if (czShown !== cam.z) { czShown = cam.z; world.style.setProperty('--cz', cam.z); } } // (toolbars and frame names stay the same size on screen)
+function camSettle() { world.classList.remove('moving'); if (czShown !== cam.z) { czShown = cam.z; world.style.setProperty('--cz', cam.z); if (typeof photoSizesAll === 'function') photoSizesAll(); } } // (toolbars and frame names stay the same size on screen)
 let placeRaf = 0;
 const placeSoon = () => { if (!placeRaf) placeRaf = requestAnimationFrame(() => { placeRaf = 0; placeCam(); }); }; // (at most once a frame)
 const toWorld = (cx, cy) => { const r = ws.getBoundingClientRect(), { w, h } = view(); return { x: (cx - r.left - w / 2) / cam.z + cam.x, y: (cy - r.top - h / 2) / cam.z + cam.y }; };
@@ -275,7 +294,9 @@ function paperCard(it) { // a note or a photo
   const style = 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + tilt(it.id) + 'deg' + (it.type === 'note' ? noteStyle(it) : it.w ? ';width:' + it.w + 'px' : '');
   if (it.type === 'photo') {
     const img = el('img', { alt: it.text || 'A photo', draggable: 'false' });
-    PHOTOS.get(it.id).then(src => { if (src) img.src = src; else img.alt = 'This photo is missing (it lives in the browser it was added in).'; drawStrings(); }).catch(() => {});
+    img.decoding = 'async'; img.loading = 'lazy';
+    photoUrls(it.id).then(u => { if (!u) { img.alt = 'This photo is missing (it lives in the browser it was added in).'; return; }
+      if (u.small) { img.srcset = u.small + ' ' + u.sw + 'w, ' + u.full + ' ' + u.w + 'w'; photoSizes(img, it); } img.src = u.small || u.full; drawStrings(); }).catch(() => {});
     const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[el('i', { class: 'sx-pol-hold', 'aria-hidden': 'true' }), pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt,
       el('span', { class: 'sx-resize', title: 'Drag to make it bigger or smaller' })].filter(Boolean)); // (the tape or the clip it hangs by, when it has one)
     if (it.ar) polFormat(c, it.ar);
@@ -638,7 +659,7 @@ ws.addEventListener('pointerdown', e => {
     if (e.target.classList.contains('sx-resize') && it.type === 'photo') { // a photo's corner: bigger or smaller, keeping its shape
       const w0 = c.offsetWidth, snap = deskSnap(); c.classList.add('sizing');
       track(ev => { it.w = Math.round(Math.max(120, Math.min(1600, w0 + (ev.clientX - start.x) / cam.z))); c.style.width = it.w + 'px'; strUpdate(); },
-        () => { c.classList.remove('sizing'); if (deskSnap() !== snap) deskMark(snap); save(); });
+        () => { c.classList.remove('sizing'); const im = c.querySelector('img[srcset]'); if (im) photoSizes(im, it); if (deskSnap() !== snap) deskMark(snap); save(); });
       return;
     }
     if (e.target.classList.contains('sx-resize')) { // the corner: make it bigger or smaller
