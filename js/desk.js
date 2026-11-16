@@ -96,12 +96,16 @@ let camMoveT = 0, czShown = null, dotsKey = '';
 function placeCam() {
   const { w, h } = view(), tx = w / 2 - cam.x * cam.z, ty = h / 2 - cam.y * cam.z;
   world.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0) scale(' + cam.z + ')';
-  world.classList.add('moving'); clearTimeout(camMoveT); camMoveT = setTimeout(camSettle, 160); // (panning too: one sliding picture)
+  clearTimeout(camMoveT); camMoveT = setTimeout(camSettle, 160);
   const g = 44 * cam.z, key = w + 'x' + h + 'x' + g.toFixed(3);
   if (key !== dotsKey) { dotsKey = key; deskDots.style.cssText = 'width:' + (w + 2 * g) + 'px;height:' + (h + 2 * g) + 'px;background-size:' + g + 'px ' + g + 'px'; }
   deskDots.style.transform = 'translate3d(' + (((tx % g) + g) % g - g) + 'px,' + (((ty % g) + g) % g - g) + 'px,0)'; // the dots move with you
 }
-function camSettle() { world.classList.remove('moving'); if (czShown !== cam.z) { czShown = cam.z; czApply(); if (typeof photoSizesAll === 'function') photoSizesAll(); } }
+// the desk is always one picture the graphics card slides and scales, so starting and stopping a move costs nothing; after a
+// zoom it's painted again once, at the new size, so words come back sharp (a pan needs no repaint at all)
+function camSettle() { if (czShown !== cam.z) { czShown = cam.z; czApply(); if (typeof photoSizesAll === 'function') photoSizesAll(); camSharpen(); } }
+let sharpRaf = 0;
+function camSharpen() { cancelAnimationFrame(sharpRaf); world.classList.add('sharpen'); sharpRaf = requestAnimationFrame(() => { sharpRaf = requestAnimationFrame(() => { sharpRaf = 0; world.classList.remove('sharpen'); }); }); }
 // the zoom, for the few things that stay the same size on screen (a label's name and edges, the note toolbar, the cursor):
 // set on just those, since a value set on the whole desk makes the browser restyle every element in it
 const CZ_SEL = '.sx-frame-h, .sx-fe, .sx-fmt, .sx-caret';

@@ -819,7 +819,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* how dim the desk goes (Settings, Feel): gentle, medium or deep */
 
 /* a cheap camera: the desk is one moving picture while it moves; the dots are their own sliding layer */
-.sx-world.moving { will-change: transform; }
+.sx-world { will-change: transform; } .sx-world.sharpen { will-change: auto; } /* (always its own layer; let go of for a moment after a zoom, so it's painted sharp at the new size) */
 #app .sx-ws { background-image: none; }
 .sx-dots { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; background-image: radial-gradient(rgb(var(--k-6d8a8d-rgb) / .22) 1px, transparent 1.4px); }
 #app.sx-full .sx-dots { opacity: 0; transition: opacity .6s; }
