@@ -82,13 +82,13 @@ function noteChain(t, dir) {
   dir = dir || 'right'; const nw = it.w || 220, nh = Math.max(120, Math.min(card.offsetHeight, 220));
   deskMark(); const id = 'n' + Date.now(), p = flowSpot(card, it, dir, nw, nh);
   const n = { id, type: 'note', board: B_().cur, mt: Date.now(), x: p.x, y: p.y, text: '', html: '' };
-  ['color', 'paper', 'fs', 'w'].forEach(k => { if (it[k] != null) n[k] = it[k]; }); // (the same paper as the one you came from)
+  if (it.type === 'note') ['color', 'paper', 'fs', 'w'].forEach(k => { if (it[k] != null) n[k] = it[k]; }); // (the same paper as the note you came from)
   flowAddCard(n); B_().links.push([it.id, id]); save();
   select(id); deskWriteIn(id); deskLand(id, true); drawStrings(); flowSoon(true);
   const c = els.get(id); if (c) glideTo(n.x + c.offsetWidth / 2, n.y + c.offsetHeight / 2, cam.z, true, () => flowSoon(true)); // the view glides over to the new note (at the same zoom)
 }
 // photos beside the note you're in, each tied to it; the pen stays where it was
-async function flowPhotos(files, card) {
+async function flowPhotos(files, card, write = true) {
   const it = card && itemOf(card.dataset.id); if (!it) return 0;
   const s = getSelection(), keep = s.rangeCount ? s.getRangeAt(0).cloneRange() : null, txt = card.querySelector('.sx-note-t');
   let k = 0;
@@ -101,43 +101,45 @@ async function flowPhotos(files, card) {
     catch (e) { /* not a picture the browser can read */ }
   }
   if (k) { deskSfx('shutter'); save(); drawStrings(); }
+  if (!write) { select(it.id); return k; } // (just picked: it stays picked)
   if (txt && txt.isConnected) { txt.focus({ preventScroll: true }); if (keep) { s.removeAllRanges(); s.addRange(keep); } flowSoon(true); } // (back to writing, where you were)
   return k;
 }
 const flowPick = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
 document.body.append(flowPick);
-let flowPickCard = null, flowPickRange = null;
-function flowPickPhoto(t) {
-  flowPickCard = t.closest('.sx-bcard'); const s = getSelection(); flowPickRange = s.rangeCount ? s.getRangeAt(0).cloneRange() : null;
+let flowPickCard = null, flowPickRange = null, flowPickWrite = true;
+function flowPickPhoto(t, write = true) {
+  flowPickWrite = write; flowPickCard = t.closest('.sx-bcard'); const s = getSelection(); flowPickRange = s.rangeCount ? s.getRangeAt(0).cloneRange() : null;
   flowPick.value = ''; flowPick.click();
 }
 function flowPickBack() { // the picker closed without a photo: back to writing
-  const c = flowPickCard; flowPickCard = null; const txt = c && c.isConnected && c.querySelector('.sx-note-t'); if (!txt) return;
+  const c = flowPickCard; flowPickCard = null; if (c && !flowPickWrite) { if (c.isConnected) select(c.dataset.id); return; }
+  const txt = c && c.isConnected && c.querySelector('.sx-note-t'); if (!txt) return;
   txt.focus({ preventScroll: true }); if (flowPickRange) { const s = getSelection(); s.removeAllRanges(); s.addRange(flowPickRange); } flowSoon(true);
 }
 flowPick.addEventListener('change', () => { const c = flowPickCard; flowPickCard = null; if (!c || !flowPick.files.length) { flowPickBack(); return; }
-  const s = getSelection(); const txt = c.querySelector('.sx-note-t'); if (txt) { txt.focus({ preventScroll: true }); if (flowPickRange) { s.removeAllRanges(); s.addRange(flowPickRange); } }
-  flowPhotos(flowPick.files, c); });
+  const s = getSelection(); const txt = flowPickWrite && c.querySelector('.sx-note-t'); if (txt) { txt.focus({ preventScroll: true }); if (flowPickRange) { s.removeAllRanges(); s.addRange(flowPickRange); } }
+  flowPhotos(flowPick.files, c, flowPickWrite); });
 flowPick.addEventListener('cancel', flowPickBack);
 
-/* ---------- Alt+Backspace: back to the note you came from, with the pen where you left it; again, and further back ---------- */
-const flowTrail = [], flowAt = new Map(); let flowCur = null, flowBacking = false; // (the notes you've written in, oldest first; where the pen was in each)
+/* ---------- Alt+Backspace: back to the card you came from (writing: with the pen where you left it); again, and further back ---------- */
+const flowTrail = [], flowAt = new Map(); let flowCur = null, flowBacking = false; // (the cards you've been on, picked or written in, oldest first; where the pen was in each note)
+function flowVisit(id) { if (!id || id === flowCur) return; if (flowCur && !flowBacking) { flowTrail.push(flowCur); if (flowTrail.length > 60) flowTrail.shift(); } flowCur = id; flowBacking = false; }
+{ const select0 = select; select = function (...a) { const r = select0.apply(this, a); if (picked.size === 1 && selId) flowVisit(selId); return r; }; } // (picking one card counts as being on it)
 const flowOffset = box => { const s = getSelection(); if (!s.rangeCount || !box.contains(s.anchorNode)) return null; const r = document.createRange(); r.selectNodeContents(box); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length; };
 document.addEventListener('focusin', e => { const c = e.target.matches && e.target.matches('.sx-note-t') && e.target.closest('.sx-bcard'); if (!c) return;
-  const id = c.dataset.id; if (id === flowCur) return;
-  if (flowCur && !flowBacking) { flowTrail.push(flowCur); if (flowTrail.length > 60) flowTrail.shift(); }
-  flowCur = id; flowBacking = false; });
+  flowVisit(c.dataset.id); });
 document.addEventListener('selectionchange', () => { const b = flowBox(); if (!b || !b.matches('.sx-note-t')) return; const at = flowOffset(b); if (at != null) flowAt.set(b.closest('.sx-bcard').dataset.id, at); });
 function flowPenAt(box, off) { // the pen at a number of letters into a note
   const w = document.createTreeWalker(box, NodeFilter.SHOW_TEXT); let n, left = off;
   while ((n = w.nextNode())) { if (left <= n.data.length) { const r = document.createRange(); r.setStart(n, left); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; } left -= n.data.length; }
 }
-function flowBack(t) {
+function flowBack(t, write = true) {
   const here = t.closest('.sx-bcard') && t.closest('.sx-bcard').dataset.id, B = B_();
   let id = null; while (flowTrail.length) { const x = flowTrail.pop(), it = itemOf(x); if (x !== here && it && it.board === B.cur && els.has(x)) { id = x; break; } }
-  if (!id) { deskToast('No note to go back to'); return; }
-  flowBacking = true; select(id); deskWriteIn(id);
-  const c = els.get(id), box = c.querySelector('.sx-note-t'), at = flowAt.get(id); if (box && at != null) flowPenAt(box, at);
+  if (!id) { deskToast('Nothing to go back to'); return; }
+  flowBacking = true; select(id); flowBacking = false; flowCur = id; const c = els.get(id); // (going back doesn't add to the trail)
+  if (write) { deskWriteIn(id); const box = c.querySelector('.sx-note-t'), at = flowAt.get(id); if (box && at != null) flowPenAt(box, at); } // (just picking: it's picked)
   const it = itemOf(id); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true, () => flowSoon(true)); flowSoon(true); deskSfx('pick');
 }
 
@@ -172,7 +174,7 @@ function flowCycleEnd(go) {
 addEventListener('keyup', e => { if (e.key === 'Alt' && flowCyc) { e.preventDefault(); flowCycleEnd(true); } }, true);
 addEventListener('blur', () => flowCycleEnd(false));
 
-/* ---------- the keys, while writing in a note (js/notes.js asks here first) ---------- */
+/* ---------- the keys, while writing in a note (js/notes.js asks here first); with a card picked, at the end ---------- */
 const FLOW_DIRS = { KeyW: 'up', KeyA: 'left', KeyS: 'down', KeyD: 'right' };
 function flowKeys(e, t) {
   if (flowCyc && e.key === 'Escape') { e.preventDefault(); flowCycleEnd(false); return true; }
@@ -202,3 +204,15 @@ addEventListener('keydown', e => {
   e.preventDefault(); e.stopPropagation(); flowCycle(c, e.shiftKey ? -1 : 1, false);
 }, true);
 addEventListener('keydown', e => { if (e.key === 'Escape' && flowCyc && !flowCyc.edit) { e.preventDefault(); e.stopImmediatePropagation(); flowCycleEnd(false); } }, true);
+
+// the same keys with a card picked, not writing in it: Alt+W/A/S/D a tied note that way (and you're writing in it), Alt+P a
+// tied photo beside it (it stays picked), Alt+Backspace back to the card you were on before (picked)
+addEventListener('keydown', e => {
+  if (!e.altKey || e.ctrlKey || e.metaKey || flowBox() || !/^(Key[WASDP]|Backspace)$/.test(e.code)) return;
+  const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return;
+  const c = selId && picked.size === 1 && els.get(selId); if (!c) return;
+  e.preventDefault(); e.stopPropagation(); if (e.repeat) return;
+  if (FLOW_DIRS[e.code]) noteChain(c, FLOW_DIRS[e.code]);
+  else if (e.code === 'KeyP') flowPickPhoto(c, false);
+  else flowBack(c, false);
+}, true);
