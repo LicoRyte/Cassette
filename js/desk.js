@@ -472,9 +472,14 @@ function drawStrings(temp) {
 }
 // every string's wider hover line, through one listener each: pressing it doesn't pan, passing over it plucks it, a click cuts it
 const strHitOf = e => e.target && e.target.classList && e.target.classList.contains('sx-string-hit') ? e.target : null;
-layer.addEventListener('pointerdown', e => { if (strHitOf(e)) e.stopPropagation(); });
+// a press near a pin goes to the pin, not to a string ending there: tying a new string comes first
+const strPinNear = (h, x, y) => { for (const id of h._l) { const c = els.get(id), pin = c && c.querySelector(':scope > .sx-pin'); if (!pin) continue;
+  const r = pin.getBoundingClientRect(); if (Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) < Math.max(16, r.width)) return pin; } return null; };
+layer.addEventListener('pointerdown', e => { const h = strHitOf(e); if (!h) return; e.stopPropagation(); h._toPin = false;
+  const pin = strPinNear(h, e.clientX, e.clientY); if (!pin) return;
+  e.preventDefault(); h._toPin = true; pin.dispatchEvent(new PointerEvent('pointerdown', e)); }); // (as if the pin itself was pressed)
 layer.addEventListener('pointerover', e => { const h = strHitOf(e); if (h && e.relatedTarget !== h) brushString(h._l, e); }); // (plucked as the mouse passes over it)
-layer.addEventListener('click', e => { const h = strHitOf(e); if (!h) return; const l = h._l, B = B_(); deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
+layer.addEventListener('click', e => { const h = strHitOf(e); if (!h) return; if (h._toPin) { h._toPin = false; return; } /* (that press went to the pin) */ const l = h._l, B = B_(); deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
 function strUpdate(only) { // only: a Set of card ids, to redraw just the strings tied to them (while you carry things, or while strings sway)
   // measure every end first, then redraw: measuring after each redraw would make the browser lay the page out again every time
   let nodes = only instanceof Set ? strNodes.filter(n => only.has(n.l[0]) || only.has(n.l[1])) : strNodes;
