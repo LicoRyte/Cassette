@@ -19,7 +19,7 @@ keepBox.addEventListener('pointerdown', e => e.stopPropagation());
 const keepItem = () => { const id = S.board.keep; return id ? S.board.items.find(x => x.id === id && x.type === 'note') || null : null; };
 
 function keepSet(id) { // keep this note on screen (null: none)
-  const was = S.board.keep;
+  const was = S.board.keep; if (document.activeElement === keepT) keepT.blur(); // (writing in the strip: the pen comes out first)
   S.board.keep = id && id !== was ? id : null; if (!S.board.keep) delete S.board.keep;
   save(); keepDraw(true); deskSfx('pin'); if (typeof noteBarState === 'function') noteBarState(); setTimeout(keepPlace, 220);
   if (S.board.keep) deskToast('Kept on screen: it stays at the bottom, on every board (Alt+K lets it go)'); else if (was) deskToast('No longer kept on screen');
@@ -77,7 +77,25 @@ addEventListener('keydown', e => {
 }, true);
 
 // kept up to date: when the desk is drawn again (Undo, a friend's card...), when what's picked changes, when the window changes size
-{ const draw0 = drawBoard; drawBoard = function (...a) { const r = draw0.apply(this, a); keepDraw(); return r; }; }
-{ const sel0 = select; select = function (...a) { const r = sel0.apply(this, a); keepPlace(); requestAnimationFrame(keepPlace); setTimeout(keepPlace, 220); return r; }; } // (again once the bar has settled)
+{ const draw0 = drawBoard; drawBoard = function (...a) { const r = draw0.apply(this, a); keepDraw(); if (document.activeElement === keepT && typeof keepTools === 'function') keepTools(); return r; }; } // (writing in the strip: the toolbar stays on it)
+{ const sel0 = select; select = function (...a) { const r = sel0.apply(this, a); if (document.activeElement === keepT && typeof keepTools === 'function') keepTools(); keepPlace(); requestAnimationFrame(keepPlace); setTimeout(keepPlace, 220); return r; }; } // (again once the bar has settled)
 addEventListener('resize', keepPlace);
 keepDraw(true);
+
+/* ---------- the note toolbar works on the strip too: it comes up over the strip while you write in it, and every button
+   and shortcut (bold, headings, lists, paper colour, text size...) goes to the kept note ---------- */
+const keepOn = () => document.activeElement === keepT || noteBar.parentNode === keepBox && keepBox.contains(document.activeElement);
+function keepNote() { // the kept note, for the toolbar, while the strip is being written in
+  if (!keepOn()) return null; const it = keepItem(); if (!it) return null;
+  return { c: els.get(it.id) || keepBox, t: keepT, it };
+}
+function keepTools() { if (noteBar.parentNode !== keepBox) { keepBox.insertBefore(noteBar, keepT); keepBox.classList.add('tools'); } noteBarState(); }
+keepT.addEventListener('focus', keepTools);
+keepT.addEventListener('pointerdown', () => setTimeout(keepTools, 0));
+document.addEventListener('selectionchange', () => { const n = getSelection().anchorNode; if (n && keepT.contains(n) && noteBar.parentNode !== keepBox) keepTools(); }); // (however the pen got there)
+keepT.addEventListener('blur', () => setTimeout(() => { if (document.activeElement === keepT) return; keepBox.classList.remove('tools'); if (noteBar.parentNode === keepBox) { noteBar.remove(); noteBarTo(selId); } keepPlace(); }, 0));
+// a button that changes the note's paper or its size: the card on the desk is drawn again to match, and so is the strip
+noteBar.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || noteBar.parentNode !== keepBox) return;
+  if (b.dataset.c || b.dataset.k === 'smaller' || b.dataset.k === 'bigger') { const it = keepItem(); if (it && els.has(it.id)) drawBoard(); keepDraw(); keepT.focus({ preventScroll: true }); }
+});

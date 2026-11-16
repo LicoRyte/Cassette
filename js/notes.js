@@ -63,7 +63,8 @@ function noteTickAt(txt, x, y) {
 function noteClosest(txt, sel) { const s = getSelection(); let n = s && s.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentNode; const hit = n.closest && n.closest(sel); return hit && txt.contains(hit) ? hit : null; }
 
 /* ---------- the commands ---------- */
-const selNote = () => { const c = selId && layer.querySelector('.sx-bnote[data-id="' + selId + '"]'); return c ? { c, t: c.querySelector('.sx-note-t'), it: B_().items.find(x => x.id === selId) } : null; };
+const selNote = () => { if (typeof keepNote === 'function') { const k = keepNote(); if (k) return k; } // (writing in the kept note's strip: js/keep.js)
+  const c = selId && layer.querySelector('.sx-bnote[data-id="' + selId + '"]'); return c ? { c, t: c.querySelector('.sx-note-t'), it: B_().items.find(x => x.id === selId) } : null; };
 function noteFocus(t) { // put the pen in the note (at the end) if it isn't there already
   if (t.contains(getSelection().anchorNode)) return;
   t.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(t); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
@@ -136,7 +137,7 @@ function noteRunAll(k) {
   noteRun(k); return true;
 }
 function noteKeys(e, t) {
-  if (!t.classList.contains('sx-note-t')) return;
+  if (!t.classList.contains('sx-note-t') && !t.classList.contains('sx-keep-t')) return;
   if (typeof flowKeys === 'function' && flowKeys(e, t)) return; // (Alt keys that make and visit tied cards: js/flow.js)
   if (e.key === 'Enter' && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing && typeof noteChain === 'function') { e.preventDefault(); noteChain(t, 'right'); return; }
   const k = noteShortcut(e);
