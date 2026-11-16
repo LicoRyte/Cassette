@@ -114,7 +114,7 @@ const camSave = () => { clearTimeout(camSaveT); camSaveT = setTimeout(save, 400)
 // gliding: the camera eases over, pulling back a little on long trips so you see where you're going
 let glideRaf = 0;
 function glideTo(x, y, z, quick, done) { // (quick: a shorter glide that keeps the zoom as it is, no dip out and back in)
-  cancelAnimationFrame(glideRaf);
+  cancelAnimationFrame(glideRaf); if (typeof zoomStop === 'function') zoomStop();
   const a = { x: cam.x, y: cam.y, z: cam.z }, d = Math.hypot(x - a.x, y - a.y), dur = quick ? Math.min(560, 240 + d * .16) : Math.min(1100, 420 + d * .35), dip = quick ? 0 : Math.min(.4, d / 3500), t0 = performance.now();
   if (stillUI() || d < 1 && Math.abs(z - a.z) < .01) { Object.assign(cam, { x, y, z }); placeCam(); camSave(); if (done) done(); return; }
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -759,12 +759,29 @@ ws.addEventListener('pointerdown', e => {
   deskPan(e);
 });
 ws.addEventListener('dblclick', e => { if (e.target.closest('.sx-bcard, .sx-corner, .sx-tapes')) return; addNoteAt((p => ({ x: p.x - 100, y: p.y - 20 }))(toWorld(e.clientX, e.clientY))); });
+// zooming eases: the wheel sets where the zoom is heading, and each frame it moves part of the way there, the spot under the
+// pointer staying under it the whole time (more turns of the wheel just move where it's heading)
+let zoomTo = null, zoomRaf = 0, zoomAt = null, zoomT = 0;
+function zoomStop() { cancelAnimationFrame(zoomRaf); zoomRaf = 0; zoomTo = null; }
+function zoomStep(now) {
+  zoomRaf = 0; if (zoomTo == null) return;
+  const dt = Math.min(64, now - (zoomT || now - 16)); zoomT = now;
+  const k = 1 - Math.pow(1 - .2, dt / 16.7); // (the same feel at any frame rate)
+  let z = cam.z + (zoomTo - cam.z) * k; if (Math.abs(zoomTo - z) < .0008) z = zoomTo;
+  const r = ws.getBoundingClientRect(), { w, h } = view(); cam.z = z;
+  cam.x = zoomAt.wx - (zoomAt.cx - r.left - w / 2) / z; cam.y = zoomAt.wy - (zoomAt.cy - r.top - h / 2) / z; // (the spot under the pointer stays put)
+  placeCam();
+  if (z !== zoomTo) zoomRaf = requestAnimationFrame(zoomStep); else { zoomTo = null; camSave(); }
+}
 ws.addEventListener('wheel', e => { // zoom around the pointer
   if (page && !page.hidden || e.target.closest('.sx-shelf, .sx-mus')) return; // (its lists scroll)
   e.preventDefault(); cancelAnimationFrame(glideRaf);
-  const before = toWorld(e.clientX, e.clientY), z = Math.min(1.6, Math.max(.35, cam.z * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015))));
-  cam.z = z; const after = toWorld(e.clientX, e.clientY); cam.x += before.x - after.x; cam.y += before.y - after.y; placeSoon(); camSave();
+  const from = zoomTo == null ? cam.z : zoomTo, z = Math.min(1.6, Math.max(.35, from * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015))));
+  const p = toWorld(e.clientX, e.clientY); zoomAt = { cx: e.clientX, cy: e.clientY, wx: p.x, wy: p.y };
+  if (stillUI()) { zoomTo = z; zoomT = 0; zoomStep(performance.now()); return; } // (reduced motion: straight there)
+  zoomTo = z; if (!zoomRaf) { zoomT = 0; zoomRaf = requestAnimationFrame(zoomStep); }
 }, { passive: false });
+ws.addEventListener('pointerdown', zoomStop, true); // (grabbing the desk stops a zoom that's still easing)
 ws.addEventListener('dragover', e => { if ([...(e.dataTransfer.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); ws.classList.add('drop'); } });
 ws.addEventListener('dragleave', () => ws.classList.remove('drop'));
 ws.addEventListener('drop', e => { e.preventDefault(); ws.classList.remove('drop'); const fs = e.dataTransfer.files;
