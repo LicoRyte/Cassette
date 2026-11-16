@@ -711,10 +711,8 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-full-b:not(.sx-hidecur) #app.sx-full .sx-ws-bar { opacity: .85 !important; } /* the bar comes back while the mouse moves */
 .sx-full-b.sx-hidecur, .sx-full-b.sx-hidecur * { cursor: none !important; }
 
-/* ---------- the eject (js/tape.js): out of the deck, up, and onto the shelf ---------- */
-  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.25) rotate(8deg); } }
-/* strings in front of the paper (Settings, Look): over the notes and photos, tied at their pins */
-#app[data-strings="front"] .sx-world .sx-strings { z-index: 4; }
+/* strings in front of the paper: over the notes and photos, tied at their pins */
+#app .sx-world .sx-strings { z-index: 100000; } /* (it only holds the string being pulled from a pin, which goes over everything) */
 #app[data-strings="front"] .sx-string { filter: drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
 #app[data-strings="front"] .sx-string-hit { stroke-width: 9; }
 #app :is(.sx-ws-bar, .sx-tray) .sx-ws-b { white-space: nowrap; } /* (labels stay on one line) */
