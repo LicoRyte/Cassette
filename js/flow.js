@@ -4,7 +4,7 @@
    - the line you're typing stays in view: in a long note the paper scrolls under it, and near the edge of the screen the
      desk glides along
    - while writing in a note: Shift+Enter or Alt+W/A/S/D a new tied note that way (and you write on in it), Alt+P a photo
-     tied beside it, a pasted picture tied to it, Alt+K a string to the note you were in before, and Alt+Q (hold Alt) to
+     tied beside it, a pasted picture tied to it, Alt+Backspace back to the note you came from, and Alt+Q (hold Alt) to
      step through the cards tied to it, dropping into one when you let go */
 'use strict';
 
@@ -85,7 +85,7 @@ function noteChain(t, dir) {
   ['color', 'paper', 'fs', 'w'].forEach(k => { if (it[k] != null) n[k] = it[k]; }); // (the same paper as the one you came from)
   flowAddCard(n); B_().links.push([it.id, id]); save();
   select(id); deskWriteIn(id); deskLand(id, true); drawStrings(); flowSoon(true);
-  const c = els.get(id); if (c) flowAfterType(c.querySelector('.sx-note-t'));
+  const c = els.get(id); if (c) glideTo(n.x + c.offsetWidth / 2, n.y + c.offsetHeight / 2, cam.z, true, () => flowSoon(true)); // the view glides over to the new note (at the same zoom)
 }
 // photos beside the note you're in, each tied to it; the pen stays where it was
 async function flowPhotos(files, card) {
@@ -120,16 +120,25 @@ flowPick.addEventListener('change', () => { const c = flowPickCard; flowPickCard
   flowPhotos(flowPick.files, c); });
 flowPick.addEventListener('cancel', flowPickBack);
 
-/* ---------- Alt+K: tie this note to the one you wrote in just before ---------- */
-let flowPrev = null, flowCur = null;
+/* ---------- Alt+Backspace: back to the note you came from, with the pen where you left it; again, and further back ---------- */
+const flowTrail = [], flowAt = new Map(); let flowCur = null, flowBacking = false; // (the notes you've written in, oldest first; where the pen was in each)
+const flowOffset = box => { const s = getSelection(); if (!s.rangeCount || !box.contains(s.anchorNode)) return null; const r = document.createRange(); r.selectNodeContents(box); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length; };
 document.addEventListener('focusin', e => { const c = e.target.matches && e.target.matches('.sx-note-t') && e.target.closest('.sx-bcard'); if (!c) return;
-  const id = c.dataset.id; if (id !== flowCur) { flowPrev = flowCur; flowCur = id; } });
-function flowTieBack(t) {
-  const card = t.closest('.sx-bcard'), id = card && card.dataset.id, B = B_();
-  const back = flowPrev && flowPrev !== id && itemOf(flowPrev); if (!back || back.board !== B.cur) { deskToast('Write in another note first, then Alt+K ties them'); return; }
-  if (B.links.some(l => l.includes(id) && l.includes(back.id))) { deskToast('Already tied'); return; }
-  deskMark(); const l = [back.id, id]; B.links.push(l); save(); drawStrings(); deskSfx('pin');
-  const words = String(back.text || '').split('\n')[0].trim(); deskToast('Tied to ' + (words ? '"' + words.slice(0, 40) + '"' : 'the note before'));
+  const id = c.dataset.id; if (id === flowCur) return;
+  if (flowCur && !flowBacking) { flowTrail.push(flowCur); if (flowTrail.length > 60) flowTrail.shift(); }
+  flowCur = id; flowBacking = false; });
+document.addEventListener('selectionchange', () => { const b = flowBox(); if (!b || !b.matches('.sx-note-t')) return; const at = flowOffset(b); if (at != null) flowAt.set(b.closest('.sx-bcard').dataset.id, at); });
+function flowPenAt(box, off) { // the pen at a number of letters into a note
+  const w = document.createTreeWalker(box, NodeFilter.SHOW_TEXT); let n, left = off;
+  while ((n = w.nextNode())) { if (left <= n.data.length) { const r = document.createRange(); r.setStart(n, left); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; } left -= n.data.length; }
+}
+function flowBack(t) {
+  const here = t.closest('.sx-bcard') && t.closest('.sx-bcard').dataset.id, B = B_();
+  let id = null; while (flowTrail.length) { const x = flowTrail.pop(), it = itemOf(x); if (x !== here && it && it.board === B.cur && els.has(x)) { id = x; break; } }
+  if (!id) { deskToast('No note to go back to'); return; }
+  flowBacking = true; select(id); deskWriteIn(id);
+  const c = els.get(id), box = c.querySelector('.sx-note-t'), at = flowAt.get(id); if (box && at != null) flowPenAt(box, at);
+  const it = itemOf(id); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true, () => flowSoon(true)); flowSoon(true); deskSfx('pick');
 }
 
 /* ---------- Alt+Q: hold Alt and tap Q to step through the cards tied to this note (clockwise, from the right); let go of
@@ -150,14 +159,13 @@ function flowCycle(t, step) {
   c.classList.add('sx-cyc'); c.dataset.cyc = (flowCyc.i + 1) + ' / ' + flowCyc.list.length; deskSfx('pick');
   flowShow(c);
 }
-function flowShow(c) { // the lit card comes into view if it's off the screen
-  const r = c.getBoundingClientRect(), m = 60;
-  if (r.left < m || r.top < m || r.right > innerWidth - m || r.bottom > innerHeight - 120) { const it = itemOf(c.dataset.id); if (it) glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true); }
+function flowShow(c) { // the view glides to each lit card in turn (at the same zoom)
+  const it = itemOf(c.dataset.id); if (it) glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true);
 }
 function flowCycleEnd(go) {
   const cyc = flowCyc; flowCyc = null; if (!cyc) return;
   layer.querySelectorAll('.sx-cyc').forEach(c => c.classList.remove('sx-cyc'));
-  if (!go) { flowSoon(true); return; }
+  if (!go) { const back = els.get(cyc.from), it = itemOf(cyc.from); if (back && it) glideTo(it.x + back.offsetWidth / 2, it.y + back.offsetHeight / 2, cam.z, true, () => flowSoon(true)); else flowSoon(true); return; } // (Esc: back to the note you were in)
   const id = cyc.list[cyc.i]; select(id); deskWriteIn(id); flowSoon(true); // (a photo: its caption; a table: its first cell)
 }
 addEventListener('keyup', e => { if (e.key === 'Alt' && flowCyc) { e.preventDefault(); flowCycleEnd(true); } }, true);
@@ -171,9 +179,15 @@ function flowKeys(e, t) {
   const k = e.code;
   if (FLOW_DIRS[k]) { e.preventDefault(); if (!e.repeat) noteChain(t, FLOW_DIRS[k]); return true; }
   if (k === 'KeyP') { e.preventDefault(); if (!e.repeat) flowPickPhoto(t); return true; }
-  if (k === 'KeyK') { e.preventDefault(); if (!e.repeat) flowTieBack(t); return true; }
+  if (k === 'Backspace') { e.preventDefault(); if (!e.repeat) flowBack(t); return true; }
   if (k === 'KeyQ') { e.preventDefault(); flowCycle(t, e.shiftKey ? -1 : 1); return true; }
   return false;
 }
 // the browser's own Alt keys (the address bar, the menus) don't fire while you write on the desk's paper
-addEventListener('keydown', e => { if (e.altKey && !e.ctrlKey && /^Key[WASDPKQ]$/.test(e.code) && flowBox()) e.preventDefault(); }, true);
+addEventListener('keydown', e => { if (e.altKey && !e.ctrlKey && /^(Key[WASDPQ]|Backspace)$/.test(e.code) && flowBox()) e.preventDefault(); }, true);
+// Alt+Left / Alt+Right: the pen jumps a word at a time (Shift too: selects as it goes), instead of the browser going Back
+addEventListener('keydown', e => {
+  if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || !flowBox()) return;
+  e.preventDefault(); e.stopPropagation();
+  const s = getSelection(); if (s.modify) s.modify(e.shiftKey ? 'extend' : 'move', e.key === 'ArrowLeft' ? 'backward' : 'forward', 'word');
+}, true);
