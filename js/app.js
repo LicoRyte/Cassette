@@ -21,6 +21,7 @@
      help.js    the ? card
      lively.js  small touches of life: cards land, strings draw out, keys light up
      flow.js    writing that flows: the thin gliding cursor, the line kept in view, Shift+Enter for a tied note
+     keep.js    one note kept on screen, on every board, written in as the note itself
      player.js  the cassette player: the glass window and the five piano keys
      tips.js    the keys' own tooltips, shown at once
      start.js   pick up a running timer, and draw the first frame */
@@ -29,7 +30,7 @@
 // play a CSS animation again: off now, on again next frame. (The usual trick, reading a size in between, makes the browser
 // lay the whole page out on the spot; done every second by the clock, that could land in the middle of a pan or a zoom)
 function animAgain(e, cls) { e.classList.remove(cls); requestAnimationFrame(() => e.classList.add(cls)); }
-const APP_VERSION = 158; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 159; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {

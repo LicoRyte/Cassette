@@ -161,7 +161,8 @@ const noteBar = el('div', { class: 'sx-fmt', role: 'toolbar', 'aria-label': 'For
   el('div', { class: 'sx-fmt-row' },
     ...NOTE_COLORS.map(([k, bg]) => el('button', { type: 'button', class: 'sx-sw', 'data-c': k, title: k[0].toUpperCase() + k.slice(1), 'aria-label': k + ' paper', style: 'background:' + bg })),
     el('i', { class: 'sx-fsep' }),
-    fbtn('smaller', 'A−', 'Smaller text'), fbtn('bigger', 'A+', 'Bigger text'), fbtn('fit', 'Fit', 'Fit the note to its words (drag the corner to size it yourself)')));
+    fbtn('smaller', 'A−', 'Smaller text'), fbtn('bigger', 'A+', 'Bigger text'), fbtn('fit', 'Fit', 'Fit the note to its words (drag the corner to size it yourself)'),
+    el('i', { class: 'sx-fsep' }), fbtn('keep', 'Keep', 'Keep on screen: this note stays at the bottom of the screen on every board (Alt+K)')));
 noteBar.addEventListener('mousedown', e => e.preventDefault()); // keep the pen (and the selection) in the note
 noteBar.addEventListener('pointerdown', e => e.stopPropagation());
 noteBar.addEventListener('click', e => {
@@ -170,6 +171,7 @@ noteBar.addEventListener('click', e => {
   if (b.dataset.c) { n.it.color = b.dataset.c; if (b.dataset.c === 'yellow') delete n.it.color; n.c.setAttribute('style', n.c.getAttribute('style').replace(/;--note:[^;]*;--ink:[^;]*/, '') + ';--note:' + noteColor(n.it)[1] + ';--ink:' + noteColor(n.it)[2]); deskSfx('pick'); save(); noteBarState(); return; }
   const k = b.dataset.k;
   if (k === 'dup') { deskDuplicate(); return; } if (k === 'del') { deskDelete(); return; }
+  if (k === 'keep') { if (typeof keepToggle === 'function') keepToggle(n.it.id); noteBarState(); return; } // (js/keep.js)
   if (k === 'smaller' || k === 'bigger') { n.it.fs = Math.max(12, Math.min(26, (n.it.fs || 15) + (k === 'bigger' ? 1 : -1))); n.c.style.setProperty('--fs', n.it.fs + 'px'); save(); strUpdate(); return; }
   if (k === 'fit') { delete n.it.h; n.c.style.height = ''; n.c.classList.remove('sized'); save(); strUpdate(); return; }
   noteRun(k);
@@ -182,6 +184,7 @@ function noteBarState() { // light up what's on where the pen is
     mark: inNote && !!noteClosest(n.t, 'mark'), code: inNote && !!noteClosest(n.t, 'code'), num: q('insertOrderedList'),
     check: inNote && !!(noteClosest(n.t, 'ul') || { classList: { contains: () => false } }).classList.contains('sx-chk') };
   on.bullet = q('insertUnorderedList') && !on.check;
+  on.keep = S.board.keep === n.it.id;
   noteBar.querySelectorAll('[data-k]').forEach(b => b.classList.toggle('on', !!on[b.dataset.k]));
   noteBar.querySelectorAll('[data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === noteColor(n.it)[0]));
 }
