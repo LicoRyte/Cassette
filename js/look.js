@@ -24,6 +24,13 @@ settingsPane.querySelector('.sx-skins').closest('.sx-sec').append(el('p', { clas
 deskTheme(S.opts.desk);
 
 
+/* ---------- the paper's grain: made once, at the start, into a plain picture every note and photo shares. (As a drawn
+   noise filter it was worked out again for every card each time the desk was painted at a new size, which is costly) ---------- */
+{ const img = new Image();
+  img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 140; c.getContext('2d').drawImage(img, 0, 0);
+    c.toBlob(b => { if (b) document.documentElement.style.setProperty('--paper-grain', 'url(' + URL.createObjectURL(b) + ')'); }); };
+  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"; }
+
 /* ---------- the clock's light: every note and photo is lit on the side facing the clock, more the closer it is ---------- */
 function lightCards() {
   if (layer.querySelector(':scope > .lift')) return; // (not while something is carried: relighting every moved card each frame is costly; it's lit when you let go)
