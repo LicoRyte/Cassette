@@ -106,7 +106,7 @@ function sideDraw() {
 new MutationObserver(sideDraw).observe(root, { attributes: true, attributeFilter: ['data-mode'] });
 sideDraw();
 
-/* ---------- the full rewind: hold Rewind (or Shift+R) to go back to the start of the tape: session 1, an empty strip ---------- */
+/* ---------- the full rewind: Reset pressed again at the start of a part (js/player.js) goes back to the start of the tape: session 1, an empty strip ---------- */
 // (today's count stays)
 function fullRewind() {
   clearInterval(tickT); running = false; mode = 'focus'; left = length('focus'); S.cycle = 0; S.fc = { n: 0, broken: false };
@@ -156,7 +156,7 @@ function rewStopNow() { clearInterval(rewT); rewT = 0; rewWhirr(false); resetB.c
 function rewStop() {
   if (!rewAt) return; const tap = performance.now() - rewAt < 220 && rewMoved < 2000; rewAt = 0; rewStopNow(); // (even when it had nothing to wind)
   if (rewMoved) persistRun();
-  if (tap) deskToast('Hold Rewind to wind the time back (Shift+R rewinds the whole tape)');
+  if (tap) deskToast('Hold Rew to wind the time back');
 }
 resetB.addEventListener('pointerdown', e => { if (e.button === 0 && !resetB.disabled) rewStart(); });
 ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => resetB.addEventListener(k, rewStop));
@@ -168,15 +168,8 @@ addEventListener('keydown', e => {
 }, true);
 addEventListener('keyup', e => { if (e.code === 'KeyR') rewStop(); }, true);
 addEventListener('blur', rewStop);
-resetB.title = 'Hold to wind the time back (R works too). Shift+R rewinds the whole tape to session 1';
+resetB.title = 'Hold to wind the time back (R works too)';
 const rewHint = resetB.querySelector('.sx-th'); if (rewHint) rewHint.textContent = 'Hold R';
-addEventListener('keydown', e => {
-  const t = e.target; if (e.code !== 'KeyR' || !e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')))) return;
-  e.preventDefault(); e.stopPropagation(); fullRewind();
-}, true);
-// and in Settings, under Switch by hand
-{ const row = settingsPane.querySelector('.sl-modes'); if (row) row.after(el('div', { class: 'sx-row', style: 'margin-top:10px' }, armBtn('Rewind the whole tape', 'Back to session 1? Click again', () => { fullRewind(); tab('timer'); }), el('small', { class: 'sl-muted' }, 'Back to session 1 of the cycle, an empty strip. Today\'s count stays.'))); }
-
 /* ---------- each key sounds like itself: Play latches, Pause pops back up, Rewind whirrs ---------- */
 function tapeKeySound(b) {
   if (!feelSoundOn()) return; const c = feelCtx(); if (!c) return; const t = c.currentTime;

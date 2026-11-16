@@ -38,9 +38,10 @@ addEventListener('keydown', e => {
 // Rew and F.F: the keys that were there, under their deck names
 resetB.querySelector('.sx-tl').textContent = 'Rew';
 nextB.querySelector('.sx-tl').textContent = 'F.F'; nextB.title = 'Fast forward: the next track (N)';
-// Reset: this part from the start, at once (no winding)
-const plResetB = el('button', { type: 'button', class: 'btn sx-reset-k', title: 'Reset: this part from the start', onclick: () => {
-  if (!running && left >= length(mode)) { deskToast('Already at the start of this part'); return; }
+// Reset: this part from the start, at once (no winding); pressed again, with the part already at its start, the whole
+// tape goes back to session 1
+const plResetB = el('button', { type: 'button', class: 'btn sx-reset-k', title: 'Reset: this part from the start (press again: the whole tape, back to session 1)', onclick: () => {
+  if (!running && left >= length(mode)) { if (S.cycle > 0 || mode !== 'focus') { fullRewind(); plPress(plResetB); } else deskToast('Already at the start of the tape'); return; }
   reset(); tapeKeySound(plResetB); plPress(plResetB);
   if (feelSoundOn()) { const c = feelCtx(); if (c) feelTone(c, c.currentTime + .03, 96, { cat: 'keys', dur: .1, vol: .05, to: 60 }); } // the stop's clunk
 } }, 'Reset');

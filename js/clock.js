@@ -5,7 +5,6 @@
 
 // the background: a slow drifting grain
 document.body.append(el('div', { class: 'sx-grain', 'aria-hidden': 'true' }));
-const vignette = el('div', { class: 'sx-vig', 'aria-hidden': 'true' }); document.body.append(vignette); // (the end of a session)
 
 // the state, as colour: ready, focus, last (the final minute), break, paused
 let clockState = '';
@@ -34,7 +33,6 @@ const finishClockBase = finish;
 finish = function () {
   const was = mode; finishClockBase.apply(this, arguments);
   if (was === 'focus') { digitsHold = Date.now() + 2600; digitsHoldText = digLast.replace(/\d/g, '0'); digLast = ''; drawDigits(); setTimeout(() => { digitsHold = 0; drawDigits(); }, 2650); }
-  if (was === 'focus' && !stillUI() && S.opts.glow !== false) { animAgain(vignette, 'on'); } // the screen breathes out
   if (was === 'focus' && !stillUI()) { animAgain(digits, 'landed'); setTimeout(() => digits.classList.remove('landed'), 2600); }
   clockState = ''; clockTick();
 };

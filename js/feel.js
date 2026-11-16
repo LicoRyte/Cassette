@@ -1,11 +1,11 @@
 /* Cassette Timer: the feel. Sounds made live in the browser (so they work offline): a soft chime when a session lands, paper
-   and pin sounds on the desk, a quiet key click while you write. A green glow around the edge of the screen on every
-   second of a focus session, so you can feel the clock without watching it. And the desk dims while you focus and
-   leave it alone, then comes back the moment you reach for it. Settings, Feel, turns each of them off. */
+   and pin sounds on the desk, a quiet key click while you write. Settings, Sound levels sets how loud each is (0 is off). */
 'use strict';
 
 /* ---------- sound levels: every sound goes through its kind's volume, then the master volume (Settings, Sound levels) ---------- */
-S.opts.lv = Object.assign({ master: 1, chime: 1, keys: 1, desk: 1, ui: 1, hiss: 1, tick: 1 }, S.opts.lv || {});
+S.opts.lv = Object.assign({ master: 1, chime: 1, keys: 1, desk: 1, ui: 1, tick: 1 }, S.opts.lv || {}); delete S.opts.lv.hiss;
+// (the old on/off boxes: a sound that was turned off is now its slider at 0)
+if (S.opts.deskSfx === false) S.opts.lv.desk = 0; if (S.opts.tick === false) S.opts.tickVol = 0; ['deskSfx', 'tick', 'glow', 'hiss'].forEach(k => delete S.opts[k]);
 const LV = S.opts.lv;
 let feelCat = 'desk'; // the kind of sound being made right now
 function soundOut(c, cat) {
@@ -68,7 +68,7 @@ const DESK_SFX = {
 };
 let deskSfxLast = {};
 function deskSfx(k) {
-  if (S.opts.deskSfx === false || !feelSoundOn() || document.hidden) return;
+  if (!feelSoundOn() || document.hidden) return;
   const now = performance.now(); if (now - (deskSfxLast[k] || 0) < (k === 'key' ? 35 : k === 'back' ? 45 : 60)) return; deskSfxLast[k] = now;
   const c = feelCtx(); if (c && c.state === 'running') try { DESK_SFX[k](c); } catch (e) { /* no audio here */ }
 }
@@ -85,35 +85,4 @@ addEventListener('keydown', e => { // backspace and delete clack even with nothi
   if (!typingIn(e.target) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
   if (e.key === 'Backspace' || e.key === 'Delete') deskSfx('back'); else if (e.key === 'Enter' && !e.repeat) deskSfx('ret');
 }, true);
-
-/* ---------- the edge glow: every second of a focus session, the screen's edge breathes green once ---------- */
-const pulse = el('div', { class: 'sx-pulse', 'aria-hidden': 'true' });
-document.body.append(pulse);
-let pulseLast = '';
-new MutationObserver(() => {
-  const t = timeText.textContent; if (t === pulseLast) return; pulseLast = t;
-  if (!running || mode !== 'focus' || S.opts.glow === false || stillUI() || document.hidden) return;
-  const rem = remaining(); pulse.style.setProperty('--pk', rem < 60000 ? Math.max(.35, rem / 60000).toFixed(2) : '1'); // softer through the last minute, like the tick
-  animAgain(pulse, 'on');
-}).observe(timeText, { childList: true, characterData: true, subtree: true });
-
-/* ---------- tape hiss: very faint, while you focus, fading in after Play and out when you stop ---------- */
-let hissGain = null;
-function hissSync() {
-  const want = S.opts.hiss !== false && soundOn && running && mode === 'focus';
-  if (!want && !hissGain) return;
-  const c = feelCtx(); if (!c) return;
-  if (!hissGain) {
-    const b = c.createBuffer(1, c.sampleRate * 4, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; // four seconds, so it never sounds looped
-    const src = c.createBufferSource(), hp = c.createBiquadFilter(), lp = c.createBiquadFilter(); src.buffer = b; src.loop = true;
-    hp.type = 'highpass'; hp.frequency.value = 2200; lp.type = 'lowpass'; lp.frequency.value = 9500; hissGain = c.createGain(); hissGain.gain.value = 0;
-    src.connect(hp).connect(lp).connect(hissGain).connect(soundOut(c, 'hiss')); src.start();
-  }
-  hissGain.gain.setTargetAtTime(want ? .0045 * (S.opts.tickVol != null ? Math.max(.3, S.opts.tickVol / .35) : 1) : 0, c.currentTime, want ? 2.2 : .35);
-}
-new MutationObserver(hissSync).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
-
-/* ---------- Settings, Feel ---------- */
-{ const opt = (k, label) => { const box = el('input', { type: 'checkbox', checked: S.opts[k] !== false || null }); box.addEventListener('change', () => { S.opts[k] = box.checked; save(); if (k === 'hiss') hissSync(); }); return el('label', { class: 'sx-check' }, box, ' ' + label); };
-  settingsPane.append(sec('Feel', opt('glow', 'A green glow around the screen on every second of a focus session'), opt('deskSfx', 'Paper, pin and typewriter sounds (in notes and every place you type)'), opt('hiss', 'A faint tape hiss while you focus'))); }
 

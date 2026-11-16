@@ -34,7 +34,7 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitDigits)
 
 /* ---------- the clock ticking: once a second while the timer runs, only when Cassette Timer is the window in front ---------- */
 let tickCtx = null, tickBuf = null, tickTock = false;
-const tickWanted = () => S.opts.tick !== false && soundOn;
+const tickWanted = () => soundOn && (S.opts.tickVol != null ? S.opts.tickVol : .35) > 0; // (its slider at 0 is off)
 function tickLoad() { // the browser lets sound start only after you've clicked or pressed a key
   if (tickCtx || !(window.AudioContext || window.webkitAudioContext)) return;
   tickCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -51,9 +51,3 @@ function tickPlay() {
 }
 let tickLast = '';
 new MutationObserver(() => { const t = timeText.textContent; if (t !== tickLast) { tickLast = t; tickPlay(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
-// Settings: turn it off, or quieter
-{ const box = el('input', { type: 'checkbox', checked: S.opts.tick !== false || null });
-  box.addEventListener('change', () => { S.opts.tick = box.checked; save(); });
-  const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round((S.opts.tickVol != null ? S.opts.tickVol : .35) * 100), 'aria-label': 'Clock tick volume' });
-  vol.addEventListener('input', () => { S.opts.tickVol = vol.value / 100; save(); });
-  settingsPane.append(sec('Clock', el('label', { class: 'sx-check' }, box, ' The clock ticks while a session runs (only when Cassette Timer is the window in front)'))); }

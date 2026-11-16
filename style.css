@@ -298,8 +298,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-clockonly .sx-top { position: relative; z-index: 3; }
 /* the console frame: two amber corner brackets around the clock */
 /* the background: a slowly drifting grain */
-.sx-grain { position: fixed; inset: -60px; z-index: 0; pointer-events: none; background-image: radial-gradient(var(--k-041528) 1px, transparent 1.3px); background-size: 6px 6px; animation: sx-drift 120s linear infinite; }
-@keyframes sx-drift { to { transform: translate(48px, 36px); } }
+.sx-grain { position: fixed; inset: -60px; z-index: 0; pointer-events: none; background-image: radial-gradient(var(--k-041528) 1px, transparent 1.3px); background-size: 6px 6px; }
 /* colour tells you where you are */
 [data-clock="ready"] .sx-digits { color: var(--k-ffffe4); }
 [data-clock="focus"] .sx-digits { color: var(--k-ffffe4); }
@@ -325,7 +324,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-digits { transform-origin: 50% 50%; }
 .sx-digits.landed { animation: sx-land 2.6s ease-out; }
 @keyframes sx-land { 0% { color: var(--k-ffffe4); text-shadow: 0 0 0 rgba(255, 216, 50, 0); } 18% { color: #ffd832; text-shadow: 0 0 30px rgba(255, 216, 50, .7); } 100% { text-shadow: 0 0 0 rgba(255, 216, 50, 0); } }
-@media (prefers-reduced-motion: reduce) { .sx-grain, [data-clock="break"] .sx-digits, [data-clock="paused"] .sx-colon, .sx-colon.beat, .sx-ghost, .sx-digits.landed { animation: none; } }
+@media (prefers-reduced-motion: reduce) { [data-clock="break"] .sx-digits, [data-clock="paused"] .sx-colon, .sx-colon.beat, .sx-ghost, .sx-digits.landed { animation: none; } }
 @media (max-width: 900px) { .sx-v2.sx-clockonly .sx-rail { padding-top: 8vh; } .sx-v2.sx-clockonly .sx-corner { width: calc(100vw - 72px); } }
 /* the Board as a library: boards, notes, Polaroid photos */
 
@@ -384,9 +383,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-clockonly.sx-ending .sx-dig.chg { animation-duration: 1s; }
 
 /* the edge glow: every second of a focus session */
-.sx-pulse { position: fixed; inset: 0; z-index: 39; pointer-events: none; opacity: 0; box-shadow: inset 0 0 0 1px rgba(156, 185, 59, .55), inset 0 0 22px rgba(156, 185, 59, .28), inset 0 0 90px rgba(156, 185, 59, .12); }
-.sx-pulse.on { animation: sx-pulse .75s cubic-bezier(.1, .7, .3, 1) both; }
-@keyframes sx-pulse { from { opacity: var(--pk, 1); } to { opacity: 0; } }
 
 /* the desk dims while you focus and leave it alone */
 .sx-world .sx-layer, .sx-world .sx-strings, .sx-ws-bar { transition: opacity .35s ease-out, filter .35s; }
@@ -401,7 +397,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-world .sx-bcard { transform: none; rotate: calc(var(--tilt) + var(--swing, 0deg)); transform-origin: 50% 10px; scale: 1; transition: scale .26s cubic-bezier(.3, 1.8, .5, 1), box-shadow .2s; }
 .sx-world .sx-bcard.lift { transform: none; scale: 1.04; transition: scale .12s ease-out, box-shadow .12s; }
 
-@media (prefers-reduced-motion: reduce) { .sx-pulse.on, .sx-clockonly .sx-dig.chg, .sx-clockonly .sx-ghost { animation: none; } .sx-clockonly .sx-ghost { display: none; } .sx-world .sx-bcard, .sx-world .sx-bcard.lift { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .sx-clockonly .sx-dig.chg, .sx-clockonly .sx-ghost { animation: none; } .sx-clockonly .sx-ghost { display: none; } .sx-world .sx-bcard, .sx-world .sx-bcard.lift { transition: none; } }
 .sx-digits { position: relative; isolation: isolate; }
 .sx-digits > .sx-ghost { z-index: -1; }
 
@@ -476,9 +472,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-bframe.sel .sx-frame-h .sx-bnote-x, .sx-frame-h:hover .sx-bnote-x { opacity: 1; }
 .sx-frame-h .sx-bkey { position: static; rotate: none; transform: none; }
 .sx-bframe .sx-resize { pointer-events: auto; opacity: .7; width: 22px; height: 22px; right: -2px; bottom: -2px; }
-.sx-world .sx-bcard.sx-bdraw { width: auto; padding: 0; background: none; box-shadow: none; rotate: none; pointer-events: none; cursor: default; }
-.sx-world .sx-bcard.sx-bdraw.sel { outline: 1.5px dashed var(--deck); outline-offset: 4px; }
-.sx-bdraw .sx-bkey { pointer-events: none; }
+
 .sx-dsvg, .sx-draft { position: absolute; left: 0; top: 0; overflow: visible; }
 .sx-draft { width: 1px; height: 1px; }
 .sx-dpath { fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
@@ -563,9 +557,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-wet { fill: none; stroke: #ffffe4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; animation: sx-wet 1.4s ease-out forwards; }
 @keyframes sx-wet { from { stroke-opacity: .7; } 30% { stroke-opacity: .4; } to { stroke-opacity: 0; } }
 /* the end of a session: the edges darken and lift, a breath out */
-.sx-vig { position: fixed; inset: 0; z-index: 38; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(3, 7, 16, .55) 80%, rgba(3, 7, 16, .85) 100%); }
-.sx-vig.on { animation: sx-vig 3.2s ease-in-out; }
-@keyframes sx-vig { from { opacity: 0; } 35% { opacity: 1; } to { opacity: 0; } }
+
 /* frames: grab them by any edge */
 .sx-fe { position: absolute; pointer-events: auto; cursor: grab; --t: calc(16px / var(--cz, 1)); }
 .sx-fe-t, .sx-fe-b { left: 0; right: 0; height: var(--t); }
@@ -576,7 +568,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-world .sx-bcard.sx-bframe.lift { scale: 1; }
 .sx-bframe .sx-resize { z-index: 2; }
 .sx-frame-t { padding: 5px 12px; }
-@media (prefers-reduced-motion: reduce) { .sx-wet, .sx-vig.on { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sx-wet { animation: none; } }
 #app .sx-deck .sx-cycle { order: 0; } /* ---------- the bar, fixed: always solid, the menu over its button, keys like the tape deck's ---------- */
 #app .sx-ws-bar, #app[data-clock] .sx-ws-bar { opacity: 1; gap: 8px 14px; padding: 10px 14px 12px; background: var(--k-030710); border: 1px solid var(--k-293b49); box-shadow: 0 6px 18px rgba(3, 7, 16, .6); flex-wrap: nowrap; }
 
@@ -742,22 +734,13 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* ---------- the reels' tape ---------- */
 .sx-reel .rl-pack { fill: #73392e; stroke: #833f34; } /* (tape you can see against the dark deck) */
 
-/* ---------- the clock's light on the paper (js/look.js): its colour follows the clock ---------- */
-@property --lcol { syntax: '<color>'; inherits: true; initial-value: rgb(var(--k-ffffe4-rgb) / .5); }
-#app { --lcol: rgb(var(--k-ffffe4-rgb) / .35); transition: --lcol 1.2s ease; }
-#app[data-clock="focus"] { --lcol: rgb(var(--k-ffffe4-rgb) / .6); }
-#app[data-clock="last"] { --lcol: rgba(255, 218, 172, .7); }
-#app[data-clock="break"] { --lcol: rgba(119, 214, 193, .6); }
-#app[data-clock="paused"] { --lcol: rgb(var(--k-6d8a8d-rgb) / .3); }
 /* paper: a faint fibre grain, the light from the clock, and a corner lifting off the board */
-.sx-world .sx-bcard.sx-bnote { background: linear-gradient(var(--lang, 0deg), color-mix(in srgb, var(--lcol) calc(var(--lit, 0) * 70%), transparent), transparent 65%), var(--paper-grain, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")), var(--note, #ffd832); }
-.sx-world .sx-bcard.sx-polaroid { background: linear-gradient(var(--lang, 0deg), color-mix(in srgb, var(--lcol) calc(var(--lit, 0) * 70%), transparent), transparent 65%), var(--paper-grain, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")), #fcfcf9; }
+.sx-world .sx-bcard.sx-bnote { background: var(--paper-grain, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")), var(--note, #ffd832); }
+.sx-world .sx-bcard.sx-polaroid { background: var(--paper-grain, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")), #fcfcf9; }
 .sx-world .sx-bnote::after, .sx-world .sx-polaroid::after { content: ''; position: absolute; left: 0; bottom: 0; width: 22px; height: 22px; pointer-events: none; background: linear-gradient(45deg, rgba(3, 7, 16, .28) 0, rgba(3, 7, 16, .12) 38%, rgba(255, 255, 255, .28) 46%, transparent 54%); }
 /* parallax: the grain and a far layer of dots */
-.sx-grain { translate: calc(var(--px, 0) * -8px) calc(var(--py, 0) * -8px); transition: translate .8s ease-out; }
-.sx-par { position: fixed; inset: -40px; z-index: 0; pointer-events: none; background-image: radial-gradient(rgb(var(--k-6d8a8d-rgb) / .14) 1px, transparent 1.6px); background-size: 97px 97px; translate: calc(var(--px, 0) * -22px) calc(var(--py, 0) * -22px); transition: translate 1s ease-out; }
+
 /* the reels can be spun by hand */
-@media (prefers-reduced-motion: reduce) { .sx-grain, .sx-par { translate: none; transition: none; } }
 
 /* ---------- full-screen focus (js/view.js): only the clock ---------- */
 #app.sx-full .sx-world .sx-layer, #app.sx-full .sx-world .sx-flayer, #app.sx-full .sx-world .sx-strings, #app.sx-full .sx-tapes.sx-dock, #app.sx-full .sx-selbox, #app.sx-full .sx-top, .sx-full-b .sx-help-b { opacity: 0 !important; pointer-events: none !important; transition: opacity .6s; }
@@ -765,7 +748,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 #app.sx-full .sx-ws-bar { opacity: 0 !important; transition: opacity .5s; }
 .sx-full-b:not(.sx-hidecur) #app.sx-full .sx-ws-bar { opacity: .85 !important; } /* the bar comes back while the mouse moves */
 .sx-full-b.sx-hidecur, .sx-full-b.sx-hidecur * { cursor: none !important; }
-.sx-full-b .sx-par { opacity: 0; }
+
 /* ---------- the eject (js/tape.js): out of the deck, up, and onto the shelf ---------- */
 .sx-eject { position: fixed; z-index: 30; width: 90px; height: 58px; pointer-events: none; opacity: 0; filter: drop-shadow(0 6px 10px rgba(3, 7, 16, .6)); }
 .sx-eject svg { display: block; width: 100%; height: 100%; }
@@ -820,7 +803,6 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 #app .sx-ws { background-image: none; }
 .sx-dots { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; background-image: radial-gradient(rgb(var(--k-6d8a8d-rgb) / .22) 1px, transparent 1.4px); }
 #app.sx-full .sx-dots { opacity: 0; transition: opacity .6s; }
-.sx-grain, .sx-par { translate: 0 0; } /* (moved by js/look.js directly) */
 /* holding Rewind: the key stays down and glows while the time winds back */
 .sx-tape.holding .sx-tk::after { animation: none; height: 100%; opacity: .5; }
 .sx-tape.holding .sx-tk { transform: translateY(3px); box-shadow: none; }
@@ -828,7 +810,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 
 /* kinds of paper (js/notes.js): the lines follow the text size (--lh, one line of text), starting under the top margin */
 .sx-world .sx-bnote { --lh: calc(var(--fs, 15px) * 1.5); --rule: color-mix(in srgb, var(--ink, #34111f) 17%, transparent); --margin: rgba(255, 97, 87, .5); }
-.sx-world .sx-bcard.sx-bnote[data-paper] { background: linear-gradient(var(--lang, 0deg), color-mix(in srgb, var(--lcol) calc(var(--lit, 0) * 70%), transparent), transparent 65%), var(--paper-grain, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")), var(--pat), var(--note, #ffd832); }
+.sx-world .sx-bcard.sx-bnote[data-paper] { background: var(--paper-grain, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")), var(--pat), var(--note, #ffd832); }
 .sx-bnote[data-paper="lined"] { --pat: linear-gradient(var(--margin), var(--margin)) 10px 0 / 1.5px 100% no-repeat, linear-gradient(transparent calc(100% - 1px), var(--rule) calc(100% - 1px)) 0 20px / 100% var(--lh); }
 .sx-bnote[data-paper="grid"] { --pat: linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 20px / var(--lh) var(--lh), linear-gradient(transparent calc(100% - 1px), var(--rule) calc(100% - 1px)) 0 20px / var(--lh) var(--lh); }
 /* the toolbar's paper buttons, each with a tiny picture of its paper */
@@ -856,13 +838,10 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
    doesn't make the browser repaint everything under it */
 .sx-world .sx-bcard { contain: layout style; }
 .sx-world .sx-bcard.lift, .sx-world .sx-bcard.swinging, .sx-world .sx-bcard.carry { will-change: transform, translate, rotate; }
-.sx-grain, .sx-par { will-change: translate; }
 
 /* long notes: the values that change while a card moves belong to the card alone, so the words inside it aren't restyled
    with every move; and the ink bleed is drawn without blurring (blurred shadows on thousands of letters are slow to paint) */
 @property --swing { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-@property --lang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-@property --lit { syntax: '<number>'; inherits: false; initial-value: 0; }
 .sx-world .sx-bnote .sx-note-t { text-shadow: .25px .15px 0 color-mix(in srgb, var(--ink, #34111f) 30%, transparent); -webkit-text-stroke: .15px color-mix(in srgb, var(--ink, #34111f) 45%, transparent); }
 .sx-world .sx-bnote .sx-note-t h2, .sx-world .sx-bnote .sx-note-t h3 { -webkit-text-stroke: 0; text-shadow: none; }
 
@@ -871,8 +850,8 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 .sx-world .sx-bcard { transition: rotate .35s cubic-bezier(.3, 1.4, .5, 1), scale .32s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease-out; }
 .sx-world .sx-bcard.swinging { transition: scale .32s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease-out; }
 .sx-world .sx-bcard.lift { scale: 1.05; box-shadow: 8px 14px 0 rgba(3, 7, 16, .38); transition: scale .22s cubic-bezier(.2, .9, .3, 1.2), box-shadow .22s ease-out; }
-.sx-world .sx-bcard.sx-bframe, .sx-world .sx-bcard.sx-bdraw { box-shadow: none; }
-.sx-world .sx-bcard.sx-bframe.lift, .sx-world .sx-bcard.sx-bdraw.lift { scale: 1; box-shadow: none; }
+.sx-world .sx-bcard.sx-bframe { box-shadow: none; }
+.sx-world .sx-bcard.sx-bframe.lift { scale: 1; box-shadow: none; }
 @media (prefers-reduced-motion: reduce) { .sx-world .sx-bcard, .sx-world .sx-bcard.lift, .sx-world .sx-bcard.swinging { transition: none; } }
 
 /* find (js/find.js): a slim bar at the top; the words it finds are lit up in the notes */
@@ -898,22 +877,12 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* the strip: what's done stays fully lit, even after a skip */
 #app .sx-corner .sx-cycle.sx-tape-strip.broken .done { opacity: 1; }
 /* a whiteboard: an aluminium frame, a white surface, a marker tray along the bottom */
-.sx-world .sx-bcard.sx-bwb { display: flex; flex-direction: column; padding: 4px 8px 14px; background: linear-gradient(#d9dee1, #b8c0c5); rotate: none; box-shadow: 3px 4px 0 rgba(3, 7, 16, .55), inset 0 1px 0 rgba(255, 255, 255, .6); cursor: grab; }
+
 .sx-wb-h { display: flex; align-items: center; gap: 6px; height: 24px; flex: none; }
-.sx-wb-t { font: 700 11px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: #41566a; }
+
 .sx-wb-h .sx-gap { flex: 1; }
-.sx-wb-b { height: 20px; padding: 0 8px; background: #f4f6f1; border: 1px solid #8f999f; color: #293b49; font: 700 11px var(--ui); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
-.sx-wb-b:hover { border-color: #293b49; }
 
-.sx-world .sx-bwb .sx-bnote-x { position: static; width: 20px; height: 20px; color: #41566a; opacity: 1; }
-.sx-wb-s { position: relative; flex: 1; min-height: 0; overflow: hidden; background: linear-gradient(160deg, rgba(255, 255, 255, .7), rgba(255, 255, 255, 0) 40%), #f4f6f1; box-shadow: inset 0 0 0 1px rgba(41, 59, 73, .25), inset 0 2px 6px rgba(41, 59, 73, .12); }
-.sx-wb-s .sx-dsvg { width: 100%; height: 100%; overflow: hidden; }
-.sx-wb-s .sx-dhit { cursor: inherit; }
-
-.sx-wb-tray { position: absolute; left: 22%; right: 22%; bottom: 4px; height: 7px; background: linear-gradient(#aab3b8, #7e888e); border-radius: 0 0 3px 3px; box-shadow: 0 2px 2px rgba(3, 7, 16, .35); }
-.sx-wb-tray::before { content: ''; position: absolute; left: 18%; top: -3px; width: 34px; height: 5px; border-radius: 2px; background: linear-gradient(90deg, #34111f 0 22%, #e8e8e0 22%); } /* (a marker resting in it) */
-
-.sx-world .sx-bwb .sx-resize { right: 0; bottom: 0; }
+ /* (a marker resting in it) */
 
 /* a label: a light, softly tinted area with its name on a label-maker strip (it carries nothing) */
 .sx-world .sx-bcard.sx-bframe { border: 0; border-radius: 12px; background: color-mix(in srgb, var(--fc) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fc) 20%, transparent); }
@@ -1052,8 +1021,6 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
   background: currentColor; -webkit-text-fill-color: var(--k-030710); border-color: currentColor;
 }
 
-.sx-wb-b:hover { background: #293b49; border-color: #293b49; color: #f4f6f1; }
-.sx-wb-b.on:hover { background: #030710; }
  /* (on the paper: dark key, light words) */
 
 .sx-find-b { transition: background .12s; }
@@ -1082,7 +1049,7 @@ html[data-skin="clear"] .sx-reel .rl-rim { stroke-dasharray: 2 2.2; }
 /* ---------- a card you've lifted floats higher: a softer, wider shadow, which settles back when you put it down ---------- */
 .sx-world .sx-bcard.lift { box-shadow: 14px 22px 26px rgba(3, 7, 16, .42), 4px 6px 0 rgba(3, 7, 16, .25); }
 .sx-world .sx-bcard:not(.lift) { transition: scale .26s cubic-bezier(.3, 1.8, .5, 1), box-shadow .3s ease-out; }
-.sx-world .sx-bcard.sx-bframe.lift, .sx-world .sx-bcard.sx-bdraw.lift { box-shadow: none; }
+.sx-world .sx-bcard.sx-bframe.lift { box-shadow: none; }
 
 /* ---------- the two desks (Settings, Look; js/look.js). Each is one temperature with one accent, so nothing fights:
    - night, "cool studio": navy and ink, deep-sea keys, mint for breaks
@@ -1318,9 +1285,9 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-msg .sx-msg-b { margin: 0 6px 0 0; border-radius: 18px 18px 5px 18px; }
 .sx-msg .sx-msg-b::before { left: auto; right: -6px; clip-path: polygon(0 0, 100% 100%, 0 100%); }
 
-/* the shadow of each note, photo and table falls away from the clock (js/look.js sets --sx and --sy) */
-.sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: var(--sx, 3px) var(--sy, 4px) 0 rgba(3, 7, 16, .55); }
-:root[data-desk="white"] .sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: calc(var(--sx, 3px) * .75) calc(var(--sy, 4px) * .75) 0 rgba(115, 57, 46, .25); }
+/* each note, photo and table casts one fixed shadow */
+.sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: 3px 4px 0 rgba(3, 7, 16, .55); }
+:root[data-desk="white"] .sx-world :is(.sx-bnote, .sx-polaroid, .sx-btbl):not(.lift) { box-shadow: 2px 3px 0 rgba(115, 57, 46, .25); }
 
 /* the talk corner, under Settings: the box to write in, then the messages */
 .sx-talk { position: fixed; top: 54px; right: max(16px, env(safe-area-inset-right)); z-index: 70; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: min(320px, calc(100vw - 32px)); pointer-events: none; }

@@ -84,3 +84,29 @@ function drawFit(it, abs) {
   it.strokes = abs.map(st => Object.assign({}, st, { p: st.p.map(([x, y]) => [f1(x - it.x), f1(y - it.y)]) }));
 }
 const drawAbs = it => (it.strokes || []).map(st => Object.assign({}, st, { p: st.p.map(([x, y]) => [x + it.x, y + it.y]) }));
+
+/* ---------- old drawings and whiteboards become photos: each is painted once into a picture (a whiteboard on its white
+   board, a drawing on plain paper) and hangs as a photo in its place, keeping its strings. Runs on start, and after a
+   backup is loaded. (Once nothing old is left anywhere, this file can go) ---------- */
+async function drawToPhotos() {
+  const old = S.board.items.filter(it => it.type === 'draw' || it.type === 'wb'); if (!old.length) return 0;
+  let n = 0;
+  for (const it of old) {
+    try {
+      const w = Math.max(40, Math.round(it.w || 300)), h = Math.max(40, Math.round(it.h || 200)), svg = drawSvg(Object.assign({}, it, { w, h }));
+      svg.querySelectorAll('.sx-dhit, .sx-wet').forEach(e => e.remove());
+      svg.querySelectorAll('path').forEach(p => { p.setAttribute('fill', 'none'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round'); });
+      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      const k = Math.min(2, 2000 / Math.max(w, h)), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+      const g = c.getContext('2d'); g.fillStyle = it.type === 'wb' ? '#f4f6f1' : '#fcfcf9'; g.fillRect(0, 0, c.width, c.height); // (on its board, or on plain paper)
+      const img = new Image(); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg)); });
+      g.drawImage(img, 0, 0, c.width, c.height);
+      await PHOTOS.put(it.id, c.toDataURL('image/png'));
+      const was = it.type; ['strokes', 'h'].forEach(k2 => delete it[k2]);
+      Object.assign(it, { type: 'photo', text: it.text || (was === 'wb' ? 'Whiteboard' : ''), ar: Math.round(w / h * 1000) / 1000, w: Math.min(1600, Math.max(160, w)) }); n++;
+    } catch (e) { /* leave it as it was */ }
+  }
+  if (n) { save(); drawBoard(); deskToast(n === 1 ? 'An old drawing is a photo now' : n + ' old drawings are photos now'); }
+  return n;
+}
+setTimeout(drawToPhotos, 400);

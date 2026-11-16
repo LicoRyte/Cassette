@@ -47,7 +47,7 @@ function deskImportBackup() {
     deskMark();
     for (const [old, src] of Object.entries(d.photos || {})) if (imap.has(old) && typeof src === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,/.test(src)) { try { await PHOTOS.put(imap.get(old), src); } catch (e) { /* skip */ } }
     S.board.boards.push(...boards); S.board.items.push(...items); S.board.links.push(...links); S.board.cur = boards[0].id;
-    select(null); save(); drawBoard(); glideHome();
+    select(null); save(); drawBoard(); glideHome(); if (typeof drawToPhotos === 'function') drawToPhotos(); // (old drawings in it become photos)
     deskToast('Loaded ' + boards.length + (boards.length === 1 ? ' board' : ' boards'));
   });
   f.click();

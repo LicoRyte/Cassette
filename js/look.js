@@ -31,50 +31,13 @@ deskTheme(S.opts.desk);
     c.toBlob(b => { if (b) document.documentElement.style.setProperty('--paper-grain', 'url(' + URL.createObjectURL(b) + ')'); }); };
   img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"; }
 
-/* ---------- the clock's light: every note and photo is lit on the side facing the clock, more the closer it is ---------- */
-function lightCards() {
-  if (layer.querySelector(':scope > .lift')) return; // (not while something is carried: relighting every moved card each frame is costly; it's lit when you let go)
-  const todo = [];
-  els.forEach(c => { // measure them all first, then restyle only the ones that moved
-    if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid') && !c.classList.contains('sx-btbl') || c.classList.contains('lift')) return; // (the one you're carrying is lit when you put it down)
-    const it = c._it || itemOf(c.dataset.id); if (!it) return; if (c._lw == null) { c._lw = c.offsetWidth; c._lh = c.offsetHeight; } // (its size, measured once)
-    const x = it.x + c._lw / 2, y = it.y + c._lh / 2;
-    if (c._lx === x && c._ly === y) return; c._lx = x; c._ly = y; todo.push([c, x, y]);
-  });
-  todo.forEach(([c, x, y]) => { const lit = Math.pow(Math.max(0, 1 - Math.hypot(x, y) / 950), 1.4);
-    c.style.setProperty('--lit', lit.toFixed(3)); c.style.setProperty('--lang', (Math.atan2(x, -y) * 180 / Math.PI).toFixed(0) + 'deg'); // (the gradient runs away from the clock)
-    // and its shadow falls away from the clock too, a little longer the further it is from the light
-    const d = Math.hypot(x, y) || 1, len = 3 + 3 * (1 - lit);
-    c.style.setProperty('--sx', (x / d * len).toFixed(1) + 'px'); c.style.setProperty('--sy', (y / d * len + 1).toFixed(1) + 'px'); });
-}
-const strUpdateLight = strUpdate;
-let lightRaf = 0;
-strUpdate = function (only) { strUpdateLight.apply(this, arguments); if (only instanceof Set || lightRaf) return; lightRaf = requestAnimationFrame(() => { lightRaf = 0; lightCards(); }); }; // (strings swaying: the cards haven't moved)
-requestAnimationFrame(lightCards);
-
-/* ---------- parallax: the grain and a far layer of dots drift a little as you move the mouse ---------- */
-document.body.append(el('div', { class: 'sx-par', 'aria-hidden': 'true' }));
-let parRaf = 0, parX = 0, parY = 0;
-addEventListener('pointermove', e => { parX = e.clientX / innerWidth * 2 - 1; parY = e.clientY / innerHeight * 2 - 1;
-  if (!parRaf && !stillUI()) parRaf = requestAnimationFrame(() => { parRaf = 0; // (the two layers themselves, so nothing else has to be restyled)
-    const g = document.querySelector('.sx-grain'), p = document.querySelector('.sx-par');
-    if (g) g.style.translate = (parX * -8).toFixed(1) + 'px ' + (parY * -8).toFixed(1) + 'px'; if (p) p.style.translate = (parX * -22).toFixed(1) + 'px ' + (parY * -22).toFixed(1) + 'px'; }); }, { passive: true });
-
-/* ---------- strings: in front of the paper (tied over the pins), or tucked behind it ---------- */
-function stringsSet(k) {
-  S.opts.strings = k === 'back' ? 'back' : 'front'; root.dataset.strings = S.opts.strings; save(); if (typeof strUpdate === 'function') strUpdate();
-  strRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === S.opts.strings));
-}
-const strRow = el('div', { class: 'sx-skins', role: 'radiogroup', 'aria-label': 'Strings' }, ...[['front', 'In front of the paper'], ['back', 'Behind the paper']].map(([k, name]) =>
-  el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:#d9243c', onclick: () => stringsSet(k) }, el('i', {}), name)));
-settingsPane.querySelector('.sx-skins').closest('.sx-sec').append(el('p', { class: 'sl-muted', style: 'margin-top:14px' }, 'The red strings between pins:'), strRow);
-stringsSet(S.opts.strings || 'front');
+root.dataset.strings = 'front'; delete S.opts.strings; // (the red strings run in front of the paper, tied over the pins)
 
 /* ---------- Settings, Sound levels: how loud each kind of sound is (each slider plays a little of its sound) ---------- */
 {
   const LEVELS = [['master', 'Master', 'Everything at once'], ['music', 'Music', 'The cassette (the same as its own volume)'], ['tick', 'Clock tick', 'Once a second while you focus'],
     ['chime', 'Chimes', 'The bell at the end of a session or a break'], ['keys', 'Tape keys', 'Play/Pause, Rew, Prev, F.F, Reset, the flip, the eject'], ['desk', 'Desk and typing', 'Paper, pins, the typewriter'],
-    ['ui', 'Buttons', 'Clicks in the bars and menus'], ['hiss', 'Tape hiss', 'The faint hiss under a focus session']];
+    ['ui', 'Buttons', 'Clicks in the bars and menus']];
   const get = k => k === 'music' ? M.vol / .5 : k === 'tick' ? (S.opts.tickVol != null ? S.opts.tickVol : .35) / .35 : LV[k]; // (the sliders show 100% at each sound's own default)
   const set = (k, v) => { if (k === 'music') { M.vol = v * .5; if (!player.paused) { clearInterval(player._ft); player.volume = Math.min(1, M.vol * duck); } } else if (k === 'tick') S.opts.tickVol = v * .35; else LV[k] = v; lvApply(); save(); };
   const sample = k => { const c = feelCtx(); if (!c || !soundOn) return;

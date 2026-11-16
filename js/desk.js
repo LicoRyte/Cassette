@@ -321,9 +321,6 @@ function paperCard(it) { // a note or a photo
   const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
   return c;
 }
-function drawCard(it) { // a drawing: only its strokes can be grabbed, so a circle around a note leaves the note clickable
-  return el('div', { class: 'sx-bcard sx-bdraw', 'data-id': it.id, style: 'left:' + it.x + 'px;top:' + it.y + 'px;width:' + it.w + 'px;height:' + it.h + 'px;--tilt:0deg' }, ...[drawSvg(it), keyBadge(it)].filter(Boolean));
-}
 const FRAME_INKS = ['amber', 'mint', 'coral', 'yellow', 'cream', 'green'];
 function frameCard(it) { // a frame: a labelled area. Its name is the handle; the inside lets clicks through to the desk
   const label = el('div', { class: 'sx-frame-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': 'Label name', 'data-ph': 'Name this area' }, it.text || '');
@@ -385,11 +382,11 @@ function drawBoard() {
   els.clear(); carried.clear(); strInner.clear(); world.classList.remove('carrying');
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
-    // (whiteboards and folders come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
-    if (it.type === 'wb' && typeof wbCard !== 'function' || it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function') return;
+    // (folders and tables come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
+    if (it.type === 'wb' || it.type === 'draw' || it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function') return; // (an old drawing waits to be turned into a photo: js/draw.js)
     let c = keep.get(it.id);
     if (c) { const l = it.x + 'px', t = it.y + 'px'; if (c.style.left !== l) c.style.left = l; if (c.style.top !== t) c.style.top = t; }
-    else { c = cardMade(it.type === 'frame' ? frameCard(it) : it.type === 'draw' ? drawCard(it) : it.type === 'wb' ? wbCard(it) : it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it), it);
+    else { c = cardMade(it.type === 'frame' ? frameCard(it) : it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it), it);
       (it.type === 'frame' ? frameLayer : layer).append(c); }
     c.classList.toggle('sel', picked.has(it.id));
     els.set(it.id, c);
