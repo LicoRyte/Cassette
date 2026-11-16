@@ -539,7 +539,7 @@ function freeSpot() {
 function deskLand(id, sfx) {
   const c = els.get(id); if (!c) return;
   if (stillUI()) { if (sfx) deskSfx('pin'); return; }
-  c.classList.remove('sx-land'); void c.offsetWidth; c.classList.add('sx-land');
+  animAgain(c, 'sx-land');
   c.addEventListener('animationend', e => { if (e.target === c) c.classList.remove('sx-land'); });
   if (sfx) setTimeout(() => deskSfx('pin'), 170);
 }

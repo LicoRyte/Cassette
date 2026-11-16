@@ -3,8 +3,8 @@
    and at 00:00 the digits hold and glow while the screen breathes out. Breaks don't tick: the digits breathe. */
 'use strict';
 
-// the background: a slow drifting grain, and one faint line sweeping down the screen once a minute
-document.body.append(el('div', { class: 'sx-grain', 'aria-hidden': 'true' }), el('div', { class: 'sx-sweep', 'aria-hidden': 'true' }));
+// the background: a slow drifting grain
+document.body.append(el('div', { class: 'sx-grain', 'aria-hidden': 'true' }));
 const vignette = el('div', { class: 'sx-vig', 'aria-hidden': 'true' }); document.body.append(vignette); // (the end of a session)
 
 // the state, as colour: ready, focus, last (the final minute), break, paused
@@ -15,7 +15,7 @@ function clockTick() {
   if (st !== clockState) { clockState = st; root.dataset.clock = st; }
   root.classList.toggle('sx-ending', running && mode === 'focus' && rem <= 10000); // the last seconds fade slower
   const colon = digits.querySelector('.sx-colon');
-  if (colon && running && mode === 'focus' && !stillUI()) { colon.classList.remove('beat'); void colon.offsetWidth; colon.classList.add('beat'); } // the colon's heartbeat
+  if (colon && running && mode === 'focus' && !stillUI()) { animAgain(colon, 'beat'); } // the colon's heartbeat
 }
 let clockLastText = '';
 new MutationObserver(() => { const t = timeText.textContent; if (t !== clockLastText) { clockLastText = t; clockTick(); } }).observe(timeText, { childList: true, characterData: true, subtree: true });
@@ -34,8 +34,8 @@ const finishClockBase = finish;
 finish = function () {
   const was = mode; finishClockBase.apply(this, arguments);
   if (was === 'focus') { digitsHold = Date.now() + 2600; digitsHoldText = digLast.replace(/\d/g, '0'); digLast = ''; drawDigits(); setTimeout(() => { digitsHold = 0; drawDigits(); }, 2650); }
-  if (was === 'focus' && !stillUI() && S.opts.glow !== false) { vignette.classList.remove('on'); void vignette.offsetWidth; vignette.classList.add('on'); } // the screen breathes out
-  if (was === 'focus' && !stillUI()) { digits.classList.remove('landed'); void digits.offsetWidth; digits.classList.add('landed'); setTimeout(() => digits.classList.remove('landed'), 2600); }
+  if (was === 'focus' && !stillUI() && S.opts.glow !== false) { animAgain(vignette, 'on'); } // the screen breathes out
+  if (was === 'focus' && !stillUI()) { animAgain(digits, 'landed'); setTimeout(() => digits.classList.remove('landed'), 2600); }
   clockState = ''; clockTick();
 };
 clockTick();

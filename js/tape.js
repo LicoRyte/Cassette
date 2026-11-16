@@ -14,7 +14,7 @@ drawCycle = function (pct) {
   }
   const cur = mode === 'focus' ? 2 * (S.cycle % n) : 2 * (S.cycle % n || n) - 1; // the part you're in: a session (even) or the break after it (odd)
   [...cycleBar.children].forEach((s, i) => { s.classList.toggle('done', i < cur); s.classList.toggle('now', i === cur); s.style.setProperty('--p', (i === cur ? pct : 0) + '%'); });
-  if (tapeCur >= 0 && cur === tapeCur + 1 && !stillUI()) { const s = cycleBar.children[cur - 1]; s.classList.remove('flash'); void s.offsetWidth; s.classList.add('flash'); } // the one just finished lights up
+  if (tapeCur >= 0 && cur === tapeCur + 1 && !stillUI()) { const s = cycleBar.children[cur - 1]; animAgain(s, 'flash'); } // the one just finished lights up
   tapeCur = cur;
   cycleBar.classList.toggle('broken', !!S.fc.broken);
 };
@@ -56,7 +56,7 @@ function tapeSound() {
 }
 [startB, resetB, nextB].forEach(b => b.addEventListener('click', () => {
   if (b.disabled) return; if (b !== nextB) tapeKeySound(b);
-  if (!stillUI()) { b.classList.remove('press'); void b.offsetWidth; b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 180); } // (Space presses it too)
+  if (!stillUI()) { animAgain(b, 'press'); setTimeout(() => b.classList.remove('press'), 180); } // (Space presses it too)
 }));
 
 /* ---------- the reels: either side of the strip, turning while the tape runs ---------- */
@@ -99,7 +99,7 @@ function sideDraw() {
   const s = mode === 'focus' ? 'A' : 'B'; if (s === sideShown) return;
   const first = sideShown == null; sideShown = s; root.dataset.side = s;
   if (first || stillUI()) { sideTagB.textContent = 'Side ' + s; return; }
-  deck.classList.remove('flip'); sideTag.classList.remove('flip'); void deck.offsetWidth; deck.classList.add('flip'); sideTag.classList.add('flip');
+  animAgain(deck, 'flip'); animAgain(sideTag, 'flip');
   setTimeout(() => { sideTagB.textContent = 'Side ' + s; }, 280); // the label changes as the deck turns edge-on
   if (feelSoundOn() && tapeBuf) { const c = feelCtx(); if (c) { const src = c.createBufferSource(), g = c.createGain(); src.buffer = tapeBuf; src.playbackRate.value = .72; g.gain.value = .55; src.connect(g).connect(soundOut(c, 'keys')); src.start(); } } // a lower clunk: the tape turned over
 }

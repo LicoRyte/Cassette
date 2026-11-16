@@ -45,7 +45,7 @@ const plResetB = el('button', { type: 'button', class: 'btn sx-reset-k', title: 
   if (feelSoundOn()) { const c = feelCtx(); if (c) feelTone(c, c.currentTime + .03, 96, { cat: 'keys', dur: .1, vol: .05, to: 60 }); } // the stop's clunk
 } }, 'Reset');
 nextB.after(plResetB); tapeKey(plResetB, ['reset'], 'This part');
-function plPress(b) { if (stillUI()) return; b.classList.remove('press'); void b.offsetWidth; b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 180); }
+function plPress(b) { if (stillUI()) return; animAgain(b, 'press'); setTimeout(() => b.classList.remove('press'), 180); }
 
 /* ---------- the keys don't keep the focus: a click leaves no box around the key, and Space is always Play/Pause ---------- */
 const plCmd = corner.querySelector('.sx-cmd');

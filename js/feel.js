@@ -94,7 +94,7 @@ new MutationObserver(() => {
   const t = timeText.textContent; if (t === pulseLast) return; pulseLast = t;
   if (!running || mode !== 'focus' || S.opts.glow === false || stillUI() || document.hidden) return;
   const rem = remaining(); pulse.style.setProperty('--pk', rem < 60000 ? Math.max(.35, rem / 60000).toFixed(2) : '1'); // softer through the last minute, like the tick
-  pulse.classList.remove('on'); void pulse.offsetWidth; pulse.classList.add('on');
+  animAgain(pulse, 'on');
 }).observe(timeText, { childList: true, characterData: true, subtree: true });
 
 /* ---------- tape hiss: very faint, while you focus, fading in after Play and out when you stop ---------- */

@@ -297,12 +297,9 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 
 .sx-clockonly .sx-top { position: relative; z-index: 3; }
 /* the console frame: two amber corner brackets around the clock */
-/* the background: drifting grain, scanlines, and one faint line sweeping down once a minute */
+/* the background: a slowly drifting grain */
 .sx-grain { position: fixed; inset: -60px; z-index: 0; pointer-events: none; background-image: radial-gradient(var(--k-041528) 1px, transparent 1.3px); background-size: 6px 6px; animation: sx-drift 120s linear infinite; }
 @keyframes sx-drift { to { transform: translate(48px, 36px); } }
-.sx-sweep { position: fixed; inset: 0; z-index: 40; pointer-events: none; background: repeating-linear-gradient(0deg, rgb(var(--k-293b49-rgb) / .13) 0 1px, transparent 1px 3px); }
-.sx-sweep::after { content: ''; position: absolute; left: 0; right: 0; top: -3%; height: 3px; background: rgba(119, 214, 193, .07); animation: sx-scan 60s linear infinite; }
-@keyframes sx-scan { to { top: 103%; } }
 /* colour tells you where you are */
 [data-clock="ready"] .sx-digits { color: var(--k-ffffe4); }
 [data-clock="focus"] .sx-digits { color: var(--k-ffffe4); }
@@ -328,7 +325,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-digits { transform-origin: 50% 50%; }
 .sx-digits.landed { animation: sx-land 2.6s ease-out; }
 @keyframes sx-land { 0% { color: var(--k-ffffe4); text-shadow: 0 0 0 rgba(255, 216, 50, 0); } 18% { color: #ffd832; text-shadow: 0 0 30px rgba(255, 216, 50, .7); } 100% { text-shadow: 0 0 0 rgba(255, 216, 50, 0); } }
-@media (prefers-reduced-motion: reduce) { .sx-grain, .sx-sweep::after, [data-clock="break"] .sx-digits, [data-clock="paused"] .sx-colon, .sx-colon.beat, .sx-ghost, .sx-digits.landed { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sx-grain, [data-clock="break"] .sx-digits, [data-clock="paused"] .sx-colon, .sx-colon.beat, .sx-ghost, .sx-digits.landed { animation: none; } }
 @media (max-width: 900px) { .sx-v2.sx-clockonly .sx-rail { padding-top: 8vh; } .sx-v2.sx-clockonly .sx-corner { width: calc(100vw - 72px); } }
 /* the Board as a library: boards, notes, Polaroid photos */
 
@@ -1628,10 +1625,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-polaroid .sx-resize { z-index: 3; }
 .sx-polaroid:hover .sx-resize, .sx-polaroid.sel .sx-resize, .sx-polaroid.sizing .sx-resize { opacity: 1; }
 
-/* ---------- lighter on the machine: the scan line moves as its own layer (no repaint of the screen every frame), and the
-   turning reels are their own layers too ---------- */
-.sx-sweep::after { top: 0; animation-name: sx-scan2; will-change: transform; }
-@keyframes sx-scan2 { from { transform: translateY(-3vh); } to { transform: translateY(103vh); } }
+/* ---------- lighter on the machine: the turning reels are their own layers ---------- */
 .sx-reel svg { will-change: transform; }
 
 /* ---------- writing that flows (js/flow.js): a thin cursor in the ink's colour that glides to each new letter, solid while

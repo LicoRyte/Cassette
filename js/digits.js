@@ -24,8 +24,8 @@ function drawDigits() {
   if (spans.length !== t.length) { digits.replaceChildren(...[...t].map(ch => el('span', { class: ch === ':' ? 'sx-dig sx-colon' : 'sx-dig' }, ch))); fitDigits(); return; }
   [...t].forEach((ch, i) => { const sp = spans[i]; if (sp.firstChild && sp.firstChild.nodeValue === ch) return;
     const was = sp.firstChild ? sp.firstChild.nodeValue : ''; sp.textContent = ch; if (!old || stillUI()) return;
-    sp.classList.remove('chg'); void sp.offsetWidth; sp.classList.add('chg'); // only the digits that changed fade in
-    if (was) { const g = el('i', { class: 'sx-ghost', 'aria-hidden': 'true', style: 'left:' + sp.offsetLeft + 'px;top:' + sp.offsetTop + 'px' }, was); digits.append(g); setTimeout(() => g.remove(), 900); } }); // the old digit lingers, like phosphor
+    animAgain(sp, 'chg'); // only the digits that changed fade in
+    if (was) { const g = el('i', { class: 'sx-ghost', 'aria-hidden': 'true' }, was); sp.append(g); setTimeout(() => g.remove(), 900); } }); // the old digit lingers behind the new one, like phosphor
 }
 new MutationObserver(drawDigits).observe(timeText, { childList: true, characterData: true, subtree: true });
 addEventListener('resize', fitDigits);

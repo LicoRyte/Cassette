@@ -35,6 +35,6 @@ drawStrings = function () {
 const LIVE_KEYS = '.sx-ws-bar .sx-ws-b, .sx-tray .sx-ws-b, .sx-tapes .sx-ws-b, .sx-mem .sx-ws-b, .sx-find-b';
 addEventListener('pointerdown', e => {
   const b = e.target.closest && e.target.closest(LIVE_KEYS); if (!b || b.disabled || e.button !== 0 || stillUI()) return;
-  b.classList.remove('lit'); void b.offsetWidth; b.classList.add('lit');
+  animAgain(b, 'lit');
 }, true);
 addEventListener('animationend', e => { if (e.animationName === 'sx-key-lit') e.target.classList.remove('lit'); });
