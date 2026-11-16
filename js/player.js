@@ -1,5 +1,5 @@
-/* Cassette Timer: the player. The deck is one portable cassette player: a dark glass window with the cassette inside
-   (its shell and two big reels, turning, dimmed behind the glass) and the time over it in big digits, with the session
+/* Cassette Timer: the player. The deck is one portable cassette player: a dark glass window with two big reels
+   turning behind it, dimmed, and the time over it in big digits, with the session
    strip along the bottom. Above the window, printed on the body: the side on the left, the session on the right. Under the window, a row of five piano keys:
    Play/Pause, Rew (hold it: the time winds back), Prev (the track before), F.F (the next track) and Reset (this part
    from the start, at once). */
@@ -8,9 +8,8 @@
 corner.classList.add('sx-player');
 
 /* ---------- the window ---------- */
-const plCas = el('div', { class: 'sx-pl-cas', 'aria-hidden': 'true' }, el('i', { class: 'sx-pl-lab' }), el('i', { class: 'sx-pl-slot' }));
 const plTop = el('div', { class: 'sx-pl-top' }, sideTag, corner.querySelector('.sl-big'));
-const plWin = el('div', { class: 'sx-pl-win' }, plCas, reelL, reelR, digits, deck);
+const plWin = el('div', { class: 'sx-pl-win' }, reelL, reelR, digits, deck); // (behind the glass, just the two reels turning)
 corner.querySelector('.sx-cmd').before(plTop, plWin);
 reelL.classList.add('sx-pl-reel', 'l'); reelR.classList.add('sx-pl-reel', 'r');
 requestAnimationFrame(fitDigits);
@@ -66,16 +65,6 @@ reelPacks = function () {
 { const draw0 = drawCycle; drawCycle = function (pct) { draw0(pct); reelProg = Math.max(0, Math.min(1, (pct || 0) / 100)); reelPacks(); }; }
 drawClock();
 
-/* ---------- the cassette's label: the side's big letter, and the track playing in handwriting (or what the side is for) ---------- */
-const plLabSide = el('b', {}), plLabTrack = el('span', {});
-plCas.append(el('div', { class: 'sx-pl-lt' }, plLabSide, plLabTrack));
-function plLabDraw() {
-  const s = root.dataset.side || (mode === 'focus' ? 'A' : 'B'), np = sideTagNp.textContent.trim();
-  plLabSide.textContent = s; plLabTrack.textContent = np || (s === 'A' ? 'focus' : 'breaks');
-}
-new MutationObserver(plLabDraw).observe(sideTag, { childList: true, characterData: true, subtree: true });
-new MutationObserver(plLabDraw).observe(root, { attributes: true, attributeFilter: ['data-side'] });
-plLabDraw();
 
 /* ---------- a little light beside the side: on in the key colour while it plays, blinking while paused, green on breaks ---------- */
 plTop.prepend(el('i', { class: 'sx-pl-led', 'aria-hidden': 'true' }));
