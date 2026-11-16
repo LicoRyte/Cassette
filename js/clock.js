@@ -1,6 +1,6 @@
 /* Cassette Timer: the clock's moods. Colour tells you where you are (ready, focus, the last minute, a break, paused),
    the colon beats once a second, the colour eases between paused and playing, the last ten seconds fade slower,
-   and at 00:00 the digits hold and glow while the screen breathes out. Breaks don't tick: the digits breathe. */
+   and at 00:00 the digits hold a moment. Breaks don't tick: the digits breathe. */
 'use strict';
 
 // the background: a slow drifting grain
@@ -28,12 +28,11 @@ start = function () {
 };
 const pauseClockBase = pause;
 pause = function () { pauseClockBase.apply(this, arguments); clockState = ''; clockTick(); };
-// the soft landing: 00:00 glows, then lets go (the session chime plays as it always has)
+// at 00:00 the digits hold a moment, then let go (the session chime plays as it always has)
 const finishClockBase = finish;
 finish = function () {
   const was = mode; finishClockBase.apply(this, arguments);
   if (was === 'focus') { digitsHold = Date.now() + 2600; digitsHoldText = digLast.replace(/\d/g, '0'); digLast = ''; drawDigits(); setTimeout(() => { digitsHold = 0; drawDigits(); }, 2650); }
-  if (was === 'focus' && !stillUI()) { animAgain(digits, 'landed'); setTimeout(() => digits.classList.remove('landed'), 2600); }
   clockState = ''; clockTick();
 };
 clockTick();

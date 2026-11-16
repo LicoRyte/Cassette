@@ -184,22 +184,6 @@ function tapeKeySound(b) {
 }
 
 
-/* ---------- the end of a tape: a cassette pops up in the middle of the screen and flies into the Tapes key ---------- */
-function ejectTape() {
-  if (stillUI()) return;
-  const cx = innerWidth / 2, cy = innerHeight / 2, to = tapesB.getBoundingClientRect(); // (from the middle of the screen, wherever the deck is on the desk)
-  const cas = el('div', { class: 'sx-eject', 'aria-hidden': 'true', style: 'left:' + (cx - 45) + 'px;top:' + (cy - 29) + 'px;--tx:' + Math.round(to.left + to.width / 2 - cx) + 'px;--ty:' + Math.round(to.top + to.height / 2 - cy) + 'px' });
-  cas.innerHTML = '<svg viewBox="0 0 30 19"><rect x=".5" y=".5" width="29" height="18" rx="1.5" fill="#041528" style="stroke:var(--deck)"/><rect x="3" y="2.5" width="24" height="5" fill="#ffdaac"/><rect x="5" y="4" width="11" height="1" fill="#34111f"/><rect x="7" y="9.5" width="16" height="5" fill="#030710" stroke="#293b49" stroke-width=".6"/><circle cx="11" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><circle cx="19" cy="12" r="1.7" fill="none" stroke="#ffffe4" stroke-width=".7"/><path d="M8 18.5l1.5-2.5h11l1.5 2.5" fill="none" style="stroke:var(--deck)" stroke-width=".7"/></svg>'; // (a fixed drawing)
-  document.body.append(cas); requestAnimationFrame(() => cas.classList.add('go'));
-  if (feelSoundOn()) { const c = feelCtx(); if (c) { const t = c.currentTime; feelBurst(c, t, { cat: 'keys', dur: .03, type: 'highpass', f0: 1800, vol: .06 }); feelTone(c, t, 120, { cat: 'keys', dur: .09, vol: .05, to: 70 }); // the eject's clack
-    if (tapeBuf) { const s = c.createBufferSource(), g = c.createGain(); s.buffer = tapeBuf; s.playbackRate.value = 1.15; g.gain.value = .45; s.connect(g).connect(soundOut(c, 'keys')); s.start(t + .03); }
-    feelBurst(c, t + 1.55, { cat: 'keys', dur: .07, type: 'lowpass', f0: 900, vol: .05 }); } } // and it lands
-  setTimeout(() => cas.remove(), 1800);
-}
-const finishEject = finish;
-finish = function (quiet) { const was = mode; finishEject.apply(this, arguments); if (was === 'focus' && mode === 'long' && !quiet) setTimeout(ejectTape, 1100); };
-const fullRewindEject = fullRewind;
-fullRewind = function () { const had = S.cycle > 0 || mode !== 'focus' || remaining() < length(mode); fullRewindEject.apply(this, arguments); if (had) setTimeout(ejectTape, 650); };
 
 /* ---------- keep going by itself: when a session ends the break starts on its own, and when a break ends the next session
    does (a few seconds later, after the chime). Settings, Flow ---------- */

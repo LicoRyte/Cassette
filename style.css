@@ -318,9 +318,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-ending .sx-dig.chg { animation-duration: .95s; }
 /* the power-on, and the soft landing at zero */
 .sx-digits { transform-origin: 50% 50%; }
-.sx-digits.landed { animation: sx-land 2.6s ease-out; }
-@keyframes sx-land { 0% { color: var(--k-ffffe4); text-shadow: 0 0 0 rgba(255, 216, 50, 0); } 18% { color: #ffd832; text-shadow: 0 0 30px rgba(255, 216, 50, .7); } 100% { text-shadow: 0 0 0 rgba(255, 216, 50, 0); } }
-@media (prefers-reduced-motion: reduce) { [data-clock="break"] .sx-digits, [data-clock="paused"] .sx-colon, .sx-colon.beat, .sx-ghost, .sx-digits.landed { animation: none; } }
+@media (prefers-reduced-motion: reduce) { [data-clock="break"] .sx-digits, [data-clock="paused"] .sx-colon, .sx-colon.beat, .sx-ghost { animation: none; } }
 @media (max-width: 900px) { .sx-v2.sx-clockonly .sx-rail { padding-top: 8vh; } .sx-v2.sx-clockonly .sx-corner { width: calc(100vw - 72px); } }
 /* the Board as a library: boards, notes, Polaroid photos */
 
@@ -714,10 +712,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-full-b.sx-hidecur, .sx-full-b.sx-hidecur * { cursor: none !important; }
 
 /* ---------- the eject (js/tape.js): out of the deck, up, and onto the shelf ---------- */
-.sx-eject { position: fixed; z-index: 30; width: 90px; height: 58px; pointer-events: none; opacity: 0; filter: drop-shadow(0 6px 10px rgba(3, 7, 16, .6)); }
-.sx-eject svg { display: block; width: 100%; height: 100%; }
-.sx-eject.go { animation: sx-eject 1.7s cubic-bezier(.3, .7, .3, 1) forwards; }
-@keyframes sx-eject { 0% { opacity: 0; transform: translateY(18px) scale(.7); } 14% { opacity: 1; transform: translateY(-70px) scale(1); } 22% { transform: translateY(-60px) scale(1) rotate(-3deg); } 48% { opacity: 1; transform: translateY(-62px) scale(1) rotate(-3deg); }
   100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.25) rotate(8deg); } }
 /* strings in front of the paper (Settings, Look): over the notes and photos, tied at their pins */
 #app[data-strings="front"] .sx-world .sx-strings { z-index: 4; }
