@@ -30,7 +30,8 @@ function lightCards() {
   const todo = [];
   els.forEach(c => { // measure them all first, then restyle only the ones that moved
     if (!c.classList.contains('sx-bnote') && !c.classList.contains('sx-polaroid') && !c.classList.contains('sx-btbl') || c.classList.contains('lift')) return; // (the one you're carrying is lit when you put it down)
-    const x = c.offsetLeft + c.offsetWidth / 2, y = c.offsetTop + c.offsetHeight / 2;
+    const it = c._it || itemOf(c.dataset.id); if (!it) return; if (c._lw == null) { c._lw = c.offsetWidth; c._lh = c.offsetHeight; } // (its size, measured once)
+    const x = it.x + c._lw / 2, y = it.y + c._lh / 2;
     if (c._lx === x && c._ly === y) return; c._lx = x; c._ly = y; todo.push([c, x, y]);
   });
   todo.forEach(([c, x, y]) => { const lit = Math.pow(Math.max(0, 1 - Math.hypot(x, y) / 950), 1.4);
@@ -40,7 +41,8 @@ function lightCards() {
     c.style.setProperty('--sx', (x / d * len).toFixed(1) + 'px'); c.style.setProperty('--sy', (y / d * len + 1).toFixed(1) + 'px'); });
 }
 const strUpdateLight = strUpdate;
-strUpdate = function () { strUpdateLight.apply(this, arguments); lightCards(); };
+let lightRaf = 0;
+strUpdate = function (only) { strUpdateLight.apply(this, arguments); if (only instanceof Set || lightRaf) return; lightRaf = requestAnimationFrame(() => { lightRaf = 0; lightCards(); }); }; // (strings swaying: the cards haven't moved)
 requestAnimationFrame(lightCards);
 
 /* ---------- parallax: the grain and a far layer of dots drift a little as you move the mouse ---------- */

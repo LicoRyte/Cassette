@@ -101,7 +101,11 @@ function placeCam() {
   if (key !== dotsKey) { dotsKey = key; deskDots.style.cssText = 'width:' + (w + 2 * g) + 'px;height:' + (h + 2 * g) + 'px;background-size:' + g + 'px ' + g + 'px'; }
   deskDots.style.transform = 'translate3d(' + (((tx % g) + g) % g - g) + 'px,' + (((ty % g) + g) % g - g) + 'px,0)'; // the dots move with you
 }
-function camSettle() { world.classList.remove('moving'); if (czShown !== cam.z) { czShown = cam.z; world.style.setProperty('--cz', cam.z); if (typeof photoSizesAll === 'function') photoSizesAll(); } } // (toolbars and frame names stay the same size on screen)
+function camSettle() { world.classList.remove('moving'); if (czShown !== cam.z) { czShown = cam.z; czApply(); if (typeof photoSizesAll === 'function') photoSizesAll(); } }
+// the zoom, for the few things that stay the same size on screen (a label's name and edges, the note toolbar, the cursor):
+// set on just those, since a value set on the whole desk makes the browser restyle every element in it
+const CZ_SEL = '.sx-frame-h, .sx-fe, .sx-fmt, .sx-caret';
+function czApply(within) { const z = String(cam.z); (within || world).querySelectorAll(CZ_SEL).forEach(e => { if (e.style.getPropertyValue('--cz') !== z) e.style.setProperty('--cz', z); }); } // (toolbars and frame names stay the same size on screen)
 let placeRaf = 0;
 const placeSoon = () => { if (!placeRaf) placeRaf = requestAnimationFrame(() => { placeRaf = 0; placeCam(); }); }; // (at most once a frame)
 const toWorld = (cx, cy) => { const r = ws.getBoundingClientRect(), { w, h } = view(); return { x: (cx - r.left - w / 2) / cam.z + cam.x, y: (cy - r.top - h / 2) / cam.z + cam.y }; };
@@ -360,18 +364,31 @@ function deskRaise(it, c) {
   c.style.zIndex = String(layerTop += 2);
   B.items = B.items.filter(x => x !== it); B.items.push(it); save(); strUpdate();
 }
+// a card that hasn't changed since it was made is kept as it is: making and restyling every card each time is the costly
+// part of drawing the desk. It's kept only if it's the very same item (Undo and a friend's cards bring new ones) and nothing
+// about it has changed but where it sits and the words typed into it (which the card already shows)
+const cardSnap = it => JSON.stringify(it, (k, v) => k === 'x' || k === 'y' || k === 'mt' || k === 'html' || k === 'text' ? undefined : v);
+function cardMade(c, it) { c._it = it; c._snap = cardSnap(it); return c; }
 function drawBoard() {
   const B = B_(), items = B.items.filter(it => it.board === B.cur);
-  els.clear(); carried.clear(); strInner.clear(); world.classList.remove('carrying'); layer.replaceChildren(); frameLayer.replaceChildren();
+  const old = new Map(els), keep = new Map();
+  items.forEach(it => { const c = old.get(it.id); if (c && c._it === it && it.type !== 'hop' && c.isConnected && c._snap === cardSnap(it)) keep.set(it.id, c); });
+  old.forEach((c, id) => { if (keep.get(id) !== c) c.remove(); });
+  [...layer.children, ...frameLayer.children].forEach(c => { if (c.classList.contains('sx-bcard') && !keep.has(c.dataset.id)) c.remove(); }); // (anything left over)
+  els.clear(); carried.clear(); strInner.clear(); world.classList.remove('carrying');
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
     // (whiteboards and folders come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
     if (it.type === 'wb' && typeof wbCard !== 'function' || it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function') return;
-    const c = it.type === 'frame' ? frameCard(it) : it.type === 'draw' ? drawCard(it) : it.type === 'wb' ? wbCard(it) : it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it);
-    if (picked.has(it.id)) c.classList.add('sel');
-    els.set(it.id, c); (it.type === 'frame' ? frameLayer : layer).append(c);
+    let c = keep.get(it.id);
+    if (c) { const l = it.x + 'px', t = it.y + 'px'; if (c.style.left !== l) c.style.left = l; if (c.style.top !== t) c.style.top = t; }
+    else { c = cardMade(it.type === 'frame' ? frameCard(it) : it.type === 'draw' ? drawCard(it) : it.type === 'wb' ? wbCard(it) : it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it), it);
+      (it.type === 'frame' ? frameLayer : layer).append(c); }
+    c.classList.toggle('sel', picked.has(it.id));
+    els.set(it.id, c);
   });
-  layerTop = 0; layer.querySelectorAll(':scope > .sx-bcard').forEach(c => { layerTop += 2; c.style.zIndex = String(layerTop); });
+  layerTop = 0; items.forEach(it => { const c = it.type !== 'frame' && els.get(it.id); if (!c) return; layerTop += 2; const z = String(layerTop); if (c.style.zIndex !== z) c.style.zIndex = z; }); // (stacked in the desk's order)
+  czApply();
   deskBoardTools(); deskDrawKeys(); noteBarTo(selId); deskSelBar();
   requestAnimationFrame(() => { drawStrings(); selBoxUpdate(); });
 }
@@ -444,18 +461,26 @@ function brushString(l, e) {
 layer.addEventListener('pointerleave', () => { if (strOver) { strOver = null; strHot(); } });
 { const selectStrBase = select; select = function () { const r = selectStrBase.apply(this, arguments); strHot(); return r; }; } // (picking a card lights its strings too)
 function drawStrings(temp) {
-  const B = B_(); strings.replaceChildren(); strNodes.forEach(n => n.sv.remove()); strNodes = []; strTempP = null; strTemp = temp || null;
+  const B = B_(); strings.replaceChildren(); strTempP = null; strTemp = temp || null;
+  const was = new Map(strNodes.map(n => [n.l, n])), next = [];
   B.links.forEach(l => {
     if (!els.has(l[0]) || !els.has(l[1])) return;
-    const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('class', 'sx-string');
-    const hit = document.createElementNS(SVGNS, 'path'); hit.setAttribute('class', 'sx-string-hit');
-    hit.addEventListener('pointerdown', e => e.stopPropagation());
-    hit.addEventListener('pointerenter', e => brushString(l, e)); // (plucked as the mouse passes over it)
-    hit.addEventListener('click', () => { deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
-    const sv = document.createElementNS(SVGNS, 'svg'); sv.setAttribute('class', 'sx-strand'); sv.append(hit, p); layer.append(sv); // (its own sheet, at its own level)
-    strNodes.push({ l, p, hit, sv, z: -1 }); });
+    let n = was.get(l);
+    if (n) was.delete(l);
+    else { const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('class', 'sx-string');
+      const hit = document.createElementNS(SVGNS, 'path'); hit.setAttribute('class', 'sx-string-hit'); hit._l = l;
+      const sv = document.createElementNS(SVGNS, 'svg'); sv.setAttribute('class', 'sx-strand'); sv.append(hit, p); // (its own sheet, at its own level)
+      n = { l, p, hit, sv, z: -1 }; }
+    if (!n.sv.isConnected) layer.append(n.sv);
+    next.push(n); });
+  was.forEach(n => n.sv.remove()); strNodes = next;
   strUpdate(); strHot();
 }
+// every string's wider hover line, through one listener each: pressing it doesn't pan, passing over it plucks it, a click cuts it
+const strHitOf = e => e.target && e.target.classList && e.target.classList.contains('sx-string-hit') ? e.target : null;
+layer.addEventListener('pointerdown', e => { if (strHitOf(e)) e.stopPropagation(); });
+layer.addEventListener('pointerover', e => { const h = strHitOf(e); if (h && e.relatedTarget !== h) brushString(h._l, e); }); // (plucked as the mouse passes over it)
+layer.addEventListener('click', e => { const h = strHitOf(e); if (!h) return; const l = h._l, B = B_(); deskMark(); B.links = B.links.filter(x => x !== l); wob.delete(lk(l)); deskSfx('tear'); save(); drawStrings(); });
 function strUpdate(only) { // only: a Set of card ids, to redraw just the strings tied to them (while you carry things, or while strings sway)
   // measure every end first, then redraw: measuring after each redraw would make the browser lay the page out again every time
   let nodes = only instanceof Set ? strNodes.filter(n => only.has(n.l[0]) || only.has(n.l[1])) : strNodes;

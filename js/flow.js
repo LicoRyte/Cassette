@@ -29,7 +29,7 @@ function flowPlace(jump) {
   const r = flowCaretRect(box), card = box.closest('.sx-bcard'); if (!r) { flowCaret.remove(); return; }
   const cr = card.getBoundingClientRect(), z = cam.z || 1;
   if (flowCaret.parentNode !== card) { card.append(flowCaret); jump = true; } // (a new card, or the desk was drawn again)
-  flowCaret.classList.toggle('jump', !!jump);
+  flowCaret.classList.toggle('jump', !!jump); flowCaret.style.setProperty('--cz', String(cam.z));
   flowCaret.style.color = getComputedStyle(box).color;
   flowCaret.style.height = (r.height / z).toFixed(1) + 'px';
   flowCaret.style.translate = ((r.left - cr.left) / z - card.clientLeft).toFixed(1) + 'px ' + ((r.top - cr.top) / z - card.clientTop).toFixed(1) + 'px';
@@ -63,7 +63,7 @@ function flowAfterType(box) {
    below (and you're writing in it); Alt+P a photo beside the note, and a picture pasted while you write, tied to it (you
    stay where you were). New cards are added on their own, without drawing the whole desk again ---------- */
 function flowAddCard(it) {
-  B_().items.push(it); const c = paperCard(it); els.set(it.id, c); layer.append(c); layerTop += 2; c.style.zIndex = String(layerTop); return c;
+  B_().items.push(it); const c = cardMade(paperCard(it), it); els.set(it.id, c); layer.append(c); layerTop += 2; c.style.zIndex = String(layerTop); return c;
 }
 // a free spot next to a card, in a direction: past anything already there, and clear of the clock
 function flowSpot(card, it, dir, nw, nh) {

@@ -240,7 +240,7 @@ async function roomReceive(d, pid) {
 const drawBoardRoom = drawBoard;
 drawBoard = function () {
   drawBoardRoom.apply(this, arguments);
-  B_().items.forEach(it => { if (!it.from || it.board !== B_().cur) return; const c = els.get(it.id); if (!c) return;
+  B_().items.forEach(it => { if (!it.from || it.board !== B_().cur) return; const c = els.get(it.id); if (!c || c.querySelector(':scope > .sx-from')) return; // (a kept card has it already)
     c.append(el('button', { type: 'button', class: 'sx-from', title: 'From ' + it.from + ': click to take the tag off', onclick: e => { e.stopPropagation(); deskMark(); delete it.from; save(); e.currentTarget.remove(); } }, 'from ' + it.from)); });
 };
 
