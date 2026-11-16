@@ -1,5 +1,5 @@
 /* Cassette Timer: the board manager (the Boards key at the top of the left column). Every board is a row: click it to go
-   there; its pencil (or a double-click on its name, or F2) renames it right in the row; its copy key makes a copy (cards,
+   there (the desk fades over to it with a flip of paper, like through a folder); its pencil (or a double-click on its name, or F2) renames it right in the row; its copy key makes a copy (cards,
    strings, groups and photos); its bin deletes it. The board you're on can't be deleted: go to another board first.
    Drag a row to reorder. A box at the bottom makes a new board (type its name, Enter). Up and Down move through the rows,
    Enter opens one, Esc closes. With more than eight boards, a search box finds one by name. Backups are at the very bottom. */
@@ -66,7 +66,17 @@ function bmRow(b) {
   return row;
 }
 
-function bmGo(id) { bmClose(); deskBoardGo(id); }
+// going to a board feels like going through a folder: the paper flips, the desk fades out, the board changes, and it
+// fades back in with the board's name (js/hopper.js does the same)
+function bmSwap(go, name) {
+  deskSfx('flip');
+  const done = () => { go(); deskSfx('drop'); if (name) deskToast(name); };
+  if (stillUI()) { done(); return; }
+  cancelAnimationFrame(glideRaf);
+  const out = world.animate([{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(4px)' }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
+  setTimeout(() => { out.cancel(); done(); world.animate([{ opacity: 0, filter: 'blur(4px)' }, { opacity: 1, filter: 'blur(0)' }], { duration: 280, easing: 'ease-out' }); }, 210);
+}
+function bmGo(id) { bmClose(); if (id === S.board.cur) return; const b = S.board.boards.find(x => x.id === id); bmSwap(() => deskBoardGo(id), b && b.name); }
 function bmRename(id) { bmEdit = id; bmFocus = id; bmDraw(); }
 function bmFocusRow(id) { const r = deskMenu.querySelector('.sx-bm-row[data-id="' + id + '"]'); if (r) r.focus({ preventScroll: true }); }
 function bmMove(step, first) { // Up and Down through the rows that are showing
@@ -76,7 +86,7 @@ function bmMove(step, first) { // Up and Down through the rows that are showing
 }
 function bmNew(name) {
   const B = S.board; name = String(name || '').trim().slice(0, 40) || 'Board ' + (B.boards.length + 1);
-  deskMark(); const id = 'b' + Date.now(); B.boards.push({ id, name }); save(); bmClose(); deskBoardGo(id); deskToast('Made "' + name + '"');
+  deskMark(); const id = 'b' + Date.now(); B.boards.push({ id, name }); save(); bmClose(); bmSwap(() => deskBoardGo(id), 'Made "' + name + '"');
 }
 function bmDelete(id) {
   const B = S.board; if (id === B.cur || B.boards.length < 2) return; const b = B.boards.find(x => x.id === id); if (!b) return;
