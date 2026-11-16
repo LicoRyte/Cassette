@@ -82,20 +82,21 @@ addEventListener('keydown', e => {
 addEventListener('resize', keepPlace);
 keepDraw(true);
 
-/* ---------- the note toolbar works on the strip too: it comes up over the strip while you write in it, and every button
-   and shortcut (bold, headings, lists, paper colour, text size...) goes to the kept note ---------- */
-const keepOn = () => document.activeElement === keepT || noteBar.parentNode === keepBox && keepBox.contains(document.activeElement);
+/* ---------- the note toolbar works on the strip too: while you write in it, the usual toolbar comes up in the bar along the
+   bottom (the strip sits just above it), and every button and shortcut (bold, headings, lists, paper colour, text size...)
+   goes to the kept note ---------- */
+const keepOn = () => document.activeElement === keepT;
 function keepNote() { // the kept note, for the toolbar, while the strip is being written in
   if (!keepOn()) return null; const it = keepItem(); if (!it) return null;
   return { c: els.get(it.id) || keepBox, t: keepT, it };
 }
-function keepTools() { if (noteBar.parentNode !== keepBox) { keepBox.insertBefore(noteBar, keepT); keepBox.classList.add('tools'); } noteBarState(); }
+function keepTools() { if (noteBar.parentNode !== deskCtx) deskCtx.prepend(noteBar); noteBarState(); keepPlace(); setTimeout(keepPlace, 220); }
 keepT.addEventListener('focus', keepTools);
 keepT.addEventListener('pointerdown', () => setTimeout(keepTools, 0));
-document.addEventListener('selectionchange', () => { const n = getSelection().anchorNode; if (n && keepT.contains(n) && noteBar.parentNode !== keepBox) keepTools(); }); // (however the pen got there)
-keepT.addEventListener('blur', () => setTimeout(() => { if (document.activeElement === keepT) return; keepBox.classList.remove('tools'); if (noteBar.parentNode === keepBox) { noteBar.remove(); noteBarTo(selId); } keepPlace(); }, 0));
+document.addEventListener('selectionchange', () => { const n = getSelection().anchorNode; if (n && keepT.contains(n) && noteBar.parentNode !== deskCtx) keepTools(); }); // (however the pen got there)
+keepT.addEventListener('blur', () => setTimeout(() => { if (document.activeElement === keepT) return; noteBarTo(selId); keepPlace(); setTimeout(keepPlace, 220); }, 0)); // (the toolbar goes back to whatever is picked)
 // a button that changes the note's paper or its size: the card on the desk is drawn again to match, and so is the strip
 noteBar.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b || noteBar.parentNode !== keepBox) return;
+  const b = e.target.closest('button'); if (!b || !keepOn()) return;
   if (b.dataset.c || b.dataset.k === 'smaller' || b.dataset.k === 'bigger') { const it = keepItem(); if (it && els.has(it.id)) drawBoard(); keepDraw(); keepT.focus({ preventScroll: true }); }
 });
