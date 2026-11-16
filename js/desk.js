@@ -9,7 +9,7 @@
 'use strict';
 
 // what's saved: { boards: [{ id, name }], cur, cam: { x, y, z }, items: [...], links: [[id, id]] }
-// items: note { text, html, color, fs, w, h } | photo { text } | draw { w, h, strokes } | frame { w, h, text, color } (a label) | hop { to } (a folder to another board) | wb { w, h, strokes },
+// items: note { text, html, color, fs, w, h } | photo { text } | hop { to } (a folder to another board) | wb { w, h, strokes },
 // and all of them { id, type, board, x, y, key?, group? }
 (function boardMigrate() {
   const B = S.board = S.board && typeof S.board === 'object' ? S.board : {};
@@ -18,7 +18,9 @@
   if (!Array.isArray(B.items)) B.items = [];
   if (Array.isArray(B.notes)) { B.notes.forEach(n => B.items.push({ id: n.id, type: 'note', board: B.boards[0].id, x: n.x, y: n.y, text: n.text || '' })); delete B.notes; } // notes from the story boards come along
   delete B.pos; // (story cards are gone with the stories)
+  B.items = B.items.filter(it => it.type !== 'frame' && it.type !== 'draw' && it.type !== 'wb'); // (labels and drawings were here once)
   B.links = (Array.isArray(B.links) ? B.links : []).filter(l => l.every(id => B.items.some(it => it.id === id)));
+  if (!B.gnames || typeof B.gnames !== 'object') B.gnames = {}; // a group's nickname, by its id
   // the old board was a page whose top-left corner was 0,0; on the desk the clock is at 0,0, so old things move off to the right
   if (!B.desk) { B.items.forEach(it => { it.x = (+it.x || 0) + 420; it.y = (+it.y || 0) - 260; }); B.desk = 1; }
   if (!B.cam || !isFinite(B.cam.x)) B.cam = { x: 0, y: 0, z: 1 };
@@ -78,18 +80,17 @@ const tilt = id => { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt
 /* ---------- the desk and its camera ---------- */
 const SVGNS = 'http://www.w3.org/2000/svg';
 const ws = el('div', { class: 'sx-ws' }), world = el('div', { class: 'sx-world' });
-const frameLayer = el('div', { class: 'sx-flayer' });
 const strings = document.createElementNS(SVGNS, 'svg'); strings.setAttribute('class', 'sx-strings');
 const layer = el('div', { class: 'sx-layer' });
 const selBox = el('div', { class: 'sx-selbox', hidden: true }), marquee = el('div', { class: 'sx-marquee', hidden: true });
 let selShift = null; // while several things are carried: where the box around them started (it moves with them)
-world.append(frameLayer, strings, corner, layer, selBox, marquee); ws.append(world);
+world.append(strings, corner, layer, selBox, marquee); ws.append(world);
 root.append(ws); root.classList.add('sx-desk');
 
 const cam = S.board.cam; cam.z = Math.min(1.6, Math.max(.35, +cam.z || 1));
 const view = () => ({ w: ws.clientWidth || innerWidth, h: ws.clientHeight || innerHeight });
 // moving the camera is made cheap: while it moves, the desk is one picture the graphics card slides and scales
-// (will-change), the dots are their own layer moved the same way, and the zoom that toolbars and frame names read
+// (will-change), the dots are their own layer moved the same way, and the zoom that toolbars and group names read
 // (--cz) is only updated once the camera comes to rest
 const deskDots = el('div', { class: 'sx-dots', 'aria-hidden': 'true' }); ws.prepend(deskDots);
 let camMoveT = 0, czShown = null, dotsKey = '';
@@ -109,10 +110,10 @@ function camSettle() { if (czShown !== cam.z) { czShown = cam.z; czApply(); if (
 let sharpRaf = 0, sharpT = 0, sharpZ = 1;
 function camSharpen() { if (Math.abs(Math.log(cam.z / sharpZ)) < .08 || world.classList.contains('sharpen')) return; sharpZ = cam.z;
   world.classList.add('sharpen'); sharpRaf = requestAnimationFrame(() => { sharpRaf = requestAnimationFrame(() => { sharpRaf = 0; world.classList.remove('sharpen'); }); }); }
-// the zoom, for the few things that stay the same size on screen (a label's name and edges, the note toolbar, the cursor):
+// the zoom, for the few things that stay the same size on screen (a group's name, the note toolbar, the cursor):
 // set on just those, since a value set on the whole desk makes the browser restyle every element in it
-const CZ_SEL = '.sx-frame-h, .sx-fe, .sx-fmt, .sx-caret';
-function czApply(within) { const z = String(cam.z); (within || world).querySelectorAll(CZ_SEL).forEach(e => { if (e.style.getPropertyValue('--cz') !== z) e.style.setProperty('--cz', z); }); } // (toolbars and frame names stay the same size on screen)
+const CZ_SEL = '.sx-fmt, .sx-caret, .sx-gtag';
+function czApply(within) { const z = String(cam.z); (within || world).querySelectorAll(CZ_SEL).forEach(e => { if (e.style.getPropertyValue('--cz') !== z) e.style.setProperty('--cz', z); }); } // (toolbars and group names stay the same size on screen)
 let placeRaf = 0;
 const placeSoon = () => { if (!placeRaf) placeRaf = requestAnimationFrame(() => { placeRaf = 0; placeCam(); }); }; // (at most once a frame)
 const toWorld = (cx, cy) => { const r = ws.getBoundingClientRect(), { w, h } = view(); return { x: (cx - r.left - w / 2) / cam.z + cam.x, y: (cy - r.top - h / 2) / cam.z + cam.y }; };
@@ -131,11 +132,10 @@ function glideTo(x, y, z, quick, done) { // (quick: a shorter glide that keeps t
   glideRaf = requestAnimationFrame(step);
 }
 const glideHome = () => glideTo(0, 0, 1);
-function glideToItem(it) { // a frame fills the view; anything else comes to the middle at full size
+function glideToItem(it) { // it comes to the middle at full size
   const c = els.get(it.id); if (!c) return;
   const w = c.offsetWidth, h = c.offsetHeight, v = view();
-  const z = it.type === 'frame' ? Math.min(1.6, Math.max(.35, Math.min(v.w * .86 / w, (v.h - 150) * .86 / h))) : 1;
-  glideTo(it.x + w / 2, it.y + h / 2 + (it.type === 'frame' ? 20 / z : 0), z, false, () => arriveAt(it.id)); select(it.id);
+  glideTo(it.x + w / 2, it.y + h / 2, 1, false, () => arriveAt(it.id)); select(it.id);
 }
 function deskGoTo(id) { // go to something, on whichever board it is (search)
   const it = itemOf(id); if (!it) return false;
@@ -150,7 +150,7 @@ function deskMark(snap) { if (editSnap && !snap) editCommit(); undoS.push(snap |
 function deskRestore(str) { const o = JSON.parse(str); Object.assign(S.board, o); select(null); save(); drawBoard(); }
 function deskUndo() { editCommit(); if (!undoS.length) return; redoS.push(deskSnap()); deskRestore(undoS.pop()); deskSfx('pick'); deskUndoState(); }
 function deskRedo() { if (!redoS.length) return; undoS.push(deskSnap()); deskRestore(redoS.pop()); deskSfx('pick'); deskUndoState(); }
-// writing in a note (or a frame's name) counts as one step, from when you start to when you put the pen down
+// writing in a note (or a caption) counts as one step, from when you start to when you put the pen down
 let editSnap = null;
 function editCommit() { if (!editSnap) return; const s = editSnap; editSnap = null; if (deskSnap() !== s) deskMark(s); } // the writing so far becomes one step
 document.addEventListener('focusin', e => { if (e.target.isContentEditable && ws.contains(e.target)) editSnap = deskSnap(); });
@@ -165,7 +165,6 @@ const DESK_ICONS = {
   note: '<path d="M5 3.5h10l4 4v13H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 16h4.5"/>',
   photo: '<path d="M4 3.5h16v17H4z"/><path d="M7 6.5h10v9H7z"/><path d="M7 13.5l3-3 2.5 2.5 1.5-1.5 3 3"/>',
   table: '<path d="M3.5 4.5h17v15h-17z"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/>',
-  label: '<path d="M4 9v11h16V9" stroke-dasharray="2.2 2.4"/><path d="M4 4.5h9V9H4z"/>',
   folder: '<path d="M3.5 5.5h6l2 2.5h9v12h-17z"/><path d="M3.5 11h17"/>',
   find: '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>',
   undo: '<path d="M8.5 13.5L4 9l4.5-4.5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
@@ -217,8 +216,7 @@ const tableKey = deskBtn(deskIcon('table'), () => addTable(), 'sx-ws-ic', 'Table
 const menuB = deskBtn([deskIcon('boards'), el('span', { class: 'sx-ic-car', 'aria-hidden': 'true' }, '▸')], deskMenuOpen, 'sx-ws-ic sx-ws-menub', 'Boards');
 const deskBar = el('div', { class: 'sx-ws-bar sx-ws-side', role: 'toolbar', 'aria-orientation': 'vertical', 'aria-label': 'Desk' },
   el('div', { class: 'sx-ws-grp' }, menuB),
-  el('div', { class: 'sx-ws-grp' }, deskBtn(deskIcon('note'), () => addNoteAt(freeSpot()), 'sx-ws-ic', 'Note: pin a new one (or double-click the desk)'), deskBtn(deskIcon('photo'), () => deskFile.click(), 'sx-ws-ic', 'Photo: hang one (or drop or paste it on)'), tableKey,
-    deskBtn(deskIcon('label'), () => addFrameAt(), 'sx-ws-ic', 'Label: a light, named area to keep part of the desk tidy'), deskBtn(deskIcon('folder'), () => addHopper(), 'sx-ws-ic', 'Hopper: a folder that opens another board'), deskFile),
+  el('div', { class: 'sx-ws-grp' }, deskBtn(deskIcon('note'), () => addNoteAt(freeSpot()), 'sx-ws-ic', 'Note: pin a new one (or double-click the desk)'), deskBtn(deskIcon('photo'), () => deskFile.click(), 'sx-ws-ic', 'Photo: hang one (or drop or paste it on)'), tableKey, deskBtn(deskIcon('folder'), () => addHopper(), 'sx-ws-ic', 'Hopper: a folder that opens another board'), deskFile),
   el('div', { class: 'sx-ws-grp' }, undoB, redoB),
   deskMenu);
 ws.after(deskBar);
@@ -245,7 +243,7 @@ function select(id, add) {
   else if (add && picked.has(id)) { groupOf(id).forEach(x => picked.delete(x)); selId = picked.size ? [...picked].pop() : null; }
   else { if (!add) picked.clear(); groupOf(id).forEach(x => picked.add(x)); selId = id; }
   els.forEach((c, k) => c.classList.toggle('sel', picked.has(k)));
-  noteBarTo(selId); deskSelBar(); selBoxUpdate();
+  noteBarTo(selId); deskSelBar(); selBoxUpdate(); if (typeof gtagSync === 'function') gtagSync();
 }
 function deskSelBar() {
   const items = [...picked].map(itemOf).filter(Boolean);
@@ -267,21 +265,50 @@ async function deskDuplicate() { // Ctrl+D: a copy of what's picked, just beside
   deskMark(); const now = Date.now(), ids = [], gmap = {};
   for (const [k, it] of src.entries()) {
     const c = JSON.parse(JSON.stringify(it)); c.id = ((String(it.id).match(/^[a-z]+/i) || ['n'])[0]) + now + '-' + k; c.x = it.x + 28; c.y = it.y + 28; delete c.key;
-    if (c.group) c.group = gmap[c.group] || (gmap[c.group] = 'g' + now + '-' + k); // (a copied group is a group of its own)
+    if (c.group) { const g0 = c.group; c.group = gmap[g0] || (gmap[g0] = 'g' + now + '-' + k); if (B.gnames[g0]) B.gnames[c.group] = B.gnames[g0]; } // (a copied group is a group of its own, with the same name)
     if (it.type === 'photo') { try { const p = await PHOTOS.get(it.id); if (p) await PHOTOS.put(c.id, p); } catch (e) { continue; } }
     B.items.push(c); ids.push(c.id);
   }
   save(); drawBoard(); select(ids[0]); ids.slice(1).forEach(id => { if (!picked.has(id)) select(id, true); }); deskSfx('pin');
 }
-function deskGroup() { if (picked.size < 2) return; deskMark(); const g = 'g' + Date.now(); picked.forEach(id => { const it = itemOf(id); if (it) it.group = g; }); save(); deskSfx('tie'); deskSelBar(); deskToast('Grouped: they move together now'); }
-function deskUngroup() { if (![...picked].some(id => (itemOf(id) || {}).group)) return; deskMark(); picked.forEach(id => { const it = itemOf(id); if (it) delete it.group; }); save(); deskSfx('pick'); deskSelBar(); } // (they stay picked, just no longer tied together)
-function deskDelete() { const ids = [...picked].filter(id => { const it = itemOf(id); return !(it && it.lock); }); if (!ids.length) { if (picked.size) deskToast('That label is locked'); return; } deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }
+function deskGroup() { if (picked.size < 2) return; deskMark(); const g = 'g' + Date.now(); picked.forEach(id => { const it = itemOf(id); if (it) it.group = g; }); save(); deskSfx('tie'); setTimeout(() => { gtagSync(); if (!gtag.hidden) { gtagT.focus(); const r = document.createRange(); r.selectNodeContents(gtagT); r.collapse(false); getSelection().removeAllRanges(); getSelection().addRange(r); } }, 0); deskSelBar(); deskToast('Grouped: they move together now'); }
+function deskUngroup() { if (![...picked].some(id => (itemOf(id) || {}).group)) return; deskMark(); picked.forEach(id => { const it = itemOf(id); if (it) { delete B_().gnames[it.group]; delete it.group; } }); save(); deskSfx('pick'); deskSelBar(); } // (they stay picked, just no longer tied together)
+/* ---------- a group's name: a small tag over the group's top left. Point at a card in a named group and its name shows;
+   pick the whole group and the tag is there to name or rename it (grouping with Ctrl+G starts you writing it) ---------- */
+const gtagT = el('span', { class: 'sx-gtag-t', spellcheck: 'false', 'aria-label': 'Group name', 'data-ph': 'Name this group' });
+const gtag = el('div', { class: 'sx-gtag', hidden: true }, gtagT);
+world.append(gtag);
+let gtagG = null, gtagHover = null;
+gtag.addEventListener('pointerdown', e => e.stopPropagation()); // (writing in it doesn't pick up or move the desk)
+gtagT.addEventListener('input', () => { if (!gtagG) return; const t = gtagT.textContent.replace(/\s+/g, ' ').trim().slice(0, 60); if (t) B_().gnames[gtagG] = t; else delete B_().gnames[gtagG]; saveSoon(); });
+gtagT.addEventListener('blur', () => setTimeout(gtagSync, 0));
+function groupPicked() { // the group, when what's picked is exactly one whole group
+  const its = [...picked].map(itemOf), g = its[0] && its[0].group; if (!g || its.some(i => !i || i.group !== g)) return null;
+  return groupOf(its[0].id).every(id => picked.has(id)) ? g : null;
+}
+function gtagSync() {
+  const pickedG = groupPicked(), g = pickedG || gtagHover, name = g && B_().gnames[g];
+  if (document.activeElement === gtagT) { if (gtagG) gtagPlace(); return; } // (being written in: it stays)
+  if (!g || !pickedG && !name || world.classList.contains('carrying')) { gtag.hidden = true; gtagG = null; return; }
+  gtagG = g; gtagT.contentEditable = pickedG ? 'true' : 'false'; gtag.classList.toggle('edit', !!pickedG);
+  if (gtagT.textContent !== (name || '')) gtagT.textContent = name || '';
+  gtag.hidden = false; gtagPlace();
+}
+function gtagPlace() {
+  let x0 = Infinity, y0 = Infinity; const B = B_();
+  B.items.forEach(i => { if (i.group !== gtagG || i.board !== B.cur) return; const c = els.get(i.id); if (!c) return; x0 = Math.min(x0, c.offsetLeft); y0 = Math.min(y0, c.offsetTop); });
+  if (!isFinite(x0)) { gtag.hidden = true; return; }
+  gtag.style.left = x0 + 'px'; gtag.style.top = y0 + 'px'; gtag.style.setProperty('--cz', String(cam.z));
+}
+ws.addEventListener('pointerover', e => { const c = e.target.closest && e.target.closest('.sx-world .sx-bcard'), it = c && itemOf(c.dataset.id), g = it && it.group || null; if (g !== gtagHover) { gtagHover = g; gtagSync(); } });
+ws.addEventListener('pointerleave', () => { if (gtagHover) { gtagHover = null; gtagSync(); } });
+function deskDelete() { const ids = [...picked]; if (!ids.length) return; deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }
 function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
 /* ---------- what's on the desk ---------- */
 function deskDrawKeys() {
   const items = B_().items.filter(it => it.board === B_().cur && it.key).sort((a, b) => a.key - b.key);
-  deskKeys.replaceChildren(...items.map(it => { const b = deskBtn(String(it.key), () => glideToItem(it)); b.title = (it.text || { photo: 'A photo', draw: 'A drawing', frame: 'A label', hop: 'A folder', wb: 'A whiteboard' }[it.type] || 'A note').slice(0, 60); return b; }));
+  deskKeys.replaceChildren(...items.map(it => { const b = deskBtn(String(it.key), () => glideToItem(it)); b.title = (it.text || { photo: 'A photo', hop: 'A folder', tbl: 'A table' }[it.type] || 'A note').slice(0, 60); return b; }));
 }
 function setKey(it, n) { // one number, one thing (on this board)
   deskMark(); const had = it.key === n;
@@ -321,20 +348,6 @@ function paperCard(it) { // a note or a photo
   const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
   return c;
 }
-const FRAME_INKS = ['amber', 'mint', 'coral', 'yellow', 'cream', 'green'];
-function frameCard(it) { // a frame: a labelled area. Its name is the handle; the inside lets clicks through to the desk
-  const label = el('div', { class: 'sx-frame-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': 'Label name', 'data-ph': 'Name this area' }, it.text || '');
-  label.addEventListener('input', () => { it.text = label.textContent.replace(/\s+/g, ' ').slice(0, 80); saveSoon(); }); // (textContent: the name as typed, not as shown in capitals)
-  const sws = el('span', { class: 'sx-frame-sw' }, ...FRAME_INKS.map(k => el('button', { type: 'button', class: 'sx-sw' + ((it.color || 'amber') === k ? ' on' : ''), style: 'background:' + inkOf(k), 'aria-label': k + ' label', title: k, onclick: () => { deskMark(); it.color = k; save(); drawBoard(); } })));
-  const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Take the label away', title: 'Take the label away', onclick: () => removeOne(it) }, '×');
-  // the lock: a locked label stays put (dragging it moves the desk instead), can't be resized, and isn't deleted with the rest
-  const lk = el('button', { type: 'button', class: 'sx-frame-lock', 'aria-pressed': String(!!it.lock), 'aria-label': it.lock ? 'Unlock the label' : 'Lock the label in place', title: it.lock ? 'Locked: click to unlock' : 'Lock it in place', onclick: () => { deskMark(); if (it.lock) delete it.lock; else it.lock = true; save(); deskSfx(it.lock ? 'pin' : 'pick'); drawBoard(); } });
-  lk.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="' + (it.lock ? 'M5.5 7V5a2.5 2.5 0 0 1 5 0v2' : 'M5.5 7V5a2.5 2.5 0 0 1 4.9-.7') + '"/></svg>';
-  return el('div', { class: 'sx-bcard sx-bframe' + (it.lock ? ' locked' : ''), 'data-id': it.id, style: 'left:' + it.x + 'px;top:' + it.y + 'px;width:' + it.w + 'px;height:' + it.h + 'px;--tilt:0deg;--fc:' + inkOf(it.color || 'amber') },
-    el('div', { class: 'sx-frame-h' }, ...[keyBadge(it), label, sws, lk, x].filter(Boolean)),
-    ...['t', 'r', 'b', 'l'].map(k => el('span', { class: 'sx-fe sx-fe-' + k, title: 'Drag to move the label' })), // its edges are handles too
-    el('span', { class: 'sx-resize', title: 'Drag to resize' }));
-}
 // (versions 49 and 50 lost the place of anything dragged: those come back in a neat row near the middle of their board, to be put where they belong)
 { const lost = {}; S.board.items.forEach(it => { if (Number.isFinite(it.x) && Number.isFinite(it.y)) return; const n = lost[it.board] = (lost[it.board] || 0) + 1; it.x = -300 + ((n - 1) % 4) * 340; it.y = 260 + Math.floor((n - 1) / 4) * 300; }); if (Object.keys(lost).length) save(); }
 { const B = S.board; B.items = B.items.filter(it => it.type !== 'sticker'); B.items.forEach(it => { delete it.hold; delete it.on; }); } // (stickers and holders were here once)
@@ -356,10 +369,9 @@ const zOf = c => +c.style.zIndex || 0;
 // press a card and it comes to the front: the top level, and the end of the desk's list so it stays on top next time
 // (labels are areas under everything, so they stay where they are)
 function deskRaise(it, c) {
-  if (it.type === 'frame') return;
   const B = B_();
   if (it.group) { // a group comes forward as one, keeping its own order inside (a small photo on a note stays on the note)
-    const ms = B.items.filter(x => x.group === it.group && x.board === it.board && x.type !== 'frame' && els.get(x.id));
+    const ms = B.items.filter(x => x.group === it.group && x.board === it.board && els.get(x.id));
     if (ms.every((x, i) => zOf(els.get(x.id)) === layerTop - 2 * (ms.length - 1 - i))) return;
     ms.forEach(x => { els.get(x.id).style.zIndex = String(layerTop += 2); });
     const set = new Set(ms); B.items = B.items.filter(x => !set.has(x)).concat(ms); save(); strUpdate(); return;
@@ -378,23 +390,24 @@ function drawBoard() {
   const old = new Map(els), keep = new Map();
   items.forEach(it => { const c = old.get(it.id); if (c && c._it === it && it.type !== 'hop' && c.isConnected && c._snap === cardSnap(it)) keep.set(it.id, c); });
   old.forEach((c, id) => { if (keep.get(id) !== c) c.remove(); });
-  [...layer.children, ...frameLayer.children].forEach(c => { if (c.classList.contains('sx-bcard') && !keep.has(c.dataset.id)) c.remove(); }); // (anything left over)
+  [...layer.children].forEach(c => { if (c.classList.contains('sx-bcard') && !keep.has(c.dataset.id)) c.remove(); }); // (anything left over)
   els.clear(); carried.clear(); strInner.clear(); world.classList.remove('carrying');
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
     // (folders and tables come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
-    if (it.type === 'wb' || it.type === 'draw' || it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function') return; // (an old drawing waits to be turned into a photo: js/draw.js)
+    if (it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function') return; 
     let c = keep.get(it.id);
     if (c) { const l = it.x + 'px', t = it.y + 'px'; if (c.style.left !== l) c.style.left = l; if (c.style.top !== t) c.style.top = t; }
-    else { c = cardMade(it.type === 'frame' ? frameCard(it) : it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it), it);
-      (it.type === 'frame' ? frameLayer : layer).append(c); }
+    else { c = cardMade(it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it), it);
+      layer.append(c); }
     c.classList.toggle('sel', picked.has(it.id));
     els.set(it.id, c);
   });
-  layerTop = 0; items.forEach(it => { const c = it.type !== 'frame' && els.get(it.id); if (!c) return; layerTop += 2; const z = String(layerTop); if (c.style.zIndex !== z) c.style.zIndex = z; }); // (stacked in the desk's order)
+  layerTop = 0; items.forEach(it => { const c = els.get(it.id); if (!c) return; layerTop += 2; const z = String(layerTop); if (c.style.zIndex !== z) c.style.zIndex = z; }); // (stacked in the desk's order)
   czApply();
   deskBoardTools(); deskDrawKeys(); noteBarTo(selId); deskSelBar();
   requestAnimationFrame(() => { drawStrings(); selBoxUpdate(); });
+  if (typeof gtagSync === 'function') gtagSync();
 }
 const posOf = id => { const k = carried.get(id); if (k) return { x: k.it.x + k.w / 2, y: k.it.y + 10 }; // (being carried: from its own numbers, no measuring)
   const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + 10 } : null; };
@@ -419,30 +432,6 @@ function strHot() {
   kin.forEach(id => { const c = els.get(id); if (c && !c.classList.contains('kin')) c.classList.add('kin'); }); strKin = kin;
 }
 var strKin; // (var: strHot can run before this line has)
-// walk the strings: with a card picked, Tab goes through every card tied to it, directly or through others, one by one.
-// It follows a string as far as it goes; at a dead end it goes back to the nearest card with a string not yet followed
-// and takes that one, until it has been everywhere. Shift+Tab steps back through the same order.
-// (where a card has several strings, it takes the shortest first: the nearest card, measured centre to centre)
-const walk = { root: null, order: [], at: 0 };
-function walkOrder(root) {
-  const B = B_(), seen = new Set([root]), order = [root], mid = id => { const c = els.get(id); return c ? [c.offsetLeft + c.offsetWidth / 2, c.offsetTop + c.offsetHeight / 2] : [0, 0]; };
-  const next = id => B.links.filter(l => l.includes(id)).map(l => l[0] === id ? l[1] : l[0]).filter(n => els.has(n) && !seen.has(n))
-    .map(n => { const p = mid(id), q = mid(n); return [n, Math.hypot(q[0] - p[0], q[1] - p[1])]; }).sort((a, b) => a[1] - b[1]).map(x => x[0]);
-  const go = id => next(id).forEach(n => { if (seen.has(n)) return; seen.add(n); order.push(n); go(n); });
-  go(root); return order;
-}
-function strWalk(back) {
-  const cur = selId;
-  if (walk.order[walk.at] !== cur) { walk.root = cur; walk.order = walkOrder(cur); walk.at = 0; } // (a new walk starts from wherever you are)
-  else { const o = walkOrder(walk.root), i = o.indexOf(cur); if (i >= 0) { walk.order = o; walk.at = i; } } // (strings tied or cut since: the order follows)
-  if (walk.order.length < 2) return false; // (nothing tied to it: Tab does what it usually does)
-  let i = walk.at + (back ? -1 : 1);
-  if (i >= walk.order.length) { i = 0; deskToast('Been through all ' + walk.order.length + ': back to the start'); }
-  if (i < 0) { i = walk.order.length - 1; deskToast('Back round to the last one'); }
-  walk.at = i; const id = walk.order[i], it = itemOf(id), c = els.get(id); if (!it || !c) return true;
-  select(id); deskRaise(it, c); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true, () => arriveAt(id)); // (quietly)
-  return true;
-}
 layer.addEventListener('pointerover', e => { const c = e.target.closest('.sx-bcard'); const id = c ? c.dataset.id : null; if (id !== strOver) { strOver = id; strHot(); if (c && !e.buttons) brushCard(c, brushV.x); } });
 // brushing past: the mouse grazes a note or photo and it rocks on its pin a little; it plucks a string and the string wobbles.
 // (only when the pointer comes onto one, and only while it moves: nothing runs while the desk is still)
@@ -496,6 +485,7 @@ function strUpdate(only) { // only: a Set of card ids, to redraw just the string
   if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
   else if (strTempP) { strTempP.remove(); strTempP = null; }
   if (picked.size > 1 && !selShift) selBoxUpdate();
+  if (!(only instanceof Set) && typeof gtagSync === 'function') gtagSync(); // (things put down: the group's name follows)
 }
 let wobRaf = 0;
 function wobKick(id, vx, vy) { // the middle of the string lags behind the end you move (id: one card, or a Set of them)
@@ -544,12 +534,6 @@ function addNoteAt(p) {
   deskMark(); const id = 'n' + Date.now(); B_().items.push({ id, type: 'note', board: B_().cur, x: Math.round(p.x), y: Math.round(p.y), text: '' }); save(); select(id); drawBoard(); deskLand(id, true);
   const t = layer.querySelector('[data-id="' + id + '"] .sx-note-t'); if (t) { editSnap = null; t.focus({ preventScroll: true }); }
 }
-function addFrameAt(r) {
-  if (!r) { const p = freeSpot(); r = { x: p.x, y: p.y - 120, w: 520, h: 340 }; } // (a set size, however far out you've zoomed, away from the clock)
-  deskMark(); deskSfx('pin'); const id = 'f' + Date.now();
-  B_().items.push({ id, type: 'frame', board: B_().cur, x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h), text: '', color: 'amber' }); save(); select(id); drawBoard();
-  const t = els.get(id) && els.get(id).querySelector('.sx-frame-t'); if (t) { editSnap = null; t.focus({ preventScroll: true }); }
-}
 const devFresh = new Map(); // photos just added (id -> when): they develop when they first show, picking up where they were if the desk is drawn again
 async function addPhotos(files, at) {
   let k = 0; const added = [];
@@ -594,7 +578,7 @@ addEventListener('paste', e => {
 /* ---------- hands: panning, picking, dragging, strings ---------- */
 // a click on a note's words (when you weren't already writing in it) puts the pen right there
 function deskWriteIn(id) {
-  const c = els.get(id), txt = c && c.querySelector('.sx-note-t, .sx-cap-t, .sx-frame-t, .sx-tc'); if (!txt) return false;
+  const c = els.get(id), txt = c && c.querySelector('.sx-note-t, .sx-cap-t, .sx-tc'); if (!txt) return false;
   txt.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(txt); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
   return true;
 }
@@ -608,9 +592,9 @@ function deskEditAt(txt, x, y) {
   r.collapse(inside); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
 }
 // pressing on a card never starts a text selection or moves the pen by itself (the gesture decides: drag, or put the pen there)
-[layer, frameLayer].forEach(L => L.addEventListener('mousedown', e => {
-  if (e.button !== 0 || e.target.closest('.sx-fmt, .sx-bnote-x, .sx-frame-sw')) return;
-  const t = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t, .sx-tc');
+[layer].forEach(L => L.addEventListener('mousedown', e => {
+  if (e.button !== 0 || e.target.closest('.sx-fmt, .sx-bnote-x')) return;
+  const t = e.target.closest('.sx-note-t, .sx-cap-t, .sx-tc');
   if (e.target.closest('.sx-bcard') && (!t || document.activeElement !== t)) e.preventDefault();
 }));
 // the right button pans, over anything on the desk; only while you're writing in something does it bring up the usual menu there (copy, paste)
@@ -638,7 +622,7 @@ function deskPan(e) {
   const up = () => { ws.removeEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.removeEventListener(k, up)); ws.classList.remove('panning'); if (moved) { panMovedAt = performance.now(); if (!deskFling(samp)) camSave(); } };
   ws.addEventListener('pointermove', move); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => ws.addEventListener(k, up));
 }
-function deskMarquee(e) { // Shift+drag on the empty desk: pick everything the box touches (frames only when wholly inside)
+function deskMarquee(e) { // Shift+drag on the empty desk: pick everything the box touches
   const a = toWorld(e.clientX, e.clientY); let b = a;
   e.preventDefault(); ws.setPointerCapture(e.pointerId);
   const rect = () => ({ x0: Math.min(a.x, b.x), y0: Math.min(a.y, b.y), x1: Math.max(a.x, b.x), y1: Math.max(a.y, b.y) });
@@ -648,7 +632,7 @@ function deskMarquee(e) { // Shift+drag on the empty desk: pick everything the b
     const r = rect(); if (r.x1 - r.x0 < 4 && r.y1 - r.y0 < 4) return;
     els.forEach((c, id) => {
       const x0 = c.offsetLeft, y0 = c.offsetTop, x1 = x0 + c.offsetWidth, y1 = y0 + c.offsetHeight, it = itemOf(id);
-      const hit = it && it.type === 'frame' ? x0 >= r.x0 && y0 >= r.y0 && x1 <= r.x1 && y1 <= r.y1 : x0 < r.x1 && x1 > r.x0 && y0 < r.y1 && y1 > r.y0;
+      const hit = x0 < r.x1 && x1 > r.x0 && y0 < r.y1 && y1 > r.y0;
       if (hit && !picked.has(id)) select(id, true);
     });
   };
@@ -662,9 +646,9 @@ ws.addEventListener('pointerdown', e => {
   const c = e.target.closest('.sx-bcard');
   if (c) {
     const id = c.dataset.id, it = itemOf(id); if (!it) return;
-    const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-frame-t, .sx-tc');
+    const txt = e.target.closest('.sx-note-t, .sx-cap-t, .sx-tc');
     if (txt && document.activeElement === txt) { if (!picked.has(id)) select(id); return; } // already writing in it: the pointer selects text as usual
-    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-frame-sw, .sx-frame-lock, .sx-wb-h button, .sx-hop-tabb, .sx-tbl-v, .sx-tbl-pick, .sx-from')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
+    if (e.target.closest('.sx-bnote-x, .sx-fmt, .sx-hop-tabb, .sx-tbl-v, .sx-tbl-pick, .sx-from')) { if (!picked.has(id)) select(id); return; } // taking it down, or formatting
     if (e.shiftKey && !e.target.classList.contains('sx-pin')) { e.preventDefault(); select(id, true); return; } // Shift+click: pick it too (or let it go)
     const wasPicked = picked.has(id); // (the first click picks it; a click on it once it's picked starts writing)
     if (!picked.has(id)) select(id); else { selId = id; noteBarTo(id); }
@@ -680,12 +664,6 @@ ws.addEventListener('pointerdown', e => {
       const fin = ev => { if (over) return; over = true; cancelAnimationFrame(raf); step(); c.removeEventListener('pointermove', queue); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.removeEventListener(k, fin)); end(ev); };
       c.addEventListener('pointermove', queue); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => c.addEventListener(k, fin));
     };
-    if (it.lock) { // a locked label stays put: a drag on it moves the desk, a click on its name still lets you rename it
-      const s = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; let panned = false;
-      track(ev => { if (!panned && Math.hypot(ev.clientX - s.x, ev.clientY - s.y) < 4) return; panned = true; ws.classList.add('panning'); cam.x = s.cx - (ev.clientX - s.x) / cam.z; cam.y = s.cy - (ev.clientY - s.y) / cam.z; placeSoon(); },
-        ev => { ws.classList.remove('panning'); if (panned) { camSave(); return; } if (ev.type === 'pointerup' && txt && wasPicked) deskEditAt(txt, ev.clientX, ev.clientY); });
-      return;
-    }
     if (e.target.classList.contains('sx-resize') && it.type === 'photo') { // a photo's corner: bigger or smaller, keeping its shape
       const w0 = c.offsetWidth, snap = deskSnap(); c.classList.add('sizing');
       track(ev => { it.w = Math.round(Math.max(120, Math.min(1600, w0 + (ev.clientX - start.x) / cam.z))); c.style.width = it.w + 'px'; strUpdate(); },
@@ -693,8 +671,8 @@ ws.addEventListener('pointerdown', e => {
       return;
     }
     if (e.target.classList.contains('sx-resize')) { // the corner: make it bigger or smaller
-      const w0 = c.offsetWidth, h0 = c.offsetHeight, snap = deskSnap(), fr = it.type === 'frame' || it.type === 'wb', lim = it.type === 'frame' ? [200, 6000, 140, 4000] : it.type === 'wb' ? [260, 4000, 180, 3000] : it.type === 'tbl' ? [240, 1400, 80, 2000] : [160, 760, 90, 960];
-      c.classList.add('sizing'); if (!fr) c.classList.add('sized');
+      const w0 = c.offsetWidth, h0 = c.offsetHeight, snap = deskSnap(), lim = it.type === 'tbl' ? [240, 1400, 80, 2000] : [160, 760, 90, 960];
+      c.classList.add('sizing', 'sized');
       track(ev => { it.w = Math.round(Math.max(lim[0], Math.min(lim[1], w0 + (ev.clientX - start.x) / cam.z))); it.h = Math.round(Math.max(lim[2], Math.min(lim[3], h0 + (ev.clientY - start.y) / cam.z)));
         c.style.width = it.w + 'px'; c.style.height = it.h + 'px'; strUpdate(); },
         () => { c.classList.remove('sizing'); if (deskSnap() !== snap) deskMark(snap); save(); });
@@ -718,10 +696,10 @@ ws.addEventListener('pointerdown', e => {
         dragging = true; snap = deskSnap(); c.classList.add('lift'); deskSfx('lift'); // (a low tock, like pulling it off its pin)
         const ids = new Set(picked.has(id) ? picked : [id]);
         const at = new Map(B_().items.map((x, i) => [x.id, i]));
-        movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c && !m.it.lock).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })) // (a locked label stays behind)
+        movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })) // (a locked label stays behind)
           .sort((a, b) => at.get(a.it.id) - at.get(b.it.id)); // (in the order they lie, so what was on top stays on top)
         world.classList.add('carrying'); moverIds = new Set(movers.map(m => m.it.id)); movers.forEach(m => { carried.set(m.it.id, { it: m.it, w: m.c.offsetWidth }); m.c.classList.add('carry', 'lift'); }); // (everything carried lifts off the board with its shadow) selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
-        movers.forEach(m => { if (m.it.type !== 'frame') m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
+        movers.forEach(m => { m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         // carried things hold still while they move (the swing and the sway play when you pick them up and put them down):
         // the cards slide as finished layers, strings inside the group slide with them, and only strings reaching out are redrawn
         B_().links.forEach(l => { if (moverIds.has(l[0]) || moverIds.has(l[1])) wob.delete(lk(l)); });
@@ -797,8 +775,8 @@ addEventListener('resize', placeCam);
 // (registered on window in the capture phase so it runs before the timer's own keys)
 addEventListener('keydown', e => {
   const t = e.target;
-  if (t && t.isContentEditable) { // writing: the keys are yours, Esc puts the pen down (Enter too, for a frame's name)
-    if (t.classList.contains('sx-frame-t') && e.key === 'Enter') { e.preventDefault(); t.blur(); }
+  if (t && t.isContentEditable) { // writing: the keys are yours, Esc puts the pen down (Enter too, for a group's name)
+    if (t.classList.contains('sx-gtag-t') && e.key === 'Enter') { e.preventDefault(); t.blur(); } // (a group's name: Enter is done)
     if (t.classList.contains('sx-tc')) { tblKeys(e, t); e.stopPropagation(); return; } // a table's cell: moving between cells (js/table.js)
     noteKeys(e, t);
     if (e.key === 'Escape' && !e.defaultPrevented) { e.preventDefault(); t.blur(); }
@@ -817,9 +795,8 @@ addEventListener('keydown', e => {
   }
   if (e.altKey || e.ctrlKey || e.metaKey) return;
   if ((e.key === 'Delete' || e.key === 'Backspace') && picked.size) { stop(); deskDelete(); return; }
-  if (e.key === 'Tab' && selId && strWalk(e.shiftKey)) { stop(); return; } // follow the strings from the picked card
   if (e.key === 'Enter' && !e.shiftKey && picked.size === 1 && deskWriteIn(selId)) { stop(); return; } // Enter: start writing in it, at the end
-  const m = /^Digit([0-9])$|^Numpad([0-9])$/.exec(e.code); if (!m) { if (e.key === 'Escape' && picked.size) select(null); return; }
+  const m = /^Digit([0-9])$|^Numpad([0-9])$/.exec(e.code); if (!m) { if (e.key === 'Escape' && picked.size && !(typeof flowCyc !== 'undefined' && flowCyc)) select(null); return; }
   const n = +(m[1] || m[2]); stop();
   if (n === 0) { glideHome(); return; }
   if (e.shiftKey) { const it = selId && itemOf(selId); if (it) setKey(it, n); return; }

@@ -1,17 +1,7 @@
-/* Cassette Timer: the look. Cassette skins: the console's accent colour (the keys, the reels, the frame's outline, the
-   cassette on the desk, the bar), in classic amber, mint, coral, or clear plastic you can see through. */
+/* Cassette Timer: the look. The desk, light or dark, and the paper's grain; the accent colour is the desk's own. */
 'use strict';
 
-const SKINS = [['amber', 'Classic', '#1c92a7'], ['mint', 'Mint', '#77d6c1'], ['coral', 'Coral', '#ff6157'], ['clear', 'Clear plastic', '#ffffe4']];
-function skinSet(k) {
-  if (!SKINS.some(s => s[0] === k)) k = 'amber';
-  S.opts.skin = k; document.documentElement.dataset.skin = k; save();
-  skinRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === k));
-}
-const skinRow = el('div', { class: 'sx-skins', role: 'radiogroup', 'aria-label': 'Cassette skin' }, ...SKINS.map(([k, name, col]) =>
-  el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:' + col, onclick: () => { skinSet(k); if (typeof tapeSound === 'function') tapeSound(); } }, el('i', {}), name)));
-settingsPane.append(sec('Look', el('p', { class: 'sl-muted' }, 'The cassette skin: the colour of the keys, the reels, the frame and the cassette on the desk.'), skinRow));
-skinSet(S.opts.skin || 'amber');
+delete S.opts.skin; document.documentElement.removeAttribute('data-skin');
 
 // the desk: dark (night) or white; on white, the deck, the bars and the panels turn cream and ink to match
 function deskTheme(k) {
@@ -20,7 +10,7 @@ function deskTheme(k) {
 }
 const deskRow = el('div', { class: 'sx-skins sx-desks', role: 'radiogroup', 'aria-label': 'Desk' }, ...[['night', 'Dark', '#030710'], ['white', 'White', '#f4f6f1']].map(([k, name, col]) =>
   el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:' + col, onclick: () => deskTheme(k) }, el('i', {}), name)));
-settingsPane.querySelector('.sx-skins').closest('.sx-sec').append(el('p', { class: 'sl-muted', style: 'margin-top:14px' }, 'The desk:'), deskRow);
+settingsPane.append(sec('Look', el('p', { class: 'sl-muted' }, 'The desk: light or dark.'), deskRow));
 deskTheme(S.opts.desk);
 
 

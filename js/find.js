@@ -26,7 +26,7 @@ function findRun() {
   const q = findIn.value.trim().toLowerCase(); findQ = q;
   if (!q) { findHits = []; findAt = -1; findDraw(); return; }
   const B = S.board, order = new Map(B.boards.map((b, i) => [b.id, b.id === B.cur ? -1 : i])); // this board first, then the others in order
-  findHits = B.items.filter(it => (it.type === 'note' || it.type === 'photo' || it.type === 'frame' || it.type === 'tbl') && findWords(it).toLowerCase().includes(q))
+  findHits = B.items.filter(it => (it.type === 'note' || it.type === 'photo' || it.type === 'tbl') && findWords(it).toLowerCase().includes(q))
     .sort((a, b) => (order.get(a.board) - order.get(b.board)) || (a.y - b.y) || (a.x - b.x));
   findAt = findHits.length ? 0 : -1; findDraw(); if (findAt >= 0) findGo();
 }
@@ -42,7 +42,7 @@ function findMark() { // light up the words on this board; the one you're on, br
   if (!findQ || findBar.hidden) return;
   const all = new Highlight(), now = new Highlight(), cur = findHits[findAt];
   findHits.forEach(it => {
-    const c = els.get(it.id); if (!c) return; const box = c.querySelector('.sx-note-t, .sx-cap-t, .sx-frame-t'); if (!box) return;
+    const c = els.get(it.id); if (!c) return; const box = c.querySelector('.sx-note-t, .sx-cap-t'); if (!box) return;
     const w = document.createTreeWalker(box, NodeFilter.SHOW_TEXT); let n;
     while ((n = w.nextNode())) { const s = n.data.toLowerCase(); let i = s.indexOf(findQ);
       while (i >= 0) { const r = new Range(); r.setStart(n, i); r.setEnd(n, i + findQ.length); (cur && cur.id === it.id ? now : all).add(r); i = s.indexOf(findQ, i + findQ.length); } }

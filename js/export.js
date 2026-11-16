@@ -29,7 +29,7 @@ function deskImportBackup() {
     const tag = '-' + Date.now().toString(36), num = v => isFinite(+v) ? Math.round(+v) : 0, str = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
     const bmap = new Map(), names = new Set(S.board.boards.map(b => b.name));
     const boards = d.boards.filter(b => b && b.id).slice(0, 50).map(b => { const id = 'b' + tag + bmap.size; bmap.set(b.id, id); let name = str(b.name, 40) || 'Board'; if (names.has(name)) name += ' (loaded)'; return { id, name }; });
-    const imap = new Map(), TYPES = ['note', 'photo', 'draw', 'frame', 'wb', 'hop', 'tbl'], TOOLS = ['pen', 'arrow', 'line', 'circle', 'box'];
+    const imap = new Map(), TYPES = ['note', 'photo', 'hop', 'tbl']; // (labels and drawings in an old backup stay behind)
     const items = d.items.filter(it => it && TYPES.includes(it.type) && bmap.has(it.board)).slice(0, 5000).map(it => {
       const id = String(it.id).replace(/[^\w-]/g, '').slice(0, 40) + tag; imap.set(it.id, id);
       const o = { id, type: it.type, board: bmap.get(it.board), x: num(it.x), y: num(it.y) };
@@ -38,8 +38,6 @@ function deskImportBackup() {
       if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; }
       if (it.type === 'tbl') Object.assign(o, tblClean(it));
       if (it.type === 'hop' && bmap.has(it.to)) o.to = bmap.get(it.to); // (a folder to a board that came in the same backup)
-      if (it.type === 'frame') Object.assign(o, { w: Math.max(200, num(it.w)), h: Math.max(140, num(it.h)), color: str(it.color, 12) || 'amber' }); if (it.type === 'frame' && it.lock === true) o.lock = true;
-      if (it.type === 'draw' || it.type === 'wb') Object.assign(o, { w: num(it.w), h: num(it.h), strokes: (Array.isArray(it.strokes) ? it.strokes : []).filter(s => s && TOOLS.includes(s.t) && Array.isArray(s.p)).map(s => ({ t: s.t, c: str(s.c, 12), s: Math.max(1, Math.min(12, num(s.s))), seed: num(s.seed), p: s.p.filter(q => Array.isArray(q)).slice(0, 4000).map(q => [+q[0] || 0, +q[1] || 0]) })) });
       return o;
     });
     const links = (Array.isArray(d.links) ? d.links : []).filter(l => Array.isArray(l) && imap.has(l[0]) && imap.has(l[1])).map(l => [imap.get(l[0]), imap.get(l[1])]);
@@ -47,7 +45,7 @@ function deskImportBackup() {
     deskMark();
     for (const [old, src] of Object.entries(d.photos || {})) if (imap.has(old) && typeof src === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,/.test(src)) { try { await PHOTOS.put(imap.get(old), src); } catch (e) { /* skip */ } }
     S.board.boards.push(...boards); S.board.items.push(...items); S.board.links.push(...links); S.board.cur = boards[0].id;
-    select(null); save(); drawBoard(); glideHome(); if (typeof drawToPhotos === 'function') drawToPhotos(); // (old drawings in it become photos)
+    select(null); save(); drawBoard(); glideHome();
     deskToast('Loaded ' + boards.length + (boards.length === 1 ? ' board' : ' boards'));
   });
   f.click();

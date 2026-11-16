@@ -24,7 +24,6 @@ const armBtn = (label, armed, act, cls) => { const b = el('button', { type: 'but
   b.addEventListener('click', () => { if (!b.classList.contains('arm')) { b.classList.add('arm'); b.textContent = armed; setTimeout(() => { if (b.isConnected) { b.classList.remove('arm'); b.textContent = label; } }, 4000); return; } act(); }); return b; };
 const minutes = (k, opts) => { const s = el('select', { 'aria-label': MODES[k] || k }, opts.map(v => el('option', { value: v, selected: S.set[k] === v || null }, String(v))));
   s.addEventListener('change', () => { S.set[k] = +s.value; save(); if (!running && mode === k) { left = length(mode); persistRun(); } draw(); }); return s; };
-const modeBtns = Object.keys(MODES).map(m => el('button', { type: 'button', class: 'sl-mode', 'data-m': m, onclick: () => { if (!running) setMode(m); } }, MODES[m]));
 const appBox = el('div', {});
 function drawAppSettings() { // sound, and installing
   const snd = el('button', { type: 'button', class: 'btn', 'aria-pressed': String(soundOn) }, soundOn ? 'Sound is on' : 'Sound is off');
@@ -41,7 +40,6 @@ const settingsPane = el('div', { class: 'sl-pane' },
     el('label', {}, 'Short break ', minutes('short', [3, 5, 7, 8, 10]), ' min'),
     el('label', {}, 'Long break ', minutes('long', [10, 15, 20, 30]), ' min'),
     el('label', {}, 'Long break every ', minutes('every', [2, 3, 4, 5, 6]), ' sessions'))),
-  sec('Switch by hand', el('p', { class: 'sl-muted' }, 'Normally the timer moves between focus and breaks for you.'), el('div', { class: 'sl-modes' }, modeBtns, el('button', { type: 'button', class: 'sl-mode', title: 'Skip to the next part (S)', onclick: () => skip() }, 'Skip'))),
   sec('Sound and app', appBox),
   el('div', { class: 'sx-sec sx-sec-last' }, el('h3', {}, 'Start over'), el('p', { class: 'sl-muted' }, 'Erases your settings, counts and every board. Save a backup from Board ▾ first if you might want it back.'), startOver));
 // (Clock and Feel are added below these by js/digits.js and js/feel.js)
@@ -77,6 +75,5 @@ function drawClock() {
 function draw() {
   drawClock();
   root.dataset.mode = mode;
-  modeBtns.forEach(b => { const on = b.dataset.m === mode; b.classList.toggle('on', on); b.disabled = running && !on; });
   startB.textContent = running ? 'Pause' : left < length(mode) && left > 0 ? 'Resume' : mode === 'focus' ? 'Start' : 'Start break';
 }

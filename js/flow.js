@@ -8,7 +8,7 @@
      step through the cards tied to it, dropping into one when you let go */
 'use strict';
 
-const FLOW_PAPER = '.sx-note-t, .sx-cap-t, .sx-frame-t';
+const FLOW_PAPER = '.sx-note-t, .sx-cap-t';
 const flowCaret = el('i', { class: 'sx-caret', 'aria-hidden': 'true' });
 let flowIdleT = 0, flowRaf = 0;
 
@@ -69,7 +69,7 @@ function flowAddCard(it) {
 function flowSpot(card, it, dir, nw, nh) {
   const B = B_(), w = card.offsetWidth, h = card.offsetHeight, gap = 70;
   let x = dir === 'right' ? it.x + w + gap : dir === 'left' ? it.x - nw - gap : it.x, y = dir === 'down' ? it.y + h + gap : dir === 'up' ? it.y - nh - gap : it.y;
-  const hit = (x, y) => B.items.some(o => { if (o.board !== B.cur || o.type === 'frame' || o === it) return false; const c = els.get(o.id); if (!c) return false;
+  const hit = (x, y) => B.items.some(o => { if (o.board !== B.cur || o === it) return false; const c = els.get(o.id); if (!c) return false;
     return x < o.x + c.offsetWidth + 20 && x + nw > o.x - 20 && y < o.y + c.offsetHeight + 20 && y + nh > o.y - 20; });
   const cw = corner.offsetWidth / 2 + 60, ch = corner.offsetHeight / 2 + 60;
   const onClock = (x, y) => x < cw && x + nw > -cw && y < ch && y + nh > -ch;
@@ -141,10 +141,11 @@ function flowBack(t) {
   const it = itemOf(id); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true, () => flowSoon(true)); flowSoon(true); deskSfx('pick');
 }
 
-/* ---------- Alt+Q: hold Alt and tap Q to step through the cards tied to this note (clockwise, from the right); let go of
-   Alt and you're writing in the one that's lit. Esc while Alt is held stays where you are ---------- */
+/* ---------- Alt+Q: hold Alt and tap Q to step through the cards tied to this one (clockwise, from the right), the view gliding
+   to each; let go of Alt and you're on the lit one: writing in it if you were writing, otherwise it's picked. Esc while
+   Alt is held goes back ---------- */
 let flowCyc = null;
-function flowCycle(t, step) {
+function flowCycle(t, step, edit) {
   if (!flowCyc) {
     const card = t.closest('.sx-bcard'), id = card && card.dataset.id, B = B_(), me = itemOf(id); if (!me) return;
     const cx = me.x + card.offsetWidth / 2, cy = me.y + card.offsetHeight / 2;
@@ -152,7 +153,7 @@ function flowCycle(t, step) {
       .map(o => { const c = els.get(o), it = itemOf(o); return { id: o, a: (Math.atan2(it.y + c.offsetHeight / 2 - cy, it.x + c.offsetWidth / 2 - cx) + Math.PI * 2) % (Math.PI * 2) }; })
       .sort((a, b) => a.a - b.a).map(o => o.id);
     if (!list.length) { deskToast('No strings from this note yet'); return; }
-    flowCyc = { from: id, list, i: step > 0 ? 0 : list.length - 1 };
+    flowCyc = { from: id, list, i: step > 0 ? 0 : list.length - 1, edit: edit !== false };
   } else flowCyc.i = (flowCyc.i + step + flowCyc.list.length) % flowCyc.list.length;
   layer.querySelectorAll('.sx-cyc').forEach(c => c.classList.remove('sx-cyc'));
   const c = els.get(flowCyc.list[flowCyc.i]); if (!c) return;
@@ -165,8 +166,8 @@ function flowShow(c) { // the view glides to each lit card in turn (at the same 
 function flowCycleEnd(go) {
   const cyc = flowCyc; flowCyc = null; if (!cyc) return;
   layer.querySelectorAll('.sx-cyc').forEach(c => c.classList.remove('sx-cyc'));
-  if (!go) { const back = els.get(cyc.from), it = itemOf(cyc.from); if (back && it) glideTo(it.x + back.offsetWidth / 2, it.y + back.offsetHeight / 2, cam.z, true, () => flowSoon(true)); else flowSoon(true); return; } // (Esc: back to the note you were in)
-  const id = cyc.list[cyc.i]; select(id); deskWriteIn(id); flowSoon(true); // (a photo: its caption; a table: its first cell)
+  if (!go) { const back = els.get(cyc.from), it = itemOf(cyc.from); if (!cyc.edit) select(cyc.from); if (back && it) glideTo(it.x + back.offsetWidth / 2, it.y + back.offsetHeight / 2, cam.z, true, () => flowSoon(true)); else flowSoon(true); return; } // (Esc: back to where you were)
+  const id = cyc.list[cyc.i]; select(id); if (cyc.edit) { deskWriteIn(id); flowSoon(true); } // (writing: you're writing in it; a photo: its caption; a table: its first cell. Not writing: it's just picked)
 }
 addEventListener('keyup', e => { if (e.key === 'Alt' && flowCyc) { e.preventDefault(); flowCycleEnd(true); } }, true);
 addEventListener('blur', () => flowCycleEnd(false));
@@ -180,7 +181,7 @@ function flowKeys(e, t) {
   if (FLOW_DIRS[k]) { e.preventDefault(); if (!e.repeat) noteChain(t, FLOW_DIRS[k]); return true; }
   if (k === 'KeyP') { e.preventDefault(); if (!e.repeat) flowPickPhoto(t); return true; }
   if (k === 'Backspace') { e.preventDefault(); if (!e.repeat) flowBack(t); return true; }
-  if (k === 'KeyQ') { e.preventDefault(); flowCycle(t, e.shiftKey ? -1 : 1); return true; }
+  if (k === 'KeyQ') { e.preventDefault(); flowCycle(t, e.shiftKey ? -1 : 1, true); return true; }
   return false;
 }
 // the browser's own Alt keys (the address bar, the menus) don't fire while you write on the desk's paper
@@ -191,3 +192,13 @@ addEventListener('keydown', e => {
   e.preventDefault(); e.stopPropagation();
   const s = getSelection(); if (s.modify) s.modify(e.shiftKey ? 'extend' : 'move', e.key === 'ArrowLeft' ? 'backward' : 'forward', 'word');
 }, true);
+
+// Alt+Q with a card picked (not writing in it): the same steps, and letting go of Alt just picks the lit card
+addEventListener('keydown', e => {
+  if (!e.altKey || e.ctrlKey || e.metaKey || e.code !== 'KeyQ' || flowBox()) return;
+  const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return;
+  if (flowCyc) { e.preventDefault(); e.stopPropagation(); flowCycle(null, e.shiftKey ? -1 : 1); return; }
+  const c = selId && els.get(selId); if (!c) return;
+  e.preventDefault(); e.stopPropagation(); flowCycle(c, e.shiftKey ? -1 : 1, false);
+}, true);
+addEventListener('keydown', e => { if (e.key === 'Escape' && flowCyc && !flowCyc.edit) { e.preventDefault(); e.stopImmediatePropagation(); flowCycleEnd(false); } }, true);

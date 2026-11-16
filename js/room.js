@@ -7,10 +7,10 @@
    A message over 5 MB is let go while it arrives (a small change in js/vendor/trystero/room.js). */
 'use strict';
 
-const ROOM = S.opts.room = Object.assign({ name: '', me: '', block: [], last: '', pic: '' }, S.opts.room || {});
+const ROOM = S.opts.room = Object.assign({ name: '', me: '', block: [], last: '', pic: '' }, S.opts.room || {}); delete ROOM.msgs; // (messages always stay as history now)
 if (!ROOM.me) { ROOM.me = 'u' + Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(36)).join('').slice(0, 14); save(); }
 const ROOM_COOL = 8000, ROOM_GAP = 4000, ROOM_MAX = 20; // you: one send every 8 s; each friend: one delivery taken every 4 s; at most 20 cards at once
-const ROOM_TYPES = ['note', 'photo', 'tbl', 'frame'];
+const ROOM_TYPES = ['note', 'photo', 'tbl'];
 const ROOM_DOTS = ['#77d6c1', '#ffb762', '#ff6157', '#9cb93b', '#ffd832', '#1c92a7', '#eb9c6e'];
 let room = null, roomCode = '', roomBusy = false, roomSay = null, roomCard = null, roomTell = null, roomSentAt = 0, roomTick = 0;
 const roomPeers = new Map(); // their browser's id -> { id, name } (id: who they are, kept across visits, for blocking)
@@ -126,7 +126,7 @@ async function roomSend(to) { // to: one friend's browser id, or null for everyo
   if (!room || !roomCard) return;
   const left = ROOM_COOL - (Date.now() - roomSentAt); if (left > 0) { deskToast('Wait ' + Math.ceil(left / 1000) + ' s before sending again'); return; }
   const its = [...picked].map(itemOf).filter(it => it && ROOM_TYPES.includes(it.type)).slice(0, ROOM_MAX);
-  if (!its.length) { deskToast('Notes, photos, tables and labels can be sent'); return; }
+  if (!its.length) { deskToast('Notes, photos and tables can be sent'); return; }
   const targets = to ? [to] : roomOnline().map(([pid]) => pid); if (!targets.length) return;
   const ids = new Set(its.map(it => it.id)), x0 = Math.min(...its.map(it => it.x)), y0 = Math.min(...its.map(it => it.y));
   const items = its.map(it => { const o = JSON.parse(JSON.stringify(it)); o.x -= x0; o.y -= y0; delete o.key; delete o.board; delete o.from; return o; });
@@ -134,7 +134,7 @@ async function roomSend(to) { // to: one friend's browser id, or null for everyo
   roomSentAt = Date.now(); roomSendState();
   try { await roomCard({ name: roomHello().name, items, links: B_().links.filter(l => ids.has(l[0]) && ids.has(l[1])), photos }, targets); }
   catch (e) { deskToast('That didn\'t send: try again in a moment'); return; }
-  const what = its.length > 1 ? its.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', frame: 'a label' }[its[0].type];
+  const what = its.length > 1 ? its.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table' }[its[0].type];
   deskSfx('lift'); deskToast('Sent ' + what + ' to ' + (to ? (roomPeers.get(to) || {}).name || 'your friend' : 'everyone'));
 }
 // the row in the bar along the bottom while something is picked: who to send it to (and how long until you can send again)
@@ -164,32 +164,14 @@ const roomTalkBox = el('div', { class: 'sx-talk-box', hidden: true });
 const roomTalkEl = el('div', { class: 'sx-talk' }, roomTalkBox, roomMsgs);
 document.body.append(roomTalkEl);
 const ROOM_MSG_KEEP = 20;
-// two ways to show messages (the room panel switches them): 'keep' holds the last twenty to scroll back through;
-// 'pop' shows each for a few seconds and lets it go (five at most; hover to hold one, click to put it away)
-const roomMsgPop = () => ROOM.msgs === 'pop';
-function roomMsgTimer(slip, life) {
-  let t = 0, left = life, from = 0;
-  const go = () => { slip.classList.add('out'); setTimeout(() => slip.remove(), 400); };
-  const run = () => { from = Date.now(); t = setTimeout(go, left); };
-  slip.addEventListener('mouseenter', () => { clearTimeout(t); left -= Date.now() - from; }); // (it waits while you read it)
-  slip.addEventListener('mouseleave', () => { if (!slip.classList.contains('out')) run(); });
-  slip.addEventListener('click', go); slip._go = go;
-  run();
-}
+// the last twenty messages stay, newest on top; scroll the column to read back
 function roomMsgShow(who, to, text, person, mine) {
   const when = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const slip = el('div', { class: 'sx-msg' + (mine ? ' mine' : '') },
     el('div', { class: 'sx-msg-in' }, el('div', { class: 'sx-msg-h' }, roomAv(person, true), el('b', {}, who), el('span', {}, to + ' \u00b7 ' + when)), el('p', { class: 'sx-msg-b' }, text)));
   roomMsgs.prepend(slip); requestAnimationFrame(() => requestAnimationFrame(() => slip.classList.add('on')));
-  if (roomMsgPop()) { slip.title = 'Click to put it away'; roomMsgTimer(slip, Math.min(12000, 6000 + text.length * 45)); }
-  [...roomMsgs.children].slice(roomMsgPop() ? 5 : ROOM_MSG_KEEP).forEach(x => x.remove()); // (the oldest go)
+  [...roomMsgs.children].slice(ROOM_MSG_KEEP).forEach(x => x.remove()); // (the oldest go)
 }
-function roomMsgMode(m) { // switching: to pop-up, what's showing goes the pop-up way too
-  ROOM.msgs = m === 'pop' ? 'pop' : 'keep'; save(); roomMsgs.classList.toggle('pop', roomMsgPop());
-  if (roomMsgPop()) [...roomMsgs.children].forEach((x, i) => { if (!x._go) { x.title = 'Click to put it away'; roomMsgTimer(x, 2500 + i * 300); } });
-  roomDraw();
-}
-roomMsgs.classList.toggle('pop', roomMsgPop());
 function roomTalk(text) {
   text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, ROOM_MSG_LEN); if (!text || !room || !roomTell) return false;
   const left = ROOM_MSG_COOL - (Date.now() - roomMsgAt); if (left > 0) return false;
@@ -215,12 +197,11 @@ async function roomReceive(d, pid) {
   const imap = new Map(), gmap = {}, out = [];
   for (const it of d.items.slice(0, ROOM_MAX)) {
     if (!it || !ROOM_TYPES.includes(it.type)) continue;
-    const id = (it.type === 'tbl' ? 't' : it.type === 'photo' ? 'p' : it.type === 'frame' ? 'f' : 'n') + now + '-' + out.length;
+    const id = (it.type === 'tbl' ? 't' : it.type === 'photo' ? 'p' : 'n') + now + '-' + out.length;
     const o = { id, type: it.type, board: B_().cur, x: Math.max(-4000, Math.min(4000, num(it.x))), y: Math.max(-4000, Math.min(4000, num(it.y))), from: p.name };
     if (it.text) o.text = str(it.text, 2000);
     if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(q => q[0] === it.paper)) o.paper = it.paper; }
     if (it.type === 'tbl') Object.assign(o, tblClean(it));
-    if (it.type === 'frame') Object.assign(o, { w: Math.max(200, Math.min(6000, num(it.w))), h: Math.max(140, Math.min(4000, num(it.h))), color: str(it.color, 12) || 'amber' });
     if (it.type === 'photo') { const src = d.photos && d.photos[it.id]; if (typeof src !== 'string' || !/^data:image\/(jpeg|png|webp|gif);base64,/.test(src) || src.length > 3e6) continue;
       if (it.ar) o.ar = Math.max(.1, Math.min(10, +it.ar || 1)); if (it.w) o.w = Math.max(120, Math.min(1600, num(it.w))); try { await PHOTOS.put(id, src); } catch (e) { continue; } }
     if (typeof it.group === 'string') o.group = gmap[it.group] || (gmap[it.group] = 'g' + tag + out.length);
@@ -233,7 +214,7 @@ async function roomReceive(d, pid) {
   (Array.isArray(d.links) ? d.links : []).forEach(l => { if (Array.isArray(l) && imap.has(l[0]) && imap.has(l[1])) B_().links.push([imap.get(l[0]), imap.get(l[1])]); });
   save(); drawBoard();
   out.forEach((o, i) => setTimeout(() => deskLand(o.id, i === 0), i * 70)); // (they land one after another, with the pin)
-  const what = out.length > 1 ? out.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', frame: 'a label' }[out[0].type];
+  const what = out.length > 1 ? out.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table' }[out[0].type];
   deskToast(p.name + ' sent you ' + what);
 }
 // a received card wears a small "from" tag until you take it off (click it)
@@ -246,7 +227,7 @@ drawBoard = function () {
 
 /* ---------- the Room key (top right, js/chrome.js) and its panel ---------- */
 const roomN = el('span', { class: 'sx-mem-n', hidden: true });
-const roomB = deskBtn('Room', () => roomPanel.hidden ? roomOpen() : roomClose(), 'sx-room-key', 'A room with friends: send each other notes, photos, tables and labels');
+const roomB = deskBtn('Room', () => roomPanel.hidden ? roomOpen() : roomClose(), 'sx-room-key', 'A room with friends: send each other notes, photos and tables');
 roomB.append(roomN); deskKeys.before(roomB);
 const roomPanel = el('div', { class: 'sx-mem sx-room', hidden: true, role: 'dialog', 'aria-label': 'Room' });
 document.body.append(roomPanel);
@@ -318,10 +299,6 @@ function roomDraw(focusName) {
       el('div', { class: 'sx-rp-mini' }, el('code', {}, roomCode), el('button', { type: 'button', class: 'sx-rp-icon', title: 'Copy the room code', 'aria-label': 'Copy the room code', onclick: roomCopy }, roomSvg(ROOM_ICON.copy)))));
     const me = roomEditName || !(ROOM.name || '').trim() ? roomNameI
       : el('button', { type: 'button', class: 'sx-rp-me', title: 'Change your name', onclick: () => { roomEditName = true; roomDraw(); roomNameI.focus(); roomNameI.select(); } }, 'You appear as ', el('b', {}, ROOM.name), ' \u270e');
-    parts.push(sec('sx-rp-mode', el('div', { class: 'sx-rp-lbl' }, 'Messages'), el('div', { class: 'sx-rp-seg', role: 'radiogroup', 'aria-label': 'How messages show' },
-      ...[['keep', 'Keep history', 'The last twenty stay; scroll them to read back'], ['pop', 'Pop up', 'Each shows for a few seconds, then goes']].map(([k, n, t]) => {
-        const on = (ROOM.msgs === 'pop' ? 'pop' : 'keep') === k;
-        return el('button', { type: 'button', role: 'radio', 'aria-checked': String(on), class: on ? 'on' : null, title: t, onclick: () => roomMsgMode(k) }, n); }))));
     parts.push(sec('sx-rp-foot', face, me, btn('Leave', () => roomLeave(), 'sx-rp-leave', 'Leave the room')));
   }
   if (ROOM.block.length) parts.push(sec('', el('div', { class: 'sx-rp-lbl' }, 'Blocked'), el('ul', { class: 'sx-rp-friends' }, ...ROOM.block.map(b => el('li', {}, roomAv(b), el('b', {}, b.name),

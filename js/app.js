@@ -7,16 +7,16 @@
      state.js   what's saved (S), and the timer: start, pause, reset, skip, finish
      screen.js  the clock's frame, the top bar, Settings, the keyboard, draw()
      digits.js  the big digits, and the tick
-     feel.js    chimes and desk sounds, the green glow, the desk dimming
-     typing.js  the feel of typing on paper (strikes, bell, smart punctuation)
-     notes.js   rich notes        draw.js   hand-drawn shapes
-     desk.js    the desk around the clock (camera, notes, photos, strings, frames, picking, undo, the bottom bar)
+     feel.js    chimes and desk sounds
+     typing.js  the feel of typing on paper (sounds, smart punctuation)
+     notes.js   rich notes
+     desk.js    the desk around the clock (camera, notes, photos, strings, groups, picking, undo, the bottom bar)
      table.js   tables, graphs    export.js  image, backups
      room.js    rooms with friends (sending cards; js/vendor/trystero)
      clock.js   colour by state, power-on, the soft landing
      tape.js    the session strip, the tape-deck keys, the reels, the side flip, the rewind
      music.js   the two sides of music, and the Tapes drawer
-     look.js    cassette skins, the clock's light, parallax
+     look.js    the desk (light or dark), the paper's grain, sound levels
      view.js    the mini deck (a floating window) and full-screen focus
      help.js    the ? card
      lively.js  small touches of life: cards land, strings draw out, keys light up
@@ -29,7 +29,7 @@
 // play a CSS animation again: off now, on again next frame. (The usual trick, reading a size in between, makes the browser
 // lay the whole page out on the spot; done every second by the clock, that could land in the middle of a pan or a zoom)
 function animAgain(e, cls) { e.classList.remove(cls); requestAnimationFrame(() => e.classList.add(cls)); }
-const APP_VERSION = 152; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 153; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {
@@ -63,7 +63,7 @@ addEventListener('pointerdown', sfxUnlock, { once: true }); addEventListener('ke
 // a click for buttons, a softer tick for tabs, colours and options (the tape keys have a sound of their own)
 document.addEventListener('click', e => {
   const b = e.target.closest('button, select, summary'); if (!b || b.disabled || b.classList.contains('sx-tape')) return;
-  sfxPlay(b.matches('.sx-nav button, .sl-mode, .sx-tt, .sx-sw, .sx-pb, .sx-fb, select, summary') ? 'ui' : 'click');
+  sfxPlay(b.matches('.sx-nav button, .sx-tt, .sx-sw, .sx-pb, .sx-fb, select, summary') ? 'ui' : 'click');
 }, true);
 
 /* ---------- a notification when a session ends while you're elsewhere ---------- */

@@ -37,8 +37,8 @@ const MINI_REEL = '<svg viewBox="-18 -18 36 36"><circle r="16" fill="none" strok
 const MINI_ICON = { play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>', pause: '<svg viewBox="0 0 24 24"><path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/></svg>', rew: '<svg viewBox="0 0 24 24"><path d="M11.5 6v12L3.5 12zM20.5 6v12l-8-6z"/></svg>', next: '<svg viewBox="0 0 24 24"><path d="M3 6v12l8-6zM11 6v12l8-6zM19.5 6h2v12h-2z"/></svg>' };
 function miniDraw() {
   if (!miniWin) return; const d = miniWin.document, m = d.querySelector('.mini'); if (!m) return;
-  const r = remaining(), pct = Math.min(100, Math.max(0, 100 - r / length(mode) * 100)), skin = { amber: '#ffb762', mint: '#77d6c1', coral: '#ff6157', clear: '#ffffe4' }[S.opts.skin || 'amber'];
-  m.dataset.clock = root.dataset.clock || 'ready'; m.classList.toggle('run', running); miniTheme(d, skin);
+  const r = remaining(), pct = Math.min(100, Math.max(0, 100 - r / length(mode) * 100));
+  m.dataset.clock = root.dataset.clock || 'ready'; m.classList.toggle('run', running); miniTheme(d);
   d.querySelector('.mini-time').textContent = fmt(r);
   d.querySelector('.mini-top b').textContent = 'Side ' + (mode === 'focus' ? 'A' : 'B');
   d.querySelector('.mini-top span').textContent = bigText.textContent;
@@ -47,10 +47,10 @@ function miniDraw() {
   d.title = document.title;
 }
 // the mini wears the same colours as the deck on the desk (white or night, and the key colour), and follows when they change
-function miniTheme(d, skin) {
+function miniTheme(d) {
   const c = getComputedStyle(corner), v = k => c.getPropertyValue(k).trim(), t = d.documentElement.style;
   const set = { '--bg': c.backgroundColor, '--ink': getComputedStyle(timeText).color, '--muted': v('--k-6d8a8d'), '--track': v('--k-041528'), '--line': v('--k-0b1a2b'),
-    '--mint': v('--k-77d6c1'), '--pause': v('--k-ffd832') || v('--k-ffdaac'), '--last': v('--k-ffdaac'), '--hub': v('--k-ffdaac'), '--deck': v('--deck') || skin, '--under': v('--under') || v('--deck') || skin };
+    '--mint': v('--k-77d6c1'), '--pause': v('--k-ffd832') || v('--k-ffdaac'), '--last': v('--k-ffdaac'), '--hub': v('--k-ffdaac'), '--deck': v('--deck'), '--under': v('--under') || v('--deck') };
   for (const k in set) if (set[k] && t.getPropertyValue(k) !== set[k]) t.setProperty(k, set[k]);
 }
 // a friend's message (js/chrome.js): one line across the top of the mini deck for a few seconds, so you see it in another app
