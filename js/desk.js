@@ -278,7 +278,7 @@ function deskUngroup() { if (![...picked].some(id => (itemOf(id) || {}).group)) 
 const gtagT = el('span', { class: 'sx-gtag-t', spellcheck: 'false', 'aria-label': 'Group name', 'data-ph': 'Name this group' });
 const gtag = el('div', { class: 'sx-gtag', hidden: true }, gtagT);
 world.append(gtag);
-let gtagG = null, gtagHover = null;
+let gtagG = null, gtagHover = null, gtagCarry = false;
 gtag.addEventListener('pointerdown', e => e.stopPropagation()); // (writing in it doesn't pick up or move the desk)
 gtagT.addEventListener('input', () => { if (!gtagG) return; const t = gtagT.textContent.replace(/\s+/g, ' ').trim().slice(0, 60); if (t) B_().gnames[gtagG] = t; else delete B_().gnames[gtagG]; saveSoon(); });
 gtagT.addEventListener('blur', () => setTimeout(gtagSync, 0));
@@ -289,7 +289,8 @@ function groupPicked() { // the group, when what's picked is exactly one whole g
 function gtagSync() {
   const pickedG = groupPicked(), g = pickedG || gtagHover, name = g && B_().gnames[g];
   if (document.activeElement === gtagT) { if (gtagG) gtagPlace(); return; } // (being written in: it stays)
-  if (!g || !pickedG && !name || world.classList.contains('carrying')) { gtag.hidden = true; gtagG = null; return; }
+  if (gtagCarry) return; // (being carried along: it's put in its new place when they're put down)
+  if (!g || !pickedG && !name) { gtag.hidden = true; gtagG = null; return; }
   gtagG = g; gtagT.contentEditable = pickedG ? 'true' : 'false'; gtag.classList.toggle('edit', !!pickedG);
   if (gtagT.textContent !== (name || '')) gtagT.textContent = name || '';
   gtag.hidden = false; gtagPlace();
@@ -698,6 +699,8 @@ ws.addEventListener('pointerdown', e => {
         const at = new Map(B_().items.map((x, i) => [x.id, i]));
         movers = [...ids].map(mid => ({ it: itemOf(mid), c: els.get(mid) })).filter(m => m.it && m.c).map(m => Object.assign(m, { x: m.it.x, y: m.it.y })) // (a locked label stays behind)
           .sort((a, b) => at.get(a.it.id) - at.get(b.it.id)); // (in the order they lie, so what was on top stays on top)
+        if (picked.size > 1 && !selBox.hidden) selShift = true; // (the box around them slides along)
+        gtagCarry = !!(gtagG && !gtag.hidden && movers.some(m => m.it.group === gtagG)); // (and so does the group's name)
         world.classList.add('carrying'); moverIds = new Set(movers.map(m => m.it.id)); movers.forEach(m => { carried.set(m.it.id, { it: m.it, w: m.c.offsetWidth }); m.c.classList.add('carry', 'lift'); }); // (everything carried lifts off the board with its shadow) selShift = !selBox.hidden ? { x: selBox.offsetLeft, y: selBox.offsetTop } : null;
         movers.forEach(m => { m.c.style.zIndex = String(layerTop += 2); }); // (raised with z-index: moving it in the page would make the browser drop the pointer)
         // carried things hold still while they move (the swing and the sway play when you pick them up and put them down):
@@ -714,12 +717,13 @@ ws.addEventListener('pointerdown', e => {
       const dt = Math.max(8, ev.timeStamp - lt), ddx = ev.clientX - lx, ddy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; lt = ev.timeStamp;
       vx = vx * .55 + (ddx * 16 / dt) * .45; vy = vy * .55 + (ddy * 16 / dt) * .45; // speed per frame, smoothed, however unevenly the mouse reports
       if (selShift) selBox.style.translate = tr; // (the box slides along as a layer: no measuring, no layout)
+      if (gtagCarry) gtag.style.translate = tr;
       strUpdate(moverIds); // (only the strings reaching out to something that stays put)
     }, ev => {
       if (dragging) {
-        movers.forEach(m => { m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; m.c.style.translate = ''; m.c.classList.remove('carry'); }); carried.clear(); world.classList.remove('carrying'); selBox.style.translate = ''; // (now it takes its place)
+        movers.forEach(m => { m.c.style.left = m.it.x + 'px'; m.c.style.top = m.it.y + 'px'; m.c.style.translate = ''; m.c.classList.remove('carry'); }); carried.clear(); world.classList.remove('carrying'); selBox.style.translate = ''; gtag.style.translate = ''; gtagCarry = false; // (now it takes its place)
         strInner.forEach(n => { n.sv.style.translate = ''; }); strInner.clear();
-        c.classList.remove('lift'); movers.forEach(m => m.c.classList.remove('lift')); selShift = null; deskSfx('drop'); strUpdate();
+        c.classList.remove('lift'); movers.forEach(m => m.c.classList.remove('lift')); selShift = null; deskSfx('drop'); strUpdate(); selBoxUpdate();
         // let go: each card swings on in the way it was going (more the faster it moved; a still mouse gives just a settle), and the strings bounce
         const fresh = Math.max(0, 1 - (ev.timeStamp - lt) / 120), sx = vx * fresh, sy = vy * fresh;
         movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo' || m.it.type === 'tbl') swingKick(m.c, Math.max(-2, Math.min(2, -sx * .12)) + (i % 2 ? -.5 : .5)); });
