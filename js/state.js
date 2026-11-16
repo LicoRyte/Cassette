@@ -18,7 +18,12 @@ const KEEP = ['set', 'run', 'cycle', 'day', 'todayN', 'total', 'minutes', 'fc', 
 Object.keys(S).forEach(k => { if (!KEEP.includes(k)) delete S[k]; });
 ['reader', 'intro', 'aboard', 'typeSnd'].forEach(k => delete S.opts[k]);
 let wiping = false;
-const save = () => { if (wiping) return; store.set(KEY, JSON.stringify(S)); };
+let saveT = 0;
+const save = () => { clearTimeout(saveT); saveT = 0; if (wiping) return; store.set(KEY, JSON.stringify(S)); };
+// while you type: the whole desk is written once you pause, not on every letter (and right away if the page is going)
+const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(save, 450); };
+addEventListener('pagehide', () => { if (saveT) save(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && saveT) save(); });
 const rollDay = () => { if (S.day !== today()) { S.day = today(); S.todayN = 0; } };
 rollDay(); save();
 

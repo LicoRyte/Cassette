@@ -1633,3 +1633,19 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-sweep::after { top: 0; animation-name: sx-scan2; will-change: transform; }
 @keyframes sx-scan2 { from { transform: translateY(-3vh); } to { transform: translateY(103vh); } }
 .sx-reel svg { will-change: transform; }
+
+/* ---------- writing that flows (js/flow.js): a thin cursor in the ink's colour that glides to each new letter, solid while
+   you type and blinking once you stop (the browser's own thick one is hidden on the desk's paper) ---------- */
+.sx-world .sx-bcard :is(.sx-note-t, .sx-cap-t, .sx-frame-t) { caret-color: transparent; }
+.sx-caret { position: absolute; left: 0; top: 0; z-index: 6; width: calc(1.7px / var(--cz, 1)); min-width: 1px; border-radius: 1px; background: currentColor; pointer-events: none;
+  transition: translate .08s cubic-bezier(.3, .8, .4, 1), height .08s; }
+.sx-caret.jump { transition: none; }
+.sx-caret.idle { animation: sx-caret-blink 1.06s step-end infinite; }
+@keyframes sx-caret-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sx-caret { transition: none; } .sx-caret.idle { animation: none; } }
+
+/* Alt+Q: the card that's lit while you step through the ones tied to a note, with where you are in the round */
+.sx-world .sx-bcard.sx-cyc { outline: 2.5px solid var(--deck); outline-offset: 6px; }
+.sx-world .sx-bcard.sx-cyc::before { content: attr(data-cyc); position: absolute; right: -6px; top: -30px; z-index: 7; padding: 3px 7px 4px; background: var(--deck); color: var(--k-030710); border-radius: 3px; font: 700 11px/1 var(--ui); letter-spacing: .12em; rotate: calc(var(--tilt, 0deg) * -1); }
+/* a long key name wraps inside its card instead of running out of it */
+.sx-tip-n { white-space: normal; overflow-wrap: anywhere; }

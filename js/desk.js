@@ -289,7 +289,7 @@ function polFormat(c, ar) {
 function paperCard(it) { // a note or a photo
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': it.type === 'photo' ? 'Take the photo down' : 'Take the note down', onclick: () => removeOne(it) }, '×');
   const txt = el('div', { class: it.type === 'photo' ? 'sx-cap-t' : 'sx-note-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': it.type === 'photo' ? 'Caption' : 'Note', 'data-ph': it.type === 'photo' ? 'Write a caption...' : 'Write something...' }, it.text || '');
-  txt.addEventListener('input', () => { it.text = txt.innerText.slice(0, 2000); save(); });
+  txt.addEventListener('input', () => { it.text = txt.innerText.slice(0, 2000); saveSoon(); });
   const pin = el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' });
   const style = 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + tilt(it.id) + 'deg' + (it.type === 'note' ? noteStyle(it) : it.w ? ';width:' + it.w + 'px' : '');
   if (it.type === 'photo') {
@@ -316,7 +316,7 @@ function drawCard(it) { // a drawing: only its strokes can be grabbed, so a circ
 const FRAME_INKS = ['amber', 'mint', 'coral', 'yellow', 'cream', 'green'];
 function frameCard(it) { // a frame: a labelled area. Its name is the handle; the inside lets clicks through to the desk
   const label = el('div', { class: 'sx-frame-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': 'Label name', 'data-ph': 'Name this area' }, it.text || '');
-  label.addEventListener('input', () => { it.text = label.textContent.replace(/\s+/g, ' ').slice(0, 80); save(); }); // (textContent: the name as typed, not as shown in capitals)
+  label.addEventListener('input', () => { it.text = label.textContent.replace(/\s+/g, ' ').slice(0, 80); saveSoon(); }); // (textContent: the name as typed, not as shown in capitals)
   const sws = el('span', { class: 'sx-frame-sw' }, ...FRAME_INKS.map(k => el('button', { type: 'button', class: 'sx-sw' + ((it.color || 'amber') === k ? ' on' : ''), style: 'background:' + inkOf(k), 'aria-label': k + ' label', title: k, onclick: () => { deskMark(); it.color = k; save(); drawBoard(); } })));
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Take the label away', title: 'Take the label away', onclick: () => removeOne(it) }, '×');
   // the lock: a locked label stays put (dragging it moves the desk instead), can't be resized, and isn't deleted with the rest
@@ -547,6 +547,7 @@ addEventListener('paste', e => {
   if (imgs.length) { // an image wins, even while you write in a note (it hangs beside it)
     e.preventDefault(); e.stopPropagation();
     const ae = document.activeElement, card = ae && ae.isContentEditable && ae.closest('.sx-bcard');
+    if (card && card.classList.contains('sx-bnote') && typeof flowPhotos === 'function') { flowPhotos(imgs, card).then(k => { if (k) deskToast(k === 1 ? 'Pasted a photo, tied to this note' : 'Pasted ' + k + ' photos, tied to this note'); }); return; }
     const at = pasteSpot() || (card ? { x: card.offsetLeft + card.offsetWidth + 160, y: card.offsetTop + 40 } : null);
     addPhotos(imgs, at).then(() => deskToast(imgs.length === 1 ? 'Pasted a photo' : 'Pasted ' + imgs.length + ' photos'));
     return;
@@ -754,7 +755,7 @@ addEventListener('keydown', e => {
     if (t.classList.contains('sx-frame-t') && e.key === 'Enter') { e.preventDefault(); t.blur(); }
     if (t.classList.contains('sx-tc')) { tblKeys(e, t); e.stopPropagation(); return; } // a table's cell: moving between cells (js/table.js)
     noteKeys(e, t);
-    if (e.key === 'Escape') { e.preventDefault(); t.blur(); }
+    if (e.key === 'Escape' && !e.defaultPrevented) { e.preventDefault(); t.blur(); }
     e.stopPropagation(); return;
   }
   if ((t && t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return;

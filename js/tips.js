@@ -27,11 +27,18 @@ const TIP_WORDS = {
 
 // "Note: pin a new one (or double-click the desk)" → Note / Pin a new one (or double-click the desk); "Undo (Ctrl+Z)" → Undo / Ctrl+Z
 function tipParts(t) {
-  let kbd = '';
-  const m = t.match(/\s*\(([^()]{1,22})\)\s*$/);
-  if (m && /^(Ctrl|Shift|Alt|Space|Hold|Esc|Enter|Tab|Delete|[A-Z0-9?/]([ +]|$))/.test(m[1])) { kbd = m[1]; t = t.slice(0, m.index); }
+  let kbd = '', extra = '';
+  const isKey = x => /^(Ctrl|Shift|Alt|Space|Hold|Esc|Enter|Tab|Delete|[A-Z0-9?/]([ +]|$))/.test(x.trim());
+  const m = t.match(/\s*\(([^()]{1,60})\)\s*$/);
+  if (m) { // what's in brackets at the end: a key goes in the little key; anything else ("# then space", "or drop it on") joins the line below
+    t = t.slice(0, m.index);
+    m[1].split(/,\s*|\s+or\s+/).map(x => x.replace(/^or\s+/, '').trim()).filter(Boolean).forEach(x => { if (!kbd && isKey(x)) kbd = x; else extra += (extra ? ', ' : '') + x; });
+    if (!kbd) extra = m[1].trim(); // (no key in it: the words as they were)
+    if (extra && /then space/.test(extra)) extra = 'or type ' + extra; // (a typing shortcut)
+  }
   const i = t.indexOf(': '), cap = s => s ? s[0].toUpperCase() + s.slice(1) : '';
-  return i > 0 && i < 28 ? { name: t.slice(0, i), desc: cap(t.slice(i + 2)), kbd } : { name: cap(t), desc: '', kbd };
+  const name = i > 0 && i < 28 ? t.slice(0, i) : t, desc = i > 0 && i < 28 ? t.slice(i + 2) : '';
+  return { name: cap(name), desc: cap([desc, extra && (desc ? '(' + extra + ')' : extra)].filter(Boolean).join(' ')), kbd };
 }
 function tipShow(b) {
   if (b.title) { // (the browser's own box would show too: the words move into ours)

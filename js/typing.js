@@ -16,32 +16,34 @@ DESK_SFX.bell = c => { const t = c.currentTime; feelTone(c, t, 2093, { dur: .7, 
 DESK_SFX.key = c => { const t = c.currentTime, w = .8 + Math.random() * .45; feelBurst(c, t, { dur: .014 + Math.random() * .01, type: 'highpass', f0: 1600 + Math.random() * 1100, vol: .025 * w }); feelTone(c, t, 160 + Math.random() * 80, { dur: .03, vol: .012 * w, to: 110 + Math.random() * 20 }); };
 
 // (on the window, so it comes before js/feel.js's letter click and can stand in for it)
+// a letter only marks the note; what needs measuring (the margin bell, the note's height) is done together, once a frame,
+// just before it's drawn, instead of the browser measuring the page several times for every key
+let typeBox = null, typeRaf = 0, typeLast = 0, typeNudge = false;
 addEventListener('input', e => {
-  const box = typePaper(e.target); if (!box || e.inputType !== 'insertText') return;
-  const card = box.closest('.sx-bcard');
-  // the space bar thunks instead of clicking
-  if (e.data === ' ') { deskSfx('space'); deskSfxLast.key = performance.now(); }
-  if (stillUI()) return;
-  // the key strikes the paper
-  card.animate([{ translate: '0 0' }, { translate: '0 1.2px' }, { translate: '0 0' }], { duration: 90, easing: 'ease-out' });
-  // the margin bell: once a line, when the caret comes close to the right edge
-  const s = getSelection(); if (!s.rangeCount) return;
-  const r = s.getRangeAt(0).getClientRects()[0]; if (!r) return;
-  const bb = box.getBoundingClientRect(), edge = bb.right, fs = parseFloat(getComputedStyle(box).fontSize) || 15, line = Math.round((r.top - bb.top) / (fs * cam.z * .8));
-  if (box._bellLine !== line && edge - r.right < fs * 2.6 * cam.z) { box._bellLine = line; deskSfx('bell'); }
-}, true);
-
-// the note eases to its new height as lines come and go
-document.addEventListener('focusin', e => { const b = typePaper(e.target); if (b) { const c = b.closest('.sx-bcard'); c._h = c.offsetHeight; } });
-document.addEventListener('input', e => {
   const box = typePaper(e.target); if (!box) return;
-  const c = box.closest('.sx-bcard'); if (c.classList.contains('sized') || !c.classList.contains('sx-bnote')) return;
-  if (c._hA) { c._hA.cancel(); c._hA = null; } // (measure the real height, not one mid-animation)
-  const h = c.offsetHeight, was = c._h; c._h = h;
-  if (!was || was === h || Math.abs(h - was) > 240 || stillUI()) return; // (a big paste just arrives)
-  c._hA = c.animate([{ height: was + 'px' }, { height: h + 'px' }], { duration: 160, easing: 'cubic-bezier(.3, .9, .4, 1)' });
-  c._hA.onfinish = () => { c._hA = null; };
-});
+  if (e.inputType === 'insertText') {
+    if (e.data === ' ') { deskSfx('space'); deskSfxLast.key = performance.now(); } // the space bar thunks instead of clicking
+    const now = performance.now(); typeNudge = now - typeLast > 140; typeLast = now; // (in a fast burst the paper stays steady)
+  }
+  typeBox = box; if (!typeRaf) typeRaf = requestAnimationFrame(typeFrame);
+}, true);
+function typeFrame() {
+  typeRaf = 0; const box = typeBox; typeBox = null; if (!box || !box.isConnected) return;
+  const card = box.closest('.sx-bcard'), still = stillUI();
+  // read everything first...
+  const grow = card.classList.contains('sx-bnote') && !card.classList.contains('sized');
+  if (grow && card._hA) { card._hA.cancel(); card._hA = null; } // (measure the real height, not one mid-animation)
+  const h = grow ? card.offsetHeight : 0, s = getSelection(), r = s.rangeCount ? s.getRangeAt(0).getClientRects()[0] : null;
+  const bb = r ? box.getBoundingClientRect() : null, fs = r ? parseFloat(getComputedStyle(box).fontSize) || 15 : 15;
+  // ...then change things
+  if (typeNudge && !still) card.animate([{ translate: '0 0' }, { translate: '0 1.2px' }, { translate: '0 0' }], { duration: 90, easing: 'ease-out' }); // the key strikes the paper
+  typeNudge = false;
+  if (r && bb) { const line = Math.round((r.top - bb.top) / (fs * cam.z * .8)); if (box._bellLine !== line && bb.right - r.right < fs * 2.6 * cam.z) { box._bellLine = line; deskSfx('bell'); } } // the margin bell, once a line
+  if (grow) { const was = card._h; card._h = h; // the note eases to its new height as lines come and go
+    if (was && was !== h && Math.abs(h - was) <= 240 && !still) { card._hA = card.animate([{ height: was + 'px' }, { height: h + 'px' }], { duration: 160, easing: 'cubic-bezier(.3, .9, .4, 1)' }); card._hA.onfinish = () => { card._hA = null; }; } }
+  if (typeof flowAfterType === 'function') flowAfterType(box); // the caret and the view (js/flow.js)
+}
+document.addEventListener('focusin', e => { const b = typePaper(e.target); if (b) { const c = b.closest('.sx-bcard'); c._h = c.offsetHeight; } });
 
 // smart punctuation: -- to —, -> to →, and curly quotes (not inside code)
 function typeSmart(box) {

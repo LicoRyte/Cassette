@@ -40,9 +40,9 @@ const noteFromText = s => { const d = document.createElement('div'); d.textConte
 function noteSetup(it, txt, c) {
   txt.innerHTML = noteClean(it.html != null ? it.html : noteFromText(it.text));
   txt.addEventListener('input', e => {
-    if (e.inputType === 'insertText' && e.data === ' ') Promise.resolve().then(() => { noteMarkdown(txt); it.html = txt.innerHTML.slice(0, 30000); save(); }); // (after the typing itself has finished: the browser runs one edit at a time)
+    if (e.inputType === 'insertText' && e.data === ' ') Promise.resolve().then(() => { noteMarkdown(txt); it.html = txt.innerHTML.slice(0, 30000); saveSoon(); }); // (after the typing itself has finished: the browser runs one edit at a time)
     if (e.inputType === 'insertParagraph') { const li = noteClosest(txt, 'li'); if (li) li.classList.remove('done'); } // a new checklist line starts unticked
-    it.html = txt.innerHTML.slice(0, 30000); it.text = txt.innerText.slice(0, 2000); it.mt = Date.now(); save(); // (mt: when it was last written in)
+    it.html = txt.innerHTML.slice(0, 30000); it.text = txt.innerText.slice(0, 2000); it.mt = Date.now(); saveSoon(); // (mt: when it was last written in; saved once you pause)
   });
   txt.addEventListener('paste', e => { e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
   // ticking a checklist line: click its box
@@ -137,6 +137,8 @@ function noteRunAll(k) {
 }
 function noteKeys(e, t) {
   if (!t.classList.contains('sx-note-t')) return;
+  if (typeof flowKeys === 'function' && flowKeys(e, t)) return; // (Alt keys that make and visit tied cards: js/flow.js)
+  if (e.key === 'Enter' && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing && typeof noteChain === 'function') { e.preventDefault(); noteChain(t, 'right'); return; }
   const k = noteShortcut(e);
   if (k) { e.preventDefault(); noteRun(k); return; }
   if (e.key === 'Tab' && noteClosest(t, 'li')) { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); t.dispatchEvent(new Event('input')); }
