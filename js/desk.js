@@ -182,29 +182,10 @@ const undoB = deskBtn(deskIcon('undo'), deskUndo, 'sx-ws-ic', 'Undo (Ctrl+Z)'), 
 function deskUndoState() { undoB.disabled = !undoS.length; redoB.disabled = !redoS.length; }
 // the board menu: boards, and saving or loading them
 const deskMenu = el('div', { class: 'sx-ws-menu', hidden: true, role: 'menu' });
-function deskMenuOpen() {
-  if (!deskMenu.hidden) { deskMenu.hidden = true; return; }
-  const B = S.board, cur = B.boards.find(b => b.id === B.cur), close = () => { deskMenu.hidden = true; };
-  const item = (label, fn) => el('button', { type: 'button', class: 'sx-ws-mi', role: 'menuitem', onclick: () => { close(); fn(); } }, label);
-  deskMenu.replaceChildren(...[
-    el('div', { class: 'sx-ws-mh' }, 'Boards'),
-    ...B.boards.map(b => el('button', { type: 'button', class: 'sx-ws-mi sx-ws-mb' + (b.id === B.cur ? ' cur' : ''), role: 'menuitemradio', 'aria-checked': String(b.id === B.cur), onclick: () => { close(); deskBoardGo(b.id); } },
-      el('span', { class: 'sx-ws-tick', 'aria-hidden': 'true' }, b.id === B.cur ? '✓' : ''), b.name)),
-    el('i', { class: 'sx-ws-msep' }),
-    item('New board', () => { const name = (prompt('Name the new board:', 'Board ' + (B.boards.length + 1)) || '').trim().slice(0, 40); if (!name) return; deskMark(); const id = 'b' + Date.now(); B.boards.push({ id, name }); B.cur = id; select(null); save(); drawBoard(); glideHome(); }),
-    item('Rename this board', () => { const name = (prompt('Rename this board:', cur.name) || '').trim().slice(0, 40); if (name) { deskMark(); cur.name = name; save(); deskBoardTools(); } }),
-    B.boards.length > 1 ? armBtn('Delete this board', 'Sure? Everything on it goes (Undo brings it back)', () => { close(); deskMark(); const ids = new Set(B.items.filter(it => it.board === B.cur).map(it => it.id));
-      B.items = B.items.filter(it => it.board !== B.cur); B.links = B.links.filter(l => !l.some(id => ids.has(id))); B.boards = B.boards.filter(b => b.id !== B.cur); B.cur = B.boards[0].id; select(null); save(); drawBoard(); glideHome(); }, 'sx-ws-mi') : null,
-    el('i', { class: 'sx-ws-msep' }),
-    item('Save a backup of all boards', () => deskExportBackup()),
-    item('Load a backup...', () => deskImportBackup()),
-  ].filter(Boolean));
-  deskMenu.hidden = false;
-  const mb = deskBar.querySelector('.sx-ws-menub'); if (mb) deskMenu.style.top = Math.max(0, mb.offsetTop) + 'px'; // beside the Boards button, opening to the right
-}
+let deskMenuOpen = () => {}; // (the board manager: js/boards.js)
 addEventListener('pointerdown', e => { if (!deskMenu.hidden && !e.target.closest('.sx-ws-menu, .sx-ws-menub')) deskMenu.hidden = true; }, true);
 function deskBoardTools() { // the Boards button names the board you're on
-  const cur = S.board.boards.find(b => b.id === S.board.cur), t = 'Boards: on ' + (cur ? cur.name : '') + ' (switch, new, rename, delete, backup)';
+  const cur = S.board.boards.find(b => b.id === S.board.cur), t = 'Boards: on ' + (cur ? cur.name : '') + ' (go to, rename, copy, delete, reorder, new, backups)';
   if (typeof menuB !== 'undefined') { menuB.title = t; menuB.setAttribute('aria-label', t); } }
 // what's picked: a count, and what you can do with several things at once
 const selCount = el('span', { class: 'sx-ws-n' });
@@ -213,7 +194,7 @@ const grpB = deskBtn(deskIcon('group'), () => deskGroup(), 'sx-ws-ic', 'Group th
 const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, selCount, grpB, ungrpB, delSelB);
 const tableKey = deskBtn(deskIcon('table'), () => addTable(), 'sx-ws-ic', 'Table: rows and columns, and a graph of them (Bars, Line, Pie)');
 // the left side: a column of keys for making things, finding and undoing (the bar along the bottom holds what changes the thing you've picked)
-const menuB = deskBtn([deskIcon('boards'), el('span', { class: 'sx-ic-car', 'aria-hidden': 'true' }, '▸')], deskMenuOpen, 'sx-ws-ic sx-ws-menub', 'Boards');
+const menuB = deskBtn([deskIcon('boards'), el('span', { class: 'sx-ic-car', 'aria-hidden': 'true' }, '▸')], () => deskMenuOpen(), 'sx-ws-ic sx-ws-menub', 'Boards');
 const deskBar = el('div', { class: 'sx-ws-bar sx-ws-side', role: 'toolbar', 'aria-orientation': 'vertical', 'aria-label': 'Desk' },
   el('div', { class: 'sx-ws-grp' }, menuB),
   el('div', { class: 'sx-ws-grp' }, deskBtn(deskIcon('note'), () => addNoteAt(freeSpot()), 'sx-ws-ic', 'Note: pin a new one (or double-click the desk)'), deskBtn(deskIcon('photo'), () => deskFile.click(), 'sx-ws-ic', 'Photo: hang one (or drop or paste it on)'), tableKey, deskBtn(deskIcon('folder'), () => addHopper(), 'sx-ws-ic', 'Hopper: a folder that opens another board'), deskFile),
@@ -791,7 +772,7 @@ addEventListener('keydown', e => {
     if (e.key === 'Escape' && !e.defaultPrevented) { e.preventDefault(); t.blur(); }
     e.stopPropagation(); return;
   }
-  if ((t && t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return;
+  if ((t && t.closest && t.closest('input, select, textarea, .sx-ws-menu')) || page && !page.hidden) return; // (the board manager has its own keys)
   const stop = () => { e.preventDefault(); e.stopPropagation(); };
   { const k = noteShortcut(e); if (k && selNote()) { stop(); noteRunAll(k); return; } } // a note picked: its formatting keys work without clicking into it
   if ((e.ctrlKey || e.metaKey) && !e.altKey) {

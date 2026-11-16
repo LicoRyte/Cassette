@@ -12,6 +12,7 @@
      notes.js   rich notes
      desk.js    the desk around the clock (camera, notes, photos, strings, groups, picking, undo, the bottom bar)
      table.js   tables, graphs    export.js  image, backups
+     boards.js  the board manager: go to, rename, copy, delete, reorder, new
      room.js    rooms with friends (sending cards; js/vendor/trystero)
      clock.js   colour by state, the colon's beat, 00:00 holding
      tape.js    the session strip, the tape-deck keys, the reels, the side flip, the rewind
@@ -30,7 +31,7 @@
 // play a CSS animation again: off now, on again next frame. (The usual trick, reading a size in between, makes the browser
 // lay the whole page out on the spot; done every second by the clock, that could land in the middle of a pan or a zoom)
 function animAgain(e, cls) { e.classList.remove(cls); requestAnimationFrame(() => e.classList.add(cls)); }
-const APP_VERSION = 164; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 165; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
 const el = (tag, attrs, ...kids) => {
