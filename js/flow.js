@@ -24,7 +24,7 @@ function flowCaretRect(box) { // where the cursor is, on the screen (an empty li
   return r;
 }
 function flowPlace(jump) {
-  flowRaf = 0; const box = flowBox();
+  flowRaf = 0; const box = flowBox(); if (typeof flowWriting === 'function') flowWriting(); // (strings step aside while you write)
   if (!box) { flowCaret.remove(); return; }
   const r = flowCaretRect(box), card = box.closest('.sx-bcard'); if (!r) { flowCaret.remove(); return; }
   const cr = card.getBoundingClientRect(), z = cam.z || 1;
@@ -216,3 +216,7 @@ addEventListener('keydown', e => {
   else if (e.code === 'KeyP') flowPickPhoto(c, false);
   else flowBack(c, false);
 }, true);
+
+// while you write on the desk's paper, the strings let clicks through to it (no cutting or plucking one by accident)
+const flowWriting = () => world.classList.toggle('writing', !!flowBox());
+document.addEventListener('focusin', flowWriting); document.addEventListener('focusout', () => setTimeout(flowWriting, 0));

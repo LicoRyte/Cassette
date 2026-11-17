@@ -1612,3 +1612,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 :root[data-font="kodchasan"] .sx-corner { --ui: 'Barlow C', 'Arial Narrow', sans-serif; }
 /* Settings has the screen to itself: the top-left keys (which can't be clicked there anyway) keep out of its title */
 #app.paged .sx-tray { visibility: hidden; }
+
+/* writing in a note: the strings don't catch the pointer, so a click goes to the words (js/flow.js) */
+.sx-world.writing .sx-string-hit { pointer-events: none; }
