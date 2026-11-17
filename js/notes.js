@@ -236,11 +236,10 @@ function noteMenuOpen(x, y) {
   noteBarState();
   const rows = [...noteBar.querySelectorAll('.sx-fmt-row')].map(r => r.cloneNode(true)); let i = 0;
   rows.forEach(r => r.querySelectorAll('button').forEach(b => { b.dataset.i = i++; }));
-  noteMenu.replaceChildren(...rows); noteMenu.hidden = false; if (typeof toolHintUsed === 'function') toolHintUsed();
+  noteMenu.replaceChildren(...rows); noteMenu.hidden = false; if (typeof toolHintUsed === 'function') { const n = selNote(); if (n && n.it) toolHintUsed(n.it.id); }
   const w = noteMenu.offsetWidth, h = noteMenu.offsetHeight;
   noteMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
   noteMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
-  deskSfx('pick');
 }
 addEventListener('contextmenu', e => {
   const t = e.target.closest && e.target.closest('.sx-note-t, .sx-keep-t, .sx-bnote'); if (!t || e.shiftKey) return;

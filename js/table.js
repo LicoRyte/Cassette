@@ -279,7 +279,7 @@ function tblMenuOpen(it, r, c, x, y) {
     sep(),
     item('Duplicate table', () => deskDuplicate()),
     item('Delete table', () => deskDelete(), false, 'del'));
-  if (typeof toolHintUsed === 'function') toolHintUsed();
+  if (typeof toolHintUsed === 'function') toolHintUsed(it.id);
   tblMenu.hidden = false;
   const w = tblMenu.offsetWidth, h = tblMenu.offsetHeight;
   tblMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
@@ -304,21 +304,21 @@ addEventListener('keydown', e => {
     const n = bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length] || bs[0]; if (n) n.focus({ preventScroll: true }); }
 }, true);
 
-/* ---------- a small hint by the pointer when you pick a note or a table: "Right-click for tools". It fades on its own, and
-   stops showing once you've opened the menus a few times ---------- */
+/* ---------- "Right-click for tools": faint words just above the pointer, following it, while a new note or table is picked,
+   until it has been right-clicked once (it.rcd marks one that has). Notes and tables from before this are marked already ---------- */
+if (!S.opts.rcMig) { S.board.items.forEach(x => { if (x.type === 'note' || x.type === 'tbl') x.rcd = 1; }); S.opts.rcMig = 1; delete S.opts.rcUsed; save(); }
 const toolHint = el('div', { class: 'sx-tool-hint', 'aria-hidden': 'true', hidden: true }, 'Right-click for tools');
 document.body.append(toolHint);
-let toolHintPtr = null, toolHintT = 0;
-function toolHintUsed() { toolHintHide(); const n = (S.opts.rcUsed || 0) + 1; if (n <= 3) { S.opts.rcUsed = n; save(); } }
-function toolHintHide() { clearTimeout(toolHintT); toolHint.classList.remove('on'); toolHintT = setTimeout(() => { toolHint.hidden = true; }, 200); }
-function toolHintShow(x, y) {
-  if ((S.opts.rcUsed || 0) >= 3) return;
-  clearTimeout(toolHintT); toolHint.hidden = false;
-  toolHint.style.left = Math.min(innerWidth - toolHint.offsetWidth - 8, x + 14) + 'px'; toolHint.style.top = Math.min(innerHeight - 30, y + 18) + 'px';
-  requestAnimationFrame(() => toolHint.classList.add('on')); toolHintT = setTimeout(toolHintHide, 1800);
+let toolHintFor = null, toolHintXY = null;
+function toolHintPlace() {
+  if (!toolHintFor || selId !== toolHintFor || picked.size !== 1 || !toolHintXY) { if (!toolHint.hidden) toolHint.hidden = true; return; }
+  if (toolHint.hidden) toolHint.hidden = false;
+  toolHint.style.transform = 'translate(' + Math.round(toolHintXY.x - toolHint.offsetWidth / 2) + 'px,' + Math.round(toolHintXY.y - toolHint.offsetHeight - 12) + 'px)';
 }
-addEventListener('pointerdown', e => { if (e.button === 0) toolHintPtr = { x: e.clientX, y: e.clientY, t: performance.now() }; else if (!toolHint.hidden) toolHintHide(); }, true);
-addEventListener('pointermove', e => { if (!toolHint.hidden && toolHintPtr && Math.hypot(e.clientX - toolHintPtr.x, e.clientY - toolHintPtr.y) > 120) toolHintHide(); }, { passive: true });
-{ const sel0 = select; select = function (id, ...a) { const was = selId, r = sel0.call(this, id, ...a), it = id && itemOf(id);
-    if (it && id !== was && picked.size === 1 && (it.type === 'note' || it.type === 'tbl') && toolHintPtr && performance.now() - toolHintPtr.t < 500) toolHintShow(toolHintPtr.x, toolHintPtr.y);
-    return r; }; }
+function toolHintCheck() { const it = selId && picked.size === 1 && itemOf(selId); toolHintFor = it && (it.type === 'note' || it.type === 'tbl') && !it.rcd ? it.id : null; toolHintPlace(); }
+function toolHintUsed(id) { const it = itemOf(id); if (it && !it.rcd) { it.rcd = 1; save(); } toolHintCheck(); }
+addEventListener('pointermove', e => { toolHintXY = { x: e.clientX, y: e.clientY }; if (toolHintFor) toolHintPlace(); }, { passive: true });
+addEventListener('pointerdown', e => { toolHintXY = { x: e.clientX, y: e.clientY }; }, { capture: true, passive: true });
+document.documentElement.addEventListener('pointerleave', () => { toolHint.hidden = true; });
+{ const sel0 = select; select = function (...a) { const r = sel0.apply(this, a); toolHintCheck(); return r; }; }
+{ const draw0 = drawBoard; drawBoard = function (...a) { const r = draw0.apply(this, a); toolHintCheck(); return r; }; }
