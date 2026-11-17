@@ -214,3 +214,51 @@ noteBarState = function () {
   noteBarStatePaper(); const n = selNote(); if (!n) return;
   noteBar.querySelectorAll('button[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === (n.it.paper || 'plain')));
 };
+
+/* ---------- right-click a note (or the kept note): the toolbar's tools in a small panel by the pointer. Its keys are copies of
+   the bar's, and pressing one presses the bar's own, so they do just the same. Shift+right-click: the browser's own menu ---------- */
+const noteMenu = el('div', { class: 'sx-fmt sx-note-menu', role: 'toolbar', 'aria-label': 'Format this note', hidden: true });
+document.body.append(noteMenu);
+noteMenu.addEventListener('mousedown', e => e.preventDefault()); // (the pen and the words picked stay in the note)
+noteMenu.addEventListener('pointerdown', e => e.stopPropagation());
+function noteMenuClose() { noteMenu.hidden = true; }
+function noteMenuSync() { // light up the same keys the bar has lit
+  if (noteMenu.hidden) return; noteBarState();
+  const src = [...noteBar.querySelectorAll('button')]; noteMenu.querySelectorAll('button').forEach((b, i) => { if (src[i]) b.classList.toggle('on', src[i].classList.contains('on')); });
+}
+noteMenu.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const src = noteBar.querySelectorAll('button')[+b.dataset.i]; if (!src) return;
+  const k = src.dataset.k, shut = k === 'dup' || k === 'del' || k === 'keep';
+  if (shut) noteMenuClose(); src.click(); if (!shut) noteMenuSync();
+});
+function noteMenuOpen(x, y) {
+  noteBarState();
+  const rows = [...noteBar.querySelectorAll('.sx-fmt-row')].map(r => r.cloneNode(true)); let i = 0;
+  rows.forEach(r => r.querySelectorAll('button').forEach(b => { b.dataset.i = i++; }));
+  noteMenu.replaceChildren(...rows); noteMenu.hidden = false;
+  const w = noteMenu.offsetWidth, h = noteMenu.offsetHeight;
+  noteMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
+  noteMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+  deskSfx('pick');
+}
+addEventListener('contextmenu', e => {
+  const t = e.target.closest && e.target.closest('.sx-note-t, .sx-keep-t, .sx-bnote'); if (!t || e.shiftKey) return;
+  if (typeof panMovedAt !== 'undefined' && performance.now() - panMovedAt < 400) return; // (that was a right-drag across the desk)
+  const txt = t.matches('.sx-bnote') ? t.querySelector('.sx-note-t') : t; if (!txt) return;
+  e.preventDefault(); e.stopPropagation();
+  const kb = !e.clientX && !e.clientY;
+  if (!txt.classList.contains('sx-keep-t')) { const card = txt.closest('.sx-bnote'); if (card && selId !== card.dataset.id) select(card.dataset.id); }
+  if (!txt.contains(getSelection().anchorNode) || document.activeElement !== txt) { // not writing in it yet: the pen goes where you clicked
+    txt.focus({ preventScroll: true });
+    const at = !kb && document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY);
+    const r = at && txt.contains(at.startContainer) ? at : (() => { const q = document.createRange(); q.selectNodeContents(txt); q.collapse(false); return q; })();
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  const rc = txt.getBoundingClientRect();
+  noteMenuOpen(kb ? rc.left : e.clientX + 2, kb ? rc.top + 24 : e.clientY + 2);
+}, true);
+addEventListener('pointerdown', e => { if (!noteMenu.hidden && !e.target.closest('.sx-note-menu')) noteMenuClose(); }, true);
+addEventListener('wheel', noteMenuClose, { passive: true });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !noteMenu.hidden) { e.preventDefault(); e.stopPropagation(); noteMenuClose(); } }, true);
+document.addEventListener('selectionchange', () => { if (!noteMenu.hidden) noteMenuSync(); });

@@ -1615,3 +1615,17 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 
 /* writing in a note: the strings don't catch the pointer, so a click goes to the words (js/flow.js) */
 .sx-world.writing .sx-string-hit { pointer-events: none; }
+
+/* ---------- a table cell's right-click menu (js/table.js) ---------- */
+.sx-tbl-menu { min-width: 170px; border-top-color: var(--deck); }
+.sx-tbl-menu .sx-hop-mi { padding: 6px 10px; font-size: 13px; }
+.sx-tbl-menu .sx-hop-mi:focus-visible { outline: none; background: var(--k-041528); color: var(--k-ffffe4); }
+.sx-tbl-menu .sx-hop-mi.del:hover:not(:disabled) { color: var(--k-ff6157); }
+.sx-tbl-menu .sx-hop-mi:disabled { opacity: .35; cursor: default; background: none; }
+
+/* ---------- a note's right-click panel (js/notes.js): the bottom toolbar's two rows, floating by the pointer ---------- */
+.sx-fmt.sx-note-menu { position: fixed; z-index: 70; display: flex; left: auto; bottom: auto; width: max-content; max-width: min(430px, calc(100vw - 16px)); gap: 6px; padding: 8px; scale: none; border-top: 3px solid var(--deck); box-shadow: 0 10px 26px rgb(var(--shade) / .35); }
+.sx-note-menu .sx-fmt-row { flex-wrap: wrap; row-gap: 4px; }
+.sx-note-menu .sx-fmt-row + .sx-fmt-row { padding-top: 6px; border-top: 1px solid var(--k-293b49); }
+.sx-note-menu .sx-fb.del { color: var(--k-ff6157); }
+.sx-note-menu[hidden] { display: none !important; }

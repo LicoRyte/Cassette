@@ -253,3 +253,48 @@ function addTable() {
   save(); drawBoard(); select(id); deskLand(id, true);
   setTimeout(() => tblFocus(itemOf(id) || {}, 0, 0), 60); // (the pen in its first cell, the words picked so typing replaces them)
 }
+
+/* ---------- right-click a cell: add or take away a row or column right there (Shift+right-click for the browser's own menu) ---------- */
+const tblMenu = el('div', { class: 'sx-hop-menu sx-tbl-menu', role: 'menu', hidden: true, 'aria-label': 'Rows and columns' });
+document.body.append(tblMenu);
+tblMenu.addEventListener('mousedown', e => e.preventDefault()); // (the pen stays in the cell)
+function tblMenuClose() { tblMenu.hidden = true; }
+function tblMenuOpen(it, r, c, x, y) {
+  const nr = it.rows.length, nc = it.rows[0].length, writing = !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('.sx-btbl'));
+  const go = (r2, c2) => { if (writing) tblFocus(it, r2, c2); };
+  const item = (label, fn, off, cls) => el('button', { type: 'button', role: 'menuitem', class: 'sx-hop-mi' + (cls ? ' ' + cls : ''), disabled: off || null,
+    onclick: () => { tblMenuClose(); fn(); deskSfx('pick'); } }, label);
+  const sep = () => el('i', { class: 'sx-hop-msep' });
+  tblMenu.replaceChildren(el('div', { class: 'sx-hop-mh' }, r ? 'Row ' + r + ', column ' + (c + 1) : 'Header, column ' + (c + 1)),
+    item('Row above', () => { tblAddRow(it, r - 1); go(r, c); }, r < 1),
+    item('Row below', () => { tblAddRow(it, r); go(r + 1, c); }),
+    item('Column left', () => { tblAddCol(it, c - 1); go(r, c); }, nc >= 26),
+    item('Column right', () => { tblAddCol(it, c); go(r, c + 1); }, nc >= 26),
+    sep(),
+    item('Sort by this column', () => tblSort(it, c), nr < 3),
+    sep(),
+    item('Delete row', () => { tblDelRow(it, r); go(Math.min(r, it.rows.length - 1), c); }, r < 1 || nr <= 2, 'del'),
+    item('Delete column', () => { tblDelCol(it, c); go(r, Math.min(c, it.rows[0].length - 1)); }, nc <= 1, 'del'));
+  tblMenu.hidden = false;
+  const w = tblMenu.offsetWidth, h = tblMenu.offsetHeight;
+  tblMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
+  tblMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+  const first = tblMenu.querySelector('.sx-hop-mi:not(:disabled)'); if (first && !writing) first.focus({ preventScroll: true });
+}
+addEventListener('contextmenu', e => {
+  const t = e.target.closest && e.target.closest('.sx-btbl .sx-tc'); if (!t || e.shiftKey) return;
+  if (performance.now() - panMovedAt < 400) return; // (that was a right-drag across the desk)
+  const card = t.closest('.sx-btbl'), it = itemOf(card.dataset.id); if (!it) return;
+  e.preventDefault(); e.stopPropagation();
+  const kb = !e.clientX && !e.clientY, rc = t.getBoundingClientRect(); // (the menu key: by the cell)
+  tblMenuOpen(it, +t.dataset.r, +t.dataset.c, kb ? rc.left : e.clientX + 2, kb ? rc.bottom + 4 : e.clientY + 2);
+}, true);
+addEventListener('pointerdown', e => { if (!tblMenu.hidden && !e.target.closest('.sx-tbl-menu')) tblMenuClose(); }, true);
+addEventListener('wheel', tblMenuClose, { passive: true });
+addEventListener('keydown', e => {
+  if (tblMenu.hidden) return;
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); tblMenuClose(); return; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation();
+    const bs = [...tblMenu.querySelectorAll('.sx-hop-mi:not(:disabled)')], i = bs.indexOf(document.activeElement);
+    const n = bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length] || bs[0]; if (n) n.focus({ preventScroll: true }); }
+}, true);

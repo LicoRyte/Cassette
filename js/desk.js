@@ -587,7 +587,7 @@ function deskEditAt(txt, x, y) {
 // the right button pans, over anything on the desk; only while you're writing in something does it bring up the usual menu there (copy, paste)
 const writingIn = t => { const a = document.activeElement; return !!(a && a.isContentEditable && t && a.contains(t)); };
 let panMovedAt = 0;
-ws.addEventListener('contextmenu', e => { if (!writingIn(e.target) || performance.now() - panMovedAt < 400) e.preventDefault(); });
+ws.addEventListener('contextmenu', e => { const own = e.shiftKey && e.target.closest && e.target.closest('.sx-tc, .sx-bnote'); /* (Shift on a table cell or a note: the browser's menu) */ if ((!writingIn(e.target) && !own) || performance.now() - panMovedAt < 400) e.preventDefault(); });
 const centreOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + c.offsetHeight / 2 } : null; };
 // let go of the desk while it's moving and it keeps sliding, easing to a stop (any press, scroll or glide catches it)
 function deskFling(samp) {
