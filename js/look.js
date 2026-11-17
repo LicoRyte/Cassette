@@ -11,14 +11,14 @@ function deskTheme(k) {
 const deskRow = el('div', { class: 'sx-skins sx-desks', role: 'radiogroup', 'aria-label': 'Desk' }, ...[['night', 'Dark', '#030710'], ['white', 'White', '#f4f6f1']].map(([k, name, col]) =>
   el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: '--sk:' + col, onclick: () => deskTheme(k) }, el('i', {}), name)));
 settingsPane.append(sec('Look', el('p', { class: 'sl-muted' }, 'The desk: light or dark.'), deskRow));
-// the font: Classic (Barlow and Courier Prime) or Kodchasan, round and soft; the cassette player keeps its own letters
+// the font: Classic (Barlow and Varela Round) or Kodchasan, round and soft; the cassette player keeps its own letters
 function fontSet(k) {
   k = k === 'kodchasan' ? 'kodchasan' : 'classic'; S.opts.font = k; save();
   if (k === 'classic') delete document.documentElement.dataset.font; else document.documentElement.dataset.font = k;
   fontRow.querySelectorAll('.sx-skin').forEach(b => b.classList.toggle('on', b.dataset.k === k));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (typeof fitDigits === 'function') fitDigits(); });
 }
-const fontRow = el('div', { class: 'sx-skins sx-fonts', role: 'radiogroup', 'aria-label': 'Font' }, ...[['classic', 'Classic', "'Courier Prime', monospace"], ['kodchasan', 'Kodchasan', "'Kodchasan', sans-serif"]].map(([k, name, fam]) =>
+const fontRow = el('div', { class: 'sx-skins sx-fonts', role: 'radiogroup', 'aria-label': 'Font' }, ...[['classic', 'Classic', "'Varela Round', sans-serif"], ['kodchasan', 'Kodchasan', "'Kodchasan', sans-serif"]].map(([k, name, fam]) =>
   el('button', { type: 'button', class: 'sx-skin', role: 'radio', 'data-k': k, style: 'font-family:' + fam, onclick: () => fontSet(k) }, name)));
 deskRow.closest('.sx-sec').append(el('p', { class: 'sl-muted', style: 'margin-top:14px' }, 'The font: for your notes and the panels (the cassette player keeps its own).'), fontRow);
 fontSet(S.opts.font);

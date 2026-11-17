@@ -31,7 +31,7 @@ function drawAppSettings() { // sound, and installing
   const inst = installEv ? el('button', { type: 'button', class: 'btn', onclick: async () => { installEv.prompt(); try { await installEv.userChoice; } catch (e) { /* closed */ } installEv = null; drawAppSettings(); } }, 'Install as an app') : null;
   appBox.replaceChildren(el('div', { class: 'sx-row' }, snd, inst),
     el('p', { class: 'sl-muted' }, installEv ? 'Installing gives Cassette Timer its own window and icon. It works offline either way.' : 'Cassette Timer works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'),
-    el('p', { class: 'sl-muted sx-credits' }, 'Colour palette by BurakoIRL. Fonts: Barlow Condensed, Courier Prime and Kodchasan (OFL). Sounds: virtual_vibes, the Not-So-Awesome Archive, and the cassette key. See CREDITS.md.'));
+    el('p', { class: 'sl-muted sx-credits' }, 'Colour palette by BurakoIRL. Fonts: Barlow Condensed, Varela Round and Kodchasan (OFL). Sounds: virtual_vibes, the Not-So-Awesome Archive, and the cassette key. See CREDITS.md.'));
 }
 const startOver = armBtn('Start over from scratch', 'Erase everything? Click again', () => { wiping = true; clearInterval(tickT); try { localStorage.removeItem(KEY); } catch (e) { /* */ } location.reload(); }, 'sx-danger');
 const settingsPane = el('div', { class: 'sl-pane' },

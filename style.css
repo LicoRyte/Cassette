@@ -1,14 +1,12 @@
 /* Cassette Timer: a vintage console. Few colours, all from the 32-colour palette by BurakoIRL: cream digits, amber
-   keys, mint for breaks, yellow when paused, a dark blue-black desk. Fonts: Barlow Condensed (labels) and Courier
+   keys, mint for breaks, yellow when paused, a dark blue-black desk. Fonts: Barlow Condensed (labels) and Varela
    Prime (notes). Reduced motion keeps every animation still. */
 
 @font-face { font-family: 'Barlow C'; src: url(fonts/barlow-condensed-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
 @font-face { font-family: 'Barlow C'; src: url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2'); font-weight: 500; font-display: swap; }
 @font-face { font-family: 'Barlow C'; src: url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2'); font-weight: 600; font-display: swap; }
 @font-face { font-family: 'Barlow C'; src: url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
-@font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
-@font-face { font-family: 'Courier Prime'; src: url(fonts/courier-prime-latin-400-italic.woff2) format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Varela Round'; src: url(fonts/varela-round-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; } /* (one weight: bold and italic are drawn from it) */
 /* Kodchasan (Cadson Demak, OFL): the cozy, rounded choice in Settings, Look, Font; Thai and Latin each load only when needed */
 @font-face { font-family: 'Kodchasan'; src: url(fonts/kodchasan-thai-400-normal.woff2) format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
 @font-face { font-family: 'Kodchasan'; src: url(fonts/kodchasan-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
@@ -29,7 +27,7 @@
   --line: #34111f; --dim: #293b49; --mute: #6d8a8d; --soft: #6d8a8d; --ink: #bfc3c6; --white: #ffffe4;
   --amber: var(--deck); --amber-hi: #ffdaac; --sky: #bfc3c6; --blue: #77d6c1; --indigo: #1c92a7; --violet: #1c92a7;
   --green: #9cb93b; --red: #c76e46; --wine: #73392e; --butter: #ffdaac;
-  --ui: 'Barlow C', 'Arial Narrow', sans-serif; --text: 'Courier Prime', 'Courier New', monospace;
+  --ui: 'Barlow C', 'Arial Narrow', sans-serif; --text: 'Varela Round', 'Nunito', sans-serif;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -1610,7 +1608,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 
 /* ---------- the font (Settings, Look): Kodchasan for the words, the notes and the panels; the cassette player keeps its
    own condensed letters, so the clock looks the same ---------- */
-:root[data-font="kodchasan"] { --ui: 'Kodchasan', 'Barlow C', sans-serif; --text: 'Kodchasan', 'Courier Prime', monospace; }
+:root[data-font="kodchasan"] { --ui: 'Kodchasan', 'Barlow C', sans-serif; --text: 'Kodchasan', 'Varela Round', sans-serif; }
 :root[data-font="kodchasan"] .sx-corner { --ui: 'Barlow C', 'Arial Narrow', sans-serif; }
 /* Settings has the screen to itself: the top-left keys (which can't be clicked there anyway) keep out of its title */
 #app.paged .sx-tray { visibility: hidden; }
