@@ -90,10 +90,9 @@ function keepNote() { // the kept note, for the toolbar, while the strip is bein
   if (!keepOn()) return null; const it = keepItem(); if (!it) return null;
   return { c: els.get(it.id) || keepBox, t: keepT, it };
 }
-function keepTools() { if (noteBar.parentNode !== deskCtx) deskCtx.prepend(noteBar); noteBarState(); keepPlace(); setTimeout(keepPlace, 220); }
+function keepTools() { keepPlace(); setTimeout(keepPlace, 220); } // (its tools: right-click it)
 keepT.addEventListener('focus', keepTools);
 keepT.addEventListener('pointerdown', () => setTimeout(keepTools, 0));
-document.addEventListener('selectionchange', () => { const n = getSelection().anchorNode; if (n && keepT.contains(n) && noteBar.parentNode !== deskCtx) keepTools(); }); // (however the pen got there)
 keepT.addEventListener('blur', () => setTimeout(() => { if (document.activeElement === keepT) return; noteBarTo(selId); keepPlace(); setTimeout(keepPlace, 220); }, 0)); // (the toolbar goes back to whatever is picked)
 // a button that changes the note's paper or its size: the card on the desk is drawn again to match, and so is the strip
 noteBar.addEventListener('click', e => {

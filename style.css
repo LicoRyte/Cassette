@@ -1629,3 +1629,10 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-note-menu .sx-fmt-row + .sx-fmt-row { padding-top: 6px; border-top: 1px solid var(--k-293b49); }
 .sx-note-menu .sx-fb.del { color: var(--k-ff6157); }
 .sx-note-menu[hidden] { display: none !important; }
+
+.sx-tbl-menu .sx-hop-mi.on::after { content: '  ✓'; color: var(--deck); }
+/* ---------- the "Right-click for tools" hint by the pointer (js/table.js) ---------- */
+.sx-tool-hint { position: fixed; z-index: 71; padding: 4px 9px; background: var(--k-030710); border: 1px solid var(--k-293b49); border-left: 3px solid var(--deck); color: var(--k-ffdaac); font: 600 12px var(--ui); letter-spacing: .06em; white-space: nowrap; pointer-events: none; opacity: 0; translate: 0 4px; transition: opacity .18s, translate .18s; box-shadow: 0 6px 16px rgb(var(--shade) / .25); }
+.sx-tool-hint.on { opacity: 1; translate: 0 0; }
+.sx-tool-hint[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .sx-tool-hint { transition: none; translate: none; } }

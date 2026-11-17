@@ -153,7 +153,7 @@ const tblBar = el('div', { class: 'sx-fmt sx-tblbar', role: 'toolbar', 'aria-lab
 tblBar.addEventListener('mousedown', e => e.preventDefault()); // (the pen stays in the cell you're in)
 function tblBarState() { const it = tblOf(); if (!it) return;
   tblViewBs.forEach((b, i) => b.classList.toggle('on', TBL_VIEWS[i][0] === it.view)); tblBar.querySelector('.sx-tbl-totb').classList.toggle('on', !!it.total); }
-function tblBarTo(id) { const it = id && itemOf(id); if (it && it.type === 'tbl' && els.get(id)) { if (tblBar.parentNode !== deskCtx) deskCtx.prepend(tblBar); tblBarState(); } else tblBar.remove(); }
+function tblBarTo() { tblBar.remove(); } // (no longer docked below: right-click a cell for its tools)
 const noteBarToT = noteBarTo;
 noteBarTo = function (id) { noteBarToT(id); tblBarTo(id); };
 
@@ -272,9 +272,14 @@ function tblMenuOpen(it, r, c, x, y) {
     item('Column right', () => { tblAddCol(it, c); go(r, c + 1); }, nc >= 26),
     sep(),
     item('Sort by this column', () => tblSort(it, c), nr < 3),
+    item('Total row', () => tblTotal(it), false, it.total ? 'on' : ''),
     sep(),
     item('Delete row', () => { tblDelRow(it, r); go(Math.min(r, it.rows.length - 1), c); }, r < 1 || nr <= 2, 'del'),
-    item('Delete column', () => { tblDelCol(it, c); go(r, Math.min(c, it.rows[0].length - 1)); }, nc <= 1, 'del'));
+    item('Delete column', () => { tblDelCol(it, c); go(r, Math.min(c, it.rows[0].length - 1)); }, nc <= 1, 'del'),
+    sep(),
+    item('Duplicate table', () => deskDuplicate()),
+    item('Delete table', () => deskDelete(), false, 'del'));
+  if (typeof toolHintUsed === 'function') toolHintUsed();
   tblMenu.hidden = false;
   const w = tblMenu.offsetWidth, h = tblMenu.offsetHeight;
   tblMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
@@ -285,7 +290,7 @@ addEventListener('contextmenu', e => {
   const t = e.target.closest && e.target.closest('.sx-btbl .sx-tc'); if (!t || e.shiftKey) return;
   if (performance.now() - panMovedAt < 400) return; // (that was a right-drag across the desk)
   const card = t.closest('.sx-btbl'), it = itemOf(card.dataset.id); if (!it) return;
-  e.preventDefault(); e.stopPropagation();
+  e.preventDefault(); e.stopPropagation(); if (selId !== it.id || picked.size > 1) select(it.id);
   const kb = !e.clientX && !e.clientY, rc = t.getBoundingClientRect(); // (the menu key: by the cell)
   tblMenuOpen(it, +t.dataset.r, +t.dataset.c, kb ? rc.left : e.clientX + 2, kb ? rc.bottom + 4 : e.clientY + 2);
 }, true);
@@ -298,3 +303,22 @@ addEventListener('keydown', e => {
     const bs = [...tblMenu.querySelectorAll('.sx-hop-mi:not(:disabled)')], i = bs.indexOf(document.activeElement);
     const n = bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length] || bs[0]; if (n) n.focus({ preventScroll: true }); }
 }, true);
+
+/* ---------- a small hint by the pointer when you pick a note or a table: "Right-click for tools". It fades on its own, and
+   stops showing once you've opened the menus a few times ---------- */
+const toolHint = el('div', { class: 'sx-tool-hint', 'aria-hidden': 'true', hidden: true }, 'Right-click for tools');
+document.body.append(toolHint);
+let toolHintPtr = null, toolHintT = 0;
+function toolHintUsed() { toolHintHide(); const n = (S.opts.rcUsed || 0) + 1; if (n <= 3) { S.opts.rcUsed = n; save(); } }
+function toolHintHide() { clearTimeout(toolHintT); toolHint.classList.remove('on'); toolHintT = setTimeout(() => { toolHint.hidden = true; }, 200); }
+function toolHintShow(x, y) {
+  if ((S.opts.rcUsed || 0) >= 3) return;
+  clearTimeout(toolHintT); toolHint.hidden = false;
+  toolHint.style.left = Math.min(innerWidth - toolHint.offsetWidth - 8, x + 14) + 'px'; toolHint.style.top = Math.min(innerHeight - 30, y + 18) + 'px';
+  requestAnimationFrame(() => toolHint.classList.add('on')); toolHintT = setTimeout(toolHintHide, 1800);
+}
+addEventListener('pointerdown', e => { if (e.button === 0) toolHintPtr = { x: e.clientX, y: e.clientY, t: performance.now() }; else if (!toolHint.hidden) toolHintHide(); }, true);
+addEventListener('pointermove', e => { if (!toolHint.hidden && toolHintPtr && Math.hypot(e.clientX - toolHintPtr.x, e.clientY - toolHintPtr.y) > 120) toolHintHide(); }, { passive: true });
+{ const sel0 = select; select = function (id, ...a) { const was = selId, r = sel0.call(this, id, ...a), it = id && itemOf(id);
+    if (it && id !== was && picked.size === 1 && (it.type === 'note' || it.type === 'tbl') && toolHintPtr && performance.now() - toolHintPtr.t < 500) toolHintShow(toolHintPtr.x, toolHintPtr.y);
+    return r; }; }

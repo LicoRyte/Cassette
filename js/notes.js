@@ -192,7 +192,7 @@ function noteBarState() { // light up what's on where the pen is
 document.addEventListener('selectionchange', () => { if (noteBar.isConnected) noteBarState(); });
 function noteBarTo(id) { // the toolbar shows in the bar along the bottom while a note is picked
   const c = id && layer.querySelector('.sx-bnote[data-id="' + id + '"]');
-  if (c) { if (noteBar.parentNode !== deskCtx) deskCtx.prepend(noteBar); noteBarState(); } else noteBar.remove();
+  noteBar.remove(); // (no longer docked below: right-click a note for its tools, the panel copies this bar)
 }
 
 /* ---------- paper: plain, lined or grid ----------
@@ -236,7 +236,7 @@ function noteMenuOpen(x, y) {
   noteBarState();
   const rows = [...noteBar.querySelectorAll('.sx-fmt-row')].map(r => r.cloneNode(true)); let i = 0;
   rows.forEach(r => r.querySelectorAll('button').forEach(b => { b.dataset.i = i++; }));
-  noteMenu.replaceChildren(...rows); noteMenu.hidden = false;
+  noteMenu.replaceChildren(...rows); noteMenu.hidden = false; if (typeof toolHintUsed === 'function') toolHintUsed();
   const w = noteMenu.offsetWidth, h = noteMenu.offsetHeight;
   noteMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
   noteMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
