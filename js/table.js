@@ -68,7 +68,7 @@ function tblRedraw(it, anim) {
   if (anim && !stillUI()) tblAnim.add(it.id);
   c.dataset.view = it.view; c.style.width = it.w + 'px';
   c.querySelectorAll('.sx-tbl-v button').forEach(b => { const on = b.dataset.v === it.view; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
-  c.querySelector('.sx-tbl-in').replaceChildren(tblBody(it)); strUpdate(); selBoxUpdate(); tblBarState();
+  c.querySelector('.sx-tbl-in').replaceChildren(tblBody(it)); strUpdate(); selBoxUpdate();
 }
 function tblView(it, k) { if (it.view === k) return; deskMark(); it.view = k; save(); select(it.id); tblRedraw(it, true); deskSfx('pick'); }
 function tblFocus(it, r, c, end) {
@@ -110,9 +110,7 @@ function tblPaste(e, it) {
   save(); tblRedraw(it); tblFocus(it, r0, c0); deskToast('Pasted ' + grid.length + (grid.length === 1 ? ' row' : ' rows'));
 }
 
-/* ---------- changing its shape (the bar along the bottom) ---------- */
-const tblOf = () => { const it = selId && itemOf(selId); return it && it.type === 'tbl' ? it : null; };
-const tblAt = it => tblCur && tblCur.id === it.id ? tblCur : null;
+/* ---------- changing its shape (right-click a cell: the menu at the end of this file) ---------- */
 function tblAddRow(it, after) { deskMark(); const r = after == null ? it.rows.length - 1 : after; it.rows.splice(r + 1, 0, Array(it.rows[0].length).fill('')); save(); tblRedraw(it); }
 function tblAddCol(it, after) { if (it.rows[0].length >= 26) return; deskMark(); const c = after == null ? it.rows[0].length - 1 : after; it.rows.forEach((r, i) => r.splice(c + 1, 0, i ? '' : 'Column ' + (it.rows[0].length + 1))); tblShift(it, c, 1); save(); tblRedraw(it); }
 function tblDelRow(it, r) { if (it.rows.length <= 2) return; if (r == null || r < 1) r = it.rows.length - 1; deskMark(); it.rows.splice(r, 1); save(); tblRedraw(it); tblCur = null; }
@@ -136,26 +134,6 @@ function tblCount(root, wait) {
     requestAnimationFrame(step); });
 }
 
-const tblB = (label, title, fn, cls) => el('button', { type: 'button', class: 'sx-fb' + (cls ? ' ' + cls : ''), title, 'aria-label': title, onclick: () => { const it = tblOf(); if (it) fn(it); } }, label);
-const tblViewBs = TBL_VIEWS.map(([k, name]) => tblB(name, 'Show it as ' + name.toLowerCase(), it => tblView(it, k), 'sx-tbl-vb'));
-const tblBar = el('div', { class: 'sx-fmt sx-tblbar', role: 'toolbar', 'aria-label': 'Table' },
-  el('div', { class: 'sx-fmt-row' },
-    tblB('+ Row', 'A new row under the one you are in (or at the end)', it => { const a = tblAt(it); tblAddRow(it, a ? Math.max(a.r, 0) : null); }),
-    tblB('+ Column', 'A new column after the one you are in (or at the end)', it => { const a = tblAt(it); tblAddCol(it, a ? a.c : null); }),
-    tblB('− Row', 'Take away the row you are in (or the last)', it => { const a = tblAt(it); tblDelRow(it, a ? a.r : null); }),
-    tblB('− Column', 'Take away the column you are in (or the last)', it => { const a = tblAt(it); tblDelCol(it, a ? a.c : null); }),
-    el('i', { class: 'sx-fsep' }),
-    tblB('Sort', 'Sort the rows by the column you are in: high to low, again for low to high', it => { const a = tblAt(it); tblSort(it, a ? a.c : null); }),
-    tblB('Total', 'A total row at the bottom', it => tblTotal(it), 'sx-tbl-totb'),
-    el('i', { class: 'sx-fsep' }), ...tblViewBs,
-    el('i', { class: 'sx-fsep' }),
-    tblB('Duplicate', 'Duplicate (Ctrl+D)', () => deskDuplicate()), tblB('Delete', 'Delete (Delete)', () => deskDelete(), 'del')));
-tblBar.addEventListener('mousedown', e => e.preventDefault()); // (the pen stays in the cell you're in)
-function tblBarState() { const it = tblOf(); if (!it) return;
-  tblViewBs.forEach((b, i) => b.classList.toggle('on', TBL_VIEWS[i][0] === it.view)); tblBar.querySelector('.sx-tbl-totb').classList.toggle('on', !!it.total); }
-function tblBarTo() { tblBar.remove(); } // (no longer docked below: right-click a cell for its tools)
-const noteBarToT = noteBarTo;
-noteBarTo = function (id) { noteBarToT(id); tblBarTo(id); };
 
 /* ---------- graphs ---------- */
 function tblSeries(it) {
@@ -304,21 +282,44 @@ addEventListener('keydown', e => {
     const n = bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length] || bs[0]; if (n) n.focus({ preventScroll: true }); }
 }, true);
 
-/* ---------- "Right-click for tools": faint words just above the pointer, following it, while a new note or table is picked,
-   until it has been right-clicked once (it.rcd marks one that has). Notes and tables from before this are marked already ---------- */
+/* ---------- "Right-click for tools": faint words just above the mouse, following it, while it's over a note or a table that
+   hasn't been right-clicked yet (it.rcd marks one that has). Notes and tables from before this are marked already ---------- */
 if (!S.opts.rcMig) { S.board.items.forEach(x => { if (x.type === 'note' || x.type === 'tbl') x.rcd = 1; }); S.opts.rcMig = 1; delete S.opts.rcUsed; save(); }
 const toolHint = el('div', { class: 'sx-tool-hint', 'aria-hidden': 'true', hidden: true }, 'Right-click for tools');
 document.body.append(toolHint);
 let toolHintFor = null, toolHintXY = null;
 function toolHintPlace() {
-  if (!toolHintFor || selId !== toolHintFor || picked.size !== 1 || !toolHintXY) { if (!toolHint.hidden) toolHint.hidden = true; return; }
+  if (!toolHintFor || !toolHintXY) { if (!toolHint.hidden) toolHint.hidden = true; return; }
   if (toolHint.hidden) toolHint.hidden = false;
   toolHint.style.transform = 'translate(' + Math.round(toolHintXY.x - toolHint.offsetWidth / 2) + 'px,' + Math.round(toolHintXY.y - toolHint.offsetHeight - 12) + 'px)';
 }
-function toolHintCheck() { const it = selId && picked.size === 1 && itemOf(selId); toolHintFor = it && (it.type === 'note' || it.type === 'tbl') && !it.rcd ? it.id : null; toolHintPlace(); }
-function toolHintUsed(id) { const it = itemOf(id); if (it && !it.rcd) { it.rcd = 1; save(); } toolHintCheck(); }
-addEventListener('pointermove', e => { toolHintXY = { x: e.clientX, y: e.clientY }; if (toolHintFor) toolHintPlace(); }, { passive: true });
-addEventListener('pointerdown', e => { toolHintXY = { x: e.clientX, y: e.clientY }; }, { capture: true, passive: true });
-document.documentElement.addEventListener('pointerleave', () => { toolHint.hidden = true; });
-{ const sel0 = select; select = function (...a) { const r = sel0.apply(this, a); toolHintCheck(); return r; }; }
-{ const draw0 = drawBoard; drawBoard = function (...a) { const r = draw0.apply(this, a); toolHintCheck(); return r; }; }
+// the note or table under the mouse, if it's one that hasn't been right-clicked yet (not while a button is held: that's a drag)
+function toolHintAt(e) {
+  if (e.pointerType && e.pointerType !== 'mouse' || e.buttons) return null;
+  const c = e.target && e.target.closest && e.target.closest('.sx-bnote[data-id], .sx-btbl[data-id]'), it = c && itemOf(c.dataset.id);
+  return it && !it.rcd ? it.id : null;
+}
+function toolHintUsed(id) { const it = itemOf(id); if (it && !it.rcd) { it.rcd = 1; save(); } if (toolHintFor === id) { toolHintFor = null; toolHintPlace(); } }
+addEventListener('pointermove', e => { toolHintXY = { x: e.clientX, y: e.clientY }; toolHintFor = toolHintAt(e); toolHintPlace(); }, { passive: true });
+addEventListener('pointerdown', () => { toolHintFor = null; toolHintPlace(); }, { capture: true, passive: true });
+document.documentElement.addEventListener('pointerleave', () => { toolHintFor = null; toolHintPlace(); });
+addEventListener('wheel', () => { toolHintFor = null; toolHintPlace(); }, { passive: true });
+
+/* ---------- on a touch screen: hold a finger on a note or a table cell for half a second, and its menu opens (as a right-click
+   would). Android opens it this way by itself; iPhones and iPads don't, so this does it for them ---------- */
+let holdT = 0, holdAt = null, holdDone = 0, realMenuAt = 0;
+addEventListener('contextmenu', e => { if (e.isTrusted) realMenuAt = performance.now(); }, true);
+addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  const t = e.target && e.target.closest && e.target.closest('.sx-note-t, .sx-keep-t, .sx-bnote, .sx-btbl .sx-tc'); if (!t) return;
+  clearTimeout(holdT); holdAt = { x: e.clientX, y: e.clientY, t, at: performance.now() };
+  holdT = setTimeout(() => {
+    const h = holdAt; holdAt = null; if (!h || realMenuAt >= h.at) return; // (the browser opened it already)
+    h.t.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: h.x, clientY: h.y }));
+    holdDone = performance.now(); if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) { /* */ }
+  }, 500);
+}, { capture: true, passive: true });
+const holdOff = e => { if (!holdAt) return; if (e.type === 'pointermove' && Math.hypot(e.clientX - holdAt.x, e.clientY - holdAt.y) < 10) return; clearTimeout(holdT); holdAt = null; };
+['pointermove', 'pointerup', 'pointercancel'].forEach(k => addEventListener(k, holdOff, { capture: true, passive: true }));
+// the finger lifting after a hold isn't a tap (it would close the menu, or pick something)
+addEventListener('click', e => { if (performance.now() - holdDone < 700 && !(e.target.closest && e.target.closest('.sx-note-menu, .sx-tbl-menu'))) { e.preventDefault(); e.stopPropagation(); } }, true);

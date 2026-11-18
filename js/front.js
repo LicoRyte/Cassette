@@ -1,4 +1,4 @@
-/* Cassie: the front page. It opens when Cassie starts: the name, a few notes pinned around it, and the workspaces.
+/* Cassie: the front page. It opens when Cassie starts: the name and the workspaces.
    Continue goes back into the one you were in (Enter); the others are listed under it (click to open; rename, back up or
    delete from the row). New workspace starts an empty one, and Load a backup makes a backup file a workspace of its own;
    neither touches the others. Boards ▸ Front page brings it back. It loads early (after js/state.js) so its keys come
@@ -7,30 +7,8 @@
 
 const front = el('div', { class: 'cz-front', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Cassie', hidden: true });
 const frontMain = el('div', { class: 'cz-main' });
-const frontStr = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-frontStr.setAttribute('class', 'cz-strings'); frontStr.setAttribute('aria-hidden', 'true');
 let frontOn = false;
 
-// the notes pinned around the edges (just for looks): a few odd facts, new ones each time, tied in pairs with red string
-const FRONT_FACTS = ['Octopuses have three hearts.', 'Honey found in ancient tombs was still good to eat.', 'A day on Venus is longer than its year.',
-  'Bananas are berries. Strawberries aren\'t.', 'The first cassette tape came out in 1963.', 'Sharks are older than trees.',
-  'A group of flamingos is called a flamboyance.', 'Wombat droppings are cube-shaped.', 'Sea otters hold hands while they sleep.',
-  'Pomodoro is Italian for tomato.', 'Sunlight takes about eight minutes to reach us.', 'Scotland\'s national animal is the unicorn.',
-  'There are more trees on Earth than stars in the Milky Way.', 'Butterflies taste with their feet.', 'A cassette tape runs at 4.76 cm a second.',
-  'The Eiffel Tower is a little taller in summer.', 'Snails can sleep for three years.', 'A jiffy is a real unit of time.'];
-const frontNote = cls => el('div', { class: 'cz-fnote ' + cls, 'aria-hidden': 'true' });
-const frontDeco = ['a', 'b', 'c', 'd'].map(frontNote);
-function frontFacts() {
-  const pool = FRONT_FACTS.slice();
-  frontDeco.forEach(n => n.replaceChildren(el('i', { class: 'cz-fpin' }), pool.splice(Math.floor(Math.random() * pool.length), 1)[0]));
-}
-function frontStrings() {
-  if (!frontOn) return;
-  const pin = n => { const r = n.querySelector('.cz-fpin').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
-  const path = (a, b) => { const [x1, y1] = pin(a), [x2, y2] = pin(b), sag = 30 + Math.hypot(x2 - x1, y2 - y1) * .1; return 'M' + x1 + ' ' + y1 + ' Q' + (x1 + x2) / 2 + ' ' + ((y1 + y2) / 2 + sag) + ' ' + x2 + ' ' + y2; };
-  frontStr.innerHTML = frontDeco[0].offsetParent ? '<path d="' + path(frontDeco[0], frontDeco[2]) + '"/><path d="' + path(frontDeco[1], frontDeco[3]) + '"/>' : '';
-}
-addEventListener('resize', frontStrings);
 
 // the little cassette by the name
 function frontLogo() {
@@ -161,9 +139,9 @@ function frontAsk(kind) {
 const focusFirst = () => { const b = frontMain.querySelector('.cz-cont, .cz-btn.main, .cz-btn'); if (b) b.focus({ preventScroll: true }); };
 const frontStill = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 function frontOpen() {
-  if (frontOn) return; frontOn = true; frontFacts(); frontDraw(); front.hidden = false; front.classList.remove('out');
+  if (frontOn) return; frontOn = true; frontDraw(); front.hidden = false; front.classList.remove('out');
   if (!frontStill()) front.classList.add('in');
-  requestAnimationFrame(() => { frontStrings(); focusFirst(); }); setTimeout(frontStrings, 700);
+  requestAnimationFrame(() => focusFirst());
 }
 // how much the browser holds for Cassie (notes, photos, everything), and whether it's kept for good
 const frontSize = b => b >= 1e9 ? (b / 1e9).toFixed(1) + ' GB' : b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB';
@@ -199,7 +177,7 @@ addEventListener('keydown', e => {
   if (!inMine && e.key !== 'Tab') e.preventDefault();
 }, true);
 
-front.append(frontStr, ...frontDeco, frontMain);
+front.append(frontMain);
 document.body.append(front);
 // on start (but not right after New or Load made a fresh workspace: that goes straight to the desk)
 if (sessionStorage.getItem('cassie-in')) sessionStorage.removeItem('cassie-in'); else frontOpen();

@@ -41,7 +41,7 @@ function keepDraw(fresh) {
 function keepPlace() {
   if (keepBox.hidden) return;
   let top = innerHeight - 14;
-  document.querySelectorAll('.sx-ws-ctx, .sx-ws-ctx > .sx-fmt').forEach(e => { if (!e.offsetParent && getComputedStyle(e).position !== 'fixed') return; const r = e.getBoundingClientRect(); if (r.height && r.top < top) top = r.top; });
+  document.querySelectorAll('.sx-ws-ctx').forEach(e => { if (!e.offsetParent && getComputedStyle(e).position !== 'fixed') return; const r = e.getBoundingClientRect(); if (r.height && r.top < top) top = r.top; });
   const b = Math.max(14, innerHeight - top + 10) + 'px'; if (keepBox.style.bottom !== b) keepBox.style.bottom = b;
 }
 

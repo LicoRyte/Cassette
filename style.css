@@ -436,7 +436,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-bnote:hover .sx-resize, .sx-bnote.sel .sx-resize, .sx-bnote.sizing .sx-resize { opacity: 1; }
 /* the toolbar: sits above the selected note and keeps its size on screen however far you zoom */
 .sx-fmt { position: absolute; left: -2px; bottom: calc(100% + 12px); z-index: 6; display: none; flex-direction: column; gap: 4px; padding: 6px; background: var(--k-030710); border: 1px solid var(--k-293b49); box-shadow: 0 6px 18px rgba(3, 7, 16, .6); scale: calc(1 / var(--cz, 1)); transform-origin: 0 100%; cursor: default; color: var(--k-ffdaac); text-shadow: none; }
-.sx-bnote.sel > .sx-fmt { display: flex; }
 .sx-fmt-row { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
 .sx-fb { min-width: 28px; height: 28px; padding: 0 6px; background: none; border: 1px solid transparent; color: var(--k-ffdaac); font: 600 14px/1 var(--ui); cursor: pointer; }
 .sx-fb:hover { border-color: var(--k-293b49); color: var(--k-ffffe4); }
@@ -479,10 +478,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-ws-selg { padding-left: 10px; border-left: 1px solid var(--k-293b49); }
 .sx-ws-menu { position: absolute; left: 10px; bottom: calc(100% + 8px); z-index: 6; display: flex; flex-direction: column; min-width: 240px; padding: 6px; background: var(--k-030710); border: 1px solid var(--k-293b49); box-shadow: 0 6px 18px rgba(3, 7, 16, .6); }
 .sx-ws-menu[hidden] { display: none; }
-.sx-ws-bar .sx-ws-mi, .sx-ws-bar .btn.sx-ws-mi { display: block; width: 100%; min-height: 0; padding: 8px 10px; background: none; border: 0; box-shadow: none; color: var(--k-ffdaac); font: 600 15px var(--ui); text-align: left; cursor: pointer; }
-.sx-ws-bar .sx-ws-mi:hover { background: var(--k-293b49); color: var(--k-ffffe4); }
-.sx-ws-bar .btn.sx-ws-mi.arm { color: var(--k-ff6157); }
-.sx-ws-msep { display: block; height: 1px; margin: 4px 0; background: var(--k-293b49); }
+
 .sx-toast { position: fixed; left: 50%; top: 70px; z-index: 50; transform: translate(-50%, -8px); padding: 8px 16px; background: var(--k-030710); border: 1px solid var(--k-77d6c1); color: var(--k-ffffe4); font: 600 15px var(--ui); opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
 .sx-toast.on { opacity: 1; transform: translate(-50%, 0); }
 /* laid flat for a moment while the image is made */
@@ -565,9 +561,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 #app .sx-ws-bar .sx-ws-n { color: var(--k-77d6c1); }
 /* the menu: over its button, never faded, the same keys inside */
 #app .sx-ws-menu { left: 0; bottom: calc(100% + 10px); padding: 8px; gap: 2px; background: var(--k-030710); border: 1px solid var(--deck); }
-#app .sx-ws-bar .sx-ws-mi, #app .sx-ws-bar .btn.sx-ws-mi { height: auto; padding: 9px 12px; border: 0; border-radius: 2px; box-shadow: none; color: var(--k-ffdaac); font: 600 14px var(--ui); letter-spacing: .03em; text-transform: none; transform: none; }
-#app .sx-ws-bar .sx-ws-mi:hover { background: var(--k-293b49); color: var(--k-ffffe4); }
-#app .sx-ws-bar .btn.sx-ws-mi.arm { color: var(--k-ff6157); }
+
 @media (max-width: 760px) { #app .sx-ws-bar { flex-wrap: wrap; justify-content: center; } }
 
 /* ---------- how it works: the ? at the top left (js/ui/help.js) ---------- */
@@ -1046,12 +1040,7 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focus is only the clock) */
 
 /* ---------- the note toolbar docks just above the bottom bar, as wide as it ---------- */
-#app .sx-ws-bar > .sx-fmt { display: flex; position: absolute; left: -1px; right: -1px; bottom: calc(100% + 8px); z-index: 1; padding: 8px 10px; gap: 6px; scale: none; background: var(--k-030710); border: 1px solid var(--k-293b49); box-shadow: 0 6px 18px rgba(3, 7, 16, .45); }
-#app .sx-ws-bar > .sx-fmt { align-items: flex-start; }
-#app .sx-ws-bar > .sx-fmt .sx-fb.del { color: var(--k-ff6157); }
 .sx-note-t hr { height: 0; margin: .5em 0; border: 0; border-top: 1.5px solid color-mix(in srgb, var(--ink) 35%, transparent); }
-#app .sx-ws-bar > .sx-fmt .sx-fmt-row { justify-content: flex-start; flex-wrap: wrap; }
-:root[data-desk="white"] #app .sx-ws-bar > .sx-fmt { box-shadow: 0 6px 18px rgba(115, 57, 46, .16); }
 
 /* while things are carried: the strings drop their shadow (a shadow filter on a line that changes every frame is very costly),
    and the box around what's picked slides as its own layer. Both come back the moment you let go */
@@ -1090,18 +1079,13 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 #app .sx-ws-side .sx-ws-ic { width: 36px; min-width: 0; padding: 0; }
 #app .sx-ws-side .sx-ic-car { position: absolute; right: 2px; bottom: 2px; font-size: 8px; margin: 0; }
 #app .sx-ws-side .sx-ws-menu { left: calc(100% + 12px); top: 0; bottom: auto; max-height: calc(100vh - 90px); overflow-y: auto; }
-#app .sx-ws-menu .sx-ws-mh { padding: 6px 12px 4px; font: 700 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--k-6d8a8d); }
-#app .sx-ws-bar .sx-ws-mb { display: flex; align-items: center; gap: 8px; }
-#app .sx-ws-bar .sx-ws-mb .sx-ws-tick { width: 12px; color: var(--deck); }
-#app .sx-ws-bar .sx-ws-mb.cur { color: var(--k-ffffe4); }
+
 @media (max-height: 560px) { #app .sx-ws-side > .sx-ws-grp { gap: 4px; padding: 6px 0; } #app .sx-ws-side .sx-ws-ic { height: 30px; } }
 
 /* ---------- the bottom: what changes the thing you've picked (the note's toolbar, several at once, the pen) ---------- */
 #app .sx-ws-bar.sx-ws-ctx { flex-direction: column; align-items: stretch; gap: 8px; width: max-content; max-width: min(980px, calc(100vw - 2 * (max(16px, env(safe-area-inset-left)) + 68px))); }
 #app .sx-ws-ctx:not(:has(> :not([hidden]))) { display: none; }
-#app .sx-ws-ctx > .sx-fmt { position: static; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 0; background: none; border: 0; box-shadow: none; }
 #app .sx-ws-ctx > .sx-ws-selg { justify-content: center; padding-left: 0; border-left: 0; }
-#app .sx-ws-ctx > .sx-fmt ~ .sx-ws-selg:not([hidden]) { padding-top: 8px; border-top: 1px solid var(--k-293b49); }
 
 /* ---------- tables (js/table.js): cream paper with a grid, or a graph of its numbers ---------- */
 .sx-world .sx-bcard.sx-btbl { width: 360px; height: auto !important; padding: 34px 12px 14px; background: #ffffe4; color: #34111f; font: 14px/1.35 var(--text); }
@@ -1569,7 +1553,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-keep-t hr { height: 0; margin: .5em 0; border: 0; border-top: 1.5px solid color-mix(in srgb, var(--ink, #34111f) 30%, transparent); }
 @media (prefers-reduced-motion: reduce) { .sx-keep { transition: none; } }
 
-
 /* ---------- the board manager (js/boards.js): a calm list, one row a board; a row's keys show when you point at it ---------- */
 #app .sx-ws-side .sx-ws-menu { width: 340px; max-height: min(560px, calc(100vh - 90px)); padding: 0; gap: 0; overflow: hidden; display: flex; flex-direction: column; border: 1px solid color-mix(in srgb, var(--deck) 55%, transparent); border-top: 3px solid var(--deck); box-shadow: 0 10px 26px rgb(var(--shade) / .3); }
 .sx-ws-menu[hidden] { display: none !important; }
@@ -1596,7 +1579,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 @media (hover: none) { .sx-bm-acts { opacity: 1; pointer-events: auto; } .sx-bm-n { visibility: hidden; } }
 #app .sx-ws-bar .sx-bm-a { display: grid; place-items: center; width: 26px; height: 26px; padding: 0; background: none; border: 0; border-radius: 3px; box-shadow: none; color: var(--k-6d8a8d); cursor: pointer; }
 #app .sx-ws-bar .sx-bm-a:hover:not(:disabled) { background: var(--k-293b49); color: var(--k-ffffe4); }
-#app .sx-ws-bar .sx-bm-a.sx-bm-bin:hover:not(:disabled) { color: var(--k-ff6157); }
+
 #app .sx-ws-bar .sx-bm-a:disabled { opacity: .3; cursor: not-allowed; }
 .sx-bm-ic svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .sx-bm-row.drag { opacity: .4; }
@@ -1634,18 +1617,14 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* ---------- the "Right-click for tools" hint by the pointer (js/table.js) ---------- */
 .sx-tool-hint { position: fixed; left: 0; top: 0; z-index: 71; color: rgb(255 255 255 / .85); font: 600 12px var(--ui); letter-spacing: .08em; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px rgb(var(--shade) / .55), 0 0 6px rgb(var(--shade) / .25); will-change: transform; }
 .sx-tool-hint[hidden] { display: none; }
+:root[data-desk="white"] .sx-tool-hint { color: rgb(115 57 46 / .85); text-shadow: 0 1px 0 rgb(255 255 228 / .9), 0 0 6px rgb(255 255 228 / .7); } /* (dark words on the white desk, light ones on the dark) */
 
 /* ---------- the front page (js/front.js): the desk's own paper, the name, a few notes pinned around it, three ways in ---------- */
 .cz-front { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; overflow: auto; padding: 24px 16px; background-color: var(--k-desk); background-image: radial-gradient(rgb(var(--k-6d8a8d-rgb) / .22) 1px, transparent 1.4px); background-size: 28px 28px; color: var(--k-ffffe4); }
 .cz-front[hidden] { display: none; }
 .cz-front.in .cz-main { animation: cz-rise .5s cubic-bezier(.2, .8, .2, 1) both; }
-.cz-front.in .cz-fnote { animation: cz-drop .45s cubic-bezier(.2, .9, .3, 1.2) both; }
-.cz-front.in .cz-fnote.b { animation-delay: .08s; } .cz-front.in .cz-fnote.c { animation-delay: .16s; } .cz-front.in .cz-fnote.d { animation-delay: .24s; }
-.cz-front.in .cz-strings { animation: cz-fade .5s .35s both; }
 .cz-front.out { animation: cz-out .3s ease-in both; pointer-events: none; }
 @keyframes cz-rise { from { opacity: 0; translate: 0 14px; } }
-@keyframes cz-drop { from { opacity: 0; scale: 1.08; translate: 0 -10px; } }
-@keyframes cz-fade { from { opacity: 0; } }
 @keyframes cz-out { to { opacity: 0; filter: blur(4px); } }
 
 .cz-main { position: relative; z-index: 2; width: min(460px, 100%); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
@@ -1688,17 +1667,8 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .cz-warn .cz-btn.warn:hover, .cz-warn .cz-btn.warn:focus-visible { border-color: #d1401f; color: #d1401f; }
 .cz-warn .cz-btn.quiet { border-color: transparent; color: #833f34; }
 
-/* the pins, and the notes around the edges */
+/* the pins */
 .cz-fpin { position: absolute; top: 7px; left: 50%; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff6157, #d1401f 60%, #833f34); box-shadow: 1px 2px 2px rgb(52 17 31 / .35); }
-.cz-fnote { position: absolute; z-index: 1; display: flex; flex-direction: column; gap: 3px; width: 168px; padding: 24px 14px 14px; background: var(--n); color: #34111f; font: 16px/1.4 var(--text); text-wrap: pretty; rotate: var(--r); box-shadow: 2px 3px 0 rgb(115 57 46 / .25); pointer-events: none; }
-.cz-fnote b { font: 700 18px 'Kodchasan', 'Varela Round', sans-serif; }
-.cz-fnote.a { --n: #ffd832; --r: -5deg; left: 7%; top: 11%; }
-.cz-fnote.b { --n: #77d6c1; --r: 4deg; right: 7%; top: 14%; }
-.cz-fnote.c { --n: #ffb762; --r: 3deg; left: 4%; bottom: 10%; }
-.cz-fnote.d { --n: #ffffe4; --r: -3deg; right: 4%; bottom: 8%; }
-.cz-strings { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
-.cz-strings path { fill: none; stroke: #d1401f; stroke-width: 1.6; opacity: .55; }
-@media (max-width: 920px), (max-height: 560px) { .cz-fnote, .cz-strings { display: none; } }
 @media (prefers-reduced-motion: reduce) { .cz-front *, .cz-front { animation: none !important; transition: none !important; } }
 
 /* ---------- couldn't save: the browser's storage is full (js/state.js) ---------- */
@@ -1763,3 +1733,5 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 @media (prefers-reduced-motion: reduce) { .sx-sidetag .sx-np.air::before { animation: none; } }
 .sx-libbox .sx-r-list li.sx-r-row .sx-add-b { display: inline-block; } /* (the finder is for adding: its keys always show) */
 .sx-r-row .sx-add-b:not(.on):not(:hover) { opacity: .7; }
+.cz-front .cz-warn .cz-in { background: #fff; color: #34111f; border-color: #eb9c6e; } /* (the card is cream on both desks: so is its box) */
+.cz-front .cz-warn .cz-in:focus { border-color: #c76e46; }
