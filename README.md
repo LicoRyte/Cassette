@@ -1,6 +1,6 @@
 # Cassie
 
-To The Web!: https://licoryte.github.io/Cassette/
+To The Web!: [https://licoryte.github.io/Cassette/](https://licoryte.github.io/Cassie/)
 
 A focus timer like a vintage tape deck: one big clock in a console frame, made to be satisfying to watch while it runs,
 on a desk you can move across for your own notes, photos and tables. No rewards, no streaks to protect. Just the time
