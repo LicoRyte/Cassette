@@ -1,4 +1,4 @@
-/* Cassette Timer: a note kept on screen. Alt+K (writing in a note, or with it picked), or Keep in a note's toolbar, keeps
+/* Cassie: a note kept on screen. Alt+K (writing in a note, or with it picked), or Keep in a note's toolbar, keeps
    that note at the bottom of the screen on every board: a slim strip of its own paper showing its title and a few lines
    (it scrolls inside, so even a long note never covers the desk). Writing in the strip is writing in the note itself, and
    the other way round. Its header: Go to (the note, on whichever board it is), fold it to just its title, or let it go.
@@ -55,7 +55,7 @@ keepT.addEventListener('input', e => {
   keepSync(it);
 });
 function keepSync(it) {
-  it.html = keepT.innerHTML.slice(0, 30000); it.text = keepT.innerText.slice(0, 2000); it.mt = Date.now(); saveSoon();
+  it.html = keepT.innerHTML.slice(0, NOTE_MAX); it.text = keepT.innerText.slice(0, 2000); it.mt = Date.now(); saveSoon();
   const c = els.get(it.id), t = c && c.querySelector('.sx-note-t'); if (t && document.activeElement !== t) t.innerHTML = it.html;
   const w = String(it.text || '').split('\n').map(l => l.trim()).filter(Boolean)[0]; keepTitle.textContent = w || 'A note';
 }

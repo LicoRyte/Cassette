@@ -1,4 +1,4 @@
-/* Cassette Timer: the app around the clock. The el() helper, button sounds, a notification when a session ends while
+/* Cassie: the app around the clock. The el() helper, button sounds, a notification when a session ends while
    you're in another tab, offline support and installing as an app.
 
    How the code fits together: index.html loads these files in order, as plain scripts that share one scope, so a
@@ -13,6 +13,8 @@
      desk.js    the desk around the clock (camera, notes, photos, strings, groups, picking, undo, the bottom bar)
      table.js   tables, graphs    export.js  image, backups
      boards.js  the board manager: go to, rename, copy, delete, reorder, new
+     boot.js    first of all: reads the desk from the browser's database, then loads these, in this order
+     front.js   the front page: Continue, New workspace, Load a backup (loads early, after state.js)
      room.js    rooms with friends (sending cards; js/vendor/trystero)
      clock.js   colour by state, the colon's beat, 00:00 holding
      tape.js    the session strip, the tape-deck keys, the reels, the side flip, the rewind
@@ -31,9 +33,11 @@
 // play a CSS animation again: off now, on again next frame. (The usual trick, reading a size in between, makes the browser
 // lay the whole page out on the spot; done every second by the clock, that could land in the middle of a pan or a zoom)
 function animAgain(e, cls) { e.classList.remove(cls); requestAnimationFrame(() => e.classList.add(cls)); }
-const APP_VERSION = 174; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 179; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
-const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
+// set says whether it worked: false when the browser's storage is full (js/state.js warns), true otherwise
+const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return !(e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014)); } } };
+const NOTE_MAX = 1000000; // the most a note's contents (with its formatting) can be: about a long book
 const el = (tag, attrs, ...kids) => {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? '' : v); }
@@ -44,7 +48,7 @@ const stillUI = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motio
 const hooks = {}; // the chimes at the end of a session and a break (js/feel.js fills these in)
 
 /* ---------- button sounds ---------- */
-// (the storage names say "solarist": Cassette Timer grew out of it, and keeping them keeps your settings)
+// (the storage names say "solarist": Cassie grew out of it, and keeping them keeps your settings)
 let soundOn = store.get('solarist-sound') !== 'off';
 const SFX = { click: ['sfx/twm_mouse_click.wav', .5], ui: ['sfx/twm_notif.wav', .45] };
 let actx = null; const sfxBufs = {};
@@ -73,8 +77,8 @@ function notifyAsk() { if ('Notification' in window && Notification.permission =
 function notify(text) {
   if (!document.hidden || !('Notification' in window) || Notification.permission !== 'granted') return;
   const opts = { body: text, icon: 'icons/cassette-192.png', tag: 'cassette-timer' };
-  if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(r => r.showNotification('Cassette Timer', opts)).catch(() => {});
-  else try { new Notification('Cassette Timer', opts); } catch (e) { /* not allowed here */ }
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(r => r.showNotification('Cassie', opts)).catch(() => {});
+  else try { new Notification('Cassie', opts); } catch (e) { /* not allowed here */ }
 }
 
 /* ---------- offline, and installing ---------- */

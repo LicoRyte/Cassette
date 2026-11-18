@@ -1,4 +1,4 @@
-/* Cassette Timer: finding things, and keeping them safe.
+/* Cassie: finding things, and keeping them safe.
    Find (Ctrl+F, or Find in the bar): type a word and the camera flies to every note, caption and label that has it, on
    any board, with the words lit up where they are. Enter goes to the next one, Shift+Enter back, Esc closes.
    The backup reminder: everything lives in this browser only, so once a week (never in the middle of a focus session)

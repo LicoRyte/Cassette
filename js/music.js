@@ -1,4 +1,4 @@
-/* Cassette Timer: the tapes. Two sides of music: Side A plays while you focus, Side B on breaks. Drop audio files on
+/* Cassie: the tapes. Two sides of music: Side A plays while you focus, Side B on breaks. Drop audio files on
    a side in the Tapes drawer (or anywhere on the desk: they go to the side that's playing now). Music plays only while
    the timer runs, fades in and out, and changes sides when the deck flips. The files are kept in this browser
    (IndexedDB), like the photos. The cassette opens on the desk with two panels: your music on the left, the mixtape on the right. */

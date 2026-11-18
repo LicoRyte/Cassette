@@ -1,4 +1,4 @@
-/* Cassette Timer: the desk. The whole screen is one big desk with the clock in the middle. Drag the empty space to move
+/* Cassie: the desk. The whole screen is one big desk with the clock in the middle. Drag the empty space to move
    around (or drag with the right mouse button), scroll to zoom, double-click anywhere to pin a note there, drop photos
    straight on (they hang whole, in their own shape: as Polaroids, taped prints or clipped sheets), and drag from a red pin onto something else to tie a string. Press D to draw
    (js/ui/draw-mode.js). Labels are light, named areas to keep a part of the desk tidy (they don't carry anything). Hoppers are folders that open another board (js/hopper.js).
@@ -33,8 +33,17 @@ const PHOTOS = (() => {
   const run = (mode, fn) => open().then(db => new Promise((res, rej) => { const t = db.transaction('p', mode), q = fn(t.objectStore('p')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); }));
   return { put: (k, v) => run('readwrite', s => s.put(v, k)), get: k => run('readonly', s => s.get(k)), del: k => run('readwrite', s => s.delete(k)), keys: () => run('readonly', s => s.getAllKeys()) };
 })();
-// photos are only thrown away when the app starts (so Undo can bring a removed one back while you work)
-PHOTOS.keys().then(keys => (keys || []).forEach(k => { if (!S.board.items.some(it => it.id === k)) PHOTOS.del(k).catch(() => {}); })).catch(() => {});
+// photos are only thrown away when the app starts (so Undo can bring a removed one back while you work), and only when no
+// workspace has them: if any workspace can't be read (or this desk is still moving, or couldn't be opened), none go
+(async () => {
+  try {
+    if (deskLocked || deskMoveOld) return;
+    const keys = await PHOTOS.keys(); if (!keys || !keys.length) return;
+    const used = new Set(S.board.items.map(it => it.id));
+    for (const w of S.spaces) if (w.id !== S.spaceCur) { const b = await BOOT.get(deskKey(w.id)); if (!b || !Array.isArray(b.items)) return; b.items.forEach(it => used.add(it.id)); }
+    keys.forEach(k => { if (!used.has(k)) PHOTOS.del(k).catch(() => {}); });
+  } catch (e) { /* keep them all */ }
+})();
 // a photo is kept sharp: up to 2000 pixels on the long side. A file already that small (and not huge) is kept exactly as
 // it came, so a PNG screenshot stays crisp and an animated GIF keeps moving; a bigger one is scaled down (a PNG stays a PNG
 // when it can, so text stays sharp; otherwise a good JPEG)

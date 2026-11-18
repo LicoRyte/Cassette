@@ -22,7 +22,7 @@ const tagIndex = nonceIndex + 1
 const progressIndex = tagIndex + 1
 const payloadIndex = progressIndex + 1
 const chunkSize = 16 * 2 ** 10 - payloadIndex
-const maxMessageBytes = 5 * 2 ** 20 // (Cassette Timer change: the most one message may be, see handleData)
+const maxMessageBytes = 5 * 2 ** 20 // (Cassie change: the most one message may be, see handleData)
 const oneByteMax = 0xff
 const buffLowEvent = 'bufferedamountlow'
 const internalNs = ns => '@_' + ns
@@ -234,7 +234,7 @@ export default (onPeer, onPeerLeave, onSelfLeave) => {
 
     const target = (pendingTransmissions[id][type][nonce] ||= {chunks: [], bytes: 0})
 
-    // Cassette Timer change: a message that grows past maxMessageBytes is let go while it arrives (its pieces are
+    // Cassie change: a message that grows past maxMessageBytes is let go while it arrives (its pieces are
     // dropped as they come, and nothing is handed on when it ends), so one huge message can't fill up memory
     if (target.dropped) {
       if (isLast) delete pendingTransmissions[id][type][nonce]

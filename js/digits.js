@@ -1,4 +1,4 @@
-/* Cassette Timer: the digits. The time fills the clock's panel in big digits; only the digits that change roll in,
+/* Cassie: the digits. The time fills the clock's panel in big digits; only the digits that change roll in,
    and the old one lingers a moment like phosphor (the plain time stays underneath for screen readers). And the tick:
    once a second while you focus and the timer is the window in front, softer through the last minute. */
 'use strict';
@@ -32,7 +32,7 @@ addEventListener('resize', fitDigits);
 drawDigits(); requestAnimationFrame(fitDigits);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitDigits); // once the font has loaded, measure again
 
-/* ---------- the clock ticking: once a second while the timer runs, only when Cassette Timer is the window in front ---------- */
+/* ---------- the clock ticking: once a second while the timer runs, only when Cassie is the window in front ---------- */
 let tickCtx = null, tickBuf = null, tickTock = false;
 const tickWanted = () => soundOn && (S.opts.tickVol != null ? S.opts.tickVol : .35) > 0; // (its slider at 0 is off)
 function tickLoad() { // the browser lets sound start only after you've clicked or pressed a key

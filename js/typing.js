@@ -1,4 +1,4 @@
-/* Cassette Timer: writing on paper should feel like a typewriter. In a note (or a caption):
+/* Cassie: writing on paper should feel like a typewriter. In a note (or a caption):
    - the space bar has a deeper thunk than the letters (and every letter's click is a little different)
    - the note eases taller (or shorter) as lines come and go, instead of jumping
    - "--" becomes an em dash, "->" an arrow, and straight quotes curl the right way

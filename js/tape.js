@@ -1,4 +1,4 @@
-/* Cassette Timer: the tape deck. Under the digits, one strip for the whole cycle: a long segment for each study session and
+/* Cassie: the tape deck. Under the digits, one strip for the whole cycle: a long segment for each study session and
    a short one for each break (a little longer for the long break), filling as you go. The buttons are hollow keys like
    a cassette deck's: Play/Pause and Rewind, with the key to press written underneath. While a session runs, Play stays
    latched down, as on a real deck. Pressing either one plays the cassette sound (sfx/cassette-play.mp3). */

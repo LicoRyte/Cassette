@@ -1,4 +1,4 @@
-/* Cassette Timer: ways to look at the clock. The mini deck (M, or Pop out in the bar): a small window that stays on
+/* Cassie: ways to look at the clock. The mini deck (M, or Pop out in the bar): a small window that stays on
    top of your other apps, with the time, the side, the reels and the keys, so the timer is there while you study in
    something else (Chrome and Edge; it uses Document Picture-in-Picture). Full-screen focus (F): only the clock, big,
    with nothing else on the screen; the mouse pointer hides while it's still. F or Esc to come back. */

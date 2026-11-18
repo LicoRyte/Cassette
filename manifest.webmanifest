@@ -1,7 +1,7 @@
 {
-  "name": "Cassette Timer",
-  "short_name": "Cassette",
-  "description": "A focus timer like a vintage tape deck, on a desk for your notes, photos and drawings.",
+  "name": "Cassie",
+  "short_name": "Cassie",
+  "description": "A focus timer like a vintage tape deck, on a desk for your notes, photos and tables.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

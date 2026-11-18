@@ -1,4 +1,4 @@
-/* Cassette Timer: hoppers. A hopper is a manila folder on the desk that opens another board: click it and the desk fades
+/* Cassie: hoppers. A hopper is a manila folder on the desk that opens another board: click it and the desk fades
    over to that board. Its tab says which board, and is where you pick it (or make a new one, which gets a folder back to
    here). Arriving through a folder puts you by the folder that leads back, if there is one. Drag it like anything else. */
 'use strict';

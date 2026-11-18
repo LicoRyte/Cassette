@@ -1,4 +1,4 @@
-/* Cassette Timer: writing that flows.
+/* Cassie: writing that flows.
    - a thin cursor in the ink's colour that glides to each new letter instead of jumping, stays solid while you type and
      only blinks once you stop
    - the line you're typing stays in view: in a long note the paper scrolls under it, and near the edge of the screen the

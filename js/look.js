@@ -1,4 +1,4 @@
-/* Cassette Timer: the look. The desk, light or dark, and the paper's grain; the accent colour is the desk's own. */
+/* Cassie: the look. The desk, light or dark, and the paper's grain; the accent colour is the desk's own. */
 'use strict';
 
 delete S.opts.skin; document.documentElement.removeAttribute('data-skin');

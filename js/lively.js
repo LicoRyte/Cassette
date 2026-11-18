@@ -1,4 +1,4 @@
-/* Cassette Timer: small touches of life. Each runs once, when something happens, and then nothing runs at all:
+/* Cassie: small touches of life. Each runs once, when something happens, and then nothing runs at all:
    - a new card (note, photo, table, folder) drops onto the desk with a little bounce
    - a new string draws itself out from the pin to the other card, then drops into its sag
    - a key gives off a soft ring of light when you press it, like an LED blinking

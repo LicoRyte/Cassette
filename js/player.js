@@ -1,4 +1,4 @@
-/* Cassette Timer: the player. The deck is one portable cassette player: a dark glass window with two big reels
+/* Cassie: the player. The deck is one portable cassette player: a dark glass window with two big reels
    turning behind it, dimmed, and the time over it in big digits, with the session
    strip along the bottom. Above the window, printed on the body: the side on the left, the session on the right. Under the window, a row of five piano keys:
    Play/Pause, Rew (hold it: the time winds back), Prev (the track before), F.F (the next track) and Reset (this part

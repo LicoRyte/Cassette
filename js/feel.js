@@ -1,4 +1,4 @@
-/* Cassette Timer: the feel. Sounds made live in the browser (so they work offline): a soft chime when a session lands, paper
+/* Cassie: the feel. Sounds made live in the browser (so they work offline): a soft chime when a session lands, paper
    and pin sounds on the desk, a quiet key click while you write. Settings, Sound levels sets how loud each is (0 is off). */
 'use strict';
 

@@ -1,4 +1,4 @@
-/* Cassette Timer: a vintage console. Few colours, all from the 32-colour palette by BurakoIRL: cream digits, amber
+/* Cassie: a vintage console. Few colours, all from the 32-colour palette by BurakoIRL: cream digits, amber
    keys, mint for breaks, yellow when paused, a dark blue-black desk. Fonts: Barlow Condensed (labels) and Varela
    Prime (notes). Reduced motion keeps every animation still. */
 
@@ -1634,3 +1634,111 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* ---------- the "Right-click for tools" hint by the pointer (js/table.js) ---------- */
 .sx-tool-hint { position: fixed; left: 0; top: 0; z-index: 71; color: rgb(255 255 255 / .85); font: 600 12px var(--ui); letter-spacing: .08em; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px rgb(var(--shade) / .55), 0 0 6px rgb(var(--shade) / .25); will-change: transform; }
 .sx-tool-hint[hidden] { display: none; }
+
+/* ---------- the front page (js/front.js): the desk's own paper, the name, a few notes pinned around it, three ways in ---------- */
+.cz-front { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; overflow: auto; padding: 24px 16px; background-color: var(--k-desk); background-image: radial-gradient(rgb(var(--k-6d8a8d-rgb) / .22) 1px, transparent 1.4px); background-size: 28px 28px; color: var(--k-ffffe4); }
+.cz-front[hidden] { display: none; }
+.cz-front.in .cz-main { animation: cz-rise .5s cubic-bezier(.2, .8, .2, 1) both; }
+.cz-front.in .cz-fnote { animation: cz-drop .45s cubic-bezier(.2, .9, .3, 1.2) both; }
+.cz-front.in .cz-fnote.b { animation-delay: .08s; } .cz-front.in .cz-fnote.c { animation-delay: .16s; } .cz-front.in .cz-fnote.d { animation-delay: .24s; }
+.cz-front.in .cz-strings { animation: cz-fade .5s .35s both; }
+.cz-front.out { animation: cz-out .3s ease-in both; pointer-events: none; }
+@keyframes cz-rise { from { opacity: 0; translate: 0 14px; } }
+@keyframes cz-drop { from { opacity: 0; scale: 1.08; translate: 0 -10px; } }
+@keyframes cz-fade { from { opacity: 0; } }
+@keyframes cz-out { to { opacity: 0; filter: blur(4px); } }
+
+.cz-main { position: relative; z-index: 2; width: min(460px, 100%); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.cz-logo { color: var(--deck); line-height: 0; }
+.cz-title { margin: 0; font: 700 clamp(72px, 16vw, 116px)/.9 'Kodchasan', 'Varela Round', sans-serif; letter-spacing: -.01em; color: var(--k-ffffe4); }
+.cz-title.small { font-size: 52px; }
+.cz-tag { margin: 0 0 14px; font: 15px/1.4 var(--text); color: var(--k-6d8a8d); }
+
+/* Continue: the workspace you have, as a yellow note */
+.cz-cont { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; padding: 24px 22px 18px; background: #ffd832; border: 0; color: #34111f; text-align: left; cursor: pointer; rotate: -1deg; box-shadow: 2px 3px 0 rgb(115 57 46 / .28); transition: rotate .18s, translate .18s, box-shadow .18s; }
+.cz-cont:hover, .cz-cont:focus-visible { rotate: 0deg; translate: 0 -2px; box-shadow: 3px 7px 0 rgb(115 57 46 / .22); outline: none; }
+.cz-cont:focus-visible { box-shadow: 3px 7px 0 rgb(115 57 46 / .22), 0 0 0 3px var(--deck); }
+.cz-k { display: flex; align-items: center; gap: 8px; font: 700 12px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: #833f34; }
+.cz-k kbd { padding: 1px 5px; border: 1px solid rgb(131 63 52 / .45); border-radius: 3px; font: 600 10px var(--ui); letter-spacing: .06em; }
+.cz-name { font: 700 26px/1.15 'Kodchasan', 'Varela Round', sans-serif; }
+.cz-stat, .cz-bk { font: 14px/1.35 var(--text); color: #73392e; }
+.cz-bk.late { color: #d1401f; }
+
+.cz-row { display: flex; gap: 10px; width: 100%; margin-top: 6px; }
+.cz-btn { flex: 1; padding: 11px 12px; background: var(--k-030710); border: 1px solid var(--k-293b49); color: var(--k-ffffe4); font: 600 13px var(--ui); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+.cz-btn:hover, .cz-btn:focus-visible { border-color: var(--deck); color: var(--deck); outline: none; }
+.cz-btn.main { background: var(--deck); border-color: var(--deck); color: #ffffe4; }
+.cz-btn.main:hover, .cz-btn.main:focus-visible { background: color-mix(in srgb, var(--deck) 85%, #34111f); color: #ffffe4; }
+.cz-btn.warn:hover, .cz-btn.warn:focus-visible { border-color: var(--k-ff6157); color: var(--k-ff6157); }
+.cz-btn.quiet { background: none; border-color: transparent; color: var(--k-6d8a8d); }
+.cz-safe { margin: 8px 0 0; font: 13px/1.5 var(--text); color: var(--k-6d8a8d); }
+.cz-safe.late { color: var(--k-ff6157); }
+.cz-link { margin-left: 6px; padding: 0; background: none; border: 0; color: var(--deck); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+/* New and Load ask first: a cream note */
+.cz-warn { position: relative; width: 100%; padding: 26px 22px 18px; background: #ffffe4; color: #34111f; text-align: left; rotate: .6deg; box-shadow: 2px 3px 0 rgb(115 57 46 / .28); }
+.cz-warn h2 { margin: 0 0 10px; font: 700 22px 'Kodchasan', 'Varela Round', sans-serif; }
+.cz-warn p { margin: 0 0 14px; font: 15px/1.45 var(--text); color: #73392e; }
+.cz-lab { display: flex; flex-direction: column; gap: 4px; margin: 0 0 12px; font: 700 11px var(--ui); letter-spacing: .16em; text-transform: uppercase; color: #833f34; }
+.cz-in { padding: 8px 10px; background: #fff; border: 1px solid #eb9c6e; color: #34111f; font: 16px var(--text); letter-spacing: 0; text-transform: none; outline: none; }
+.cz-in:focus { border-color: #c76e46; box-shadow: 0 0 0 2px rgb(199 110 70 / .25); }
+.cz-keys { display: flex; flex-direction: column; gap: 6px; }
+.cz-warn .cz-btn { background: none; border-color: #eb9c6e; color: #34111f; }
+.cz-warn .cz-btn.main { background: #c76e46; border-color: #c76e46; color: #ffffe4; }
+.cz-warn .cz-btn.warn:hover, .cz-warn .cz-btn.warn:focus-visible { border-color: #d1401f; color: #d1401f; }
+.cz-warn .cz-btn.quiet { border-color: transparent; color: #833f34; }
+
+/* the pins, and the notes around the edges */
+.cz-fpin { position: absolute; top: 7px; left: 50%; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff6157, #d1401f 60%, #833f34); box-shadow: 1px 2px 2px rgb(52 17 31 / .35); }
+.cz-fnote { position: absolute; z-index: 1; display: flex; flex-direction: column; gap: 3px; width: 168px; padding: 24px 14px 14px; background: var(--n); color: #34111f; font: 16px/1.4 var(--text); text-wrap: pretty; rotate: var(--r); box-shadow: 2px 3px 0 rgb(115 57 46 / .25); pointer-events: none; }
+.cz-fnote b { font: 700 18px 'Kodchasan', 'Varela Round', sans-serif; }
+.cz-fnote.a { --n: #ffd832; --r: -5deg; left: 7%; top: 11%; }
+.cz-fnote.b { --n: #77d6c1; --r: 4deg; right: 7%; top: 14%; }
+.cz-fnote.c { --n: #ffb762; --r: 3deg; left: 4%; bottom: 10%; }
+.cz-fnote.d { --n: #ffffe4; --r: -3deg; right: 4%; bottom: 8%; }
+.cz-strings { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+.cz-strings path { fill: none; stroke: #d1401f; stroke-width: 1.6; opacity: .55; }
+@media (max-width: 920px), (max-height: 560px) { .cz-fnote, .cz-strings { display: none; } }
+@media (prefers-reduced-motion: reduce) { .cz-front *, .cz-front { animation: none !important; transition: none !important; } }
+
+/* ---------- couldn't save: the browser's storage is full (js/state.js) ---------- */
+.sx-savefail { position: fixed; z-index: 400; top: 14px; left: 50%; translate: -50% 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; width: max-content; max-width: min(620px, calc(100vw - 32px)); padding: 10px 12px 10px 16px; background: #ffffe4; border: 1px solid #d1401f; border-left: 4px solid #d1401f; color: #34111f; font: 14px/1.45 var(--text); box-shadow: 0 8px 22px rgb(115 57 46 / .3); }
+.sx-savefail b { color: #d1401f; }
+.sx-savefail span { flex: 1 1 260px; }
+.sx-savefail-b { padding: 6px 12px; background: #d1401f; border: 0; color: #ffffe4; font: 600 12px var(--ui); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.sx-savefail-b:hover { background: #833f34; }
+.sx-savefail-x { padding: 0 4px; background: none; border: 0; color: #833f34; font: 20px/1 var(--ui); cursor: pointer; }
+
+.cz-use { margin: -4px 0 0; font: 12px var(--text); color: var(--k-6d8a8d); opacity: .8; }
+.cz-use:empty { display: none; }
+
+/* ---------- the other workspaces on the front page (js/front.js): a calm list under Continue; a row's keys show when you point at it ---------- */
+.cz-list { width: 100%; margin-top: 6px; text-align: left; }
+.cz-list-h { display: flex; align-items: baseline; justify-content: space-between; padding: 0 2px 6px; border-bottom: 1px solid var(--k-293b49); }
+.cz-list-h b { font: 700 11px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--k-6d8a8d); }
+.cz-list-h span { font: 600 11px var(--ui); color: var(--k-6d8a8d); }
+.cz-find { display: block; width: 100%; box-sizing: border-box; margin: 8px 0 2px; background: var(--k-030710); border-color: var(--k-293b49); color: var(--k-ffffe4); }
+.cz-ws-list { max-height: min(260px, 32vh); margin: 0; padding: 4px 0 0; list-style: none; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--k-293b49) transparent; }
+.cz-ws { position: relative; display: flex; align-items: center; gap: 6px; border-radius: 3px; }
+.cz-ws:hover, .cz-ws:focus-within { background: color-mix(in srgb, var(--deck) 10%, transparent); }
+.cz-ws-go { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr auto; column-gap: 10px; padding: 8px 10px; background: none; border: 0; color: var(--k-ffffe4); text-align: left; cursor: pointer; outline: none; }
+.cz-ws-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 17px/1.25 'Kodchasan', 'Varela Round', sans-serif; }
+.cz-ws-stat { grid-row: 2; grid-column: 1 / 3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 13px/1.35 var(--text); color: var(--k-6d8a8d); }
+.cz-ws-stat .late { color: var(--k-ff6157); }
+.cz-ws-when { grid-row: 1; grid-column: 2; align-self: baseline; font: 12px/1.35 var(--text); color: var(--k-6d8a8d); white-space: nowrap; }
+.cz-ws-go:focus-visible { box-shadow: inset 0 0 0 2px var(--deck); border-radius: 3px; }
+.cz-ws-acts { position: absolute; right: 4px; top: 50%; translate: 0 -50%; display: flex; gap: 2px; padding-left: 14px; background: linear-gradient(90deg, transparent, var(--k-desk) 14px); opacity: 0; pointer-events: none; transition: opacity .12s; }
+.cz-ws:hover .cz-ws-acts, .cz-ws:focus-within .cz-ws-acts { pointer-events: auto; }
+.cz-ws:hover .cz-ws-acts, .cz-ws:focus-within .cz-ws-acts { opacity: 1; }
+@media (hover: none) { .cz-ws-acts { opacity: 1; pointer-events: auto; } .cz-ws-when { visibility: hidden; } }
+.cz-ws-a { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 4px; background: none; border: 0; border-radius: 3px; color: var(--k-6d8a8d); cursor: pointer; }
+.cz-ws-a:hover, .cz-ws-a:focus-visible { background: var(--k-293b49); color: var(--k-ffffe4); outline: none; }
+.cz-ws-a.bin:hover, .cz-ws-a.bin.armed { color: var(--k-ff6157); }
+.cz-ic svg { display: block; }
+.cz-ws-sure { font: 600 11px var(--ui); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+.cz-ws.editing .cz-ws-acts { display: none; }
+.cz-ws-in { width: 100%; box-sizing: border-box; padding: 3px 8px; font: 600 16px 'Kodchasan', 'Varela Round', sans-serif; }
+.cz-ws-none { padding: 10px; font: 13px var(--text); color: var(--k-6d8a8d); }
+.cz-links { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; margin-left: 6px; }
+.cz-links .cz-link { margin-left: 0; }
+@media (prefers-reduced-motion: reduce) { .cz-ws-acts { transition: none; } }

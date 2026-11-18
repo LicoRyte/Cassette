@@ -1,4 +1,4 @@
-/* Cassette Timer: tables. A paper card of rows and columns (the top row names the columns, the first column names the
+/* Cassie: tables. A paper card of rows and columns (the top row names the columns, the first column names the
    rows) that turns into a graph of its numbers: Bars, Line or Pie, switched at the card's top left. Click a picked
    table's cell to write in it; Tab and Enter move on (and make a new row at the end), the arrows move around, and cells
    copied from a spreadsheet paste in from where you are. The bar along the bottom adds and removes rows and columns,

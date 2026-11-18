@@ -1,4 +1,4 @@
-/* Cassette Timer: the screen. The clock's frame (the line above the digits, the time, the session strip, the keys),
+/* Cassie: the screen. The clock's frame (the line above the digits, the time, the session strip, the keys),
    the top bar, Settings, the keyboard, and draw(), which brings everything up to date. */
 'use strict';
 
@@ -30,10 +30,10 @@ function drawAppSettings() { // sound, and installing
   snd.addEventListener('click', () => { soundOn = !soundOn; store.set('solarist-sound', soundOn ? 'on' : 'off'); drawAppSettings(); });
   const inst = installEv ? el('button', { type: 'button', class: 'btn', onclick: async () => { installEv.prompt(); try { await installEv.userChoice; } catch (e) { /* closed */ } installEv = null; drawAppSettings(); } }, 'Install as an app') : null;
   appBox.replaceChildren(el('div', { class: 'sx-row' }, snd, inst),
-    el('p', { class: 'sl-muted' }, installEv ? 'Installing gives Cassette Timer its own window and icon. It works offline either way.' : 'Cassette Timer works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'),
+    el('p', { class: 'sl-muted' }, installEv ? 'Installing gives Cassie its own window and icon. It works offline either way.' : 'Cassie works offline once it has loaded. To install it, use your browser menu (Install app, or Add to Home Screen on a phone).'),
     el('p', { class: 'sl-muted sx-credits' }, 'Colour palette by BurakoIRL. Fonts: Barlow Condensed, Varela Round and Kodchasan (OFL). Sounds: virtual_vibes, the Not-So-Awesome Archive, and the cassette key. See CREDITS.md.'));
 }
-const startOver = armBtn('Start over from scratch', 'Erase everything? Click again', () => { wiping = true; clearInterval(tickT); try { localStorage.removeItem(KEY); } catch (e) { /* */ } location.reload(); }, 'sx-danger');
+const startOver = armBtn('Start over from scratch', 'Erase everything? Click again', () => { wiping = true; clearInterval(tickT); try { localStorage.removeItem(KEY); } catch (e) { /* */ } const go = () => location.reload(); BOOT.db ? BOOT.clear().then(go, go) : go(); }, 'sx-danger');
 const settingsPane = el('div', { class: 'sl-pane' },
   sec('Timer', el('div', { class: 'sl-set-row' },
     el('label', {}, 'Focus ', minutes('focus', [1, 10, 15, 20, 25, 30, 40, 45, 50, 60]), ' min'),
@@ -41,7 +41,7 @@ const settingsPane = el('div', { class: 'sl-pane' },
     el('label', {}, 'Long break ', minutes('long', [10, 15, 20, 30]), ' min'),
     el('label', {}, 'Long break every ', minutes('every', [2, 3, 4, 5, 6]), ' sessions'))),
   sec('Sound and app', appBox),
-  el('div', { class: 'sx-sec sx-sec-last' }, el('h3', {}, 'Start over'), el('p', { class: 'sl-muted' }, 'Erases your settings, counts and every board. Save a backup from Board ▾ first if you might want it back.'), startOver));
+  el('div', { class: 'sx-sec sx-sec-last' }, el('h3', {}, 'Start over'), el('p', { class: 'sl-muted' }, 'Erases your settings, counts and every workspace. Save backups first (from the front page) if you might want them back.'), startOver));
 // (Clock and Feel are added below these by js/digits.js and js/feel.js)
 const pageTitle = el('h2', { class: 'sx-page-t' }, 'Settings');
 const page = el('div', { class: 'sx-page', hidden: true },
@@ -70,7 +70,7 @@ function drawClock() {
   const t = fmt(r); if (timeText.textContent !== t) timeText.textContent = t; // (an unchanged write would still wake everything watching it)
   const hl = headline(); if (bigText.textContent !== hl) bigText.textContent = hl;
   drawCycle(pct);
-  const title = running ? t + ' · ' + (mode === 'focus' ? 'Focus' : MODES[mode]) : 'Cassette Timer'; if (document.title !== title) document.title = title; // the time in the browser tab
+  const title = running ? t + ' · ' + (mode === 'focus' ? 'Focus' : MODES[mode]) : 'Cassie'; if (document.title !== title) document.title = title; // the time in the browser tab
 }
 function draw() {
   drawClock();

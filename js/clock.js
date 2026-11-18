@@ -1,4 +1,4 @@
-/* Cassette Timer: the clock's moods. Colour tells you where you are (ready, focus, the last minute, a break, paused),
+/* Cassie: the clock's moods. Colour tells you where you are (ready, focus, the last minute, a break, paused),
    the colon beats once a second, the colour eases between paused and playing, the last ten seconds fade slower,
    and at 00:00 the digits hold a moment. Breaks don't tick: the digits breathe. */
 'use strict';

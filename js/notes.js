@@ -1,4 +1,4 @@
-/* Cassette Timer: notes worth reading. A note on the desk is a small document: titles and headings, bold, italic, underline,
+/* Cassie: notes worth reading. A note on the desk is a small document: titles and headings, bold, italic, underline,
    strikethrough, a highlighter, inline code, bullet, numbered and check lists, quotes; eight paper colours, three kinds of paper (plain, lined, grid), a text
    size, and a corner to drag it bigger. Select a note and its toolbar sits above it. Typing shortcuts work too:
    "# " a title, "## " a heading, "- " a list, "1. " a numbered list, "[] " a checklist, "> " a quote.
@@ -40,9 +40,9 @@ const noteFromText = s => { const d = document.createElement('div'); d.textConte
 function noteSetup(it, txt, c) {
   txt.innerHTML = noteClean(it.html != null ? it.html : noteFromText(it.text));
   txt.addEventListener('input', e => {
-    if (e.inputType === 'insertText' && e.data === ' ') Promise.resolve().then(() => { noteMarkdown(txt); it.html = txt.innerHTML.slice(0, 30000); saveSoon(); }); // (after the typing itself has finished: the browser runs one edit at a time)
+    if (e.inputType === 'insertText' && e.data === ' ') Promise.resolve().then(() => { noteMarkdown(txt); it.html = txt.innerHTML.slice(0, NOTE_MAX); saveSoon(); }); // (after the typing itself has finished: the browser runs one edit at a time)
     if (e.inputType === 'insertParagraph') { const li = noteClosest(txt, 'li'); if (li) li.classList.remove('done'); } // a new checklist line starts unticked
-    it.html = txt.innerHTML.slice(0, 30000); it.text = txt.innerText.slice(0, 2000); it.mt = Date.now(); saveSoon(); // (mt: when it was last written in; saved once you pause)
+    it.html = txt.innerHTML.slice(0, NOTE_MAX); it.text = txt.innerText.slice(0, 2000); it.mt = Date.now(); saveSoon(); // (mt: when it was last written in; saved once you pause)
   });
   txt.addEventListener('paste', e => { e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
   // ticking a checklist line: click its box

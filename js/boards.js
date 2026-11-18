@@ -1,4 +1,4 @@
-/* Cassette Timer: the board manager (the Boards key at the top of the left column). Every board is a row: click it to go
+/* Cassie: the board manager (the Boards key at the top of the left column). Every board is a row: click it to go
    there (the desk fades over to it with a flip of paper, like through a folder); its pencil (or a double-click on its name, or F2) renames it right in the row; its copy key makes a copy (cards,
    strings, groups and photos); its bin deletes it. The board you're on can't be deleted: go to another board first.
    Drag a row to reorder. A box at the bottom makes a new board (type its name, Enter). Up and Down move through the rows,
@@ -35,7 +35,7 @@ function bmDraw() {
   deskMenu.replaceChildren(
     el('div', { class: 'sx-bm-head' }, el('b', {}, 'Boards'), el('span', {}, B.boards.length + (B.boards.length === 1 ? ' board' : ' boards'))),
     ...[search, list, fresh].filter(Boolean),
-    el('div', { class: 'sx-bm-foot' }, link('Save a backup', () => deskExportBackup()), el('i', { 'aria-hidden': 'true' }, '·'), link('Load a backup...', () => deskImportBackup())));
+    el('div', { class: 'sx-bm-foot' }, link('Save a backup', () => deskExportBackup()), el('i', { 'aria-hidden': 'true' }, '·'), link('Load a backup...', () => deskImportBackup()), el('i', { 'aria-hidden': 'true' }, '·'), link('Front page', () => frontOpen())));
   if (bmEdit) { const inp = deskMenu.querySelector('.sx-bm-name input'); if (inp) { inp.focus(); inp.select(); } }
 }
 

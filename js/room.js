@@ -1,4 +1,4 @@
-/* Cassette Timer: rooms. Make a room (or join one with its code) and the friends in it show up as online; pick a note,
+/* Cassie: rooms. Make a room (or join one with its code) and the friends in it show up as online; pick a note,
    photo, table or label and send it to one of them, or to everyone, and it pops onto their desk with a "from" tag.
    Nothing is kept in sync: a sent card is a copy. Cards go straight from browser to browser (WebRTC, encrypted); public
    WebTorrent trackers only introduce the browsers to each other, and the room code is the password, so only people who
@@ -200,7 +200,7 @@ async function roomReceive(d, pid) {
     const id = (it.type === 'tbl' ? 't' : it.type === 'photo' ? 'p' : 'n') + now + '-' + out.length;
     const o = { id, type: it.type, board: B_().cur, x: Math.max(-4000, Math.min(4000, num(it.x))), y: Math.max(-4000, Math.min(4000, num(it.y))), from: p.name };
     if (it.text) o.text = str(it.text, 2000);
-    if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, 30000)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(q => q[0] === it.paper)) o.paper = it.paper; }
+    if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, NOTE_MAX)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(q => q[0] === it.paper)) o.paper = it.paper; }
     if (it.type === 'tbl') Object.assign(o, tblClean(it));
     if (it.type === 'photo') { const src = d.photos && d.photos[it.id]; if (typeof src !== 'string' || !/^data:image\/(jpeg|png|webp|gif);base64,/.test(src) || src.length > 3e6) continue;
       if (it.ar) o.ar = Math.max(.1, Math.min(10, +it.ar || 1)); if (it.w) o.w = Math.max(120, Math.min(1600, num(it.w))); try { await PHOTOS.put(id, src); } catch (e) { continue; } }

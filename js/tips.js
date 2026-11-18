@@ -1,4 +1,4 @@
-/* Cassette Timer: the keys' own tooltips. Point at a key in the left column, the bar along the bottom or the two top
+/* Cassie: the keys' own tooltips. Point at a key in the left column, the bar along the bottom or the two top
    corners and a small card shows at once beside it: the key's name, what it does, and its shortcut. It takes the place of
    the browser's slow grey title box (the title moves into the card; icon keys keep it as their spoken name). */
 'use strict';
