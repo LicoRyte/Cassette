@@ -170,6 +170,7 @@ document.addEventListener('focusout', e => { if (e.target.isContentEditable && w
 function deskBoardGo(id) { if (id === S.board.cur) return; S.board.cur = id; select(null); save(); drawBoard(); deskBoardTools(); if (!boardViewBack()) glideHome(); } // (back to where you were on that board)
 // the bar's icons: drawn in lines, in the button's own colour (currentColor), on a 24 px grid
 const DESK_ICONS = {
+  home: '<path d="M3.5 11.5L12 4l8.5 7.5"/><path d="M6 9.5v11h12v-11"/><path d="M10 20.5v-5.5h4v5.5"/>',
   boards: '<path d="M12 3.5l8.5 4.5-8.5 4.5L3.5 8z"/><path d="M3.5 12.5l8.5 4.5 8.5-4.5"/><path d="M3.5 16.5l8.5 4.5 8.5-4.5"/>',
   note: '<path d="M5 3.5h10l4 4v13H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 16h4.5"/>',
   photo: '<path d="M4 3.5h16v17H4z"/><path d="M7 6.5h10v9H7z"/><path d="M7 13.5l3-3 2.5 2.5 1.5-1.5 3 3"/>',
@@ -195,7 +196,9 @@ let deskMenuOpen = () => {}; // (the board manager: js/boards.js)
 addEventListener('pointerdown', e => { if (!deskMenu.hidden && !e.target.closest('.sx-ws-menu, .sx-ws-menub')) deskMenu.hidden = true; }, true);
 function deskBoardTools() { // the Boards button names the board you're on
   const cur = S.board.boards.find(b => b.id === S.board.cur), t = 'Boards: on ' + (cur ? cur.name : '') + ' (go to, rename, copy, delete, reorder, new, backups)';
-  if (typeof menuB !== 'undefined') { menuB.title = t; menuB.setAttribute('aria-label', t); } }
+  if (typeof menuB !== 'undefined') { menuB.title = t; menuB.setAttribute('aria-label', t); }
+  const f = 'Front page: your workspaces (in ' + (S.board.name || 'My workspace') + ')';
+  if (typeof frontB !== 'undefined') { frontB.title = f; frontB.setAttribute('aria-label', f); } }
 // what's picked: a count, and what you can do with several things at once
 const selCount = el('span', { class: 'sx-ws-n' });
 const delSelB = deskBtn(deskIcon('trash'), () => deskDelete(), 'sx-ws-ic sx-ws-del', 'Delete what is picked (Delete)');
@@ -204,8 +207,9 @@ const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, se
 const tableKey = deskBtn(deskIcon('table'), () => addTable(), 'sx-ws-ic', 'Table: rows and columns, and a graph of them (Bars, Line, Pie)');
 // the left side: a column of keys for making things, finding and undoing (the bar along the bottom holds what changes the thing you've picked)
 const menuB = deskBtn([deskIcon('boards'), el('span', { class: 'sx-ic-car', 'aria-hidden': 'true' }, '▸')], () => deskMenuOpen(), 'sx-ws-ic sx-ws-menub', 'Boards');
+const frontB = deskBtn(deskIcon('home'), () => frontOpen(), 'sx-ws-ic', 'Front page: your workspaces');
 const deskBar = el('div', { class: 'sx-ws-bar sx-ws-side', role: 'toolbar', 'aria-orientation': 'vertical', 'aria-label': 'Desk' },
-  el('div', { class: 'sx-ws-grp' }, menuB),
+  el('div', { class: 'sx-ws-grp' }, frontB, menuB),
   el('div', { class: 'sx-ws-grp' }, deskBtn(deskIcon('note'), () => addNoteAt(freeSpot()), 'sx-ws-ic', 'Note: pin a new one (or double-click the desk)'), deskBtn(deskIcon('photo'), () => deskFile.click(), 'sx-ws-ic', 'Photo: hang one (or drop or paste it on)'), tableKey, deskBtn(deskIcon('folder'), () => addHopper(), 'sx-ws-ic', 'Hopper: a folder that opens another board'), deskFile),
   el('div', { class: 'sx-ws-grp' }, undoB, redoB),
   deskMenu);

@@ -35,7 +35,7 @@ function bmDraw() {
   deskMenu.replaceChildren(
     el('div', { class: 'sx-bm-head' }, el('b', {}, 'Boards'), el('span', {}, B.boards.length + (B.boards.length === 1 ? ' board' : ' boards'))),
     ...[search, list, fresh].filter(Boolean),
-    el('div', { class: 'sx-bm-foot' }, link('Save a backup', () => deskExportBackup()), el('i', { 'aria-hidden': 'true' }, '·'), link('Load a backup...', () => deskImportBackup()), el('i', { 'aria-hidden': 'true' }, '·'), link('Front page', () => frontOpen())));
+    el('div', { class: 'sx-bm-foot' }, link('Save a backup', () => deskExportBackup()), el('i', { 'aria-hidden': 'true' }, '·'), link('Load a backup...', () => deskImportBackup())));
   if (bmEdit) { const inp = deskMenu.querySelector('.sx-bm-name input'); if (inp) { inp.focus(); inp.select(); } }
 }
 
