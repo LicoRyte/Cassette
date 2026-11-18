@@ -25,7 +25,7 @@ startB.textContent = running ? 'Pause' : 'Start'; startB.title = 'Play or pause 
 function musicPrev() {
   const s = sideNow(), n = M[s].length; if (!n) { deskToast('Nothing on ' + SIDE_NAME[s] + ' yet: add music in Tapes'); return; }
   if (!player.paused && player._side === s) { M.pos[s] = ((M.pos[s] || 0) - 2 + 2 * n) % n; player._xf = true; nextTrack(700); } // (it steps on by one from here: the track before fades in)
-  else { M.pos[s] = ((M.pos[s] || 0) - 1 + n) % n; save(); musicDraw(); } // (not playing: the one before is lined up)
+  else { M.pos[s] = ((M.pos[s] || 0) - 1 + n) % n; save(); musicDraw(); if (radioOn) musicSync(); } // (not playing: the one before is lined up; from a station, it changes over)
   const tr = M[s][(M.pos[s] || 0) % n]; if (tr) deskToast('◂ ' + tr.name);
 }
 const prevB = el('button', { type: 'button', class: 'btn', title: 'Previous track (Shift+N)', onclick: () => { tapeKeySound(resetB); plPress(prevB); musicPrev(); } }, 'Prev');

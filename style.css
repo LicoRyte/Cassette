@@ -1742,3 +1742,24 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .cz-links { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; margin-left: 6px; }
 .cz-links .cz-link { margin-left: 0; }
 @media (prefers-reduced-motion: reduce) { .cz-ws-acts { transition: none; } }
+
+/* ---------- radio (js/radio.js): the station finder in the Tapes drawer, LIVE in place of a length, and the on-air dot ---------- */
+.sx-live { padding: 0 5px; border: 1px solid color-mix(in srgb, var(--k-ff6157) 55%, transparent); border-radius: 2px; color: var(--k-ff6157); font: 700 10px var(--ui); letter-spacing: .12em; }
+.sx-r-find { display: block; width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 7px 10px; background: var(--k-041528); border: 1px solid var(--k-293b49); border-radius: 3px; color: var(--k-ffffe4); font: 500 14px var(--ui); outline: none; }
+.sx-r-find:focus { border-color: var(--deck); }
+.sx-r-say { margin: 6px 2px 10px; font-size: 13px; }
+.sx-r-say.err { color: var(--k-ff6157); }
+.sx-libbox .sx-r-list { max-height: none; }
+.sx-libbox .sx-r-list li.sx-r-row { height: auto; min-height: 40px; padding: 4px 6px; cursor: default; }
+.sx-r-row.play { background: color-mix(in srgb, var(--deck) 14%, transparent); }
+.sx-r-play { flex: none; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; background: none; border: 1px solid var(--k-293b49); border-radius: 50%; color: var(--deck); font: 11px/1 var(--ui); cursor: pointer; }
+.sx-r-play:hover, .sx-r-row.play .sx-r-play { border-color: var(--deck); background: var(--deck); color: var(--k-030710); }
+.sx-r-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.sx-r-txt .sx-trk-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
+.sx-r-txt small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12px var(--ui); color: var(--k-6d8a8d); }
+.sx-add-b.on { color: #ffb762; border-color: currentColor; }
+.sx-sidetag .sx-np.air::before { content: ''; display: inline-block; width: 6px; height: 6px; margin: 0 6px 1px 0; border-radius: 50%; background: #ff6157; vertical-align: middle; animation: sx-air 1.6s ease-in-out infinite; }
+@keyframes sx-air { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .sx-sidetag .sx-np.air::before { animation: none; } }
+.sx-libbox .sx-r-list li.sx-r-row .sx-add-b { display: inline-block; } /* (the finder is for adding: its keys always show) */
+.sx-r-row .sx-add-b:not(.on):not(:hover) { opacity: .7; }

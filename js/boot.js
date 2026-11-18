@@ -10,7 +10,7 @@ const BOOT = { ok: false, board: undefined, db: null, key: 'board' }; // ('board
 try { const s = JSON.parse(localStorage.getItem('lico-solarist') || 'null'); if (s && s.spaceCur) BOOT.key = 'ws:' + s.spaceCur; } catch (e) { /* no small storage: the old name */ }
 (function () {
   const FILES = ['app', 'state', 'front', 'screen', 'digits', 'feel', 'notes', 'typing', 'desk', 'table', 'hopper', 'export', 'boards',
-    'clock', 'tape', 'music', 'look', 'view', 'find', 'room', 'help', 'chrome', 'lively', 'flow', 'keep', 'player', 'tips', 'start']; // (in this order: each can use what the ones before it made)
+    'clock', 'tape', 'music', 'radio', 'look', 'view', 'find', 'room', 'help', 'chrome', 'lively', 'flow', 'keep', 'player', 'tips', 'start']; // (in this order: each can use what the ones before it made)
   let started = false;
   const start = () => { if (started) return; started = true; FILES.forEach(f => { const s = document.createElement('script'); s.src = 'js/' + f + '.js'; s.async = false; document.body.append(s); }); };
   const run = (mode, fn) => new Promise((res, rej) => {

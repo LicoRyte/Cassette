@@ -12,8 +12,9 @@ const MUSIC = (() => {
   return { put: (k, v) => run('readwrite', s => s.put(v, k)), get: k => run('readonly', s => s.get(k)), del: k => run('readwrite', s => s.delete(k)) };
 })();
 const M = S.music = Object.assign({ on: true, vol: .5, A: [], B: [], pos: { A: 0, B: 0 } }, S.music || {});
-M.pos = Object.assign({ A: 0, B: 0 }, M.pos || {}); delete M.radio; // (there was a radio once)
-// your music: M.lib = [{ id, name, dur }], every file kept in this browser. Mixtapes: M.mixes = [{ id, name, A: [ids], B: [ids] }];
+M.pos = Object.assign({ A: 0, B: 0 }, M.pos || {}); delete M.radio; // (there was a radio once: today's stations are in your music, below)
+// your music: M.lib = [{ id, name, dur }], every file kept in this browser, and radio stations: { id, name, radio: { url, uuid, ... } }
+// (a station sits in your music and on a side like a track, and plays live; js/radio.js finds them). Mixtapes: M.mixes = [{ id, name, A: [ids], B: [ids] }];
 // M.mix is the one in the deck, and M.A / M.B are its sides as the player reads them. (Older saves: their two sides become the first mixtape.)
 if (!Array.isArray(M.lib)) { const seen = new Set(); M.lib = [...M.A, ...M.B].filter(t => t && !seen.has(t.id) && seen.add(t.id)).map(t => ({ id: t.id, name: t.name })); }
 if (!Array.isArray(M.mixes) || !M.mixes.length) M.mixes = [{ id: 'x' + Date.now(), name: 'My mixtape', A: M.A.map(t => t.id), B: M.B.map(t => t.id) }];
@@ -38,6 +39,7 @@ const trackAt = side => M[side].length ? M[side][(M.pos[side] || 0) % M[side].le
 async function loadInto(a, side) { // the track this side is up to, ready on deck a (from the start)
   const list = M[side]; if (!list.length) return false;
   const i = (M.pos[side] || 0) % list.length, tr = list[i];
+  if (isRadio(tr)) return false; // (a station plays on its own: radioPlay)
   if (a._id === tr.id && a._url) a.currentTime = 0;
   else {
     let blob = null; try { blob = await MUSIC.get(tr.id); } catch (e) { /* gone */ }
@@ -48,6 +50,28 @@ async function loadInto(a, side) { // the track this side is up to, ready on dec
   a._side = side; a._xf = false; return true;
 }
 function setActive(a) { player = a; playSide = a._side; playId = a._id; }
+
+/* ---------- radio: a station on a side plays live on its own player. Not through the sound mixer: a browser plays another
+   site's stream fine, but goes silent if it's routed through the page's own audio (unless that site allows it, and most
+   don't), so its volume is set straight on it: the music volume times the master level ---------- */
+const isRadio = t => !!(t && t.radio);
+let radioPreview = false; // (a station played from the search, to hear it before keeping it: it plays until something else does)
+const radioEl = new Audio(); radioEl.preload = 'none'; radioEl._ft = 0;
+let radioOn = null, radioBad = false; // the station playing (or lined up to); a stream that didn't answer
+const rvol = () => vol() * (LV.master != null ? LV.master : 1);
+function radioPlay(t, ms) {
+  if (radioOn && radioOn.id === t.id && !radioEl.paused) { fadeEl(radioEl, rvol(), 400); return; }
+  clearInterval(radioEl._ft); radioOn = t; radioBad = false;
+  radioEl.src = t.radio.url; radioEl.volume = 0;
+  radioEl.play().then(() => { fadeEl(radioEl, rvol(), ms || 900); musicDraw(); }, e => { if (radioOn !== t) return; if (e && e.name === 'NotAllowedError') { radioOn = null; musicDraw(); return; } radioBad = true; musicDraw(); deskToast('No signal from ' + t.name); }); // (the browser not letting sound start before a click isn't a lost signal)
+  if (typeof radioCount === 'function') radioCount(t); musicDraw();
+}
+function radioStop(ms) { // (and stop fetching it: live again when it comes back)
+  if (radioEl.paused && !radioOn) return; const t = radioOn;
+  fadeEl(radioEl, 0, ms || 600, () => { if (radioOn !== t) return; radioEl.pause(); radioEl.removeAttribute('src'); radioEl.load(); radioOn = null; musicDraw(); });
+}
+radioEl.addEventListener('error', () => { if (!radioOn || !radioEl.getAttribute('src')) return; radioBad = true; musicDraw(); deskToast('No signal from ' + radioOn.name); });
+radioEl.addEventListener('playing', () => { radioBad = false; musicDraw(); });
 function rampRate(a, from, to, ms) { // the motor: playback speed (and so pitch) sliding between two speeds
   clearInterval(a._rt); try { a.preservesPitch = false; } catch (e) { /* older browsers */ }
   if (stillUI()) { a.playbackRate = to; return; }
@@ -61,13 +85,14 @@ function windBack(a) { if (!a._down) return; a._down = false; rampRate(a, a.play
 async function nextTrack(ms) { // on to the next track: it comes in underneath while this one fades
   const was = player, s = was._side; if (!s) return;
   M.pos[s] = ((M.pos[s] || 0) + 1) % Math.max(1, M[s].length); save();
+  if (isRadio(trackAt(s))) { stopEl(was, ms); radioPlay(trackAt(s), ms); musicDraw(); return; } // (the next one is a station)
   if (await startOn(other(was), s, ms)) stopEl(was, ms); musicDraw();
 }
 // skip to the next track on the side that's playing (N, the deck's Next key, the mini deck, the cassette)
 function musicNext() {
   const s = sideNow(); if (!M[s].length) { deskToast('Nothing on ' + SIDE_NAME[s] + ' yet: add music in Tapes'); return; }
   if (!player.paused && player._side === s) { player._xf = true; nextTrack(700); } // it fades into the next one
-  else { M.pos[s] = ((M.pos[s] || 0) + 1) % M[s].length; save(); musicDraw(); } // (not playing: the next one is lined up)
+  else { M.pos[s] = ((M.pos[s] || 0) + 1) % M[s].length; save(); musicDraw(); if (radioOn) musicSync(); } // (not playing: the next one is lined up; from a station, it changes over)
   const tr = M[s][(M.pos[s] || 0) % M[s].length]; if (tr) deskToast('▸ ' + tr.name);
 }
 decks.forEach(a => {
@@ -78,7 +103,9 @@ async function musicSync() {
   if (musicBusy) { musicAgain = true; return; } musicBusy = true; // (one at a time; a change that comes meanwhile runs right after)
   try {
     const side = sideNow(), want = running && M.on && soundOn && M[side].length > 0;
-    if (!want) { decks.forEach(a => stopEl(a, 900, true)); return; } // the tape winds down
+    if (!want) { decks.forEach(a => stopEl(a, 900, true)); if (!radioPreview) radioStop(900); return; } // the tape winds down
+    if (isRadio(trackAt(side))) { radioPreview = false; decks.forEach(a => stopEl(a, 1200)); radioPlay(trackAt(side), 1200); return; } // a station on this side
+    radioPreview = false; radioStop(1200);
     decks.forEach(a => { if (a !== player || a._side !== side) return; windBack(a); });
     if (!player.paused && player._side === side) { fadeEl(player, vol(), 400); return; } // already playing this side (or caught while winding down)
     const tr = trackAt(side);
@@ -92,8 +119,8 @@ async function musicSync() {
 new MutationObserver(() => musicSync()).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
 // the chime always comes through: the music dips while it rings, then comes back
 function musicDuck(ms) {
-  duck = .2; decks.forEach(a => { if (!a.paused && a === player) fadeEl(a, vol(), 250); });
-  clearTimeout(musicDuck.t); musicDuck.t = setTimeout(() => { duck = 1; if (!player.paused) fadeEl(player, vol(), 1600); }, ms);
+  duck = .2; decks.forEach(a => { if (!a.paused && a === player) fadeEl(a, vol(), 250); }); if (!radioEl.paused) fadeEl(radioEl, rvol(), 250);
+  clearTimeout(musicDuck.t); musicDuck.t = setTimeout(() => { duck = 1; if (!player.paused) fadeEl(player, vol(), 1600); if (!radioEl.paused) fadeEl(radioEl, rvol(), 1600); }, ms);
 }
 { const tadaBase = hooks.tada, dingBase = hooks.ding;
   hooks.tada = () => { musicDuck(4200); if (tadaBase) tadaBase(); };
@@ -150,7 +177,7 @@ function trackMove(from, fi, to, ti) { // drag and drop: within a side, between 
 }
 function libDelete(id) { // gone from this browser, and from every mixtape
   M.lib = M.lib.filter(t => t.id !== id); M.mixes.forEach(m => { m.A = m.A.filter(x => x !== id); m.B = m.B.filter(x => x !== id); });
-  MUSIC.del(id).catch(() => {}); mixApply();
+  if (!/^r/.test(id)) MUSIC.del(id).catch(() => {}); mixApply();
 }
 function mixSwitch(id) { if (id === M.mix) return; M.mix = id; deskSfx('pin'); if (typeof tapeSound === 'function') tapeSound(); mixApply(true); }
 function mixNew() { const name = (prompt('Name the new mixtape:', 'Mixtape ' + (M.mixes.length + 1)) || '').trim().slice(0, 40); if (!name) return; const id = 'x' + Date.now(); M.mixes.push({ id, name, A: [], B: [] }); M.mix = id; mixApply(true); }
@@ -158,7 +185,7 @@ function mixRename() { const mx = mixNow(), name = (prompt('Rename this mixtape:
 function mixDelete() { if (M.mixes.length < 2) return; M.mixes = M.mixes.filter(m => m.id !== M.mix); M.mix = M.mixes[0].id; mixApply(true); } // (the files stay in your music)
 async function libLengths() { // tracks from before lengths were kept: measure them once
   let changed = false;
-  for (const t of M.lib) if (!t.dur && !t._tried) { t._tried = true; try { const b = await MUSIC.get(t.id); if (b) { t.dur = Math.round(await audioLength(b)) || 0; changed = true; } } catch (e) { /* gone */ } }
+  for (const t of M.lib) if (!t.dur && !t._tried && !t.radio) { t._tried = true; try { const b = await MUSIC.get(t.id); if (b) { t.dur = Math.round(await audioLength(b)) || 0; changed = true; } } catch (e) { /* gone */ } }
   M.lib.forEach(t => delete t._tried); if (changed) { save(); musicDraw(); }
 }
 
@@ -199,12 +226,16 @@ function dragRow(li, from, i) { li.draggable = true; li.addEventListener('dragst
   li.addEventListener('dragend', () => { li.classList.remove('dragging'); setTimeout(() => { musicDrag = null; }, 0); }); }
 function musicDraw() {
   // the line under the clock: which side, and what's playing
-  if (typeof sideTagNp !== 'undefined') { const tr = !player.paused && playSide && M[playSide].find(t => t.id === playId); sideTagNp.textContent = tr ? '▸ ' + tr.name : ''; }
+  if (typeof sideTagNp !== 'undefined') {
+    const tr = !player.paused && playSide && M[playSide].find(t => t.id === playId), on = radioOn && !radioEl.paused;
+    sideTagNp.textContent = on ? (radioBad ? 'Radio · no signal' : 'Radio · ' + radioOn.name) : tr ? '▸ ' + tr.name : '';
+    sideTagNp.classList.toggle('air', !!on && !radioBad);
+  }
   if (tapesDrawer.hidden) return;
   const mx = mixNow();
   const onB = el('button', { type: 'button', class: 'sx-ws-b' + (M.on ? ' on' : ''), 'aria-pressed': String(M.on), onclick: () => { M.on = !M.on; save(); musicSync(); musicDraw(); } }, M.on ? 'Music on' : 'Music off');
   const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round(M.vol * 100), 'aria-label': 'Music volume' });
-  vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(player._ft); player.volume = M.vol * duck; } save(); });
+  vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(player._ft); player.volume = M.vol * duck; } if (!radioEl.paused) { clearInterval(radioEl._ft); radioEl.volume = rvol(); } save(); });
   // the mixtape in the deck
   const pick = el('select', { 'aria-label': 'Mixtape in the deck' }, ...M.mixes.map(m => el('option', { value: m.id, selected: m.id === mx.id || null }, m.name)));
   pick.addEventListener('change', () => mixSwitch(pick.value));
@@ -213,8 +244,8 @@ function musicDraw() {
       M.mixes.length > 1 ? armBtn('Delete', 'Sure?', mixDelete, 'sx-mini-b') : null));
   const side = sd => {
     const cur = (M.pos[sd] || 0) % Math.max(1, M[sd].length), total = M[sd].reduce((a, t) => a + (t.dur || 0), 0);
-    const list = el('ol', { class: 'sx-trks' }, ...M[sd].map((t, i) => { const li = el('li', { class: (playId === t.id && playSide === sd && !player.paused ? 'play' : i === cur ? 'next' : ''), 'data-name': t.name },
-      el('span', { class: 'sx-grip', 'aria-hidden': 'true' }, '⋮⋮'), el('span', { class: 'sx-trk-n', title: t.name }, t.name), el('span', { class: 'sx-trk-d' }, fmtDur(t.dur)),
+    const list = el('ol', { class: 'sx-trks' }, ...M[sd].map((t, i) => { const li = el('li', { class: ((playId === t.id && playSide === sd && !player.paused) || (radioOn && radioOn.id === t.id && !radioEl.paused) ? 'play' : i === cur ? 'next' : ''), 'data-name': t.name },
+      el('span', { class: 'sx-grip', 'aria-hidden': 'true' }, '⋮⋮'), el('span', { class: 'sx-trk-n', title: t.name }, t.name), isRadio(t) ? el('span', { class: 'sx-trk-d sx-live' }, 'LIVE') : el('span', { class: 'sx-trk-d' }, fmtDur(t.dur)),
       el('button', { type: 'button', class: 'sx-trk-x', 'aria-label': 'Take ' + t.name + ' off this side', title: 'Take it off this side (it stays in your music)', onclick: () => musicRemove(sd, t.id) }, '×')); dragRow(li, sd, i); return li; }));
     const box = el('section', { class: 'sx-ms' + (sideNow() === sd ? ' now' : '') },
       el('h4', {}, el('b', {}, sd === 'A' ? 'Side A' : 'Side B'), el('span', {}, sd === 'A' ? 'Focus' : 'Breaks'), el('i', { class: 'sx-ms-t' }, total ? fmtDur(total) : '')),
@@ -227,7 +258,7 @@ function musicDraw() {
   const used = id => (mx.A.includes(id) ? 'A' : '') + (mx.B.includes(id) ? 'B' : '');
   const lib = el('ul', { class: 'sx-lib' }, ...M.lib.map((t, i) => { const u = used(t.id), li = el('li', { 'data-name': t.name },
     el('span', { class: 'sx-grip', 'aria-hidden': 'true' }, '⋮⋮'),
-    el('span', { class: 'sx-trk-n', title: 'Double-click to rename' }, t.name), el('span', { class: 'sx-trk-d' }, fmtDur(t.dur)),
+    el('span', { class: 'sx-trk-n', title: 'Double-click to rename' }, t.name), isRadio(t) ? el('span', { class: 'sx-trk-d sx-live', title: t.radio.where || 'A live station' }, 'LIVE') : el('span', { class: 'sx-trk-d' }, fmtDur(t.dur)),
     u ? el('span', { class: 'sx-on-tag', title: 'On this mixtape' }, u) : null,
     el('button', { type: 'button', class: 'sx-add-b', title: 'Add to Side A', onclick: () => { mx.A.push(t.id); deskSfx('pin'); mixApply(); } }, '+A'),
     el('button', { type: 'button', class: 'sx-add-b sx-add-bb', title: 'Add to Side B', onclick: () => { mx.B.push(t.id); deskSfx('pin'); mixApply(); } }, '+B'),
@@ -236,15 +267,16 @@ function musicDraw() {
     return li; }));
   const libBox = el('section', { class: 'sx-mcol sx-libbox' },
     el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Your music'), el('span', { class: 'sx-store' }, M.lib.length + (M.lib.length === 1 ? ' track' : ' tracks')),
+      el('button', { type: 'button', class: 'sx-mini-b sx-radiob', title: 'Find a radio station to add (no files needed)', onclick: () => { if (typeof radioFind === 'function') radioFind(true); } }, 'Radio'),
       el('button', { type: 'button', class: 'sx-mini-b sx-addf', title: 'Add audio files (or drop them here)', onclick: () => file.click() }, '+ Add'), file),
     el('div', { class: 'sx-mcol-b' }, M.lib.length ? lib : el('div', { class: 'sx-mz', tabindex: '0', role: 'button', 'aria-label': 'Add music files', onclick: () => file.click(), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } } }, 'Drop audio files here', el('small', {}, 'or click to choose some'))),
-    el('p', { class: 'sx-mus-note' }, 'Kept in this browser. Drag a track onto a side, or use +A / +B.'));
+    el('p', { class: 'sx-mus-note' }, 'Kept in this browser. Drag a track or a station onto a side, or use +A / +B.'));
   dropZone(libBox, null, 'L');
   if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(est => { const st = libBox.querySelector('.sx-store'); if (st && est.usage) st.textContent += ' (' + Math.round(est.usage / 1048576) + ' MB used)'; }).catch(() => {});
   const mixBox = el('section', { class: 'sx-mcol sx-mixbox' },
     el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Mixtape'), el('span', { class: 'sx-gap' }), el('button', { type: 'button', class: 'sx-mini-b sx-nextb', title: 'Next track (N)', 'aria-label': 'Next track', onclick: () => musicNext() }, '⏭'), onB, el('label', { class: 'sx-mus-vol', title: 'Volume' }, vol)),
     el('div', { class: 'sx-mcol-b' }, mixRow, side('A'), side('B')),
     el('p', { class: 'sx-mus-note' }, 'Plays only while the timer runs. Drag to reorder, move between sides, or off.'));
-  tapesMusic.replaceChildren(libBox, mixBox);
+  tapesMusic.replaceChildren(typeof radioOpen !== 'undefined' && radioOpen ? radioPane() : libBox, mixBox);
   libLengths();
 }

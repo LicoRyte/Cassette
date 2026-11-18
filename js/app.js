@@ -13,6 +13,7 @@
      desk.js    the desk around the clock (camera, notes, photos, strings, groups, picking, undo, the bottom bar)
      table.js   tables, graphs    export.js  image, backups
      boards.js  the board manager: go to, rename, copy, delete, reorder, new
+     radio.js   the station finder in the Tapes drawer (radio-browser.info)
      boot.js    first of all: reads the desk from the browser's database, then loads these, in this order
      front.js   the front page: Continue, New workspace, Load a backup (loads early, after state.js)
      room.js    rooms with friends (sending cards; js/vendor/trystero)
@@ -33,7 +34,7 @@
 // play a CSS animation again: off now, on again next frame. (The usual trick, reading a size in between, makes the browser
 // lay the whole page out on the spot; done every second by the clock, that could land in the middle of a pan or a zoom)
 function animAgain(e, cls) { e.classList.remove(cls); requestAnimationFrame(() => e.classList.add(cls)); }
-const APP_VERSION = 181; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
+const APP_VERSION = 182; // raised with every change (the same number as VERSION in sw.js), shown at the bottom of Settings
 const root = document.getElementById('app');
 // set says whether it worked: false when the browser's storage is full (js/state.js warns), true otherwise
 const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return !(e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014)); } } };
