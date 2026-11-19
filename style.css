@@ -2052,39 +2052,3 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-book-thumb { box-shadow: inset 5px 0 0 var(--spine, rgb(0 0 0 / .12)), 2px 2px 0 rgb(115 57 46 / .25); }
 .sx-tied-c.t-book { box-shadow: 2px 3px 0 rgb(115 57 46 / .25), inset 5px 0 0 var(--spine, rgb(0 0 0 / .18)); }
 .sx-deco-sub { margin: 8px 0 5px; font: 600 11.5px var(--ui); color: #73392e; }
-
-/* ---------- the open book's two pages (js/book.js): a spread of cream paper beside the contents; one page on a phone ---------- */
-.sx-book-open { width: min(1280px, 100%); }
-.sx-book-spread { flex: 1; min-height: 0; display: flex; padding: 12px 18px 0; background: #f3e4c7; }
-.sx-book-spread .sx-book-page.sx-world { flex: 1; min-width: 0; padding: 22px 30px 28px; background: #fffaf0; transition: box-shadow .15s; }
-.sx-book-spread .sx-book-page[data-slot="0"] { border-radius: 3px 0 0 3px; box-shadow: inset -22px 0 26px -22px rgb(115 57 46 / .3); }
-.sx-book-spread .sx-book-page[data-slot="1"] { border-radius: 0 3px 3px 0; box-shadow: inset 22px 0 26px -22px rgb(115 57 46 / .3); }
-.sx-book-spread .sx-book-page.here[data-slot="0"] { box-shadow: inset -22px 0 26px -22px rgb(115 57 46 / .3), inset 0 3px 0 rgb(199 110 70 / .45); }
-.sx-book-spread .sx-book-page.here[data-slot="1"] { box-shadow: inset 22px 0 26px -22px rgb(115 57 46 / .3), inset 0 3px 0 rgb(199 110 70 / .45); }
-.sx-book-spread .sx-book-page[hidden] { display: none; }
-.sx-book-spread.one .sx-book-page[data-slot="0"] { border-radius: 3px; box-shadow: none; }
-.sx-book-gutter { flex: none; width: 1px; background: #e6d6b8; }
-.sx-book-spread.one .sx-book-gutter { display: none; }
-.sx-book-main .sx-book-nav { background: #f3e4c7; }
-.sx-pg-blank { height: 100%; display: grid; place-items: center; }
-.sx-pg-blank .sx-book-add { opacity: .7; }
-.sx-pg-blank .sx-book-add:hover { opacity: 1; }
-.sx-book-row.on { background: rgb(199 110 70 / .1); }
-.sx-book-row.here { background: #e6d6b8; }
-/* a page is the paper: no note card, no colour, no shadow, no curled corner; plain, lined or grid stays */
-.sx-book-page .sx-bcard.sx-bnote { --note: transparent !important; --ink: #34111f !important; background-color: transparent !important; box-shadow: none !important; padding: 0 !important; width: 100% !important; min-height: 100% !important; border-radius: 0; }
-.sx-book-page .sx-bcard.sx-bnote:not([data-paper]) { background: none !important; }
-.sx-book-page .sx-bcard.sx-bnote[data-paper] { background: var(--pat) !important; }
-.sx-book-page .sx-bcard.sx-bnote::after { display: none; }
-.sx-book-page .sx-bnote .sx-note-t { min-height: 100%; }
-.sx-book-page .sx-bcard.sx-btbl { background: transparent !important; box-shadow: none !important; padding: 30px 0 0 !important; }
-@media (max-width: 700px) {
-  .sx-book-view { padding: 8px; }
-  .sx-book-open { flex-direction: column; height: calc(100vh - 16px); }
-  .sx-book-open > .sx-book-side { width: auto; flex: none; max-height: 30vh; padding: 10px 12px; border-right: 0; border-bottom: 1px solid #e6d6b8; box-shadow: none; }
-  .sx-book-open > .sx-book-side .sx-book-idx { overflow-y: auto; }
-  .sx-book-top { flex-wrap: wrap; row-gap: 4px; }
-  .sx-book-spread { padding: 8px 8px 0; }
-  .sx-book-spread .sx-book-page.sx-world { padding: 14px 14px 18px; }
-}
-@media (prefers-reduced-motion: reduce) { .sx-book-spread .sx-book-page.sx-world { transition: none; } }
