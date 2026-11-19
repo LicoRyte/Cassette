@@ -2000,7 +2000,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 :is(.sx-bbook, .sx-deco-cover):has(.sx-corner-pc, .sx-band) .sx-book-n { right: auto; left: 20px; } /* (the page count moves out from under the corner and the band) */
 
 /* ---------- stickers anywhere (js/deco.js): the tray by the left column, the one being carried, and the ones on cards ---------- */
-.sx-stk-tray { position: fixed; z-index: 44; width: 300px; padding: 10px 12px 12px; background: #fffaf0; border: 1px solid #e6d6b8; border-radius: 6px; box-shadow: 0 10px 26px rgb(115 57 46 / .3); color: #34111f; }
+.sx-stk-tray { position: fixed; z-index: 47; width: 300px; padding: 10px 12px 12px; background: #fffaf0; border: 1px solid #e6d6b8; border-radius: 6px; box-shadow: 0 10px 26px rgb(115 57 46 / .3); color: #34111f; }
 .sx-stk-tray[hidden] { display: none; }
 .sx-stk-tray.in { animation: sx-book-in .2s cubic-bezier(.2, .8, .2, 1); }
 .sx-stk-trayh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }

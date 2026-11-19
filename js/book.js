@@ -117,6 +117,7 @@ function bookPageDraw(fresh, dir) {
     if (!del.classList.contains('arm')) { del.classList.add('arm'); del.textContent = 'Delete? Click again'; armT = setTimeout(() => { del.classList.remove('arm'); del.textContent = 'Delete'; }, 3000); return; }
     clearTimeout(armT); bookDelPage(); } }, 'Delete');
   const top = el('div', { class: 'sx-book-top' }, el('span', { class: 'sx-book-pn' }, 'Page ' + (b.at + 1) + ' of ' + pages.length), el('span', { class: 'sx-gap' }),
+    typeof stkTrayOpen === 'function' ? el('button', { type: 'button', class: 'sx-book-tb', title: 'Stickers: drag one onto the page', onclick: e => stkTrayOpen(e.currentTarget) }, 'Stickers') : null,
     el('button', { type: 'button', class: 'sx-book-tb', title: 'Put this page back on the desk, beside the book', onclick: () => bookTakeOut() }, 'Take out'), del, close);
   const nav = el('div', { class: 'sx-book-nav' },
     el('button', { type: 'button', class: 'sx-book-turn', 'aria-label': 'The page before', title: 'The page before (←)', disabled: b.at <= 0 || null, onclick: () => bookGo(b.at - 1) }, '‹'),
@@ -124,7 +125,7 @@ function bookPageDraw(fresh, dir) {
     el('button', { type: 'button', class: 'sx-book-turn', 'aria-label': 'The next page', title: 'The next page (→)', disabled: b.at >= pages.length - 1 || null, onclick: () => bookGo(b.at + 1) }, '›'));
   if (fresh || p.id !== bookPgId || itemOf(p.id) !== bookPgIt) { // the page itself: a card, just like on the desk
     bookLeavePage();
-    const c = p.type === 'tbl' ? tblCard(p) : paperCard(p); c.classList.add('sx-book-pg'); bookPgEl = c; bookPgId = p.id; bookPgIt = p; els.set(p.id, c);
+    const c = p.type === 'tbl' ? tblCard(p) : paperCard(p); c.classList.add('sx-book-pg'); bookPgEl = c; bookPgId = p.id; bookPgIt = p; c._snap = cardSnap(p); els.set(p.id, c);
     bookPageBox.replaceChildren(c); bookPageBox.scrollTop = 0;
     if (dir && p.type === 'note' && !stillUI()) c.animate([{ opacity: 0, transform: 'translateX(' + (dir * 22) + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2, .8, .2, 1)' }); // (photos and tables just show)
   }
@@ -218,7 +219,7 @@ async function bookRemap(out, imap) { // a copied board: books point at their ow
     if (bookPgEl && bookPgId) els.delete(bookPgId);
     const r = d0.apply(this, a);
     if (bookId) { if (!bookOf(bookId)) { bookLeavePage(); bookId = null; bookView.hidden = true; }
-      else { if (bookPgEl && bookPgId && itemOf(bookPgId) === bookPgIt) els.set(bookPgId, bookPgEl); else bookPageDraw(true); bookSideDraw(); } }
+      else { if (bookPgEl && bookPgId && itemOf(bookPgId) === bookPgIt && bookPgEl._snap === cardSnap(bookPgIt)) els.set(bookPgId, bookPgEl); else bookPageDraw(true); bookSideDraw(); } } // (a page whose stickers or colour changed is made again)
     return r; }; }
 // the note tools (the right-click panel, Ctrl+B and the rest) work on the open book's page: they look for "the note you're
 // on" through keepNote (js/notes.js asks it first), so the page answers there, picked or written in
@@ -231,7 +232,7 @@ async function bookRemap(out, imap) { // a copied board: books point at their ow
 let bookNameT = 0; bookPageBox.addEventListener('input', () => { clearTimeout(bookNameT); bookNameT = setTimeout(() => { const b = bookOf(bookId), row = bookSide.querySelector('.sx-book-row.on span'), p = b && bookPages(b)[b.at]; if (row && p) row.textContent = bookName(p); }, 300); });
 // keys while it's open: ← → turn the pages (not while writing), Esc closes (once the pen is down)
 addEventListener('keydown', e => {
-  if (!bookId || bookView.hidden || e.defaultPrevented || (typeof decoId !== 'undefined' && decoId)) return;
+  if (!bookId || bookView.hidden || e.defaultPrevented || (typeof decoId !== 'undefined' && decoId) || (typeof stkTray !== 'undefined' && (!stkTray.hidden || stkCarry || !stkMenu.hidden))) return; // (the decorator and the stickers take Esc first)
   const a = document.activeElement, writing = a && (a.isContentEditable || (a.closest && a.closest('input, textarea, select')));
   if (e.key === 'Escape' && !writing) { e.preventDefault(); e.stopPropagation(); bookClose(); return; }
   if (writing || e.ctrlKey || e.metaKey || e.altKey) return;

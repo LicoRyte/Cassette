@@ -201,7 +201,7 @@ function decoPic() {
 
 /* ---------- stickers anywhere: on notes, photos, tables, folders, books and the cassette ----------
    The Stickers key on the left opens the tray. Drag a sticker out onto a card (or the cassette) and it sticks where you let
-   go; or click one, then click where it goes. A stuck sticker rides along with its card: drag it to move it (it may hang
+   go; or click one, then click where it goes. An open book has a Stickers key of its own, for its pages. A stuck sticker rides along with its card: drag it to move it (it may hang
    over the edge), right-click it to turn it, size it or peel it off. A card keeps them as it.stickers, like a book's cover
    (in % of the card, so they keep their spot as it grows); the cassette's are S.deckStk. */
 const STK_D = '<path d="M5 4.5h14v8.5l-6.5 6.5H5z"/><path d="M19 13h-4.5a2 2 0 0 0-2 2v4.5"/><path d="M9 9.5h.01M14 9.5h.01M9.5 13q1.5 1.3 3 0"/>';
@@ -210,9 +210,12 @@ document.body.append(stkTray);
 let stkPack = 0, stkCarry = null; // (stkCarry: the sticker on its way to a card, following the pointer)
 const stkKey = deskBtn(bookIcon(STK_D), () => { if (stkTray.hidden) stkTrayOpen(); else stkTrayClose(); }, 'sx-ws-ic', 'Stickers: drag one onto a note, photo, table, folder, book or the cassette');
 bookKey.parentNode.append(stkKey);
-function stkTrayOpen() {
-  stkTrayDraw(); stkTray.hidden = false; stkKey.classList.add('on');
-  const r = stkKey.getBoundingClientRect(); stkTray.style.left = (r.right + 10) + 'px'; stkTray.style.top = Math.max(8, Math.min(innerHeight - stkTray.offsetHeight - 8, r.top - 40)) + 'px';
+function stkTrayOpen(at) { // at: the key it opens from (the Stickers key on the left, or the one in an open book)
+  if (!stkTray.hidden && at && stkTray._at === at) { stkTrayClose(); return; }
+  stkTrayDraw(); stkTray.hidden = false; stkTray._at = at || stkKey; if (!at) stkKey.classList.add('on');
+  const r = (at || stkKey).getBoundingClientRect(), w = stkTray.offsetWidth, h = stkTray.offsetHeight;
+  if (at) { stkTray.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + 'px'; stkTray.style.top = Math.min(innerHeight - h - 8, r.bottom + 8) + 'px'; }
+  else { stkTray.style.left = (r.right + 10) + 'px'; stkTray.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.top - 40)) + 'px'; }
   if (!stillUI()) animAgain(stkTray, 'in');
 }
 function stkTrayClose() { stkTray.hidden = true; stkKey.classList.remove('on'); stkCarryEnd(); }
@@ -244,9 +247,9 @@ addEventListener('pointerdown', e => { if (!stkCarry || !stkCarry.armed || e.tar
 function stkTarget(x, y) {
   for (const n of document.elementsFromPoint(x, y)) {
     if (n.closest('.sx-stk-tray, .sx-stk-ghost')) continue;
-    const c = n.closest('.sx-bcard[data-id]'); if (c && !c.classList.contains('sx-book-pg') && c.closest('.sx-world') && itemOf(c.dataset.id)) return { c, it: itemOf(c.dataset.id) };
+    const c = n.closest('.sx-bcard[data-id]'); if (c && c.closest('.sx-world') && itemOf(c.dataset.id)) return { c, it: itemOf(c.dataset.id) }; // (a page in an open book too)
     const d = n.closest('.sx-corner'); if (d) return { c: d, deck: true };
-    if (n.closest('.sx-world') || n === document.body) break;
+    if (n.closest('.sx-world, .sx-book-view, .sx-deco-view') || n === document.body) break; // (an open book covers the desk)
   }
   return null;
 }
