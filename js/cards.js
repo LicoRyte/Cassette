@@ -29,7 +29,7 @@ function cardMenuOpen(it, x, y) {
   if (typeof toolHintUsed === 'function') toolHintUsed(it.id);
 }
 addEventListener('contextmenu', e => {
-  if (e.shiftKey) return; const c = e.target.closest && e.target.closest('.sx-world .sx-bcard[data-id]'); if (!c || !layer.contains(c)) return;
+  if (e.shiftKey || (e.target.closest && e.target.closest('.sx-cstk'))) return; const c = e.target.closest && e.target.closest('.sx-world .sx-bcard[data-id]'); if (!c || !layer.contains(c)) return;
   const it = itemOf(c.dataset.id); if (!it || !['photo', 'hop', 'book'].includes(it.type)) return;
   if (typeof panMovedAt !== 'undefined' && performance.now() - panMovedAt < 400) return; // (that was a right-drag across the desk)
   e.preventDefault(); e.stopPropagation(); if (selId !== it.id) select(it.id);

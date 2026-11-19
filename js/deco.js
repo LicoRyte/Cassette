@@ -1,7 +1,7 @@
 /* Cassie: decorating a book's cover. Right-click a book (or click the cover in an open book) and Decorate the cover opens
    a panel: the cover itself, big, on the left; on the right its colour and its title's colour (the 32 colours, and Auto
-   for the title), its picture, and a tray of stickers: a cat with whiskers, an exclamation burst, a question bubble, a
-   rainbow, a star, a heart and more. Click a sticker to stick it on, then drag it where you like; click a stuck one to
+   for the title), the title's look (bold, round, typewriter, script or stamped), corner pieces, an elastic band, its
+   picture, and a tray of stickers in packs (cute, weather, food, school, nature). Click a sticker to stick it on, then drag it where you like; click a stuck one to
    turn it, size it or peel it off. The stickers show on the book on the desk, on the open book, and in Tied to.
    A book keeps them as it.stickers: [{ k, x, y, r, s }] (where on the cover, in %; turned, in degrees; how big). */
 'use strict';
@@ -25,18 +25,84 @@ const STICKERS = {
   smile: ['Smile', O('<circle cx="24" cy="24" r="19"/>') + '<circle cx="24" cy="24" r="19" fill="#ffd832"/><path d="M16 21q2-3 4 0M28 21q2-3 4 0" stroke="#34111f" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M15 28q9 9 18 0" stroke="#34111f" stroke-width="2.2" fill="#d9243c" stroke-linejoin="round"/><ellipse cx="13" cy="27" rx="2.6" ry="1.5" fill="#ff823b" opacity=".6"/><ellipse cx="35" cy="27" rx="2.6" ry="1.5" fill="#ff823b" opacity=".6"/>'],
   coffee: ['Coffee', O('<path d="M10 19h24v12a9 9 0 0 1-9 9h-6a9 9 0 0 1-9-9z"/><path d="M34 22h3a5 5 0 0 1 0 10h-3"/>') + '<path d="M34 22h3a5 5 0 0 1 0 10h-3" stroke="#c76e46" stroke-width="3.4" fill="none"/><path d="M10 19h24v12a9 9 0 0 1-9 9h-6a9 9 0 0 1-9-9z" fill="#c76e46"/><path d="M10 19h24v3H10z" fill="#73392e"/><path d="M17 15q-2-3 0-6M23 15q-2-3 0-6M29 15q-2-3 0-6" stroke="#bfc3c6" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M19 29q3 2 6 0" stroke="#fffaf0" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="18" cy="26.5" r="1.1" fill="#fffaf0"/><circle cx="26" cy="26.5" r="1.1" fill="#fffaf0"/>'],
   mushroom: ['Mushroom', O('<path d="M5 24a19 16 0 0 1 38 0z"/><path d="M17 24h14l-2 15a5 5 0 0 1-10 0z"/>') + '<path d="M17 24h14l-2 15a5 5 0 0 1-10 0z" fill="#ffffe4" stroke="#e6d6b8" stroke-width="1"/><path d="M5 24a19 16 0 0 1 38 0z" fill="#d9243c"/><g fill="#fffaf0"><circle cx="16" cy="15" r="3"/><circle cx="28" cy="11" r="2.4"/><circle cx="34" cy="19" r="2.6"/><circle cx="22" cy="20" r="1.8"/></g><circle cx="21.5" cy="31" r="1.1" fill="#34111f"/><circle cx="26.5" cy="31" r="1.1" fill="#34111f"/>'],
+  // weather
+  sun: ['Sun', '<circle cx="24" cy="24" r="21" fill="#fffaf0"/><path d="M38 24h5.5M33.9 33.9l3.9 3.9M24 38v5.5M14.1 33.9l-3.9 3.9M10 24H4.5M14.1 14.1l-3.9-3.9M24 10V4.5M33.9 14.1l3.9-3.9" stroke="#ffb762" stroke-width="3.4" stroke-linecap="round"/><circle cx="24" cy="24" r="11" fill="#ffd832"/><circle cx="20.5" cy="23" r="1.5" fill="#34111f"/><circle cx="27.5" cy="23" r="1.5" fill="#34111f"/><path d="M21.8 26.5q2.2 1.8 4.4 0" stroke="#34111f" stroke-width="1.3" fill="none" stroke-linecap="round"/><ellipse cx="17.5" cy="26.5" rx="1.8" ry="1" fill="#ff823b" opacity=".6"/><ellipse cx="30.5" cy="26.5" rx="1.8" ry="1" fill="#ff823b" opacity=".6"/>'],
+  umbrella: ['Umbrella', O('<path d="M6 24a18 17 0 0 1 36 0z"/>') + '<path d="M24 24v13a4 4 0 0 1-8 0" stroke="#fffaf0" stroke-width="7.5" fill="none" stroke-linecap="round"/><path d="M24 24v13a4 4 0 0 1-8 0" stroke="#73392e" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M6 24a18 17 0 0 1 36 0q-3-3-6 0-3-3-6 0-3-3-6 0-3-3-6 0-3-3-6 0-3-3-6 0z" fill="#ff6157"/><path d="M24 7.5q-6 6-6 16M24 7.5q6 6 6 16" stroke="#d9243c" stroke-width="1.4" fill="none"/><path d="M24 7V4" stroke="#73392e" stroke-width="2.4" stroke-linecap="round"/>'],
+  snow: ['Snowflake', '<g stroke="#fffaf0" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round" fill="none">' + [0, 60, 120, 180, 240, 300].map(a => '<path d="M24 24V5M19 9l5 5 5-5" transform="rotate(' + a + ' 24 24)"/>').join('') + '</g><g stroke="#1c92a7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none">' + [0, 60, 120, 180, 240, 300].map(a => '<path d="M24 24V5M19 9l5 5 5-5" transform="rotate(' + a + ' 24 24)"/>').join('') + '</g><circle cx="24" cy="24" r="3.5" fill="#77d6c1"/>'],
+  drop: ['Raindrop', O('<path d="M24 4S10 20 10 29a14 14 0 0 0 28 0C38 20 24 4 24 4z"/>') + '<path d="M24 4S10 20 10 29a14 14 0 0 0 28 0C38 20 24 4 24 4z" fill="#1c92a7"/><path d="M15 27q0-5 4-10" stroke="#77d6c1" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="20.5" cy="30" r="1.5" fill="#041528"/><circle cx="27.5" cy="30" r="1.5" fill="#041528"/><path d="M22 33.5q2 1.6 4 0" stroke="#041528" stroke-width="1.3" fill="none" stroke-linecap="round"/>'],
+  snowman: ['Snowman', O('<circle cx="24" cy="33" r="11"/><circle cx="24" cy="15" r="8.5"/>') + '<g fill="#ffffe4" stroke="#bfc3c6" stroke-width="1.2"><circle cx="24" cy="33" r="11"/><circle cx="24" cy="15" r="8.5"/></g><path d="M15.5 21.5h17v4h-17z" fill="#d9243c"/><path d="M27 24l2 8h3.5l-2-8z" fill="#d9243c"/><circle cx="21" cy="13.5" r="1.3" fill="#34111f"/><circle cx="27" cy="13.5" r="1.3" fill="#34111f"/><path d="M24 15.5l6 1.6-6 1.2z" fill="#ff823b"/><circle cx="24" cy="31" r="1.3" fill="#34111f"/><circle cx="24" cy="36" r="1.3" fill="#34111f"/>'],
+  storm: ['Storm', O('<path d="M13 30a8 8 0 0 1-1-16 11 11 0 0 1 21-4 9 9 0 0 1 3 20z"/><path d="M24 28l-5 9h5l-3 8 9-11h-5l3-6z"/>') + '<path d="M24 28l-5 9h5l-3 8 9-11h-5l3-6z" fill="#ffd832"/><path d="M13 30a8 8 0 0 1-1-16 11 11 0 0 1 21-4 9 9 0 0 1 3 20z" fill="#bfc3c6" stroke="#6d8a8d" stroke-width="1.4"/><path d="M18 21l3 1.5M30 21l-3 1.5" stroke="#34111f" stroke-width="1.5" stroke-linecap="round"/><path d="M21.5 26q2.5-1.6 5 0" stroke="#34111f" stroke-width="1.3" fill="none" stroke-linecap="round"/>'],
+  // food
+  berry: ['Strawberry', O('<path d="M24 43C14 37 8 28 9 21c1-5 6-7 15-7s14 2 15 7c1 7-5 16-15 22z"/><path d="M15 15q4-7 9-1 5-6 9 1-4 3-9 1-5 2-9-1z"/>') + '<path d="M24 43C14 37 8 28 9 21c1-5 6-7 15-7s14 2 15 7c1 7-5 16-15 22z" fill="#d9243c"/><path d="M15 15q4-7 9-1 5-6 9 1-4 3-9 1-5 2-9-1z" fill="#9cb93b"/><g fill="#ffd832"><ellipse cx="14" cy="24" rx=".8" ry="1.2"/><ellipse cx="34" cy="24" rx=".8" ry="1.2"/><ellipse cx="18" cy="34" rx=".8" ry="1.2"/><ellipse cx="30" cy="34" rx=".8" ry="1.2"/><ellipse cx="24" cy="38" rx=".8" ry="1.2"/></g><circle cx="20.5" cy="25" r="1.5" fill="#34111f"/><circle cx="27.5" cy="25" r="1.5" fill="#34111f"/><path d="M22 28.5q2 1.6 4 0" stroke="#34111f" stroke-width="1.3" fill="none" stroke-linecap="round"/>'],
+  onigiri: ['Onigiri', O('<path d="M24 6c3 0 5 2 7 5l11 20c3 6-1 11-7 11H13c-6 0-10-5-7-11l11-20c2-3 4-5 7-5z"/>') + '<path d="M24 6c3 0 5 2 7 5l11 20c3 6-1 11-7 11H13c-6 0-10-5-7-11l11-20c2-3 4-5 7-5z" fill="#ffffe4" stroke="#bfc3c6" stroke-width="1.2"/><path d="M16 32h16v10H16z" fill="#273b2d"/><circle cx="20" cy="25" r="1.5" fill="#34111f"/><circle cx="28" cy="25" r="1.5" fill="#34111f"/><path d="M22 28q2 1.6 4 0" stroke="#34111f" stroke-width="1.3" fill="none" stroke-linecap="round"/><ellipse cx="16.5" cy="28" rx="1.8" ry="1" fill="#ff88a9" opacity=".75"/><ellipse cx="31.5" cy="28" rx="1.8" ry="1" fill="#ff88a9" opacity=".75"/>'],
+  toast: ['Toast', O('<path d="M10 20a8 8 0 0 1 5-13h18a8 8 0 0 1 5 13v18a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4z"/>') + '<path d="M10 20a8 8 0 0 1 5-13h18a8 8 0 0 1 5 13v18a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4z" fill="#c76e46"/><path d="M14 21a5 5 0 0 1 3-10h14a5 5 0 0 1 3 10v15a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2z" fill="#ffdaac"/><rect x="19" y="14" width="10" height="7" rx="1.5" fill="#ffd832" transform="rotate(-8 24 17)"/><circle cx="20.5" cy="27" r="1.5" fill="#34111f"/><circle cx="27.5" cy="27" r="1.5" fill="#34111f"/><path d="M22 30.5q2 1.6 4 0" stroke="#34111f" stroke-width="1.3" fill="none" stroke-linecap="round"/>'],
+  cherry: ['Cherries', O('<circle cx="15" cy="35" r="8"/><circle cx="33" cy="36" r="8"/><path d="M31 6q8-3 11 3-7 3-11-3z"/>') + '<path d="M15 27q4-14 16-21M33 28q-3-12-2-22" stroke="#fffaf0" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M15 27q4-14 16-21M33 28q-3-12-2-22" stroke="#458239" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M31 6q8-3 11 3-7 3-11-3z" fill="#9cb93b"/><g fill="#d9243c"><circle cx="15" cy="35" r="8"/><circle cx="33" cy="36" r="8"/></g><path d="M10.5 33q1-3 4-3.5M28.5 34q1-3 4-3.5" stroke="#ffe0dc" stroke-width="1.8" fill="none" stroke-linecap="round"/>'],
+  donut: ['Donut', O('<circle cx="24" cy="24" r="18"/>') + '<circle cx="24" cy="24" r="18" fill="#eb9c6e"/><path d="M24 9c6 0 13 4 14 10 1 4-2 5-2 9s-3 7-7 7c-3 0-3 3-6 3s-5-3-8-4-6-5-5-9-2-5-1-9c2-5 8-7 15-7z" fill="#ff88a9"/><circle cx="24" cy="24" r="5" fill="#fffaf0"/><g stroke-width="2" stroke-linecap="round"><path d="M17 15l2 1" stroke="#ffd832"/><path d="M30 14l-1 2" stroke="#77d6c1"/><path d="M33 23l2 1" stroke="#fffaf0"/><path d="M15 26l1 2" stroke="#77d6c1"/><path d="M27 32l2-1" stroke="#ffd832"/><path d="M19 31l1 2" stroke="#c03b94"/><path d="M23 13l2 0" stroke="#c03b94"/></g>'],
+  icecream: ['Ice cream', O('<path d="M16 24l8 20 8-20z"/><circle cx="24" cy="17" r="10"/><circle cx="24" cy="6" r="2.6"/>') + '<path d="M16 24l8 20 8-20z" fill="#eb9c6e"/><path d="M19 27l9 7M18 31l6-5M22 38l6-6M29 27l-9 9" stroke="#c76e46" stroke-width="1.2"/><circle cx="24" cy="17" r="10" fill="#ff88a9"/><path d="M14 19q1 5 4 3 2 4 4 0 2 4 4 0 2 4 4 0 3 2 4-3z" fill="#ff88a9"/><circle cx="24" cy="6" r="2.6" fill="#d9243c"/><circle cx="20.5" cy="17" r="1.4" fill="#34111f"/><circle cx="27.5" cy="17" r="1.4" fill="#34111f"/><path d="M22.2 20q1.8 1.5 3.6 0" stroke="#34111f" stroke-width="1.2" fill="none" stroke-linecap="round"/>'],
+  // school
+  pencil: ['Pencil', '<g transform="rotate(-40 24 24)">' + O('<path d="M2 21a2 2 0 0 1 2-2h30l9 5-9 5H4a2 2 0 0 1-2-2z"/>') + '<path d="M8 19h26v10H8z" fill="#ffd832"/><path d="M11 24h23" stroke="#ffb762" stroke-width="1.4"/><path d="M34 19l9 5-9 5z" fill="#ffdaac"/><path d="M40.3 22.5L43 24l-2.7 1.5z" fill="#34111f"/><path d="M4 19h4v10H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" fill="#ff88a9"/><path d="M8 19h3v10H8z" fill="#bfc3c6"/></g>'],
+  aplus: ['A+', O('<path d="M11 5h19l8 8v30H11z"/>') + '<path d="M11 5h19l8 8v30H11z" fill="#ffffe4" stroke="#bfc3c6" stroke-width="1.2"/><path d="M30 5v8h8" fill="#e6d6b8" stroke="#bfc3c6" stroke-width="1.2" stroke-linejoin="round"/><path d="M15 36h19M15 39.5h13" stroke="#bfc3c6" stroke-width="1.2"/><path d="M15 30l5.5-15 5.5 15M17.2 24.5h6.6" stroke="#d9243c" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 18v8M27 22h8" stroke="#d9243c" stroke-width="2.6" stroke-linecap="round"/>'],
+  ruler: ['Ruler', '<g transform="rotate(-25 24 24)">' + O('<rect x="3" y="17" width="42" height="13" rx="2"/>') + '<rect x="3" y="17" width="42" height="13" rx="2" fill="#ffd832"/><path d="M7 17v4M11 17v6M15 17v4M19 17v6M23 17v4M27 17v6M31 17v4M35 17v6M39 17v4" stroke="#73392e" stroke-width="1.2"/></g>'],
+  clip: ['Paperclip', '<g transform="rotate(25 24 24)"><path d="M30 13v19a6 6 0 0 1-12 0V11a4.5 4.5 0 0 1 9 0v19a2.5 2.5 0 0 1-5 0V15" stroke="#fffaf0" stroke-width="8.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 13v19a6 6 0 0 1-12 0V11a4.5 4.5 0 0 1 9 0v19a2.5 2.5 0 0 1-5 0V15" stroke="#6d8a8d" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>'],
+  apple: ['Apple', O('<path d="M24 15c-4-3-14-3-15 8-1 9 6 19 11 19 2 0 3-1 4-1s2 1 4 1c5 0 12-10 11-19-1-11-11-11-15-8z"/><path d="M25 11q5-6 11-3-5 6-11 3z"/>') + '<path d="M24 15c-4-3-14-3-15 8-1 9 6 19 11 19 2 0 3-1 4-1s2 1 4 1c5 0 12-10 11-19-1-11-11-11-15-8z" fill="#d9243c"/><path d="M24 15q0-5 3-8" stroke="#73392e" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M25 11q5-6 11-3-5 6-11 3z" fill="#9cb93b"/><path d="M13 21q1-3 4-4" stroke="#ffe0dc" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20.5" cy="26" r="1.5" fill="#34111f"/><circle cx="27.5" cy="26" r="1.5" fill="#34111f"/><path d="M22 29.5q2 1.6 4 0" stroke="#34111f" stroke-width="1.3" fill="none" stroke-linecap="round"/>'],
+  tick: ['Done', O('<circle cx="24" cy="24" r="18"/>') + '<circle cx="24" cy="24" r="18" fill="#458239"/><circle cx="24" cy="24" r="14.5" fill="none" stroke="#9cb93b" stroke-width="1.2" stroke-dasharray="2 2.4"/><path d="M15.5 24.5l6 6 11-12" stroke="#ffffe4" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'],
+  // nature
+  leaf: ['Leaf', O('<path d="M8 40C8 20 20 8 40 8c0 20-12 32-32 32z"/>') + '<path d="M8 40C8 20 20 8 40 8c0 20-12 32-32 32z" fill="#9cb93b"/><path d="M8 40L33 15M17 31l-1-8M23 25l-1-9M17 31l8 1M23 25l9 1" stroke="#458239" stroke-width="1.6" fill="none" stroke-linecap="round"/>'],
+  cactus: ['Cactus', O('<path d="M19 40V14a5 5 0 0 1 10 0v26z"/><path d="M19 32h-5a5 5 0 0 1-5-5v-7a3 3 0 0 1 6 0v6h4z"/><path d="M29 28h5v-7a3 3 0 0 1 6 0v8a5 5 0 0 1-5 5h-6z"/><path d="M13 37h22l-3 8H16z"/>') + '<g fill="#458239"><path d="M19 40V14a5 5 0 0 1 10 0v26z"/><path d="M19 32h-5a5 5 0 0 1-5-5v-7a3 3 0 0 1 6 0v6h4z"/><path d="M29 28h5v-7a3 3 0 0 1 6 0v8a5 5 0 0 1-5 5h-6z"/></g><path d="M13 37h22l-3 8H16z" fill="#c76e46"/><path d="M12 36h24v3H12z" fill="#eb9c6e"/><circle cx="24" cy="8.5" r="3" fill="#ff88a9"/><circle cx="21.5" cy="21" r="1.3" fill="#273b2d"/><circle cx="26.5" cy="21" r="1.3" fill="#273b2d"/><path d="M22.5 24q1.5 1.3 3 0" stroke="#273b2d" stroke-width="1.2" fill="none" stroke-linecap="round"/>'],
+  bee: ['Bee', O('<ellipse cx="24" cy="28" rx="12" ry="9"/><ellipse cx="19" cy="15" rx="5" ry="7" transform="rotate(-20 19 15)"/><ellipse cx="29" cy="15" rx="5" ry="7" transform="rotate(20 29 15)"/>') + '<g fill="#ffffe4" stroke="#bfc3c6" stroke-width="1.2"><ellipse cx="19" cy="15" rx="5" ry="7" transform="rotate(-20 19 15)"/><ellipse cx="29" cy="15" rx="5" ry="7" transform="rotate(20 29 15)"/></g><path d="M35 27l6 1-6 2z" fill="#34111f"/><ellipse cx="24" cy="28" rx="12" ry="9" fill="#ffd832"/><path d="M22 19.5v17M29 20.5v15" stroke="#34111f" stroke-width="3"/><circle cx="16" cy="26" r="1.5" fill="#34111f"/><path d="M14.5 30q1.8 1.3 3.4-.2" stroke="#34111f" stroke-width="1.2" fill="none" stroke-linecap="round"/>'],
+  clover: ['Clover', '<path d="M28 31q5 6 2 13" stroke="#fffaf0" stroke-width="7" fill="none" stroke-linecap="round"/>' + O('<circle cx="18" cy="17" r="7.5"/><circle cx="30" cy="17" r="7.5"/><circle cx="18" cy="29" r="7.5"/><circle cx="30" cy="29" r="7.5"/>') + '<path d="M28 31q5 6 2 13" stroke="#458239" stroke-width="2.4" fill="none" stroke-linecap="round"/><g fill="#458239"><circle cx="18" cy="17" r="7.5"/><circle cx="30" cy="17" r="7.5"/><circle cx="18" cy="29" r="7.5"/><circle cx="30" cy="29" r="7.5"/></g><g fill="#9cb93b"><circle cx="17" cy="16" r="3"/><circle cx="31" cy="16" r="3"/><circle cx="17" cy="30" r="3"/><circle cx="31" cy="30" r="3"/></g>'],
+  tulip: ['Tulip', '<path d="M24 32v13" stroke="#fffaf0" stroke-width="7" stroke-linecap="round"/>' + O('<path d="M14 11l5 5 5-8 5 8 5-5v10a10 10 0 0 1-20 0z"/><path d="M24 42q-9-1-11-10 8 0 11 8z"/>') + '<path d="M24 32v13" stroke="#458239" stroke-width="2.6" stroke-linecap="round"/><path d="M24 42q-9-1-11-10 8 0 11 8z" fill="#9cb93b"/><path d="M14 11l5 5 5-8 5 8 5-5v10a10 10 0 0 1-20 0z" fill="#ff6157"/><path d="M24 8v14" stroke="#d9243c" stroke-width="1.4"/>'],
+  butterfly: ['Butterfly', O('<path d="M24 22C18 8 6 6 5 14s8 12 19 10z"/><path d="M24 22C30 8 42 6 43 14s-8 12-19 10z"/><path d="M24 25c-10 0-16 4-14 10s10 3 14-8z"/><path d="M24 25c10 0 16 4 14 10s-10 3-14-8z"/>') + '<g fill="#c03b94"><path d="M24 22C18 8 6 6 5 14s8 12 19 10z"/><path d="M24 22C30 8 42 6 43 14s-8 12-19 10z"/></g><g fill="#ff88a9"><path d="M24 25c-10 0-16 4-14 10s10 3 14-8z"/><path d="M24 25c10 0 16 4 14 10s-10 3-14-8z"/></g><g fill="#ffdaac"><circle cx="12" cy="15" r="2.4"/><circle cx="36" cy="15" r="2.4"/><circle cx="15" cy="32" r="1.6"/><circle cx="33" cy="32" r="1.6"/></g><path d="M24 15v19" stroke="#34111f" stroke-width="3" stroke-linecap="round"/><path d="M24 16q-2-6-5-8M24 16q2-6 5-8" stroke="#34111f" stroke-width="1.4" fill="none" stroke-linecap="round"/>'],
 };
+// the tray, in packs (a tab each)
+const STICKER_PACKS = [['Cute', ['cat', 'bang', 'what', 'rainbow', 'star', 'heart', 'sparkle', 'flower', 'moon', 'cloud', 'note', 'paw', 'bolt', 'smile', 'coffee', 'mushroom']],
+  ['Weather', ['sun', 'umbrella', 'snow', 'drop', 'snowman', 'storm']], ['Food', ['berry', 'onigiri', 'toast', 'cherry', 'donut', 'icecream']],
+  ['School', ['pencil', 'aplus', 'ruler', 'clip', 'apple', 'tick']], ['Nature', ['leaf', 'cactus', 'bee', 'clover', 'tulip', 'butterfly']]];
 const stickerSvg = k => '<svg viewBox="0 0 48 48" aria-hidden="true">' + (STICKERS[k] || STICKERS.star)[1] + '</svg>';
-// what may be kept (from a backup, or a friend): known stickers, on the cover, a dozen at most
+// and a pack of words and faces: kaomoji and ASCII emoji, or anything you type (a sticker { k: 'txt', t: 'what it says' })
+const KAOMOJI = ['(=^･ω･^=)', '(◕‿◕)', 'ʕ•ᴥ•ʔ', '(｡♥‿♥｡)', '(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧', '(•̀ᴗ•́)و', '¯\\_(ツ)_/¯', '(╯°□°)╯︵ ┻━┻', '(T_T)', '(>_<)', '(・_・;)', '( ˘ω˘ )ｽﾔｧ',
+  ':)', ':D', ';)', ':3', '<3', '^_^', 'xD', 'o_O', 'owo', '~♪', '★', 'OK!', 'TODO', 'wow!'];
+STICKER_PACKS.push(['Kaomoji', null]);
+const stkText = v => typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, 30) : '';
+const stkName = s => s.k === 'txt' ? '"' + s.t + '"' : (STICKERS[s.k] || STICKERS.star)[0];
+function stkPaint(e, s) { if (s.k === 'txt') { e.classList.add('txt'); e.textContent = s.t; } else e.innerHTML = stickerSvg(s.k); return e; }
+// the Kaomoji tab: write your own (it shows as a sticker you can use), or pick one. use(t) sticks it, or starts carrying it
+function kaoPanel(use, carry) {
+  const own = el('button', { type: 'button', class: 'sx-deco-st txt own', 'data-k': 'txt', 'data-t': '', disabled: true, title: carry ? 'Drag it onto a card' : 'Stick it on' }, 'Type above');
+  const inp = el('input', { type: 'text', class: 'sx-kao-in', maxlength: '30', placeholder: 'Write your own: (=^･ω･^=)', 'aria-label': 'A sticker of your own words' });
+  inp.addEventListener('input', () => { const t = stkText(inp.value); own.dataset.t = t; own.textContent = t || 'Type above'; own.disabled = !t; });
+  inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && own.dataset.t && !carry) { e.preventDefault(); use(own.dataset.t); } if (e.key === 'Escape') inp.blur(); });
+  if (!carry) own.addEventListener('click', () => { if (own.dataset.t) use(own.dataset.t); });
+  const picks = KAOMOJI.map(t => { const b = el('button', { type: 'button', class: 'sx-deco-st txt', 'data-k': 'txt', 'data-t': t, title: t }, t); if (!carry) b.addEventListener('click', () => use(t)); return b; });
+  return el('div', { class: 'sx-kao' }, el('div', { class: 'sx-kao-row' }, inp, own), el('div', { class: 'sx-kao-picks' }, ...picks));
+}
+// the title's look, the corner pieces, and the elastic band (any of the 32 colours, or none)
+const TITLE_STYLES = [['', 'Bold'], ['round', 'Round'], ['type', 'Typewriter'], ['script', 'Script'], ['stamp', 'Stamp']];
+const CORNERS = [['', 'None'], ['brass', 'Brass'], ['leather', 'Leather'], ['cream', 'Cream'], ['ink', 'Like the title']];
+// what may be kept (from a backup, or a friend): known stickers, on the cover, a dozen at most; known styles; palette colours
 function bookStkClean(v) {
   const n = (x, lo, hi, d) => isFinite(+x) ? Math.max(lo, Math.min(hi, +x)) : d;
-  return (Array.isArray(v) ? v : []).filter(s => s && STICKERS[s.k]).slice(0, 12).map(s => ({ k: s.k, x: Math.round(n(s.x, 0, 100, 50)), y: Math.round(n(s.y, 0, 100, 50)), r: Math.round(n(s.r, -180, 180, 0)), s: Math.round(n(s.s, .4, 2.5, 1) * 100) / 100 }));
+  return (Array.isArray(v) ? v : []).filter(s => s && (STICKERS[s.k] || (s.k === 'txt' && stkText(s.t)))).slice(0, 12).map(s => Object.assign(s.k === 'txt' ? { t: stkText(s.t) } : {}, { k: s.k, x: Math.round(n(s.x, 0, 100, 50)), y: Math.round(n(s.y, 0, 100, 50)), r: Math.round(n(s.r, -180, 180, 0)), s: Math.round(n(s.s, .4, 2.5, 1) * 100) / 100 }));
+}
+function bookDecoClean(it, o) {
+  if (Array.isArray(it.stickers) && it.stickers.length) o.stickers = bookStkClean(it.stickers);
+  if (TITLE_STYLES.some(t => t[0] && t[0] === it.tf)) o.tf = it.tf;
+  if (CORNERS.some(c => c[0] && c[0] === it.corners)) o.corners = it.corners;
+  if (PALETTE.includes(it.band)) o.band = it.band;
 }
 // the stickers on a cover: a layer of them over it, placed in % so they sit the same on a big cover or a little one
 function bookStk(b) {
   const layer = el('span', { class: 'sx-stks', 'aria-hidden': 'true' });
-  (b.stickers || []).forEach((s, i) => { const e = el('i', { class: 'sx-stk', 'data-i': i, style: 'left:' + s.x + '%;top:' + s.y + '%;--r:' + s.r + 'deg;--s:' + s.s }); e.innerHTML = stickerSvg(s.k); layer.append(e); });
+  (b.stickers || []).forEach((s, i) => { const e = el('i', { class: 'sx-stk', 'data-i': i, style: 'left:' + s.x + '%;top:' + s.y + '%;--r:' + s.r + 'deg;--s:' + s.s }); stkPaint(e, s); layer.append(e); });
   return layer;
+}
+// a cover dressed: the title's look, then the corner pieces and the band, then the stickers on top. c: the cover's element
+function bookDress(c, b) {
+  if (b.tf) c.dataset.tf = b.tf; else delete c.dataset.tf;
+  if (b.corners) c.append(el('i', { class: 'sx-corner-pc tr c-' + b.corners, 'aria-hidden': 'true' }), el('i', { class: 'sx-corner-pc br c-' + b.corners, 'aria-hidden': 'true' }));
+  if (PALETTE.includes(b.band)) c.append(el('i', { class: 'sx-band', style: '--band:' + b.band, 'aria-hidden': 'true' }));
+  if ((b.stickers || []).length) c.append(bookStk(b));
+  return c;
 }
 
 /* ---------- the panel ---------- */
@@ -58,8 +124,9 @@ function decoCoverDraw() {
   const b = bookOf(decoId); if (!b) return; const [, bg, ink] = bookColor(b);
   decoCover.style.setProperty('--cover', bg); decoCover.style.setProperty('--cink', ink);
   const pic = el('div', { class: 'sx-book-pic' + (b.cover ? '' : ' none') }); if (b.cover) photoUrls(b.id).then(u => { if (u) pic.append(el('img', { src: u.full, alt: '' })); });
-  const stks = bookStk(b); stks.classList.add('live'); if (decoSel >= 0 && stks.children[decoSel]) stks.children[decoSel].classList.add('sel');
-  decoCover.replaceChildren(el('i', { class: 'sx-book-spine' }), el('b', { class: 'sx-book-title' }, b.title || 'A book'), pic, el('span', { class: 'sx-book-n' }, (b.pages || []).length + ((b.pages || []).length === 1 ? ' page' : ' pages')), stks);
+  decoCover.replaceChildren(el('i', { class: 'sx-book-spine' }), el('b', { class: 'sx-book-title' }, b.title || 'A book'), pic, el('span', { class: 'sx-book-n' }, (b.pages || []).length + ((b.pages || []).length === 1 ? ' page' : ' pages')));
+  bookDress(decoCover, b); const stks = decoCover.querySelector('.sx-stks');
+  if (stks) { stks.classList.add('live'); if (decoSel >= 0 && stks.children[decoSel]) stks.children[decoSel].classList.add('sel'); }
 }
 decoCover.addEventListener('pointerdown', e => {
   const b = bookOf(decoId); if (!b) return;
@@ -77,27 +144,36 @@ function decoToolsDraw() {
   const b = bookOf(decoId); if (!b) return; const s = decoSel >= 0 && b.stickers && b.stickers[decoSel];
   if (!s) { decoTools.replaceChildren(el('span', { class: 'sx-deco-hint' }, (b.stickers || []).length ? 'Drag a sticker to move it; click one for more' : 'Add stickers from the tray, then drag them where you like')); return; }
   const k = (label, title, fn, cls) => el('button', { type: 'button', class: 'sx-deco-k' + (cls ? ' ' + cls : ''), title, 'aria-label': title, onclick: () => { decoMark(); fn(); decoChanged(); } }, label);
-  decoTools.replaceChildren(el('span', { class: 'sx-deco-hint' }, STICKERS[s.k][0]),
+  decoTools.replaceChildren(el('span', { class: 'sx-deco-hint' }, stkName(s)),
     k('⟲', 'Turn left', () => { s.r = Math.max(-180, s.r - 15); }), k('⟳', 'Turn right', () => { s.r = Math.min(180, s.r + 15); }),
     k('−', 'Smaller', () => { s.s = Math.max(.4, Math.round((s.s - .15) * 100) / 100); }), k('+', 'Bigger', () => { s.s = Math.min(2.5, Math.round((s.s + .15) * 100) / 100); }),
     k('To front', 'Bring it to the front', () => { b.stickers.push(b.stickers.splice(decoSel, 1)[0]); decoSel = b.stickers.length - 1; }),
     k('Peel off', 'Take it off the cover', () => { b.stickers.splice(decoSel, 1); decoSel = -1; deskSfx('pick'); }, 'del'));
 }
-// the side: colours, the picture, and the sticker tray
+// the side: the sticker tray (in packs), the colours, the title's look, the corners, the band, and the picture
+let decoPack = 0;
 function decoSideDraw() {
   const b = bookOf(decoId); if (!b) return; const [, bg] = bookColor(b), ink = PALETTE.includes(b.ink) ? b.ink : '';
+  const set = fn => () => { decoMark(); fn(); decoChanged(true); deskSfx('pick'); };
   const sq = (hex, on, fn) => el('button', { type: 'button', class: 'sx-book-sq' + (on ? ' on' : ''), style: 'background:' + hex, title: hex, 'aria-label': hex, onclick: fn });
-  const sec = (label, ...kids) => el('div', { class: 'sx-deco-sec' }, el('div', { class: 'sx-deco-lbl' }, label), ...kids);
-  const tray = el('div', { class: 'sx-deco-tray' }, ...Object.entries(STICKERS).map(([key, [name]]) => { const t = el('button', { type: 'button', class: 'sx-deco-st', title: name, 'aria-label': 'Add a ' + name.toLowerCase() + ' sticker', onclick: () => {
-      if ((b.stickers || []).length >= 12) { deskToast('A dozen stickers at most'); return; }
-      decoMark(); b.stickers = b.stickers || []; b.stickers.push({ k: key, x: 30 + Math.round(Math.random() * 40), y: 45 + Math.round(Math.random() * 30), r: Math.round(Math.random() * 30 - 15), s: 1 }); decoSel = b.stickers.length - 1; deskSfx('pin'); decoChanged(); } });
+  const sec = (label, ...kids) => el('div', { class: 'sx-deco-sec' }, el('div', { class: 'sx-deco-lbl' }, label), ...kids.filter(Boolean));
+  const chips = (...cs) => el('div', { class: 'sx-deco-chips' }, ...cs);
+  const chip = (label, on, fn, extra) => el('button', Object.assign({ type: 'button', class: 'sx-deco-chip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: fn }, extra || {}), ...[].concat(label));
+  const tabs = el('div', { class: 'sx-deco-tabs', role: 'tablist' }, ...STICKER_PACKS.map(([name], i) => el('button', { type: 'button', role: 'tab', class: 'sx-deco-tab' + (i === decoPack ? ' on' : ''), 'aria-selected': i === decoPack ? 'true' : 'false', onclick: () => { decoPack = i; decoSideDraw(); } }, name)));
+  const add = (key, txt) => { if ((b.stickers || []).length >= 12) { deskToast('A dozen stickers at most'); return; }
+    decoMark(); b.stickers = b.stickers || []; b.stickers.push(Object.assign(txt ? { t: txt } : {}, { k: key, x: 30 + Math.round(Math.random() * 40), y: 45 + Math.round(Math.random() * 30), r: Math.round(Math.random() * 30 - 15), s: 1 })); decoSel = b.stickers.length - 1; deskSfx('pin'); decoChanged(); };
+  const tray = !STICKER_PACKS[decoPack][1] ? kaoPanel(t => add('txt', t)) : el('div', { class: 'sx-deco-tray' }, ...STICKER_PACKS[decoPack][1].map(key => { const name = STICKERS[key][0], t = el('button', { type: 'button', class: 'sx-deco-st', title: name, 'aria-label': 'Add a ' + name.toLowerCase() + ' sticker', onclick: () => add(key) });
     t.innerHTML = stickerSvg(key); return t; }));
   decoSide.replaceChildren(
     el('div', { class: 'sx-deco-head' }, el('b', {}, 'Decorate the cover'), el('button', { type: 'button', class: 'sx-deco-done', onclick: () => decoClose() }, 'Done')),
-    sec('Stickers', tray),
-    sec('Cover colour', el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === bg, () => { decoMark(); b.bg = hex; delete b.color; decoChanged(true); deskSfx('pick'); })))),
-    sec('Title colour', el('button', { type: 'button', class: 'sx-book-auto' + (!ink ? ' on' : ''), onclick: () => { decoMark(); delete b.ink; decoChanged(true); } }, el('i', { style: 'background:' + bookAuto(bg) }), 'Auto: readable on the cover'),
-      el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === ink, () => { decoMark(); b.ink = hex; decoChanged(true); deskSfx('pick'); })))),
+    sec('Stickers', tabs, tray),
+    sec('Cover colour', el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === bg, set(() => { b.bg = hex; delete b.color; }))))),
+    sec('Title', chips(...TITLE_STYLES.map(([k, name]) => chip([el('b', { 'data-tf': k }, 'Aa'), el('span', {}, name)], (b.tf || '') === k, set(() => { if (k) b.tf = k; else delete b.tf; }), { class: 'sx-deco-chip tf' + ((b.tf || '') === k ? ' on' : '') }))),
+      el('button', { type: 'button', class: 'sx-book-auto' + (!ink ? ' on' : ''), onclick: set(() => { delete b.ink; }) }, el('i', { style: 'background:' + bookAuto(bg) }), 'Auto colour: readable on the cover'),
+      el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === ink, set(() => { b.ink = hex; }))))),
+    sec('Corners', chips(...CORNERS.map(([k, name]) => chip([k ? el('i', { class: 'sx-deco-cn c-' + k }) : null, el('span', {}, name)].filter(Boolean), (b.corners || '') === k, set(() => { if (k) b.corners = k; else delete b.corners; }))))),
+    sec('Elastic band', chips(chip('None', !PALETTE.includes(b.band), set(() => { delete b.band; }))),
+      el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.band, set(() => { b.band = hex; }))))),
     sec('Picture', el('div', { class: 'sx-deco-row' }, el('button', { type: 'button', class: 'sx-book-tb', onclick: () => decoPic() }, b.cover ? 'Change the picture' : 'Add a picture'),
       b.cover ? el('button', { type: 'button', class: 'sx-book-tb', onclick: () => { decoMark(); delete b.cover; b.coverV = Date.now(); PHOTOS.del(b.id).catch(() => {}); photoCache.delete(b.id); decoChanged(true); } }, 'Remove') : null)));
 }
@@ -109,3 +185,110 @@ function decoPic() {
     catch (e) { deskToast('That picture didn\'t work: try another'); } });
   f.click();
 }
+
+/* ---------- stickers anywhere: on notes, photos, tables, folders, books and the cassette ----------
+   The Stickers key on the left opens the tray. Drag a sticker out onto a card (or the cassette) and it sticks where you let
+   go; or click one, then click where it goes. A stuck sticker rides along with its card: drag it to move it (it may hang
+   over the edge), right-click it to turn it, size it or peel it off. A card keeps them as it.stickers, like a book's cover
+   (in % of the card, so they keep their spot as it grows); the cassette's are S.deckStk. */
+const STK_D = '<path d="M5 4.5h14v8.5l-6.5 6.5H5z"/><path d="M19 13h-4.5a2 2 0 0 0-2 2v4.5"/><path d="M9 9.5h.01M14 9.5h.01M9.5 13q1.5 1.3 3 0"/>';
+const stkTray = el('div', { class: 'sx-stk-tray', hidden: true, role: 'dialog', 'aria-label': 'Stickers' });
+document.body.append(stkTray);
+let stkPack = 0, stkCarry = null; // (stkCarry: the sticker on its way to a card, following the pointer)
+const stkKey = deskBtn(bookIcon(STK_D), () => { if (stkTray.hidden) stkTrayOpen(); else stkTrayClose(); }, 'sx-ws-ic', 'Stickers: drag one onto a note, photo, table, folder, book or the cassette');
+bookKey.parentNode.append(stkKey);
+function stkTrayOpen() {
+  stkTrayDraw(); stkTray.hidden = false; stkKey.classList.add('on');
+  const r = stkKey.getBoundingClientRect(); stkTray.style.left = (r.right + 10) + 'px'; stkTray.style.top = Math.max(8, Math.min(innerHeight - stkTray.offsetHeight - 8, r.top - 40)) + 'px';
+  if (!stillUI()) animAgain(stkTray, 'in');
+}
+function stkTrayClose() { stkTray.hidden = true; stkKey.classList.remove('on'); stkCarryEnd(); }
+function stkTrayDraw() {
+  stkTray.replaceChildren(
+    el('div', { class: 'sx-stk-trayh' }, el('b', {}, 'Stickers'), el('span', {}, 'Drag one onto a card'), el('button', { type: 'button', class: 'sx-stk-trayx', 'aria-label': 'Close the stickers', onclick: () => stkTrayClose() }, '×')),
+    el('div', { class: 'sx-deco-tabs' }, ...STICKER_PACKS.map(([name], i) => el('button', { type: 'button', class: 'sx-deco-tab' + (i === stkPack ? ' on' : ''), onclick: () => { stkPack = i; stkTrayDraw(); } }, name))),
+    !STICKER_PACKS[stkPack][1] ? kaoPanel(null, true) : el('div', { class: 'sx-deco-tray' }, ...STICKER_PACKS[stkPack][1].map(key => { const t = el('button', { type: 'button', class: 'sx-deco-st', 'data-k': key, title: STICKERS[key][0], 'aria-label': STICKERS[key][0] }); t.innerHTML = stickerSvg(key); return t; })));
+}
+stkTray.addEventListener('pointerdown', e => {
+  e.stopPropagation(); const t = e.target.closest('.sx-deco-st'); if (!t || e.button !== 0 || (t.dataset.k === 'txt' && !t.dataset.t)) return;
+  e.preventDefault(); stkCarryStart(t.dataset.k === 'txt' ? { k: 'txt', t: t.dataset.t } : { k: t.dataset.k }, e);
+});
+addEventListener('keydown', e => { if (e.key === 'Escape' && (stkCarry || !stkTray.hidden || !stkMenu.hidden)) { e.preventDefault(); e.stopImmediatePropagation(); if (!stkMenu.hidden) stkMenu.hidden = true; else if (stkCarry) stkCarryEnd(); else stkTrayClose(); } }, true);
+
+// carrying a sticker: it follows the pointer; let go over a card to stick it there (a click without moving keeps it in hand
+// until the next click)
+function stkCarryStart(spec, e) { // spec: { k } or { k: 'txt', t }
+  stkCarryEnd(); const g = stkPaint(el('i', { class: 'sx-stk-ghost' }), spec); document.body.append(g);
+  stkCarry = { k: spec.k, t: spec.t, g, x0: e.clientX, y0: e.clientY, moved: false, armed: false };
+  stkGhostAt(e.clientX, e.clientY); deskSfx('pick');
+}
+function stkGhostAt(x, y) { if (stkCarry) { stkCarry.g.style.left = x + 'px'; stkCarry.g.style.top = y + 'px'; stkCarry.g.classList.toggle('over', !!stkTarget(x, y)); } }
+function stkCarryEnd() { if (stkCarry) { stkCarry.g.remove(); stkCarry = null; } }
+addEventListener('pointermove', e => { if (!stkCarry) return; if (Math.hypot(e.clientX - stkCarry.x0, e.clientY - stkCarry.y0) > 6) stkCarry.moved = true; stkGhostAt(e.clientX, e.clientY); }, { passive: true });
+addEventListener('pointerup', e => { if (!stkCarry) return; if (!stkCarry.moved && !stkCarry.armed) { stkCarry.armed = true; return; } stkDrop(e.clientX, e.clientY); });
+addEventListener('pointerdown', e => { if (!stkCarry || !stkCarry.armed || e.target.closest('.sx-stk-tray')) return; e.preventDefault(); e.stopPropagation(); stkDrop(e.clientX, e.clientY); }, true);
+// what's under the pointer that can take a sticker: a card on the desk (not a page in an open book), or the cassette
+function stkTarget(x, y) {
+  for (const n of document.elementsFromPoint(x, y)) {
+    if (n.closest('.sx-stk-tray, .sx-stk-ghost')) continue;
+    const c = n.closest('.sx-bcard[data-id]'); if (c && !c.classList.contains('sx-book-pg') && c.closest('.sx-world') && itemOf(c.dataset.id)) return { c, it: itemOf(c.dataset.id) };
+    const d = n.closest('.sx-corner'); if (d) return { c: d, deck: true };
+    if (n.closest('.sx-world') || n === document.body) break;
+  }
+  return null;
+}
+function stkDrop(x, y) {
+  const k = stkCarry && stkCarry.k, txt = stkCarry && stkCarry.t, t = stkTarget(x, y); stkCarryEnd(); if (!k) return;
+  if (!t) { deskToast('Stick it on a card or the cassette'); return; }
+  const list = t.deck ? (S.deckStk = S.deckStk || []) : (t.it.stickers || []);
+  if (list.length >= 12) { deskToast('A dozen stickers at most'); return; }
+  const r = t.c.getBoundingClientRect(), s = Object.assign(k === 'txt' ? { t: txt } : {}, { k, x: Math.round((x - r.left) / r.width * 100), y: Math.round((y - r.top) / r.height * 100), r: Math.round(Math.random() * 24 - 12), s: 1 });
+  if (t.deck) { list.push(s); save(); deckStkDraw(); }
+  else { deskMark(); t.it.stickers = list; list.push(s); save(); drawBoard(); }
+  deskSfx('pin');
+}
+
+// the stickers on a card: drawn into it as it's made, so they go wherever it goes (a book's own are on its cover)
+function cardStk(list, deck) {
+  const layer = el('span', { class: 'sx-cstks' + (deck ? ' deck' : '') });
+  list.forEach((s, i) => { const e = el('i', { class: 'sx-cstk', 'data-i': i, title: stkName(s) + ': drag to move it, right-click for more', style: 'left:' + s.x + '%;top:' + s.y + '%;--r:' + s.r + 'deg;--s:' + s.s }); stkPaint(e, s); layer.append(e); });
+  return layer;
+}
+const stkWrap = f => function (it, ...a) { const c = f.call(this, it, ...a); if (c && it && it.type !== 'book' && (it.stickers || []).length) c.append(cardStk(it.stickers)); return c; };
+paperCard = stkWrap(paperCard); tblCard = stkWrap(tblCard); hopCard = stkWrap(hopCard);
+function deckStkDraw() { corner.querySelectorAll(':scope > .sx-cstks').forEach(n => n.remove()); if ((S.deckStk || []).length) corner.append(cardStk(S.deckStk, true)); }
+S.deckStk = bookStkClean(S.deckStk); deckStkDraw();
+
+// a stuck sticker: drag it about its card; right-click for the rest
+const stkOwner = st => { const lay = st.closest('.sx-cstks'); if (!lay) return null; if (lay.classList.contains('deck')) return { list: S.deckStk, deck: true, box: corner };
+  const c = lay.closest('.sx-bcard'), it = c && itemOf(c.dataset.id); return it && it.stickers ? { list: it.stickers, it, box: c } : null; };
+const stkDone = o => { save(); if (o.deck) deckStkDraw(); else drawBoard(); };
+document.addEventListener('pointerdown', e => {
+  const st = e.target.closest && e.target.closest('.sx-cstk'); if (!st || e.button !== 0) return;
+  const o = stkOwner(st); if (!o) return; e.stopPropagation(); e.preventDefault();
+  const s = o.list[+st.dataset.i]; if (!s) return; const r = o.box.getBoundingClientRect(); let moved = false;
+  const move = ev => { if (!moved && Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) < 4) return;
+    if (!moved) { moved = true; if (!o.deck) deskMark(); st.classList.add('held'); }
+    s.x = Math.round(Math.max(-10, Math.min(110, (ev.clientX - r.left) / r.width * 100))); s.y = Math.round(Math.max(-10, Math.min(110, (ev.clientY - r.top) / r.height * 100)));
+    st.style.left = s.x + '%'; st.style.top = s.y + '%'; };
+  const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); st.classList.remove('held'); if (moved) { stkDone(o); deskSfx('drop'); } };
+  addEventListener('pointermove', move); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+}, true);
+const stkMenu = el('div', { class: 'sx-stk-menu', hidden: true, role: 'menu' }); document.body.append(stkMenu);
+stkMenu.addEventListener('pointerdown', e => e.stopPropagation());
+addEventListener('pointerdown', e => { if (!stkMenu.hidden && !e.target.closest('.sx-stk-menu')) stkMenu.hidden = true; }, true);
+document.addEventListener('contextmenu', e => {
+  const st = e.target.closest && e.target.closest('.sx-cstk'); if (!st) return;
+  const o = stkOwner(st); if (!o) return; e.preventDefault(); e.stopPropagation();
+  const s = o.list[+st.dataset.i]; if (!s) return;
+  // (the card is drawn again after each change, but the sticker is the same one: the menu stays open for another turn)
+  const k = (label, title, fn, cls) => el('button', { type: 'button', class: 'sx-deco-k' + (cls ? ' ' + cls : ''), title, 'aria-label': title, onclick: () => { if (!o.deck) deskMark(); fn(); stkDone(o); if (cls) stkMenu.hidden = true; } }, label);
+  stkMenu.replaceChildren(el('span', { class: 'sx-deco-hint' }, stkName(s)),
+    k('⟲', 'Turn left', () => { s.r = Math.max(-180, s.r - 15); }), k('⟳', 'Turn right', () => { s.r = Math.min(180, s.r + 15); }),
+    k('−', 'Smaller', () => { s.s = Math.max(.4, Math.round((s.s - .15) * 100) / 100); }), k('+', 'Bigger', () => { s.s = Math.min(2.5, Math.round((s.s + .15) * 100) / 100); }),
+    k('Peel off', 'Take it off', () => { const i = o.list.indexOf(s); if (i >= 0) o.list.splice(i, 1); deskSfx('pick'); }, 'del'));
+  stkMenu.hidden = false; const w = stkMenu.offsetWidth, h = stkMenu.offsetHeight;
+  stkMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, e.clientX)) + 'px'; stkMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, e.clientY + 8)) + 'px';
+}, true);
+// (the desk was drawn before this file came in: its cards with stickers are made again, now with them)
+els.forEach((c, id) => { const it = itemOf(id); if (it && it.type !== 'book' && (it.stickers || []).length) c._snap = ''; }); drawBoard();

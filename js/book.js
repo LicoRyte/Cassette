@@ -40,13 +40,13 @@ function bookCard(it) {
   const cover = el('div', { class: 'sx-book-pic' + (it.cover ? '' : ' none') });
   if (it.cover) photoUrls(it.id).then(u => { if (u) cover.append(el('img', { src: u.small || u.full, alt: '', draggable: 'false' })); });
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Take the book away', title: 'Take the book away (its pages too)', onclick: () => removeOne(it) }, '×');
-  return el('div', { class: 'sx-bcard sx-bbook', 'data-id': it.id, title: 'Open ' + (it.title || 'the book'),
+  const c = el('div', { class: 'sx-bcard sx-bbook', 'data-id': it.id, title: 'Open ' + (it.title || 'the book'),
       style: 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + (tilt(it.id) / 2).toFixed(2) + 'deg;--cover:' + bg + ';--cink:' + ink + ';--edge:' + Math.min(9, 2 + n * .6).toFixed(1) + 'px' },
     el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' }), x,
     el('i', { class: 'sx-book-edge', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-spine', 'aria-hidden': 'true' }),
     el('b', { class: 'sx-book-title' }, it.title || 'A book'), cover,
-    el('span', { class: 'sx-book-n' }, n + (n === 1 ? ' page' : ' pages')), n ? el('i', { class: 'sx-book-ribbon', 'aria-hidden': 'true' }) : null,
-    typeof bookStk === 'function' && it.stickers && it.stickers.length ? bookStk(it) : null); // (its stickers: js/deco.js)
+    el('span', { class: 'sx-book-n' }, n + (n === 1 ? ' page' : ' pages')));
+  return typeof bookDress === 'function' ? bookDress(c, it) : c; // (its title's look, corners, band and stickers: js/deco.js)
 }
 // (before version 197 a book could be drawn as a note after a reload, and words typed into it were kept on the book: they're let go)
 S.board.items.forEach(it => { if (it.type === 'book') ['html', 'text', 'fs', 'h', 'paper', 'rcd', 'mt'].forEach(k => delete it[k]); });
@@ -93,8 +93,8 @@ function bookSideDraw() {
   const b = bookOf(bookId); if (!b) return; const pages = bookPages(b), [, bg, ink] = bookColor(b);
   [bookSide, bookSide.parentNode].forEach(n => { n.style.setProperty('--cover', bg); n.style.setProperty('--cink', ink); }); // (the contents and the binding wear the cover's colour)
   const pic = el('button', { type: 'button', class: 'sx-book-thumb' + (b.cover ? '' : ' none'), title: 'Decorate the cover', 'aria-label': 'Decorate the cover', onclick: () => decoOpen(b.id) });
-  if (b.cover) photoUrls(b.id).then(u => { if (u) pic.prepend(el('img', { src: u.small || u.full, alt: '' })); }); else if (!(b.stickers || []).length) pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
-  if ((b.stickers || []).length) pic.append(bookStk(b));
+  if (b.cover) photoUrls(b.id).then(u => { if (u) pic.prepend(el('img', { src: u.small || u.full, alt: '' })); }); else if (!(b.stickers || []).length && !b.band && !b.corners) pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
+  bookDress(pic, b);
   const title = el('button', { type: 'button', class: 'sx-book-name', title: 'Rename the book', onclick: () => bookTitleEdit() }, b.title || 'A book');
   const list = el('ol', { class: 'sx-book-idx' }, ...pages.map((p, i) => {
     const row = el('li', { class: 'sx-book-row' + (i === b.at ? ' on' : '') + (p.topic ? ' topic' : ''), draggable: 'true', 'data-i': i },

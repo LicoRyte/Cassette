@@ -272,7 +272,7 @@ function noteMenuOpen(x, y) {
   noteMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
 }
 addEventListener('contextmenu', e => {
-  const t = e.target.closest && e.target.closest('.sx-note-t, .sx-keep-t, .sx-bnote'); if (!t || e.shiftKey) return;
+  const t = e.target.closest && !e.target.closest('.sx-cstk') && e.target.closest('.sx-note-t, .sx-keep-t, .sx-bnote'); if (!t || e.shiftKey) return; // (a sticker has its own menu: js/deco.js)
   if (typeof panMovedAt !== 'undefined' && performance.now() - panMovedAt < 400) return; // (that was a right-drag across the desk)
   const txt = t.matches('.sx-bnote') ? t.querySelector('.sx-note-t') : t; if (!txt) return;
   e.preventDefault(); e.stopPropagation();

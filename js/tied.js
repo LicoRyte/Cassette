@@ -55,7 +55,7 @@ function tiedCard(it, i) {
     card.style.setProperty('--paper', bg); card.style.setProperty('--ink', ink);
     const pic = el('span', { class: 'sx-tied-cov' + (it.cover ? '' : ' none') }); if (it.cover) photoUrls(it.id).then(u => { if (u) pic.append(el('img', { src: u.small || u.full, alt: '' })); });
     card.append(el('b', {}, it.title || 'A book'), pic, el('span', { class: 'sx-tied-pg' }, n + (n === 1 ? ' page' : ' pages')));
-    if (typeof bookStk === 'function' && (it.stickers || []).length) card.append(bookStk(it));
+    if (typeof bookDress === 'function') bookDress(card, it);
     card.setAttribute('aria-label', 'Book: ' + (it.title || 'untitled'));
   } else card.append(el('b', {}, 'A card'));
   card.title = 'Go to it (double-click to write in it)';
