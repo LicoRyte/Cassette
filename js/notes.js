@@ -203,7 +203,7 @@ const noteSetupPaper = noteSetup;
 noteSetup = function (it, txt, c) { noteSetupPaper(it, txt, c); delete it.fold; if (PAPER_WAS[it.paper]) it.paper = PAPER_WAS[it.paper]; paperSet(c, it); }; // (fold: from a version that could fold notes)
 // the paper, at the end of the toolbar's second row
 noteBar.lastElementChild.append(el('i', { class: 'sx-fsep' }), ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n)),
-  el('i', { class: 'sx-fsep' }), fbtn('dup', 'Duplicate', 'A copy of this note beside it'), fbtn('del', 'Delete', 'Take this note away (Delete)', 'del'));
+  el('i', { class: 'sx-fsep' }), fbtn('dup', 'Duplicate', 'A copy of this note beside it (Ctrl+D)'), fbtn('del', 'Delete', 'Take this note away (Delete)', 'del'));
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || !b.dataset.p) return; const n = selNote(); if (!n) return;
   e.stopImmediatePropagation(); deskMark(); n.it.paper = b.dataset.p; if (b.dataset.p === 'plain') delete n.it.paper; paperSet(n.c, n.it); deskSfx('pick'); save(); noteBarState();

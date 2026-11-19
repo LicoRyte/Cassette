@@ -14,7 +14,7 @@ Everything is saved in this browser.
 
 Press **?** (or the ? key at the top left, next to Settings) for every gesture. Cassie keeps only a few keys, the ones you'd
 expect: `Space` starts or pauses, `Ctrl+Z` / `Ctrl+Shift+Z` (or `Ctrl+Y`) undo and redo, `Delete` removes what's picked, `Ctrl+A`
-picks everything, `Ctrl+V` pastes (pictures too), `Esc` puts down the note you're writing or closes things, `Enter` starts writing
+picks everything, `Ctrl+D` duplicates what's picked, `Ctrl+V` pastes (pictures too), `Esc` puts down the note you're writing or closes things, `Enter` starts writing
 in a picked card, and `Shift+Enter` while writing starts a new note tied to it. Notes take the usual text keys (`Ctrl+B`, `Ctrl+I`,
 `Ctrl+U`...) and tables move between cells with `Tab`, `Enter` and the arrows. Everything else is a click: the player's keys, the
 buttons along the top, the left column, and a right-click on a note or a table cell.

@@ -784,6 +784,7 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyZ') { stop(); if (e.shiftKey) deskRedo(); else deskUndo(); }
     else if (e.code === 'KeyY') { stop(); deskRedo(); }
     else if (e.code === 'KeyA') { stop(); deskSelectAll(); }
+    else if (e.code === 'KeyD' && !e.shiftKey) { stop(); deskDuplicate(); } // (a copy of what's picked, just beside it)
     return;
   }
   if (e.altKey || e.ctrlKey || e.metaKey) return;
