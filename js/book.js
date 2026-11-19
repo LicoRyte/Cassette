@@ -15,14 +15,8 @@ tableKey.after(bookKey);
 
 const bookOf = id => { const it = itemOf(id); return it && it.type === 'book' ? it : null; };
 const bookPages = b => { const ids = Array.isArray(b.pages) ? b.pages : []; const out = ids.map(itemOf).filter(p => p && p.book === b.id); if (out.length !== ids.length) b.pages = out.map(p => p.id); return out; };
-// the cover's colours: any of the 32 in Cassie's palette (by BurakoIRL), in four rows of eight; the title's colour is one of
-// them too, or Auto (cream on a dark cover, dark ink on a light one). b.bg and b.ink are kept; b.color is a book from before
-const PALETTE = ['#43002a', '#890027', '#d9243c', '#ff6157', '#ffe0dc', '#ff88a9', '#c03b94', '#601761',
-  '#310c1b', '#34111f', '#73392e', '#833f34', '#c76e46', '#eb9c6e', '#ffdaac', '#ffb762',
-  '#7c191a', '#d1401f', '#ff823b', '#ffd832', '#9cb93b', '#458239', '#273b2d', '#030710',
-  '#041528', '#033e5e', '#1c92a7', '#77d6c1', '#ffffe4', '#bfc3c6', '#6d8a8d', '#293b49'];
-const bookLight = hex => { const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return (r * 299 + g * 587 + b * 114) / 255000 > .58; };
-const bookAuto = bg => bookLight(bg) ? '#34111f' : '#ffffe4';
+// the cover's colours: any of the 32 in Cassie's palette (PALETTE, in js/notes.js); the title's colour is one of them too, or
+// Auto (cream on a dark cover, dark ink on a light one). b.bg and b.ink are kept; b.color is a book from before
 function bookColor(b) {
   const named = NOTE_COLORS.find(c => c[0] === b.color) || NOTE_COLORS.find(c => c[0] === 'slate');
   const bg = PALETTE.includes(b.bg) ? b.bg : named[1];

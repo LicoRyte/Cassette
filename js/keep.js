@@ -88,5 +88,5 @@ keepT.addEventListener('blur', () => setTimeout(() => { if (document.activeEleme
 // a button that changes the note's paper or its size: the card on the desk is drawn again to match, and so is the strip
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || !keepOn()) return;
-  if (b.dataset.c || b.dataset.k === 'smaller' || b.dataset.k === 'bigger') { const it = keepItem(); if (it && els.has(it.id)) drawBoard(); keepDraw(); keepT.focus({ preventScroll: true }); }
+  if (b.dataset.c || b.dataset.bg || b.dataset.k === 'smaller' || b.dataset.k === 'bigger') { const it = keepItem(); if (it && els.has(it.id)) drawBoard(); keepDraw(); keepT.focus({ preventScroll: true }); }
 });

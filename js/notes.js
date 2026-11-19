@@ -8,7 +8,15 @@
 // paper colours from the palette: [key, paper, ink]
 const NOTE_COLORS = [['yellow', '#ffd832', '#34111f'], ['cream', '#fcfcf9', '#293b49'], ['peach', '#ffdaac', '#34111f'], ['amber', '#ffb762', '#34111f'],
   ['coral', '#ff6157', '#34111f'], ['mint', '#77d6c1', '#041528'], ['green', '#9cb93b', '#041528'], ['slate', '#293b49', '#ffffe4']];
-const noteColor = it => NOTE_COLORS.find(c => c[0] === it.color) || NOTE_COLORS[0];
+// Cassie's 32 colours (by BurakoIRL), in four rows of eight: a note's paper can be any of them (it.bg, with readable ink), and
+// so can a book's cover, its title and its trim (js/book.js, js/deco.js)
+const PALETTE = ['#43002a', '#890027', '#d9243c', '#ff6157', '#ffe0dc', '#ff88a9', '#c03b94', '#601761',
+  '#310c1b', '#34111f', '#73392e', '#833f34', '#c76e46', '#eb9c6e', '#ffdaac', '#ffb762',
+  '#7c191a', '#d1401f', '#ff823b', '#ffd832', '#9cb93b', '#458239', '#273b2d', '#030710',
+  '#041528', '#033e5e', '#1c92a7', '#77d6c1', '#ffffe4', '#bfc3c6', '#6d8a8d', '#293b49'];
+const bookLight = hex => { const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return (r * 299 + g * 587 + b * 114) / 255000 > .58; };
+const bookAuto = bg => bookLight(bg) ? '#34111f' : '#ffffe4';
+const noteColor = it => PALETTE.includes(it.bg) ? [it.bg, it.bg, bookAuto(it.bg)] : NOTE_COLORS.find(c => c[0] === it.color) || NOTE_COLORS[0];
 function noteStyle(it) {
   const [, bg, ink] = noteColor(it);
   return ';--note:' + bg + ';--ink:' + ink + ';--fs:' + (it.fs || 15) + 'px' + (it.w ? ';width:' + it.w + 'px' : '') + (it.h ? ';height:' + it.h + 'px' : '');
@@ -164,6 +172,7 @@ const noteBar = el('div', { class: 'sx-fmt', role: 'toolbar', 'aria-label': 'For
     fbtn('clear', 'Tx', 'Clear formatting (Ctrl+Alt+0)')),
   el('div', { class: 'sx-fmt-row' },
     ...NOTE_COLORS.map(([k, bg]) => el('button', { type: 'button', class: 'sx-sw', 'data-c': k, title: k[0].toUpperCase() + k.slice(1), 'aria-label': k + ' paper', style: 'background:' + bg })),
+    ...PALETTE.map(hex => el('button', { type: 'button', class: 'sx-sw sx-sw32', 'data-bg': hex, title: hex, 'aria-label': hex + ' paper', style: 'background:' + hex })),
     el('i', { class: 'sx-fsep' }),
     fbtn('smaller', 'A−', 'Smaller text'), fbtn('bigger', 'A+', 'Bigger text'), fbtn('fit', 'Fit', 'Fit the note to its words (drag the corner to size it yourself)'),
     el('i', { class: 'sx-fsep' }), fbtn('keep', 'Keep', 'Keep on screen: this note stays at the bottom of the screen on every board')));
@@ -171,8 +180,8 @@ noteBar.addEventListener('mousedown', e => e.preventDefault()); // keep the pen 
 noteBar.addEventListener('pointerdown', e => e.stopPropagation());
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return; const n = selNote(); if (!n) return;
-  if (b.dataset.c || b.dataset.k === 'smaller' || b.dataset.k === 'bigger' || b.dataset.k === 'fit') deskMark();
-  if (b.dataset.c) { n.it.color = b.dataset.c; if (b.dataset.c === 'yellow') delete n.it.color; n.c.setAttribute('style', n.c.getAttribute('style').replace(/;--note:[^;]*;--ink:[^;]*/, '') + ';--note:' + noteColor(n.it)[1] + ';--ink:' + noteColor(n.it)[2]); deskSfx('pick'); save(); noteBarState(); return; }
+  if (b.dataset.c || b.dataset.bg || b.dataset.k === 'smaller' || b.dataset.k === 'bigger' || b.dataset.k === 'fit') deskMark();
+  if (b.dataset.c || b.dataset.bg) { if (b.dataset.bg) { n.it.bg = b.dataset.bg; delete n.it.color; } else { delete n.it.bg; n.it.color = b.dataset.c; if (b.dataset.c === 'yellow') delete n.it.color; } n.c.setAttribute('style', n.c.getAttribute('style').replace(/;--note:[^;]*;--ink:[^;]*/, '') + ';--note:' + noteColor(n.it)[1] + ';--ink:' + noteColor(n.it)[2]); deskSfx('pick'); save(); noteBarState(); return; }
   const k = b.dataset.k;
   if (k === 'dup') { deskDuplicate(); return; } if (k === 'del') { deskDelete(); return; }
   if (k === 'keep') { if (typeof keepToggle === 'function') keepToggle(n.it.id); noteBarState(); return; } // (js/keep.js)
@@ -190,7 +199,8 @@ function noteBarState() { // light up what's on where the pen is
   on.bullet = q('insertUnorderedList') && !on.check;
   on.keep = S.board.keep === n.it.id;
   noteBar.querySelectorAll('[data-k]').forEach(b => b.classList.toggle('on', !!on[b.dataset.k]));
-  noteBar.querySelectorAll('[data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === noteColor(n.it)[0]));
+  noteBar.querySelectorAll('[data-c]').forEach(b => b.classList.toggle('on', !n.it.bg && b.dataset.c === noteColor(n.it)[0]));
+  noteBar.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', b.dataset.bg === n.it.bg));
 }
 document.addEventListener('selectionchange', () => { if (noteBar.isConnected) noteBarState(); });
 function noteBarTo(id) { // the toolbar shows in the bar along the bottom while a note is picked
@@ -261,7 +271,7 @@ function noteMenuOpen(x, y) {
   noteMenu.replaceChildren(
     row(byK(['title', 'head']), sep(), byK(['bold', 'italic', 'under', 'strike', 'mark', 'code']), sep(), byK(['clear'])),
     row(byK(['bullet', 'num', 'check', 'quote']), sep(), byK(['outdent', 'indent']), sep(), byK(['line', 'date'])),
-    row(chip([swatch, el('span', {}, '▾')], src.filter(b => b.dataset.c).map(copy), 'sx-nm-cols'),
+    row(chip([swatch, el('span', {}, '▾')], src.filter(b => b.dataset.c || b.dataset.bg).map(copy), 'sx-nm-cols'),
       chip([paperName, el('span', {}, '▾')], src.filter(b => b.dataset.p).map(copy), 'sx-nm-papers'),
       sep(), byK(['smaller', 'bigger', 'fit']), el('span', { class: 'sx-gap' }),
       chip([el('span', {}, 'More'), el('span', {}, '▾')], more, 'sx-nm-more')));
