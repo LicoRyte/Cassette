@@ -45,7 +45,8 @@ function bookCard(it) {
     el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' }), x,
     el('i', { class: 'sx-book-edge', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-spine', 'aria-hidden': 'true' }),
     el('b', { class: 'sx-book-title' }, it.title || 'A book'), cover,
-    el('span', { class: 'sx-book-n' }, n + (n === 1 ? ' page' : ' pages')), n ? el('i', { class: 'sx-book-ribbon', 'aria-hidden': 'true' }) : null);
+    el('span', { class: 'sx-book-n' }, n + (n === 1 ? ' page' : ' pages')), n ? el('i', { class: 'sx-book-ribbon', 'aria-hidden': 'true' }) : null,
+    typeof bookStk === 'function' && it.stickers && it.stickers.length ? bookStk(it) : null); // (its stickers: js/deco.js)
 }
 // (before version 197 a book could be drawn as a note after a reload, and words typed into it were kept on the book: they're let go)
 S.board.items.forEach(it => { if (it.type === 'book') ['html', 'text', 'fs', 'h', 'paper', 'rcd', 'mt'].forEach(k => delete it[k]); });
@@ -77,7 +78,7 @@ function bookOpen(id, at) {
   bookDraw(true); deskSfx('flip');
 }
 function bookClose() {
-  if (!bookId) return; bookPal.hidden = true; bookLeavePage(); bookId = null; bookView.hidden = true; save(); drawBoard(); deskSfx('drop');
+  if (!bookId) return; bookLeavePage(); bookId = null; bookView.hidden = true; save(); drawBoard(); deskSfx('drop');
 }
 function bookLeavePage() { if (bookPgEl) { if (bookPgId && els.get(bookPgId) === bookPgEl) els.delete(bookPgId); bookPgEl.remove(); } bookPgEl = null; bookPgId = null; bookPgIt = null; }
 function bookGo(i, write) {
@@ -91,15 +92,10 @@ function bookDraw(fresh, dir) { bookSideDraw(); bookPageDraw(fresh, dir); }
 function bookSideDraw() {
   const b = bookOf(bookId); if (!b) return; const pages = bookPages(b), [, bg, ink] = bookColor(b);
   [bookSide, bookSide.parentNode].forEach(n => { n.style.setProperty('--cover', bg); n.style.setProperty('--cink', ink); }); // (the contents and the binding wear the cover's colour)
-  const pic = el('button', { type: 'button', class: 'sx-book-thumb' + (b.cover ? '' : ' none'), title: b.cover ? 'Change the cover picture' : 'Add a cover picture', onclick: () => bookCoverPick() });
-  if (b.cover) photoUrls(b.id).then(u => { if (u) pic.append(el('img', { src: u.small || u.full, alt: '' })); }); else pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
+  const pic = el('button', { type: 'button', class: 'sx-book-thumb' + (b.cover ? '' : ' none'), title: 'Decorate the cover', 'aria-label': 'Decorate the cover', onclick: () => decoOpen(b.id) });
+  if (b.cover) photoUrls(b.id).then(u => { if (u) pic.prepend(el('img', { src: u.small || u.full, alt: '' })); }); else if (!(b.stickers || []).length) pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
+  if ((b.stickers || []).length) pic.append(bookStk(b));
   const title = el('button', { type: 'button', class: 'sx-book-name', title: 'Rename the book', onclick: () => bookTitleEdit() }, b.title || 'A book');
-  // the cover's colour and its title's colour: a swatch each, and a click opens the palette under it
-  const colKey = (label, kind, hex, auto) => el('button', { type: 'button', class: 'sx-book-colk', 'aria-haspopup': 'true', title: label === 'Cover' ? 'The cover\'s colour' : 'The colour of the title on the cover', onclick: e => bookPalOpen(kind, e.currentTarget) },
-    el('i', { style: 'background:' + hex }), el('span', {}, label), auto ? el('small', {}, 'auto') : null);
-  const swatches = el('div', { class: 'sx-book-cols' }, colKey('Cover', 'bg', bg), colKey('Title', 'ink', ink, !PALETTE.includes(b.ink)));
-  const coverRow = el('div', { class: 'sx-book-covrow' }, el('button', { type: 'button', class: 'sx-book-link', onclick: () => bookCoverPick() }, b.cover ? 'Change picture' : 'Add a cover picture'),
-    b.cover ? el('button', { type: 'button', class: 'sx-book-link', onclick: () => { deskMark(); delete b.cover; b.coverV = Date.now(); PHOTOS.del(b.id).catch(() => {}); photoCache.delete(b.id); save(); bookSideDraw(); drawBoard(); } }, 'Remove') : null);
   const list = el('ol', { class: 'sx-book-idx' }, ...pages.map((p, i) => {
     const row = el('li', { class: 'sx-book-row' + (i === b.at ? ' on' : '') + (p.topic ? ' topic' : ''), draggable: 'true', 'data-i': i },
       el('b', {}, String(i + 1)), bookIcon(p.type === 'photo' ? '<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>' : p.type === 'tbl' ? '<path d="M4 5h16v14H4z"/><path d="M4 10h16M4 14.5h16M10 5v14"/>' : '<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h4"/>'),
@@ -113,7 +109,7 @@ function bookSideDraw() {
   list.addEventListener('dragleave', e => { if (!list.contains(e.relatedTarget)) list.querySelectorAll('.over-t, .over-b').forEach(n => n.classList.remove('over-t', 'over-b')); });
   const add = (label, kind, tip) => el('button', { type: 'button', class: 'sx-book-add', title: tip, onclick: () => bookAdd(kind) }, '+ ' + label);
   bookSide.replaceChildren(el('div', { class: 'sx-book-head' }, pic, el('div', { class: 'sx-book-headt' }, title, el('span', {}, pages.length + (pages.length === 1 ? ' page' : ' pages')))),
-    swatches, coverRow, el('div', { class: 'sx-book-lbl' }, 'Contents'), list,
+    el('div', { class: 'sx-book-lbl' }, 'Contents'), list,
     el('div', { class: 'sx-book-adds' }, add('Note', 'note', 'A new page just after this one (Shift+Enter in a page does too)'), add('Photo', 'photo', 'A photo page just after this one'), add('Table', 'tbl', 'A table page just after this one')));
   const on = list.querySelector('.on'); if (on) on.scrollIntoView({ block: 'nearest' });
 }
@@ -140,27 +136,6 @@ function bookPageDraw(fresh, dir) {
   }
   bookMain.replaceChildren(top, bookPageBox, nav);
 }
-
-/* ---------- the palette under a colour key: 32 colours (and Auto, for the title) ---------- */
-const bookPal = el('div', { class: 'sx-book-pal', hidden: true, role: 'dialog', 'aria-label': 'Colours' });
-bookView.append(bookPal);
-function bookPalOpen(kind, at) {
-  const b = bookOf(bookId); if (!b) return;
-  if (!bookPal.hidden && bookPal.dataset.k === kind) { bookPal.hidden = true; return; }
-  const [, bg, ink] = bookColor(b), cur = kind === 'bg' ? bg : (PALETTE.includes(b.ink) ? b.ink : '');
-  const pick = hex => { deskMark(); if (kind === 'bg') { b.bg = hex; delete b.color; } else if (hex) b.ink = hex; else delete b.ink; save(); bookPal.hidden = true; bookSideDraw(); drawBoard(); deskSfx('pick'); };
-  bookPal.replaceChildren(...[el('div', { class: 'sx-book-palh' }, kind === 'bg' ? 'Cover colour' : 'Title colour'),
-    kind === 'ink' ? el('button', { type: 'button', class: 'sx-book-auto' + (!cur ? ' on' : ''), onclick: () => pick('') }, el('i', { style: 'background:' + bookAuto(bg) }), 'Auto: readable on the cover') : null,
-    el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => el('button', { type: 'button', class: 'sx-book-sq' + (hex === cur ? ' on' : ''), style: 'background:' + hex, title: hex, 'aria-label': hex, onclick: () => pick(hex) }))),
-    el('div', { class: 'sx-book-prev', style: 'background:' + bg + ';color:' + ink }, b.title || 'A book')].filter(Boolean)); // (the page's own replaceChildren writes a missing one as null)
-  bookPal.dataset.k = kind; bookPal.hidden = false;
-  const r = at.getBoundingClientRect(), w = bookPal.offsetWidth, h = bookPal.offsetHeight;
-  bookPal.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + 'px'; bookPal.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.bottom + 6)) + 'px';
-  // pointing at a colour shows it on the little preview first
-  bookPal.querySelectorAll('.sx-book-sq').forEach(q => q.addEventListener('pointerenter', () => { const pv = bookPal.querySelector('.sx-book-prev'); if (kind === 'bg') { pv.style.background = q.title; if (!PALETTE.includes(b.ink)) pv.style.color = bookAuto(q.title); } else pv.style.color = q.title; }));
-}
-bookView.addEventListener('pointerdown', e => { if (!bookPal.hidden && !e.target.closest('.sx-book-pal, .sx-book-colk')) bookPal.hidden = true; }, true);
-addEventListener('keydown', e => { if (e.key === 'Escape' && !bookPal.hidden) { e.preventDefault(); e.stopImmediatePropagation(); bookPal.hidden = true; } }, true);
 
 /* ---------- changing a book: adding, moving, deleting, taking out ---------- */
 async function bookAdd(kind, files) {
@@ -195,14 +170,6 @@ function bookTitleEdit() {
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); fin(true); } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fin(false); } });
   inp.addEventListener('blur', () => fin(true));
   old.replaceWith(inp); inp.focus(); inp.select();
-}
-function bookCoverPick() {
-  const b = bookOf(bookId); if (!b) return;
-  const f = el('input', { type: 'file', accept: 'image/*', hidden: true }); document.body.append(f);
-  f.addEventListener('change', async () => { const file = f.files && f.files[0]; f.remove(); if (!file) return;
-    try { const src = await shrinkPhoto(file); await PHOTOS.put(b.id, src); deskMark(); b.cover = true; b.coverV = Date.now(); photoCache.delete(b.id); save(); bookSideDraw(); drawBoard(); deskSfx('shutter'); }
-    catch (e) { deskToast('That picture didn\'t work: try another'); } });
-  f.click();
 }
 
 /* ---------- a card dropped on a closed book goes in, at the end ---------- */
@@ -270,7 +237,7 @@ async function bookRemap(out, imap) { // a copied board: books point at their ow
 let bookNameT = 0; bookPageBox.addEventListener('input', () => { clearTimeout(bookNameT); bookNameT = setTimeout(() => { const b = bookOf(bookId), row = bookSide.querySelector('.sx-book-row.on span'), p = b && bookPages(b)[b.at]; if (row && p) row.textContent = bookName(p); }, 300); });
 // keys while it's open: ← → turn the pages (not while writing), Esc closes (once the pen is down)
 addEventListener('keydown', e => {
-  if (!bookId || bookView.hidden || e.defaultPrevented) return;
+  if (!bookId || bookView.hidden || e.defaultPrevented || (typeof decoId !== 'undefined' && decoId)) return;
   const a = document.activeElement, writing = a && (a.isContentEditable || (a.closest && a.closest('input, textarea, select')));
   if (e.key === 'Escape' && !writing) { e.preventDefault(); e.stopPropagation(); bookClose(); return; }
   if (writing || e.ctrlKey || e.metaKey || e.altKey) return;
