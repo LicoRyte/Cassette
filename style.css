@@ -716,8 +716,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 
 /* strings in front of the paper: over the notes and photos, tied at their pins */
 #app .sx-world .sx-strings { z-index: 100000; } /* (it only holds the string being pulled from a pin, which goes over everything) */
-#app[data-strings="front"] .sx-string { filter: drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
-#app[data-strings="front"] .sx-string-hit { stroke-width: 9; }
 #app :is(.sx-ws-bar, .sx-tray) .sx-ws-b { white-space: nowrap; } /* (labels stay on one line) */
 
 /* ---------- the mixtape manager (js/music.js) ---------- */
@@ -947,11 +945,8 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 /* ---------- a label's lock (js/desk.js): locked, it stays put; the padlock shows so you know why ---------- */
 
 /* ---------- strings rest faint (js/desk.js): the words under them read; a card you point at (or pick) lights its strings full red ---------- */
-.sx-string { opacity: .3; transition: opacity .15s, stroke-width .15s; }
-.sx-string.hot, .sx-string-temp, .sx-string-hit:hover + .sx-string { opacity: 1; }
+.sx-string { transition: stroke-width .15s; } /* (always full strength: they run behind the cards, so they never cover words) */
 .sx-string.hot { stroke: #ff3048; stroke-width: 3; }
-#app[data-strings="front"] .sx-string { filter: none; } /* (a shadow on every string is costly; only the lit ones get it) */
-#app[data-strings="front"] .sx-string.hot { filter: drop-shadow(1px 2px 0 rgba(3, 7, 16, .45)); }
 
 /* ---------- each string on its own sheet in the card layer, one level above the higher card it ties (js/desk.js) ---------- */
 .sx-world .sx-strand { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
@@ -1020,8 +1015,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 
 /* softer, warmer shadows and quieter strings on a light desk */
 :root[data-desk="white"] .sx-world :is(.sx-bnote, .sx-polaroid):not(.lift) { box-shadow: 2px 3px 0 rgba(115, 57, 46, .25); }
-:root[data-desk="white"] .sx-string { opacity: .5; }
-:root[data-desk="white"] .sx-string.hot, :root[data-desk="white"] .sx-string-hit:hover + .sx-string { opacity: 1; }
 :root[data-desk="white"] .sx-string-hit:hover { stroke: rgba(115, 57, 46, .3); }
 :root[data-desk="white"] .sx-ws-bar, :root[data-desk="white"] #app .sx-ws-bar { box-shadow: 0 6px 18px rgba(115, 57, 46, .16); }
 

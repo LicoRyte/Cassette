@@ -32,7 +32,7 @@ deskTheme(S.opts.desk);
     c.toBlob(b => { if (b) document.documentElement.style.setProperty('--paper-grain', 'url(' + URL.createObjectURL(b) + ')'); }); };
   img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"; }
 
-root.dataset.strings = 'front'; delete S.opts.strings; // (the red strings run in front of the paper, tied over the pins)
+root.dataset.strings = 'back'; delete S.opts.strings; // (the red strings run behind the paper, so they never cross your words; the pins stay on top)
 
 /* ---------- Settings, Sound levels: how loud each kind of sound is (each slider plays a little of its sound) ---------- */
 {

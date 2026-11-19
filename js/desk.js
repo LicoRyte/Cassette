@@ -479,7 +479,7 @@ function strUpdate(only) { // only: a Set of card ids, to redraw just the string
   let nodes = only instanceof Set ? strNodes.filter(n => only.has(n.l[0]) || only.has(n.l[1])) : strNodes;
   if (strInner.size) nodes = nodes.filter(n => !strInner.has(n)); // (a string between two carried cards just slides along with them)
   const ds = nodes.map(n => { const a = posOf(n.l[0]), b = posOf(n.l[1]); return a && b ? pathD(a, b, wob.get(lk(n.l))) : null; });
-  const back = root.dataset.strings === 'back', zs = nodes.map(n => { const a = els.get(n.l[0]), b = els.get(n.l[1]); return back ? 1 : a && b ? Math.max(zOf(a), zOf(b)) + 1 : 1; }); // (behind the paper, if that's how you like it: Settings, Look)
+  const back = root.dataset.strings === 'back', zs = nodes.map(n => { const a = els.get(n.l[0]), b = els.get(n.l[1]); return back ? 1 : a && b ? Math.max(zOf(a), zOf(b)) + 1 : 1; }); // (behind every card: they start at 2, js/look.js)
   // (the wider line you point at, for hovering and cutting, waits until things are put down)
   nodes.forEach((n, i) => { const d = ds[i]; if (d && d !== n.d) { n.d = d; n.p.setAttribute('d', d); } if (d && !carried.size && d !== n.hd) { n.hd = d; n.hit.setAttribute('d', d); } if (zs[i] !== n.z) { n.z = zs[i]; n.sv.style.zIndex = String(n.z); } }); // (only the strings that moved)
   if (strTemp) { if (!strTempP) { strTempP = document.createElementNS(SVGNS, 'path'); strTempP.setAttribute('class', 'sx-string sx-string-temp'); strings.append(strTempP); } strTempP.setAttribute('d', pathD(strTemp.a, strTemp.b)); }
