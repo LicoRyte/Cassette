@@ -42,8 +42,12 @@ function noteSetup(it, txt, c) {
   txt.addEventListener('input', e => {
     if (e.inputType === 'insertText' && e.data === ' ') Promise.resolve().then(() => { noteMarkdown(txt); it.html = txt.innerHTML.slice(0, NOTE_MAX); saveSoon(); }); // (after the typing itself has finished: the browser runs one edit at a time)
     if (e.inputType === 'insertParagraph') { const li = noteClosest(txt, 'li'); if (li) li.classList.remove('done'); } // a new checklist line starts unticked
-    it.html = txt.innerHTML.slice(0, NOTE_MAX); it.text = txt.innerText.slice(0, 2000); it.mt = Date.now(); saveSoon(); // (mt: when it was last written in; saved once you pause)
+    it.html = txt.innerHTML.slice(0, NOTE_MAX); it.mt = Date.now(); saveSoon(); // (mt: when it was last written in; saved once you pause)
+    // the plain words (for Find, the contents, Tied to) are read once you pause: reading them makes the browser lay out the
+    // whole desk, and doing that on every letter slowed typing on a big board
+    clearTimeout(txt._tt); txt._tt = setTimeout(() => { it.text = txt.innerText.slice(0, 2000); }, 220);
   });
+  txt.addEventListener('blur', () => { clearTimeout(txt._tt); it.text = txt.innerText.slice(0, 2000); }); // (and straight away when the pen comes out)
   txt.addEventListener('paste', e => { e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
   // ticking a checklist line: click its box
   txt.addEventListener('mousedown', e => { const li = e.target.closest('ul.sx-chk > li'); if (li && e.clientX - li.getBoundingClientRect().left < 22 * cam.z) e.preventDefault(); });

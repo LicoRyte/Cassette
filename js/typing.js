@@ -18,7 +18,7 @@ DESK_SFX.key = c => { const t = c.currentTime, w = .8 + Math.random() * .45; fee
 // (on the window, so it comes before js/feel.js's letter click and can stand in for it)
 // a letter only marks the note; what needs measuring (the note's height) is done once a frame,
 // just before it's drawn, instead of the browser measuring the page several times for every key
-let typeBox = null, typeRaf = 0;
+let typeBox = null, typeRaf = 0, typeInkBox = null;
 addEventListener('input', e => {
   const box = typePaper(e.target); if (!box) return;
   if (e.inputType === 'insertText') {
@@ -37,6 +37,7 @@ function typeFrame() {
   if (grow) { const was = card._h; card._h = h; // the note eases to its new height as lines come and go
     if (was && was !== h && Math.abs(h - was) <= 240 && !still) { card._hA = card.animate([{ height: was + 'px' }, { height: h + 'px' }], { duration: 160, easing: 'cubic-bezier(.3, .9, .4, 1)' }); card._hA.onfinish = () => { card._hA = null; }; } }
   if (typeof flowAfterType === 'function') flowAfterType(box); // the caret and the view (js/flow.js)
+  if (typeInkBox) { const b = typeInkBox; typeInkBox = null; if (b.isConnected) typeInk(b); } // (the new letter's ink, measured now: the page is laid out for this frame already)
 }
 document.addEventListener('focusin', e => { const b = typePaper(e.target); if (b) { const c = b.closest('.sx-bcard'); c._h = c.offsetHeight; } });
 
@@ -70,15 +71,16 @@ function typeInk(box) {
   document.body.append(v); v.animate([{ opacity: .62 }, { opacity: 0 }], { duration: 170, easing: 'ease-out' }).onfinish = () => v.remove();
 }
 // the typewriter's jolt: the note you're writing in gives a small sideways knock with each letter
+// (a style the browser takes up with the frame it draws anyway; an animation started here would have it recalculate the
+// whole desk on the spot, which slowed typing on a big board)
 function typeJolt(card) {
-  if (card._jolt) card._jolt.cancel();
-  const k = .7 + Math.random() * .5;
-  card._jolt = card.animate([{ translate: '0 0' }, { translate: (1.1 * k).toFixed(2) + 'px 0' }, { translate: (-.6 * k).toFixed(2) + 'px 0' }, { translate: '0 0' }], { duration: 120, easing: 'ease-out' });
-  card._jolt.onfinish = () => { card._jolt = null; };
+  const k = .7 + Math.random() * .5; card.classList.add('jolt');
+  card.style.translate = (1.1 * k).toFixed(2) + 'px 0';
+  clearTimeout(card._jt); card._jt = setTimeout(() => { card.style.translate = ''; card._jt = setTimeout(() => card.classList.remove('jolt'), 120); }, 45);
 }
 addEventListener('input', e => {
   const box = typePaper(e.target); if (!box || e.inputType !== 'insertText' || stillUI()) return;
-  Promise.resolve().then(() => typeInk(box)); // (once the letter is in)
+  typeInkBox = box; if (!typeRaf) typeRaf = requestAnimationFrame(typeFrame); // (once the letter is in, with the frame: measuring it now would lay the whole desk out twice)
   const card = box.closest('.sx-bnote'); if (card) typeJolt(card);
 }, true);
 

@@ -101,7 +101,7 @@ function bookSideDraw() {
   const coverRow = el('div', { class: 'sx-book-covrow' }, el('button', { type: 'button', class: 'sx-book-link', onclick: () => bookCoverPick() }, b.cover ? 'Change picture' : 'Add a cover picture'),
     b.cover ? el('button', { type: 'button', class: 'sx-book-link', onclick: () => { deskMark(); delete b.cover; b.coverV = Date.now(); PHOTOS.del(b.id).catch(() => {}); photoCache.delete(b.id); save(); bookSideDraw(); drawBoard(); } }, 'Remove') : null);
   const list = el('ol', { class: 'sx-book-idx' }, ...pages.map((p, i) => {
-    const row = el('li', { class: 'sx-book-row' + (i === b.at ? ' on' : ''), draggable: 'true', 'data-i': i },
+    const row = el('li', { class: 'sx-book-row' + (i === b.at ? ' on' : '') + (p.topic ? ' topic' : ''), draggable: 'true', 'data-i': i },
       el('b', {}, String(i + 1)), bookIcon(p.type === 'photo' ? '<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>' : p.type === 'tbl' ? '<path d="M4 5h16v14H4z"/><path d="M4 10h16M4 14.5h16M10 5v14"/>' : '<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h4"/>'),
       el('span', {}, bookName(p)));
     row.addEventListener('click', () => bookGo(i));

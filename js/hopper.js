@@ -70,14 +70,14 @@ function hopGo(it) {
   setTimeout(() => { out.cancel(); go(); world.animate([{ opacity: 0, filter: 'blur(4px)' }, { opacity: 1, filter: 'blur(0)' }], { duration: 280, easing: 'ease-out' }); }, 210);
 }
 
-/* ---------- a note into a board: Make a board, in a note's right-click panel. The note and every card tied to it (and the cards
+/* ---------- a card into a board: Make a board, in any card's right-click tools. The note and every card tied to it (and the cards
    tied to those, all along the strings) move to a new board named after the note's first line, keeping how they sit; a folder
    to that board takes the note's place here, and the new board gets a folder back. Ctrl+Z undoes it all ---------- */
 function noteToBoard(id) {
-  const B = S.board, me = itemOf(id); if (!me || me.type !== 'note') return;
+  const B = S.board, me = itemOf(id); if (!me || me.type === 'hop' || me.book) return; // (any card: a note, photo, table or book)
   const seen = new Set([id]), queue = [id];
   while (queue.length) { const x = queue.shift(); B.links.forEach(l => { if (!l.includes(x)) return; const o = l[0] === x ? l[1] : l[0], it = itemOf(o); if (it && it.board === me.board && !seen.has(o)) { seen.add(o); queue.push(o); } }); }
-  const name = (String(me.text || '').split('\n').map(s => s.trim()).filter(Boolean)[0] || 'New board').slice(0, 40);
+  const name = ((me.type === 'book' ? me.title : me.type === 'tbl' ? ((me.rows && me.rows[0]) || []).filter(Boolean).slice(0, 2).join(' · ') : String(me.text || '').split('\n').map(s => s.trim()).filter(Boolean)[0]) || (me.type === 'photo' ? 'Photos' : 'New board')).slice(0, 40);
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   deskMark();
   const t = Date.now(), nb = 'b' + t, from = me.board, ox = me.x, oy = me.y;

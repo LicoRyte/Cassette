@@ -255,6 +255,8 @@ function tblMenuOpen(it, r, c, x, y) {
     item('Delete row', () => { tblDelRow(it, r); go(Math.min(r, it.rows.length - 1), c); }, r < 1 || nr <= 2, 'del'),
     item('Delete column', () => { tblDelCol(it, c); go(r, Math.min(c, it.rows[0].length - 1)); }, nc <= 1, 'del'),
     sep(),
+    item('Put in a book…', () => { if (typeof cardBookPick === 'function') cardBookPick([it.id], x, y); }, !!it.book),
+    item('Make a board', () => noteToBoard(it.id), !!it.book),
     item('Duplicate table', () => deskDuplicate()),
     item('Delete table', () => deskDelete(), false, 'del'));
   if (typeof toolHintUsed === 'function') toolHintUsed(it.id);
@@ -296,7 +298,7 @@ function toolHintPlace() {
 // the note or table under the mouse, if it's one that hasn't been right-clicked yet (not while a button is held: that's a drag)
 function toolHintAt(e) {
   if (e.pointerType && e.pointerType !== 'mouse' || e.buttons) return null;
-  const c = e.target && e.target.closest && e.target.closest('.sx-bnote[data-id], .sx-btbl[data-id]'), it = c && itemOf(c.dataset.id);
+  const c = e.target && e.target.closest && e.target.closest('.sx-world .sx-bcard[data-id]'), it = c && layer.contains(c) && itemOf(c.dataset.id); // (every card has right-click tools now)
   return it && !it.rcd ? it.id : null;
 }
 function toolHintUsed(id) { const it = itemOf(id); if (it && !it.rcd) { it.rcd = 1; save(); } if (toolHintFor === id) { toolHintFor = null; toolHintPlace(); } }
@@ -311,7 +313,7 @@ let holdT = 0, holdAt = null, holdDone = 0, realMenuAt = 0;
 addEventListener('contextmenu', e => { if (e.isTrusted) realMenuAt = performance.now(); }, true);
 addEventListener('pointerdown', e => {
   if (e.pointerType !== 'touch') return;
-  const t = e.target && e.target.closest && e.target.closest('.sx-note-t, .sx-keep-t, .sx-bnote, .sx-btbl .sx-tc'); if (!t) return;
+  const t = e.target && e.target.closest && e.target.closest('.sx-note-t, .sx-keep-t, .sx-bnote, .sx-btbl .sx-tc, .sx-polaroid, .sx-bhop, .sx-bbook'); if (!t) return;
   clearTimeout(holdT); holdAt = { x: e.clientX, y: e.clientY, t, at: performance.now() };
   holdT = setTimeout(() => {
     const h = holdAt; holdAt = null; if (!h || realMenuAt >= h.at) return; // (the browser opened it already)

@@ -1,5 +1,5 @@
 /* Cassie: finding things, and keeping them safe.
-   Find (the Find key on the left): type a word and the camera flies to every note, caption and label that has it, on
+   Find (the Find key on the left): type a word and the camera flies to every note, caption, table, book title or folder that has it, on
    any board, with the words lit up where they are. Enter goes to the next one, Shift+Enter back, Esc closes.
    The backup reminder: everything lives in this browser only, so once a week (never in the middle of a focus session)
    a small card asks to save a backup file. Settings, Backup turns it off and shows when the last one was saved. */
@@ -16,7 +16,9 @@ findBar.addEventListener('pointerdown', e => e.stopPropagation());
 
 let findHits = [], findAt = -1, findQ = '', findT = 0;
 const findHL = typeof Highlight === 'function' && window.CSS && CSS.highlights; // (the words are lit without touching the notes themselves)
-function findWords(it) { // the plain words of a note, caption, label or table
+function findWords(it) { // the plain words of a note, caption or table; a book's title; the board a folder opens
+  if (it.type === 'book') return String(it.title || '');
+  if (it.type === 'hop') { const b = S.board.boards.find(x => x.id === it.to); return b ? b.name : ''; }
   if (it.type === 'tbl') return (it.rows || []).map(r => r.join(' ')).join(' ');
   if (it.text) return String(it.text);
   if (it.html) { const t = document.createElement('template'); t.innerHTML = it.html; return t.content.textContent || ''; }
@@ -26,7 +28,7 @@ function findRun() {
   const q = findIn.value.trim().toLowerCase(); findQ = q;
   if (!q) { findHits = []; findAt = -1; findDraw(); return; }
   const B = S.board, order = new Map(B.boards.map((b, i) => [b.id, b.id === B.cur ? -1 : i])); // this board first, then the others in order
-  findHits = B.items.filter(it => (it.type === 'note' || it.type === 'photo' || it.type === 'tbl') && findWords(it).toLowerCase().includes(q))
+  findHits = B.items.filter(it => ['note', 'photo', 'tbl', 'book', 'hop'].includes(it.type) && findWords(it).toLowerCase().includes(q))
     .sort((a, b) => (order.get(a.board) - order.get(b.board)) || (a.y - b.y) || (a.x - b.x));
   findAt = findHits.length ? 0 : -1; findDraw(); if (findAt >= 0) findGo();
 }

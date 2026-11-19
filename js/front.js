@@ -21,14 +21,15 @@ function frontLogo() {
 
 // a workspace as the page shows it: the open one counted from its desk, the others from what was noted when they were saved
 const frontWork = () => { const B = S.board || {}, items = Array.isArray(B.items) ? B.items : [];
-  return { name: B.name || 'My workspace', boards: Array.isArray(B.boards) ? B.boards.length : 1, notes: items.filter(i => i.type === 'note').length, things: items.length, backed: +B.backedAt || 0 }; };
-const frontMeta = w => w.id === S.spaceCur ? frontWork() : { name: w.name || 'Workspace', boards: w.boards || 1, notes: w.notes || 0, things: w.things || 0, backed: +w.backedAt || 0, opened: +w.opened || 0 };
+  const loose = items.filter(i => !i.book); // (a book's pages are inside it)
+  return { name: B.name || 'My workspace', boards: Array.isArray(B.boards) ? B.boards.length : 1, notes: loose.filter(i => i.type === 'note').length, books: loose.filter(i => i.type === 'book').length, things: loose.length, backed: +B.backedAt || 0 }; };
+const frontMeta = w => w.id === S.spaceCur ? frontWork() : { name: w.name || 'Workspace', boards: w.boards || 1, notes: w.notes || 0, books: w.books || 0, things: w.things || 0, backed: +w.backedAt || 0, opened: +w.opened || 0 };
 const frontOthers = () => S.spaces.filter(w => w.id !== S.spaceCur).sort((a, b) => (b.opened || 0) - (a.opened || 0));
 const frontHas = () => { const w = frontWork(); return w.things > 0 || w.boards > 1 || S.spaces.length > 1; };
 const frontPl = (n, one) => n + ' ' + one + (n === 1 ? '' : 's');
 function frontAgo(t) { const d = Math.floor((Date.now() - t) / 864e5); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago'; }
 const frontLate = w => !w.backed || Date.now() - w.backed > 14 * 864e5;
-const frontStat = w => frontPl(w.boards, 'board') + ' · ' + frontPl(w.notes, 'note') + (w.things > w.notes ? ' · ' + frontPl(w.things - w.notes, 'other thing') : '');
+const frontStat = w => { const books = w.books || 0, rest = w.things - w.notes - books; return frontPl(w.boards, 'board') + (books ? ' · ' + frontPl(books, 'book') : '') + ' · ' + frontPl(w.notes, 'note') + (rest > 0 ? ' · ' + frontPl(rest, 'other thing') : ''); };
 const frontBk = w => w.backed ? 'backed up ' + frontAgo(w.backed) : 'never backed up';
 
 const frontBtn = (label, cls, fn, title) => el('button', { type: 'button', class: 'cz-btn' + (cls ? ' ' + cls : ''), onclick: fn, title: title || null }, label);
@@ -46,7 +47,8 @@ function frontDraw() {
   const list = others.length ? frontList(others) : null;
   const safe = el('p', { class: 'cz-safe' + (has && frontLate(w) ? ' late' : '') }, (S.spaces.length > 1 ? 'Your workspaces live' : 'Your workspace lives') + ' in this browser. Save backups now and then.',
     has ? el('span', { class: 'cz-links' }, el('button', { type: 'button', class: 'cz-link', onclick: async () => { await deskExportBackup(); frontDraw(); focusFirst(); } }, 'Save a backup of ' + w.name),
-      el('button', { type: 'button', class: 'cz-link', onclick: () => frontAsk('rename') }, 'Rename it')) : null);
+      el('button', { type: 'button', class: 'cz-link', onclick: () => frontAsk('rename') }, 'Rename it'),
+      S.spaces.length > 1 ? el('button', { type: 'button', class: 'cz-link', title: 'Every workspace, in one file', onclick: async () => { await deskExportAll(); frontDraw(); focusFirst(); } }, 'Save a backup of everything') : null) : null);
   const use = el('p', { class: 'cz-use' }); frontUse(use);
   frontMain.replaceChildren(...head, ...[cont, row, list, safe, use].filter(Boolean));
 }

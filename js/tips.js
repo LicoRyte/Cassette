@@ -21,7 +21,7 @@ const TIP_WORDS = {
   'Group them, so they move together like one thing': 'Group: they move together like one thing',
   'Ungroup': 'Ungroup: each moves on its own again',
   'Delete what is picked (Delete)': 'Delete: what is picked (Delete)',
-  'A room with friends: send each other notes, photos, tables and labels, and messages': 'Room: send friends notes, photos, tables, labels and messages',
+  'A room with friends: send each other notes, photos, tables, books and messages': 'Room: send friends notes, photos, tables, books and messages',
   'You, and the room': 'You: your name, your picture and the room panel',
 };
 

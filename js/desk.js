@@ -157,7 +157,17 @@ function deskGoTo(id) { // go to something, on whichever board it is (search)
 const undoS = [], redoS = [];
 const deskSnap = () => JSON.stringify({ boards: S.board.boards, cur: S.board.cur, items: S.board.items, links: S.board.links });
 function deskMark(snap) { if (editSnap && !snap) editCommit(); undoS.push(snap || deskSnap()); if (undoS.length > 100) undoS.shift(); redoS.length = 0; deskUndoState(); }
-function deskRestore(str) { const o = JSON.parse(str); Object.assign(S.board, o); select(null); save(); drawBoard(); }
+// undo and redo: the saved desk comes back into the cards as they are (each keeps its object, so its card on the desk is kept
+// too, instead of every card on the board being made again); a note or caption whose words changed gets its words back
+function deskRestore(str) {
+  const o = JSON.parse(str), old = new Map(S.board.items.map(it => [it.id, it])), words = [];
+  if (Array.isArray(o.items)) o.items = o.items.map(n => { const it = old.get(n.id); if (!it) return n;
+    if (it.html !== n.html || it.text !== n.text) words.push(it);
+    Object.keys(it).forEach(k => { if (!(k in n)) delete it[k]; }); Object.assign(it, n); return it; });
+  Object.assign(S.board, o); select(null); save(); drawBoard();
+  words.forEach(it => { const c = els.get(it.id), t = c && c.querySelector(':scope > .sx-note-t, .sx-note-t, .sx-cap-t'); if (!t || document.activeElement === t) return;
+    if (t.classList.contains('sx-cap-t')) t.textContent = it.text || ''; else t.innerHTML = noteClean(it.html != null ? it.html : noteFromText(it.text || '')); });
+}
 function deskUndo() { editCommit(); if (!undoS.length) return; redoS.push(deskSnap()); deskRestore(undoS.pop()); deskSfx('pick'); deskUndoState(); }
 function deskRedo() { if (!redoS.length) return; undoS.push(deskSnap()); deskRestore(redoS.pop()); deskSfx('pick'); deskUndoState(); }
 // writing in a note (or a caption) counts as one step, from when you start to when you put the pen down
@@ -236,8 +246,10 @@ function select(id, add) {
   if (id == null) { picked.clear(); selId = null; }
   else if (add && picked.has(id)) { groupOf(id).forEach(x => picked.delete(x)); selId = picked.size ? [...picked].pop() : null; }
   else { if (!add) picked.clear(); groupOf(id).forEach(x => picked.add(x)); selId = id; }
+  if (picked.size > 12) world.classList.add('many-picked'); // (many at once: no little pop on each, which would be hundreds of animations)
   els.forEach((c, k) => c.classList.toggle('sel', picked.has(k)));
   noteBarTo(selId); deskSelBar(); selBoxUpdate(); if (typeof gtagSync === 'function') gtagSync();
+  if (picked.size <= 12) world.classList.remove('many-picked');
 }
 function deskSelBar() {
   const items = [...picked].map(itemOf).filter(Boolean);
@@ -299,7 +311,7 @@ function gtagPlace() {
 ws.addEventListener('pointerover', e => { const c = e.target.closest && e.target.closest('.sx-world .sx-bcard'), it = c && itemOf(c.dataset.id), g = it && it.group || null; if (g !== gtagHover) { gtagHover = g; gtagSync(); } });
 ws.addEventListener('pointerleave', () => { if (gtagHover) { gtagHover = null; gtagSync(); } });
 function deskDelete() { const ids = [...picked]; if (!ids.length) return; deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }
-function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur && !it.book).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
+function deskSelectAll() { world.classList.add('many-picked'); picked.clear(); B_().items.filter(it => it.board === B_().cur && !it.book).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
 /* ---------- what's on the desk ---------- */
 function removeOne(it) { deskMark(); deskSfx('pick'); removeItems([it.id]); picked.delete(it.id); if (selId === it.id) selId = null; save(); drawBoard(); }
@@ -353,7 +365,6 @@ function boardViewBack() {
 let layerTop = 0;
 const zOf = c => +c.style.zIndex || 0;
 // press a card and it comes to the front: the top level, and the end of the desk's list so it stays on top next time
-// (labels are areas under everything, so they stay where they are)
 function deskRaise(it, c) {
   const B = B_();
   if (it.group) { // a group comes forward as one, keeping its own order inside (a small photo on a note stays on the note)
@@ -492,10 +503,6 @@ function wobStep(also) {
 }
 // cards swing from their pin while you carry them, and settle when you let go
 const swinging = new Set(); let swingRaf = 0;
-function swingTo(c, target, held) {
-  if (stillUI()) return;
-  const s = c._sw = c._sw || { a: 0, v: 0, t: 0 }; s.t = target; s.held = !!held; swinging.add(c); c.classList.add('swinging'); if (!swingRaf) swingRaf = requestAnimationFrame(swingStep);
-}
 function swingStep() {
   swingRaf = 0;
   // a pendulum hung from the pin: it leans toward where you're carrying it (the bottom trails behind), and when you stop,
@@ -592,7 +599,6 @@ function deskEditAt(txt, x, y) {
 const writingIn = t => { const a = document.activeElement; return !!(a && a.isContentEditable && t && a.contains(t)); };
 let panMovedAt = 0;
 ws.addEventListener('contextmenu', e => { const own = e.shiftKey && e.target.closest && e.target.closest('.sx-tc, .sx-bnote'); /* (Shift on a table cell or a note: the browser's menu) */ if ((!writingIn(e.target) && !own) || performance.now() - panMovedAt < 400) e.preventDefault(); });
-const centreOf = id => { const c = els.get(id); return c ? { x: c.offsetLeft + c.offsetWidth / 2, y: c.offsetTop + c.offsetHeight / 2 } : null; };
 // let go of the desk while it's moving and it keeps sliding, easing to a stop (any press, scroll or glide catches it)
 function deskFling(samp) {
   if (stillUI()) return false;

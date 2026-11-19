@@ -1,5 +1,5 @@
 /* Cassie: rooms. Make a room (or join one with its code) and the friends in it show up as online; pick a note,
-   photo, table or label and send it to one of them, or to everyone, and it pops onto their desk with a "from" tag.
+   photo, table or book and send it to one of them, or to everyone, and it pops onto their desk with a "from" tag.
    Nothing is kept in sync: a sent card is a copy. Cards go straight from browser to browser (WebRTC, encrypted); public
    WebTorrent trackers only introduce the browsers to each other, and the room code is the password, so only people who
    have it can join. The room parts (js/vendor/trystero, MIT) load only when you join, so the app stays offline otherwise.
@@ -10,7 +10,7 @@
 const ROOM = S.opts.room = Object.assign({ name: '', me: '', block: [], last: '', pic: '' }, S.opts.room || {}); delete ROOM.msgs; // (messages always stay as history now)
 if (!ROOM.me) { ROOM.me = 'u' + Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(36)).join('').slice(0, 14); save(); }
 const ROOM_COOL = 8000, ROOM_GAP = 4000, ROOM_MAX = 20; // you: one send every 8 s; each friend: one delivery taken every 4 s; at most 20 cards at once
-const ROOM_TYPES = ['note', 'photo', 'tbl'];
+const ROOM_TYPES = ['note', 'photo', 'tbl', 'book']; // (a book goes with its pages and cover)
 const ROOM_DOTS = ['#77d6c1', '#ffb762', '#ff6157', '#9cb93b', '#ffd832', '#1c92a7', '#eb9c6e'];
 let room = null, roomCode = '', roomBusy = false, roomSay = null, roomCard = null, roomTell = null, roomSentAt = 0, roomTick = 0;
 const roomPeers = new Map(); // their browser's id -> { id, name } (id: who they are, kept across visits, for blocking)
@@ -126,15 +126,17 @@ async function roomSend(to) { // to: one friend's browser id, or null for everyo
   if (!room || !roomCard) return;
   const left = ROOM_COOL - (Date.now() - roomSentAt); if (left > 0) { deskToast('Wait ' + Math.ceil(left / 1000) + ' s before sending again'); return; }
   const its = [...picked].map(itemOf).filter(it => it && ROOM_TYPES.includes(it.type)).slice(0, ROOM_MAX);
-  if (!its.length) { deskToast('Notes, photos and tables can be sent'); return; }
+  if (!its.length) { deskToast('Notes, photos, tables and books can be sent'); return; }
   const targets = to ? [to] : roomOnline().map(([pid]) => pid); if (!targets.length) return;
   const ids = new Set(its.map(it => it.id)), x0 = Math.min(...its.map(it => it.x)), y0 = Math.min(...its.map(it => it.y));
   const items = its.map(it => { const o = JSON.parse(JSON.stringify(it)); o.x -= x0; o.y -= y0; delete o.key; delete o.board; delete o.from; return o; });
-  const photos = {}; for (const it of its) if (it.type === 'photo') { try { let src = await PHOTOS.get(it.id); if (src && src.length > 2.9e6) src = await shrinkSrc(src, 1400); if (src) photos[it.id] = src; } catch (e) { /* skip */ } } // (a big one goes smaller)
+  const pages = its.filter(it => it.type === 'book').flatMap(b => (b.pages || []).map(itemOf).filter(p => p && p.book === b.id)).slice(0, 400); // (a book's pages go along)
+  pages.forEach(p => { const o = JSON.parse(JSON.stringify(p)); delete o.board; delete o.from; o.x = 0; o.y = 0; items.push(o); });
+  const photos = {}; for (const it of [...its, ...pages]) if (it.type === 'photo' || (it.type === 'book' && it.cover)) { try { let src = await PHOTOS.get(it.id); if (src && src.length > 2.9e6) src = await shrinkSrc(src, 1400); if (src) photos[it.id] = src; } catch (e) { /* skip */ } } // (a big one goes smaller)
   roomSentAt = Date.now(); roomSendState();
   try { await roomCard({ name: roomHello().name, items, links: B_().links.filter(l => ids.has(l[0]) && ids.has(l[1])), photos }, targets); }
   catch (e) { deskToast('That didn\'t send: try again in a moment'); return; }
-  const what = its.length > 1 ? its.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table' }[its[0].type];
+  const what = its.length > 1 ? its.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', book: 'a book' }[its[0].type];
   deskSfx('lift'); deskToast('Sent ' + what + ' to ' + (to ? (roomPeers.get(to) || {}).name || 'your friend' : 'everyone'));
 }
 // the row in the bar along the bottom while something is picked: who to send it to (and how long until you can send again)
@@ -195,26 +197,32 @@ async function roomReceive(d, pid) {
   const now = Date.now(); if (now - (roomGot.get(p.id) || 0) < ROOM_GAP) return; roomGot.set(p.id, now); // (too fast: let it go)
   const tag = '-r' + now.toString(36), num = v => isFinite(+v) ? Math.round(+v) : 0, str = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
   const imap = new Map(), gmap = {}, out = [];
-  for (const it of d.items.slice(0, ROOM_MAX)) {
-    if (!it || !ROOM_TYPES.includes(it.type)) continue;
-    const id = (it.type === 'tbl' ? 't' : it.type === 'photo' ? 'p' : 'n') + now + '-' + out.length;
+  const refs = new Map(); // (a book's pages: tied to it below, once everything has its new name)
+  for (const it of d.items.slice(0, ROOM_MAX + 400)) {
+    if (!it || !ROOM_TYPES.includes(it.type) || (it.type === 'book' && typeof it.book === 'string')) continue;
+    const id = (it.type === 'tbl' ? 't' : it.type === 'photo' ? 'p' : it.type === 'book' ? 'k' : 'n') + now + '-' + out.length;
     const o = { id, type: it.type, board: B_().cur, x: Math.max(-4000, Math.min(4000, num(it.x))), y: Math.max(-4000, Math.min(4000, num(it.y))), from: p.name };
     if (it.text) o.text = str(it.text, 2000);
     if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, NOTE_MAX)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(q => q[0] === it.paper)) o.paper = it.paper; if (it.topic === true) o.topic = true; }
     if (it.type === 'tbl') Object.assign(o, tblClean(it));
     if (it.type === 'photo') { const src = d.photos && d.photos[it.id]; if (typeof src !== 'string' || !/^data:image\/(jpeg|png|webp|gif);base64,/.test(src) || src.length > 3e6) continue;
       if (it.ar) o.ar = Math.max(.1, Math.min(10, +it.ar || 1)); if (it.w) o.w = Math.max(120, Math.min(1600, num(it.w))); try { await PHOTOS.put(id, src); } catch (e) { continue; } }
-    if (typeof it.group === 'string') o.group = gmap[it.group] || (gmap[it.group] = 'g' + tag + out.length);
+    if (it.type === 'book') { o.title = str(it.title, 80); if (NOTE_COLORS.some(c => c[0] === it.color)) o.color = it.color; if (typeof PALETTE !== 'undefined') { if (PALETTE.includes(it.bg)) o.bg = it.bg; if (PALETTE.includes(it.ink)) o.ink = it.ink; } o.at = 0;
+      const src = d.photos && d.photos[it.id]; if (it.cover && typeof src === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,/.test(src) && src.length <= 3e6) { try { await PHOTOS.put(id, src); o.cover = true; } catch (e) { /* no cover */ } }
+      refs.set(o, Array.isArray(it.pages) ? it.pages.slice(0, 400) : []); }
+    if (typeof it.book === 'string') { refs.set(o, it.book); delete o.from; }
+    if (typeof it.group === 'string' && typeof it.book !== 'string') o.group = gmap[it.group] || (gmap[it.group] = 'g' + tag + out.length);
     imap.set(it.id, id); out.push(o);
   }
-  if (!out.length) return;
-  const w = Math.max(...out.map(o => o.x + (o.w || 220))), h = Math.max(...out.map(o => o.y + (o.h || 160)));
-  out.forEach(o => { o.x = Math.round(cam.x - w / 2 + o.x); o.y = Math.round(cam.y - h / 2 + o.y); });
+  refs.forEach((r, o) => { if (Array.isArray(r)) o.pages = r.filter(x => imap.has(x)).map(x => imap.get(x)); else if (imap.has(r)) o.book = imap.get(r); }); // (a page whose book didn't come is a loose card)
+  const loose = out.filter(o => !o.book); if (!loose.length) return;
+  const w = Math.max(...loose.map(o => o.x + (o.w || 220))), h = Math.max(...loose.map(o => o.y + (o.h || 160)));
+  loose.forEach(o => { o.x = Math.round(cam.x - w / 2 + o.x); o.y = Math.round(cam.y - h / 2 + o.y); });
   deskMark(); B_().items.push(...out);
   (Array.isArray(d.links) ? d.links : []).forEach(l => { if (Array.isArray(l) && imap.has(l[0]) && imap.has(l[1])) B_().links.push([imap.get(l[0]), imap.get(l[1])]); });
   save(); drawBoard();
-  out.forEach((o, i) => setTimeout(() => deskLand(o.id, i === 0), i * 70)); // (they land one after another, with the pin)
-  const what = out.length > 1 ? out.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table' }[out[0].type];
+  loose.forEach((o, i) => setTimeout(() => deskLand(o.id, i === 0), i * 70)); // (they land one after another, with the pin)
+  const what = loose.length > 1 ? loose.length + ' cards' : { note: 'a note', photo: 'a photo', tbl: 'a table', book: 'a book' }[loose[0].type];
   deskToast(p.name + ' sent you ' + what);
 }
 // a received card wears a small "from" tag until you take it off (click it)

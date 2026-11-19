@@ -12,7 +12,7 @@ const BM_ICONS = {
 };
 const bmIcon = k => { const s = el('span', { class: 'sx-bm-ic', 'aria-hidden': 'true' }); s.innerHTML = '<svg viewBox="0 0 18 18">' + BM_ICONS[k] + '</svg>'; return s; }; // (fixed drawings)
 let bmFilter = '', bmEdit = null, bmFocus = null, bmDrag = null;
-const bmCount = id => S.board.items.filter(it => it.board === id).length;
+const bmCount = id => S.board.items.filter(it => it.board === id && !it.book).length; // (a book counts once, not its pages)
 const bmClose = () => { deskMenu.hidden = true; bmEdit = null; };
 
 deskMenuOpen = function () {

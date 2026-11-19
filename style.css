@@ -1842,9 +1842,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-book-name { padding: 0; background: none; border: 0; color: #34111f; font: 700 18px/1.15 var(--ui); text-align: left; cursor: text; overflow-wrap: anywhere; }
 .sx-book-name:hover { text-decoration: underline dotted; text-underline-offset: 3px; }
 .sx-book-namei { width: 100%; box-sizing: border-box; padding: 3px 6px; background: #fff; border: 1px solid #c76e46; border-radius: 3px; color: #34111f; font: 700 16px var(--ui); outline: none; }
-.sx-book-sw { display: flex; flex-wrap: wrap; gap: 5px; }
-.sx-book-sw .sx-sw { width: 18px; height: 18px; border-color: #fffaf0; outline-color: #e6d6b8; }
-.sx-book-sw .sx-sw.on { outline: 2px solid #c76e46; }
 .sx-book-covrow { display: flex; gap: 12px; }
 .sx-book-link { padding: 0; background: none; border: 0; color: #c76e46; font: 600 12px var(--ui); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .sx-book-lbl { margin-top: 4px; padding-bottom: 4px; border-bottom: 1px solid #e6d6b8; font: 700 10.5px var(--ui); letter-spacing: .22em; text-transform: uppercase; color: #833f34; }
@@ -1907,3 +1904,21 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 @media (prefers-reduced-motion: reduce) { .sx-book-sq { transition: none; } }
 .sx-world .sx-bcard.sx-bbook .sx-book-title, .sx-world .sx-bcard.sx-bbook .sx-book-n { color: var(--cink); } /* (the title's own colour, over the desk's ink for words on cards) */
 .sx-book-page .sx-bcard.sel { outline: none; animation: none; } /* (a page in a book isn't 'picked' on a desk) */
+
+/* ---------- Tied to: a book's mini cover, and a topic's big title ---------- */
+.sx-tied-c.t-book { padding: 12px 10px 8px 16px; border-radius: 2px 5px 5px 2px; box-shadow: 2px 3px 0 rgb(115 57 46 / .25), inset 5px 0 0 rgb(0 0 0 / .18); text-align: center; align-items: center; }
+.sx-tied-c.t-book b { font: 700 12px/1.15 var(--ui); letter-spacing: .05em; text-transform: uppercase; color: var(--ink); -webkit-line-clamp: 2; }
+.sx-tied-c.t-book .sx-tied-pin { left: auto; right: 10px; }
+.sx-tied-cov { flex: 1; min-height: 0; width: 100%; border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--paper) 82%, #ffffff); }
+.sx-tied-cov img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.sx-tied-cov.none { background: none; border-top: 2px double color-mix(in srgb, var(--ink) 35%, transparent); border-bottom: 2px double color-mix(in srgb, var(--ink) 35%, transparent); border-radius: 0; }
+.sx-tied-c > .sx-tied-pg { flex: none; font: 700 10px var(--ui); letter-spacing: .06em; opacity: .75; color: var(--ink); -webkit-line-clamp: 1; }
+.sx-tied-c.topic { text-align: center; align-items: center; justify-content: center; }
+.sx-tied-c.topic b { font: 700 18px/1 var(--ui); letter-spacing: .03em; text-transform: uppercase; padding: 4px 0; border-block: 2px double color-mix(in srgb, var(--ink) 40%, transparent); }
+.sx-tied-kick { font: 700 8.5px var(--ui); letter-spacing: .24em; text-transform: uppercase; opacity: .6; }
+.sx-tied.tiny .sx-tied-c.t-book .sx-tied-cov, .sx-tied.tiny .sx-tied-c.t-book .sx-tied-pg, .sx-tied.tiny .sx-tied-kick { display: none; }
+
+/* ---------- a topic in a book's contents (js/book.js) ---------- */
+.sx-book-row.topic span { font: 700 13px var(--ui); letter-spacing: .08em; text-transform: uppercase; }
+.sx-world .sx-bnote.jolt { transition: translate .07s ease-out !important; } /* (the typewriter's knock: js/typing.js) */
+.sx-world.many-picked .sx-bcard.sel { animation: none; } /* (picking many at once: js/desk.js) */

@@ -16,7 +16,7 @@ const chrFaces = el('span', { class: 'sx-net-faces' });
 const chrMe = el('button', { type: 'button', class: 'sx-net-me', title: 'You, and the room', 'aria-label': 'You, and the room', onclick: e => { e.currentTarget.blur(); roomPanel.hidden ? roomOpen() : roomClose(); } });
 const chrNet = el('div', { class: 'sx-net', role: 'toolbar', 'aria-label': 'Online' }, roomB, chrFaces, roomTalkBox, chrMe);
 document.body.append(chrNet);
-roomB.title = 'A room with friends: send each other notes, photos, tables and labels, and messages';
+roomB.title = 'A room with friends: send each other notes, photos, tables, books and messages';
 let chrSeen = null; // (who was here at the last look: null until the first, so nobody hops on load)
 function chrNetDraw() {
   const online = room ? roomOnline() : [], many = online.length > 1;

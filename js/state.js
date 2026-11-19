@@ -57,7 +57,8 @@ function save() {
 // what the front page lists for a workspace, from its desk
 function spaceNote(w, b) {
   if (!w || !b) return; const items = Array.isArray(b.items) ? b.items : [];
-  Object.assign(w, { name: b.name || w.name || 'My workspace', boards: Array.isArray(b.boards) ? b.boards.length : 1, notes: items.filter(i => i.type === 'note').length, things: items.length });
+  const loose = items.filter(i => !i.book); // (a book's pages are inside it)
+  Object.assign(w, { name: b.name || w.name || 'My workspace', boards: Array.isArray(b.boards) ? b.boards.length : 1, notes: loose.filter(i => i.type === 'note').length, books: loose.filter(i => i.type === 'book').length, things: loose.length });
   if (b.backedAt) w.backedAt = b.backedAt;
 }
 // open another workspace: this one is saved first (and nothing moves if that didn't work), then Cassie starts again with it
@@ -72,13 +73,14 @@ function spaceGo(id) {
   (deskLocked ? Promise.resolve() : save()).then(go, go);
 }
 // a new workspace with this desk (an empty one, or a backup's): written to the database, then opened
-async function spaceNew(name, board) {
-  if (!BOOT.db) { if (typeof deskToast === 'function') deskToast('This browser can only keep one workspace here (no database)'); return; }
-  const id = 'w' + Date.now().toString(36);
+async function spaceAdd(name, board) { // a new workspace with this desk, written and listed (not opened); its id, or null
+  if (!BOOT.db) { if (typeof deskToast === 'function') deskToast('This browser can only keep one workspace here (no database)'); return null; }
+  const id = 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   board = Object.assign({ boards: [{ id: 'main', name: 'My board' }], cur: 'main', items: [], links: [], gnames: {}, desk: 1, cam: { x: 0, y: 0, z: 1 } }, board || {}, { name });
-  try { await BOOT.put(board, deskKey(id)); } catch (e) { saveWarn('db', true, e); return; }
-  const w = { id }; spaceNote(w, board); S.spaces.push(w); spaceGo(id);
+  try { await BOOT.put(board, deskKey(id)); } catch (e) { saveWarn('db', true, e); return null; }
+  const w = { id }; spaceNote(w, board); S.spaces.push(w); return id;
 }
+async function spaceNew(name, board) { const id = await spaceAdd(name, board); if (id) spaceGo(id); } // (and opened)
 // a save that didn't fit (or a desk that couldn't be read): a banner says so, with Save a backup right in it
 let saveBar = null;
 const saveFail = { small: false, db: false };

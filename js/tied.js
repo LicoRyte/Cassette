@@ -27,14 +27,15 @@ function tiedText(it) {
   const lines = String(it.text || '').split('\n').map(s => s.trim()).filter(Boolean);
   return { head: lines[0] || '', rest: lines.slice(1, 4).join(' ') };
 }
-const tiedName = it => it.type === 'note' ? tiedText(it).head || 'an empty note' : it.type === 'photo' ? (it.text ? String(it.text).slice(0, 40) : 'the photo') : it.type === 'tbl' ? 'the table' : 'the folder';
+const tiedName = it => it.type === 'note' ? tiedText(it).head || 'an empty note' : it.type === 'photo' ? (it.text ? String(it.text).slice(0, 40) : 'the photo') : it.type === 'tbl' ? 'the table' : it.type === 'book' ? (it.title || 'the book') : 'the folder';
 const tiedIc = d => { const s = el('span', { class: 'sx-tied-ic', 'aria-hidden': 'true' }); s.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9">' + d + '</svg>'; return s; };
 function tiedCard(it, i) {
   const card = el('button', { type: 'button', class: 'sx-tied-c t-' + it.type, 'data-id': it.id, style: '--i:' + i + ';--tilt:' + ((i % 2 ? 1 : -1) * (0.6 + (i % 3) * .3)).toFixed(2) + 'deg' },
     el('i', { class: 'sx-tied-pin', 'aria-hidden': 'true' }));
   if (it.type === 'note') {
     const [, bg, ink] = noteColor(it), t = tiedText(it); card.style.setProperty('--paper', bg); card.style.setProperty('--ink', ink);
-    card.append(...[el('b', {}, t.head || 'An empty note'), t.rest ? el('span', {}, t.rest) : null].filter(Boolean)); // (the page's own append writes a missing one as the word null)
+    if (it.topic) card.classList.add('topic');
+    card.append(...[it.topic ? el('small', { class: 'sx-tied-kick' }, 'Topic') : null, el('b', {}, t.head || 'An empty note'), t.rest ? el('span', {}, t.rest) : null].filter(Boolean)); // (the page's own append writes a missing one as the word null)
     card.setAttribute('aria-label', 'Note: ' + (t.head || 'empty'));
   } else if (it.type === 'photo') {
     const src = (els.get(it.id).querySelector('img') || {}).currentSrc || '';
@@ -46,8 +47,15 @@ function tiedCard(it, i) {
     card.setAttribute('aria-label', 'Table: ' + (head || 'empty'));
   } else if (it.type === 'hop') {
     const to = B_().boards.find(b => b.id === it.to);
-    card.append(el('b', {}, tiedIc('<path d="M3.5 5.5h6l2 2.5h9v12h-17z"/><path d="M3.5 11h17"/>'), to ? to.name : 'A folder'), el('span', {}, 'Opens a board'));
+    const n = to ? B_().items.filter(x => x.board === to.id && !x.book).length : 0;
+    card.append(el('b', {}, tiedIc('<path d="M3.5 5.5h6l2 2.5h9v12h-17z"/><path d="M3.5 11h17"/>'), to ? to.name : 'A folder'), el('span', {}, to ? 'Opens a board · ' + n + (n === 1 ? ' card' : ' cards') : 'Pick a board on its tab'));
     card.setAttribute('aria-label', 'Folder to ' + (to ? to.name : 'no board'));
+  } else if (it.type === 'book') { // a small closed book: its cover colour, title, picture and pages
+    const [, bg, ink] = typeof bookColor === 'function' ? bookColor(it) : ['', '#293b49', '#ffffe4'], n = (it.pages || []).length;
+    card.style.setProperty('--paper', bg); card.style.setProperty('--ink', ink);
+    const pic = el('span', { class: 'sx-tied-cov' + (it.cover ? '' : ' none') }); if (it.cover) photoUrls(it.id).then(u => { if (u) pic.append(el('img', { src: u.small || u.full, alt: '' })); });
+    card.append(el('b', {}, it.title || 'A book'), pic, el('span', { class: 'sx-tied-pg' }, n + (n === 1 ? ' page' : ' pages')));
+    card.setAttribute('aria-label', 'Book: ' + (it.title || 'untitled'));
   } else card.append(el('b', {}, 'A card'));
   card.title = 'Go to it (double-click to write in it)';
   return card;
@@ -73,7 +81,7 @@ function tiedNow() { return picked.size === 1 && selId && els.has(selId) ? selId
 function tiedDraw() {
   const id = tiedNow(), list = id ? tiedOf(id) : [], min = !!S.opts.tiedMin;
   const back = (typeof flowTrail !== 'undefined' && flowTrail.length && [...flowTrail].reverse().find(x => x !== id && itemOf(x) && itemOf(x).board === B_().cur && els.has(x))) || null; // (null, not 0: a 0 would show up as text)
-  const sig = id ? [id, min, back || '', ...list.map(it => it.id + ':' + (it.text || '').length + ':' + (it.color || '') + ':' + (it.rows ? it.rows.length : ''))].join('|') : '';
+  const sig = id ? [id, min, back || '', ...list.map(it => it.id + ':' + (it.text || '').length + ':' + (it.color || '') + ':' + (it.rows ? it.rows.length : '') + ':' + (it.title || '') + (it.bg || '') + (it.ink || '') + (it.coverV || '') + ((it.pages || []).length) + (it.topic ? 't' : ''))].join('|') : '';
   if (sig === tiedSig) return; tiedSig = sig;
   if (!id || !list.length) { tiedBox.hidden = true; tiedFor = null; tiedPlace(); return; }
   const fresh = tiedFor !== id; tiedFor = id;
