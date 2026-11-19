@@ -228,26 +228,45 @@ function noteMenuClose() { noteMenu.hidden = true; }
 function noteMenuSync() { // light up the same keys the bar has lit
   if (noteMenu.hidden) return; noteBarState();
   const src = [...noteBar.querySelectorAll('button')]; noteMenu.querySelectorAll('button[data-i]').forEach(b => { const s = src[+b.dataset.i]; if (s) b.classList.toggle('on', s.classList.contains('on')); });
+  const n = selNote(), sw = noteMenu.querySelector('.sx-nm-sw'), pn = noteMenu.querySelector('.sx-nm-pn'); // (the chips show the card's colour and paper)
+  if (n && sw) sw.style.background = noteColor(n.it)[1];
+  if (n && pn) pn.textContent = ((typeof PAPERS !== 'undefined' && PAPERS.find(p => p[0] === (n.it.paper || 'plain'))) || [0, 'Plain'])[1];
 }
 noteMenu.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const src = noteBar.querySelectorAll('button')[+b.dataset.i]; if (!src) return;
   const k = src.dataset.k, shut = k === 'dup' || k === 'del' || k === 'keep';
+  if (b.closest('.sx-nm-pop')) noteMenu.querySelectorAll('.sx-nm-pop').forEach(p => { p.hidden = true; }); // (a pick from a dropdown closes it)
   if (shut) noteMenuClose(); src.click(); if (!shut) noteMenuSync();
 });
 function noteMenuOpen(x, y) {
   noteBarState();
-  // the bar's keys, sorted under small labels: Text, Lists, Insert, and the Card itself (its colour, paper, size and what to do with it)
+  // three short rows: the words (headings, bold and the rest), lists and what to put in, and the card itself (its colour,
+  // paper and size, and More: Topic, Keep, a board or a book, Duplicate, Delete). Every key is a copy of the bar's own
   const src = [...noteBar.querySelectorAll('button')], copy = b => { const c = b.cloneNode(true); c.dataset.i = src.indexOf(b); return c; };
   const byK = ks => ks.map(k => src.find(b => b.dataset.k === k)).filter(Boolean).map(copy);
-  const sec = (label, ...rows) => el('div', { class: 'sx-nm-sec' }, el('span', { class: 'sx-nm-l' }, label), el('div', { class: 'sx-nm-rows' }, ...rows.filter(r => r.children.length)));
-  const row = (...bs) => el('div', { class: 'sx-fmt-row' }, ...bs.flat());
-  const others = src.filter(b => b.dataset.k && !['title', 'head', 'bold', 'italic', 'under', 'strike', 'mark', 'code', 'bullet', 'num', 'check', 'quote', 'outdent', 'indent', 'line', 'date', 'clear', 'smaller', 'bigger', 'fit', 'topic', 'keep', 'dup', 'del'].includes(b.dataset.k)).map(copy); // (keys added by other files)
+  const row = (...bs) => el('div', { class: 'sx-fmt-row sx-nm-row' }, ...bs.flat().filter(Boolean));
+  const sep = () => el('i', { class: 'sx-fsep' });
+  const ROWED = ['title', 'head', 'bold', 'italic', 'under', 'strike', 'mark', 'code', 'clear', 'bullet', 'num', 'check', 'quote', 'outdent', 'indent', 'line', 'date', 'smaller', 'bigger', 'fit'];
+  const more = [...byK(['topic', 'keep', 'board', 'mkbook', 'tobook']), ...src.filter(b => b.dataset.k && !ROWED.includes(b.dataset.k) && !['topic', 'keep', 'board', 'mkbook', 'tobook', 'dup', 'del'].includes(b.dataset.k)).map(copy), ...byK(['dup', 'del'])];
+  more.forEach(b => b.classList.add('sx-nm-mi'));
+  // a chip that opens a small list just under it
+  const chip = (label, kids, cls) => {
+    const pop = el('div', { class: 'sx-nm-pop' + (cls ? ' ' + cls : ''), hidden: true }, ...kids);
+    const b = el('button', { type: 'button', class: 'sx-fb sx-nm-chip', 'aria-haspopup': 'true', onclick: e => { e.stopPropagation(); const was = pop.hidden; noteMenu.querySelectorAll('.sx-nm-pop').forEach(p => { p.hidden = true; }); pop.hidden = !was; } }, ...label);
+    return el('span', { class: 'sx-nm-chipw' }, b, pop);
+  };
+  const swatch = el('i', { class: 'sx-nm-sw' });
+  const paperName = el('span', { class: 'sx-nm-pn' });
   noteMenu.replaceChildren(
-    sec('Text', row(byK(['title', 'head', 'bold', 'italic', 'under', 'strike', 'mark', 'code']))),
-    sec('Lists', row(byK(['bullet', 'num', 'check', 'quote', 'outdent', 'indent']))),
-    sec('Insert', row(byK(['line', 'date', 'clear']))),
-    sec('Card', row(src.filter(b => b.dataset.c).map(copy)), row(src.filter(b => b.dataset.p).map(copy), byK(['smaller', 'bigger', 'fit'])), row(byK(['topic', 'keep']), others, byK(['dup', 'del'])))); noteMenu.hidden = false; if (typeof toolHintUsed === 'function') { const n = selNote(); if (n && n.it) toolHintUsed(n.it.id); }
+    row(byK(['title', 'head']), sep(), byK(['bold', 'italic', 'under', 'strike', 'mark', 'code']), sep(), byK(['clear'])),
+    row(byK(['bullet', 'num', 'check', 'quote']), sep(), byK(['outdent', 'indent']), sep(), byK(['line', 'date'])),
+    row(chip([swatch, el('span', {}, '▾')], src.filter(b => b.dataset.c).map(copy), 'sx-nm-cols'),
+      chip([paperName, el('span', {}, '▾')], src.filter(b => b.dataset.p).map(copy), 'sx-nm-papers'),
+      sep(), byK(['smaller', 'bigger', 'fit']), el('span', { class: 'sx-gap' }),
+      chip([el('span', {}, 'More'), el('span', {}, '▾')], more, 'sx-nm-more')));
+  noteMenu.hidden = false; noteMenuSync();
+  if (typeof toolHintUsed === 'function') { const n = selNote(); if (n && n.it) toolHintUsed(n.it.id); }
   const w = noteMenu.offsetWidth, h = noteMenu.offsetHeight;
   noteMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
   noteMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
