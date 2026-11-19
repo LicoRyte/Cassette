@@ -88,18 +88,28 @@ function tiedDraw() {
 }
 // the row fades at an edge that has more to scroll to
 function tiedEdges(row) { row = row || tiedBox.querySelector('.sx-tied-list'); if (!row) return; const max = row.scrollWidth - row.clientWidth; row.classList.toggle('more-l', row.scrollLeft > 4); row.classList.toggle('more-r', row.scrollLeft < max - 4); }
-// where the strip goes: beside the kept note on its right when there's room, else just above it; alone, in the middle
+// where the strip goes: beside the kept note, the two centred together as a pair, when there's room; else just above it;
+// alone, in the middle. The strip is as wide as its cards (up to what fits), and the kept note glides to where it now sits
 function tiedPlace() {
-  tiedBox.classList.remove('side', 'above', 'tiny'); tiedBox.style.width = ''; tiedBox.style.removeProperty('--ch');
-  if (tiedBox.hidden) return; requestAnimationFrame(() => tiedEdges());
-  if (keepBox.hidden) return;
-  const room = innerWidth / 2 - keepBox.offsetWidth / 2 - 28;
-  if (room < 300) { tiedBox.classList.add('above'); return; }
-  tiedBox.classList.add('side'); tiedBox.style.width = Math.min(room, 620) + 'px';
-  // side by side, the strip is as tall as the kept note (its cards shrink to fit, down to a title), so the two read as a pair
-  if (!keepBox.classList.contains('min') && !tiedBox.classList.contains('min')) {
-    const ch = Math.max(42, Math.min(112, keepBox.offsetHeight - tiedBox.querySelector('.sx-tied-h').offsetHeight - 16));
-    tiedBox.style.setProperty('--ch', ch + 'px'); tiedBox.classList.toggle('tiny', ch < 72); // (short: each card shows just its title)
+  const before = keepBox.hidden ? null : keepBox.getBoundingClientRect().left;
+  tiedBox.classList.remove('side', 'above', 'tiny'); tiedDock.classList.remove('pair');
+  tiedBox.style.width = ''; tiedBox.style.maxWidth = ''; tiedBox.style.removeProperty('--ch');
+  if (!tiedBox.hidden) requestAnimationFrame(() => tiedEdges());
+  if (!tiedBox.hidden && !keepBox.hidden) {
+    const room = innerWidth - 32 - keepBox.offsetWidth - 12;
+    if (room < 300) tiedBox.classList.add('above');
+    else {
+      tiedDock.classList.add('pair'); tiedBox.classList.add('side'); tiedBox.style.maxWidth = Math.min(room, 620) + 'px';
+      // side by side, the strip is as tall as the kept note (its cards shrink to fit, down to a title), so the two read as a pair
+      if (!keepBox.classList.contains('min') && !tiedBox.classList.contains('min')) {
+        const ch = Math.max(42, Math.min(112, keepBox.offsetHeight - tiedBox.querySelector('.sx-tied-h').offsetHeight - 16));
+        tiedBox.style.setProperty('--ch', ch + 'px'); tiedBox.classList.toggle('tiny', ch < 72); // (short: each card shows just its title)
+      }
+    }
+  }
+  if (before != null && !keepBox.hidden && !stillUI()) {
+    const dx = before - keepBox.getBoundingClientRect().left;
+    if (Math.abs(dx) > 2) keepBox.animate([{ transform: 'translateX(' + dx + 'px)' }, { transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2, .8, .2, 1)' });
   }
 }
 // the dock sits just above whatever is along the bottom (the bar for several picked things, or nothing)

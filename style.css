@@ -1727,9 +1727,10 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-bdock .sx-keep { position: relative; left: auto; bottom: auto; transform: none; transition: none; }
 
 /* tied to: a cream strip with the kept note's header, its cards in a row that scrolls sideways */
-.sx-tied { --ink: var(--k-ffffe4); width: min(620px, calc(100vw - 32px)); background: var(--k-030710); color: var(--k-ffffe4); border-radius: 3px 3px 6px 6px; box-shadow: 0 2px 0 color-mix(in srgb, var(--k-ffffe4) 14%, transparent), 0 10px 24px rgb(var(--shade) / .28); }
+.sx-tied { --ink: var(--k-ffffe4); width: max-content; min-width: 250px; max-width: min(620px, calc(100vw - 32px)); background: var(--k-030710); color: var(--k-ffffe4); border-radius: 3px 3px 6px 6px; box-shadow: 0 2px 0 color-mix(in srgb, var(--k-ffffe4) 14%, transparent), 0 10px 24px rgb(var(--shade) / .28); }
 .sx-tied[hidden] { display: none; }
-.sx-tied.side { position: absolute; left: calc(100% + 12px); bottom: 0; }
+.sx-bdock.pair { flex-direction: row; align-items: flex-end; gap: 12px; } /* (the kept note and the strip, centred together) */
+.sx-bdock.pair .sx-tied.side { position: relative; }
 .sx-tied.side .sx-tied-list { padding-block: 8px; }
 .sx-tied.side .sx-tied-list { scrollbar-width: none; } .sx-tied.side .sx-tied-list::-webkit-scrollbar { display: none; }
 .sx-tied-list.more-r { mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); } .sx-tied-list.more-l { mask-image: linear-gradient(90deg, transparent, #000 36px); }
