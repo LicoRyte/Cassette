@@ -1,6 +1,6 @@
 /* Cassie: ways to look at the clock. The mini deck (M, or Pop out in the bar): a small window that stays on
    top of your other apps, with the time, the side, the reels and the keys, so the timer is there while you study in
-   something else (Chrome and Edge; it uses Document Picture-in-Picture). Full-screen focus (F): only the clock, big,
+   something else (Chrome and Edge; it uses Document Picture-in-Picture). Full-screen focus: only the clock, big,
    with nothing else on the screen; the mouse pointer hides while it's still. F or Esc to come back. */
 'use strict';
 
@@ -66,19 +66,18 @@ async function miniOpen() {
   try { miniWin = await documentPictureInPicture.requestWindow({ width: 300, height: 190 }); } catch (e) { deskToast('Could not open the mini deck'); return; }
   const d = miniWin.document;
   d.head.append(Object.assign(d.createElement('style'), { textContent: MINI_CSS }));
-  d.body.innerHTML = '<div class="mini"><div class="mini-msg" role="status"></div><div class="mini-top"><b></b><span></span></div><div class="mini-mid"><span class="mini-reel">' + MINI_REEL + '</span><div class="mini-time"></div><span class="mini-reel">' + MINI_REEL + '</span></div><div class="mini-bar"><i></i></div><div class="mini-keys"><button type="button" data-k="go" aria-label="Start or pause"></button><button type="button" data-k="rew" aria-label="Rewind">' + MINI_ICON.rew + '</button><button type="button" data-k="next" aria-label="Next track" title="Next track (N)">' + MINI_ICON.next + '</button></div></div>'; // (fixed markup)
+  d.body.innerHTML = '<div class="mini"><div class="mini-msg" role="status"></div><div class="mini-top"><b></b><span></span></div><div class="mini-mid"><span class="mini-reel">' + MINI_REEL + '</span><div class="mini-time"></div><span class="mini-reel">' + MINI_REEL + '</span></div><div class="mini-bar"><i></i></div><div class="mini-keys"><button type="button" data-k="go" aria-label="Start or pause"></button><button type="button" data-k="rew" aria-label="Rewind">' + MINI_ICON.rew + '</button><button type="button" data-k="next" aria-label="Next track" title="Next track">' + MINI_ICON.next + '</button></div></div>'; // (fixed markup)
   d.querySelector('[data-k="go"]').addEventListener('click', () => startB.click());
   d.querySelector('[data-k="next"]').addEventListener('click', () => nextB.click());
   const mr = d.querySelector('[data-k="rew"]'); mr.addEventListener('pointerdown', () => rewStart()); ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => mr.addEventListener(k, rewStop)); // (held, like the big one)
-  d.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); startB.click(); } else if ((e.key === 'r' || e.key === 'R') && !e.repeat) rewStart(); else if ((e.key === 'n' || e.key === 'N') && !e.repeat) nextB.click(); });
-  d.addEventListener('keyup', e => { if (e.key === 'r' || e.key === 'R') rewStop(); });
+  d.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); startB.click(); } });
   miniWin.addEventListener('pagehide', () => { miniWin = null; miniB.classList.remove('on'); });
   miniB.classList.add('on'); miniDraw(); deskSfx('pick');
 }
 new MutationObserver(miniDraw).observe(timeText, { childList: true, characterData: true, subtree: true });
 new MutationObserver(miniDraw).observe(root, { attributes: true, attributeFilter: ['data-clock', 'data-mode'] });
 new MutationObserver(miniDraw).observe(document.documentElement, { attributes: true }); // (white or night desk, the key colour)
-const miniB = deskBtn('Mini', () => miniOpen(), '', 'A small clock that stays on top of your other windows (M)');
+const miniB = deskBtn('Mini', () => miniOpen(), '', 'A small clock that stays on top of your other windows');
 tapesB.after(miniB);
 
 /* ---------- full-screen focus: only the clock ---------- */
@@ -99,12 +98,10 @@ function fullSet(on) {
 function fullIdle() { document.body.classList.remove('sx-hidecur'); clearTimeout(fullT); if (fullOn) fullT = setTimeout(() => document.body.classList.add('sx-hidecur'), 2000); } // the pointer hides while it's still
 addEventListener('pointermove', () => { if (fullOn) fullIdle(); }, { passive: true });
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fullOn) fullSet(false); }); // (Esc left the browser's full screen)
-const fullB = deskBtn('Full', () => fullSet(!fullOn), '', 'Only the clock, full screen (F)');
+const fullB = deskBtn('Full', () => fullSet(!fullOn), '', 'Only the clock, full screen');
 miniB.after(fullB);
 
 addEventListener('keydown', e => {
   const t = e.target; if (e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea'))) || page && !page.hidden) return;
-  if (e.code === 'KeyF') { e.preventDefault(); e.stopPropagation(); fullSet(!fullOn); }
-  else if (e.code === 'KeyM') { e.preventDefault(); e.stopPropagation(); miniOpen(); }
-  else if (e.key === 'Escape' && fullOn) { e.preventDefault(); e.stopPropagation(); fullSet(false); }
+  if (e.key === 'Escape' && fullOn) { e.preventDefault(); e.stopPropagation(); fullSet(false); }
 }, true);

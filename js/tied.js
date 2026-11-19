@@ -4,7 +4,7 @@
    beside it on its right, the same height of header and the same bottom edge (on a narrow screen it sits just above it;
    with no kept note, it takes the middle). Click a copy and the desk glides to it (and it's picked: its own neighbours take
    their place, so you can walk along the strings); double-click to write in it. Pointing at one lights the card on the desk.
-   Back goes to the card you came from (like Alt+Backspace). The row scrolls sideways (the mouse wheel does it too), and
+   Back goes to the card you came from. The row scrolls sideways (the mouse wheel does it too), and
    – folds it to its header, like the kept note's. */
 'use strict';
 
@@ -34,11 +34,11 @@ function tiedCard(it, i) {
     el('i', { class: 'sx-tied-pin', 'aria-hidden': 'true' }));
   if (it.type === 'note') {
     const [, bg, ink] = noteColor(it), t = tiedText(it); card.style.setProperty('--paper', bg); card.style.setProperty('--ink', ink);
-    card.append(el('b', {}, t.head || 'An empty note'), t.rest ? el('span', {}, t.rest) : null);
+    card.append(...[el('b', {}, t.head || 'An empty note'), t.rest ? el('span', {}, t.rest) : null].filter(Boolean)); // (the page's own append writes a missing one as the word null)
     card.setAttribute('aria-label', 'Note: ' + (t.head || 'empty'));
   } else if (it.type === 'photo') {
     const src = (els.get(it.id).querySelector('img') || {}).currentSrc || '';
-    card.append(src ? el('img', { src, alt: '', draggable: 'false' }) : el('span', { class: 'sx-tied-none' }, 'Photo'), it.text ? el('span', { class: 'sx-tied-cap' }, String(it.text).slice(0, 60)) : null);
+    card.append(...[src ? el('img', { src, alt: '', draggable: 'false' }) : el('span', { class: 'sx-tied-none' }, 'Photo'), it.text ? el('span', { class: 'sx-tied-cap' }, String(it.text).slice(0, 60)) : null].filter(Boolean));
     card.setAttribute('aria-label', 'Photo' + (it.text ? ': ' + it.text : ''));
   } else if (it.type === 'tbl') {
     const rows = Array.isArray(it.rows) ? it.rows : [[]], head = (rows[0] || []).filter(Boolean).slice(0, 4).join(' · ');
@@ -79,10 +79,10 @@ function tiedDraw() {
   const fresh = tiedFor !== id; tiedFor = id;
   const foldB = el('button', { type: 'button', class: 'sx-keep-b', title: min ? 'Show the tied cards' : 'Fold it to its header', 'aria-label': min ? 'Show the tied cards' : 'Fold it to its header', 'aria-expanded': String(!min),
     onclick: () => { S.opts.tiedMin = !min; if (!S.opts.tiedMin) delete S.opts.tiedMin; save(); tiedSig = ''; tiedDraw(); } }, min ? '+' : '–');
-  const backB = back && el('button', { type: 'button', class: 'sx-keep-b sx-tied-back', title: 'Back to the card you came from (Alt+Backspace)', onclick: () => { const c = els.get(id); if (c) flowBack(c, false); } }, '← ', el('span', {}, tiedName(itemOf(back))));
+  const backB = back && el('button', { type: 'button', class: 'sx-keep-b sx-tied-back', title: 'Back to the card you came from', onclick: () => { const c = els.get(id); if (c) flowBack(c, false); } }, '← ', el('span', {}, tiedName(itemOf(back))));
   const head = el('div', { class: 'sx-keep-h sx-tied-h' }, el('i', { class: 'sx-tied-knot', 'aria-hidden': 'true' }), el('b', { class: 'sx-keep-n' }, 'Tied to'), el('span', { class: 'sx-tied-n' }, String(list.length)), el('span', { class: 'sx-gap' }), backB, foldB);
   const row = min ? null : el('div', { class: 'sx-tied-list' }, ...list.map(tiedCard)); if (row) row.addEventListener('scroll', () => tiedEdges(row), { passive: true });
-  tiedBox.replaceChildren(head, row);
+  tiedBox.replaceChildren(...[head, row].filter(Boolean));
   tiedBox.classList.toggle('min', min); tiedBox.hidden = false; tiedPlace();
   if (fresh && !stillUI()) animAgain(tiedBox, 'in');
 }

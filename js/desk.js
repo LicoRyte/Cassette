@@ -2,7 +2,7 @@
    around (or drag with the right mouse button), scroll to zoom, double-click anywhere to pin a note there, drop photos
    straight on (they hang whole, in their own shape: as Polaroids, taped prints or clipped sheets), and drag from a red pin onto something else to tie a string. Press D to draw
    (js/ui/draw-mode.js). Labels are light, named areas to keep a part of the desk tidy (they don't carry anything). Hoppers are folders that open another board (js/hopper.js).
-   Shift+drag on the empty desk (or Shift+click) picks several things; Ctrl+G groups them so they move together.
+   Shift+drag on the empty desk (or Shift+click) picks several things; Group, in the bar along the bottom, makes them move together.
    Ctrl+Z undoes, Ctrl+Shift+Z redoes. Bookmarks: Shift+1 to 9 on something picked; 1 to 9 glides there, 0 to the clock.
    Make as many boards as you like. Everything but the photos is saved with your game (S.board); photos live in the
    browser's picture storage (IndexedDB), shrunk so they never fill your save. */
@@ -20,6 +20,7 @@
   delete B.pos; // (story cards are gone with the stories)
   B.items = B.items.filter(it => it.type !== 'frame' && it.type !== 'draw' && it.type !== 'wb'); // (labels and drawings were here once)
   B.links = (Array.isArray(B.links) ? B.links : []).filter(l => l.every(id => B.items.some(it => it.id === id)));
+  B.items.forEach(it => delete it.key); // (the 1 to 9 bookmarks were here once)
   if (!B.gnames || typeof B.gnames !== 'object') B.gnames = {}; // a group's nickname, by its id
   // the old board was a page whose top-left corner was 0,0; on the desk the clock is at 0,0, so old things move off to the right
   if (!B.desk) { B.items.forEach(it => { it.x = (+it.x || 0) + 420; it.y = (+it.y || 0) - 260; }); B.desk = 1; }
@@ -187,7 +188,6 @@ const deskIcon = k => { const s = el('span', { class: 'sx-ic', 'aria-hidden': 't
   s.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="square" stroke-linejoin="miter">' + DESK_ICONS[k] + '</svg>'; return s; };
 const deskBtn = (label, fn, cls, title) => el('button', { type: 'button', class: 'sx-ws-b' + (cls ? ' ' + cls : ''), title: title || null, 'aria-label': title || null, onclick: e => { e.currentTarget.blur(); fn(e); } }, label);
 const deskFile = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
-const deskKeys = el('div', { class: 'sx-ws-keys', 'aria-label': 'Bookmarks' });
 const undoB = deskBtn(deskIcon('undo'), deskUndo, 'sx-ws-ic', 'Undo (Ctrl+Z)'), redoB = deskBtn(deskIcon('redo'), deskRedo, 'sx-ws-ic', 'Redo (Ctrl+Shift+Z)');
 function deskUndoState() { undoB.disabled = !undoS.length; redoB.disabled = !redoS.length; }
 // the board menu: boards, and saving or loading them
@@ -202,7 +202,7 @@ function deskBoardTools() { // the Boards button names the board you're on
 // what's picked: a count, and what you can do with several things at once
 const selCount = el('span', { class: 'sx-ws-n' });
 const delSelB = deskBtn(deskIcon('trash'), () => deskDelete(), 'sx-ws-ic sx-ws-del', 'Delete what is picked (Delete)');
-const grpB = deskBtn(deskIcon('group'), () => deskGroup(), 'sx-ws-ic', 'Group them, so they move together like one thing (Ctrl+G)'), ungrpB = deskBtn(deskIcon('ungroup'), () => deskUngroup(), 'sx-ws-ic', 'Ungroup (Ctrl+Shift+G)');
+const grpB = deskBtn(deskIcon('group'), () => deskGroup(), 'sx-ws-ic', 'Group them, so they move together like one thing'), ungrpB = deskBtn(deskIcon('ungroup'), () => deskUngroup(), 'sx-ws-ic', 'Ungroup');
 const deskSelGrp = el('div', { class: 'sx-ws-grp sx-ws-selg', hidden: true }, selCount, grpB, ungrpB, delSelB);
 const tableKey = deskBtn(deskIcon('table'), () => addTable(), 'sx-ws-ic', 'Table: rows and columns, and a graph of them (Bars, Line, Pie)');
 // the left side: a column of keys for making things, finding and undoing (the bar along the bottom holds what changes the thing you've picked)
@@ -219,7 +219,7 @@ const deskCtx = el('div', { class: 'sx-ws-bar sx-ws-ctx', role: 'toolbar', 'aria
 deskBar.after(deskCtx);
 deskBoardTools();
 // the top left, beside the ? key: the cassette, the views and your bookmarks (js/music.js and js/view.js add theirs)
-const deskTray = el('div', { class: 'sx-tray', role: 'toolbar', 'aria-label': 'Views and bookmarks' }, deskKeys);
+const deskTray = el('div', { class: 'sx-tray', role: 'toolbar', 'aria-label': 'Views' });
 deskBar.after(deskTray);
 deskUndoState();
 
@@ -268,7 +268,7 @@ async function deskDuplicate() { // Ctrl+D: a copy of what's picked, just beside
 function deskGroup() { if (picked.size < 2) return; deskMark(); const g = 'g' + Date.now(); picked.forEach(id => { const it = itemOf(id); if (it) it.group = g; }); save(); deskSfx('tie'); setTimeout(() => { gtagSync(); if (!gtag.hidden) { gtagT.focus(); const r = document.createRange(); r.selectNodeContents(gtagT); r.collapse(false); getSelection().removeAllRanges(); getSelection().addRange(r); } }, 0); deskSelBar(); deskToast('Grouped: they move together now'); }
 function deskUngroup() { if (![...picked].some(id => (itemOf(id) || {}).group)) return; deskMark(); picked.forEach(id => { const it = itemOf(id); if (it) { delete B_().gnames[it.group]; delete it.group; } }); save(); deskSfx('pick'); deskSelBar(); } // (they stay picked, just no longer tied together)
 /* ---------- a group's name: a small tag over the group's top left. Point at a card in a named group and its name shows;
-   pick the whole group and the tag is there to name or rename it (grouping with Ctrl+G starts you writing it) ---------- */
+   pick the whole group and the tag is there to name or rename it (grouping starts you writing it) ---------- */
 const gtagT = el('span', { class: 'sx-gtag-t', spellcheck: 'false', 'aria-label': 'Group name', 'data-ph': 'Name this group' });
 const gtag = el('div', { class: 'sx-gtag', hidden: true }, gtagT);
 world.append(gtag);
@@ -301,16 +301,6 @@ function deskDelete() { const ids = [...picked]; if (!ids.length) return; deskMa
 function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
 /* ---------- what's on the desk ---------- */
-function deskDrawKeys() {
-  const items = B_().items.filter(it => it.board === B_().cur && it.key).sort((a, b) => a.key - b.key);
-  deskKeys.replaceChildren(...items.map(it => { const b = deskBtn(String(it.key), () => glideToItem(it)); b.title = (it.text || { photo: 'A photo', hop: 'A folder', tbl: 'A table' }[it.type] || 'A note').slice(0, 60); return b; }));
-}
-function setKey(it, n) { // one number, one thing (on this board)
-  deskMark(); const had = it.key === n;
-  B_().items.forEach(x => { if (x.board === it.board && x.key === n) delete x.key; });
-  if (!had) it.key = n; save(); drawBoard();
-}
-const keyBadge = it => it.key ? el('span', { class: 'sx-bkey', title: 'Press ' + it.key + ' to come here' }, String(it.key)) : null;
 function removeOne(it) { deskMark(); deskSfx('pick'); removeItems([it.id]); picked.delete(it.id); if (selId === it.id) selId = null; save(); drawBoard(); }
 // a picture always shows whole, in its own shape; what it hangs in follows that shape: instant film for everyday ones
 // (square, wide for landscape, mini for tall), a print held up with two strips of tape for a long panorama, and a sheet
@@ -330,7 +320,7 @@ function paperCard(it) { // a note or a photo
     img.decoding = 'async'; img.loading = 'lazy';
     photoUrls(it.id).then(u => { if (!u) { img.alt = 'This photo is missing (it lives in the browser it was added in).'; return; }
       if (u.small) { img.srcset = u.small + ' ' + u.sw + 'w, ' + u.full + ' ' + u.w + 'w'; photoSizes(img, it); } img.src = u.small || u.full; drawStrings(); }).catch(() => {});
-    const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[el('i', { class: 'sx-pol-hold', 'aria-hidden': 'true' }), pin, x, keyBadge(it), el('div', { class: 'sx-pol-img' }, img), txt,
+    const c = el('div', { class: 'sx-bcard sx-polaroid', 'data-id': it.id, style }, ...[el('i', { class: 'sx-pol-hold', 'aria-hidden': 'true' }), pin, x, el('div', { class: 'sx-pol-img' }, img), txt,
       el('span', { class: 'sx-resize', title: 'Drag to make it bigger or smaller' })].filter(Boolean)); // (the tape or the clip it hangs by, when it has one)
     if (it.ar) polFormat(c, it.ar);
     img.addEventListener('load', () => { // the frame takes the photo's shape (measured once, then remembered)
@@ -340,7 +330,7 @@ function paperCard(it) { // a note or a photo
       if (age < 2600) { c.style.setProperty('--dev-at', -age + 'ms'); c.classList.add('sx-dev'); } });
     return c;
   }
-  const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, keyBadge(it), txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
+  const c = el('div', { class: 'sx-bcard sx-bnote', 'data-id': it.id, style }, ...[pin, x, txt].filter(Boolean)); noteSetup(it, txt, c); // a small document (js/ui/notes.js)
   return c;
 }
 // (versions 49 and 50 lost the place of anything dragged: those come back in a neat row near the middle of their board, to be put where they belong)
@@ -400,7 +390,7 @@ function drawBoard() {
   });
   layerTop = 0; items.forEach(it => { const c = els.get(it.id); if (!c) return; layerTop += 2; const z = String(layerTop); if (c.style.zIndex !== z) c.style.zIndex = z; }); // (stacked in the desk's order)
   czApply();
-  deskBoardTools(); deskDrawKeys(); noteBarTo(selId); deskSelBar();
+  deskBoardTools(); noteBarTo(selId); deskSelBar();
   requestAnimationFrame(() => { drawStrings(); selBoxUpdate(); });
   if (typeof gtagSync === 'function') gtagSync();
 }
@@ -792,18 +782,12 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyZ') { stop(); if (e.shiftKey) deskRedo(); else deskUndo(); }
     else if (e.code === 'KeyY') { stop(); deskRedo(); }
     else if (e.code === 'KeyA') { stop(); deskSelectAll(); }
-    else if (e.code === 'KeyG') { stop(); if (e.shiftKey) deskUngroup(); else deskGroup(); }
-    else if (e.code === 'KeyD' && !e.shiftKey) { stop(); deskDuplicate(); }
     return;
   }
   if (e.altKey || e.ctrlKey || e.metaKey) return;
   if ((e.key === 'Delete' || e.key === 'Backspace') && picked.size) { stop(); deskDelete(); return; }
   if (e.key === 'Enter' && !e.shiftKey && picked.size === 1 && deskWriteIn(selId)) { stop(); return; } // Enter: start writing in it, at the end
-  const m = /^Digit([0-9])$|^Numpad([0-9])$/.exec(e.code); if (!m) { if (e.key === 'Escape' && picked.size && !(typeof flowCyc !== 'undefined' && flowCyc)) select(null); return; }
-  const n = +(m[1] || m[2]); stop();
-  if (n === 0) { glideHome(); return; }
-  if (e.shiftKey) { const it = selId && itemOf(selId); if (it) setKey(it, n); return; }
-  const it = B_().items.find(x => x.board === B_().cur && x.key === n); if (it) glideToItem(it);
+  if (e.key === 'Escape' && picked.size) select(null);
 }, true);
 
 drawBoard(); placeCam(); camSettle();

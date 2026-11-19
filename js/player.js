@@ -21,22 +21,18 @@ TAPE_ICONS.prev = 'M21 6v12l-8-6zM13 6v12l-8-6zM2.5 6h2v12h-2z';
 Object.defineProperty(startB, 'textContent', { configurable: true, get: () => tapePlayLbl.textContent,
   set: v => { const act = v === 'Pause' ? 'pause' : 'play'; startB.dataset.act = act; const w = act === 'pause' ? 'Pause' : 'Play'; if (tapePlayLbl.textContent !== w) tapePlayLbl.textContent = w; } });
 startB.textContent = running ? 'Pause' : 'Start'; startB.title = 'Play or pause (Space)';
-// Prev: the track before, on the side that's playing (Shift+N)
+// Prev: the track before, on the side that's playing
 function musicPrev() {
   const s = sideNow(), n = M[s].length; if (!n) { deskToast('Nothing on ' + SIDE_NAME[s] + ' yet: add music in Tapes'); return; }
   if (!player.paused && player._side === s) { M.pos[s] = ((M.pos[s] || 0) - 2 + 2 * n) % n; player._xf = true; nextTrack(700); } // (it steps on by one from here: the track before fades in)
   else { M.pos[s] = ((M.pos[s] || 0) - 1 + n) % n; save(); musicDraw(); if (radioOn) musicSync(); } // (not playing: the one before is lined up; from a station, it changes over)
   const tr = M[s][(M.pos[s] || 0) % n]; if (tr) deskToast('◂ ' + tr.name);
 }
-const prevB = el('button', { type: 'button', class: 'btn', title: 'Previous track (Shift+N)', onclick: () => { tapeKeySound(resetB); plPress(prevB); musicPrev(); } }, 'Prev');
-resetB.after(prevB); tapeKey(prevB, ['prev'], 'Shift N');
-addEventListener('keydown', e => {
-  const t = e.target; if (e.code !== 'KeyN' || !e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || e.repeat || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea'))) || page && !page.hidden) return;
-  e.preventDefault(); e.stopPropagation(); prevB.click();
-}, true);
+const prevB = el('button', { type: 'button', class: 'btn', title: 'Previous track', onclick: () => { tapeKeySound(resetB); plPress(prevB); musicPrev(); } }, 'Prev');
+resetB.after(prevB); tapeKey(prevB, ['prev'], 'Track');
 // Rew and F.F: the keys that were there, under their deck names
 resetB.querySelector('.sx-tl').textContent = 'Rew';
-nextB.querySelector('.sx-tl').textContent = 'F.F'; nextB.title = 'Fast forward: the next track (N)';
+nextB.querySelector('.sx-tl').textContent = 'F.F'; nextB.title = 'Fast forward: the next track';
 // Reset: this part from the start, at once (no winding); pressed again, with the part already at its start, the whole
 // tape goes back to session 1
 const plResetB = el('button', { type: 'button', class: 'btn sx-reset-k', title: 'Reset: this part from the start (press again: the whole tape, back to session 1)', onclick: () => {

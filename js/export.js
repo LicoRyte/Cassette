@@ -36,7 +36,6 @@ function deskImportBackup(asSpace) {
     const items = d.items.filter(it => it && TYPES.includes(it.type) && bmap.has(it.board)).slice(0, 5000).map(it => {
       const id = String(it.id).replace(/[^\w-]/g, '').slice(0, 40) + tag; imap.set(it.id, id);
       const o = { id, type: it.type, board: bmap.get(it.board), x: num(it.x), y: num(it.y) };
-      if (it.key >= 1 && it.key <= 9) o.key = num(it.key);
       if (it.text) o.text = str(it.text, 2000);
       if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, NOTE_MAX)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; if (it.topic === true) o.topic = true; }
       if (it.type === 'tbl') Object.assign(o, tblClean(it));

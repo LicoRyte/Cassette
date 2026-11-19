@@ -113,7 +113,6 @@ function setMode(m) { mode = m; left = length(m); draw(); persistRun(); }
 function start() { if (running) return; notifyAsk(); if (left <= 0) left = length(mode); running = true; endAt = Date.now() + left; persistRun(); loop(); draw(); }
 function pause() { if (!running) return; left = remaining(); running = false; clearInterval(tickT); persistRun(); draw(); }
 function reset() { running = false; clearInterval(tickT); left = length(mode); persistRun(); draw(); }
-function skip() { running = false; clearInterval(tickT); S.fc.broken = true; if (mode === 'focus') toBreak(); else setMode('focus'); persistRun(); }
 function toBreak() { setMode(S.cycle > 0 && S.cycle % S.set.every === 0 ? 'long' : 'short'); }
 // it checks four times a second, but only redraws when the shown second changes (everything that watches the time wakes once a second)
 let loopSec = -1;

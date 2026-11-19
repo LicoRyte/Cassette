@@ -1,5 +1,5 @@
 /* Cassie: finding things, and keeping them safe.
-   Find (Ctrl+F, or Find in the bar): type a word and the camera flies to every note, caption and label that has it, on
+   Find (the Find key on the left): type a word and the camera flies to every note, caption and label that has it, on
    any board, with the words lit up where they are. Enter goes to the next one, Shift+Enter back, Esc closes.
    The backup reminder: everything lives in this browser only, so once a week (never in the middle of a focus session)
    a small card asks to save a backup file. Settings, Backup turns it off and shows when the last one was saved. */
@@ -62,18 +62,12 @@ findIn.addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); clearTimeout(findT); if (findIn.value.trim().toLowerCase() !== findQ) findRun(); else findStep(e.shiftKey ? -1 : 1); }
   else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); findClose(); }
 });
-// Ctrl+F opens it (pressed again while you're in it, the browser's own find opens instead)
-addEventListener('keydown', e => {
-  if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || (e.key || '').toLowerCase() !== 'f' && e.code !== 'KeyF') return;
-  if (!page.hidden || document.activeElement === findIn) return;
-  e.preventDefault(); e.stopPropagation(); findOpen();
-}, true);
 // the lit words follow the notes: when the desk is drawn again, or you write
 const drawBoardFind = drawBoard;
 drawBoard = function () { drawBoardFind.apply(this, arguments); if (!findBar.hidden && findQ) requestAnimationFrame(findMark); };
 { let t = 0; document.addEventListener('input', e => { if (findBar.hidden || !findQ || e.target === findIn) return; clearTimeout(t); t = setTimeout(findMark, 300); }); }
 // a key for it in the bar, beside Undo
-{ const b = deskBtn(deskIcon('find'), () => findBar.hidden ? findOpen() : findClose(), 'sx-ws-ic sx-ws-findb', 'Find on your boards (Ctrl+F)'); undoB.parentNode.before(el('div', { class: 'sx-ws-grp' }, b)); }
+{ const b = deskBtn(deskIcon('find'), () => findBar.hidden ? findOpen() : findClose(), 'sx-ws-ic sx-ws-findb', 'Find on your boards'); undoB.parentNode.before(el('div', { class: 'sx-ws-grp' }, b)); }
 
 /* ---------- the backup reminder ---------- */
 const BACKUP_DAY = 864e5;

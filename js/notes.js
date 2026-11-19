@@ -138,7 +138,6 @@ function noteRunAll(k) {
 }
 function noteKeys(e, t) {
   if (!t.classList.contains('sx-note-t') && !t.classList.contains('sx-keep-t')) return;
-  if (typeof flowKeys === 'function' && flowKeys(e, t)) return; // (Alt keys that make and visit tied cards: js/flow.js)
   if (e.key === 'Enter' && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing && typeof noteChain === 'function') { e.preventDefault(); noteChain(t, 'right'); return; }
   const k = noteShortcut(e);
   if (k) { e.preventDefault(); noteRun(k); return; }
@@ -163,7 +162,7 @@ const noteBar = el('div', { class: 'sx-fmt', role: 'toolbar', 'aria-label': 'For
     ...NOTE_COLORS.map(([k, bg]) => el('button', { type: 'button', class: 'sx-sw', 'data-c': k, title: k[0].toUpperCase() + k.slice(1), 'aria-label': k + ' paper', style: 'background:' + bg })),
     el('i', { class: 'sx-fsep' }),
     fbtn('smaller', 'A−', 'Smaller text'), fbtn('bigger', 'A+', 'Bigger text'), fbtn('fit', 'Fit', 'Fit the note to its words (drag the corner to size it yourself)'),
-    el('i', { class: 'sx-fsep' }), fbtn('keep', 'Keep', 'Keep on screen: this note stays at the bottom of the screen on every board (Alt+K)')));
+    el('i', { class: 'sx-fsep' }), fbtn('keep', 'Keep', 'Keep on screen: this note stays at the bottom of the screen on every board')));
 noteBar.addEventListener('mousedown', e => e.preventDefault()); // keep the pen (and the selection) in the note
 noteBar.addEventListener('pointerdown', e => e.stopPropagation());
 noteBar.addEventListener('click', e => {
@@ -204,7 +203,7 @@ const noteSetupPaper = noteSetup;
 noteSetup = function (it, txt, c) { noteSetupPaper(it, txt, c); delete it.fold; if (PAPER_WAS[it.paper]) it.paper = PAPER_WAS[it.paper]; paperSet(c, it); }; // (fold: from a version that could fold notes)
 // the paper, at the end of the toolbar's second row
 noteBar.lastElementChild.append(el('i', { class: 'sx-fsep' }), ...PAPERS.map(([k, n]) => el('button', { type: 'button', class: 'sx-fb sx-pp', 'data-p': k, title: n + ' paper', 'aria-label': n + ' paper' }, el('i', { class: 'sx-ppi', 'data-pi': k }), n)),
-  el('i', { class: 'sx-fsep' }), fbtn('dup', 'Duplicate', 'A copy of this note beside it (Ctrl+D)'), fbtn('del', 'Delete', 'Take this note away (Delete)', 'del'));
+  el('i', { class: 'sx-fsep' }), fbtn('dup', 'Duplicate', 'A copy of this note beside it'), fbtn('del', 'Delete', 'Take this note away (Delete)', 'del'));
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || !b.dataset.p) return; const n = selNote(); if (!n) return;
   e.stopImmediatePropagation(); deskMark(); n.it.paper = b.dataset.p; if (b.dataset.p === 'plain') delete n.it.paper; paperSet(n.c, n.it); deskSfx('pick'); save(); noteBarState();
@@ -224,7 +223,7 @@ noteMenu.addEventListener('pointerdown', e => e.stopPropagation());
 function noteMenuClose() { noteMenu.hidden = true; }
 function noteMenuSync() { // light up the same keys the bar has lit
   if (noteMenu.hidden) return; noteBarState();
-  const src = [...noteBar.querySelectorAll('button')]; noteMenu.querySelectorAll('button').forEach((b, i) => { if (src[i]) b.classList.toggle('on', src[i].classList.contains('on')); });
+  const src = [...noteBar.querySelectorAll('button')]; noteMenu.querySelectorAll('button[data-i]').forEach(b => { const s = src[+b.dataset.i]; if (s) b.classList.toggle('on', s.classList.contains('on')); });
 }
 noteMenu.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -234,9 +233,17 @@ noteMenu.addEventListener('click', e => {
 });
 function noteMenuOpen(x, y) {
   noteBarState();
-  const rows = [...noteBar.querySelectorAll('.sx-fmt-row')].map(r => r.cloneNode(true)); let i = 0;
-  rows.forEach(r => r.querySelectorAll('button').forEach(b => { b.dataset.i = i++; }));
-  noteMenu.replaceChildren(...rows); noteMenu.hidden = false; if (typeof toolHintUsed === 'function') { const n = selNote(); if (n && n.it) toolHintUsed(n.it.id); }
+  // the bar's keys, sorted under small labels: Text, Lists, Insert, and the Card itself (its colour, paper, size and what to do with it)
+  const src = [...noteBar.querySelectorAll('button')], copy = b => { const c = b.cloneNode(true); c.dataset.i = src.indexOf(b); return c; };
+  const byK = ks => ks.map(k => src.find(b => b.dataset.k === k)).filter(Boolean).map(copy);
+  const sec = (label, ...rows) => el('div', { class: 'sx-nm-sec' }, el('span', { class: 'sx-nm-l' }, label), el('div', { class: 'sx-nm-rows' }, ...rows.filter(r => r.children.length)));
+  const row = (...bs) => el('div', { class: 'sx-fmt-row' }, ...bs.flat());
+  const others = src.filter(b => b.dataset.k && !['title', 'head', 'bold', 'italic', 'under', 'strike', 'mark', 'code', 'bullet', 'num', 'check', 'quote', 'outdent', 'indent', 'line', 'date', 'clear', 'smaller', 'bigger', 'fit', 'topic', 'keep', 'dup', 'del'].includes(b.dataset.k)).map(copy); // (keys added by other files)
+  noteMenu.replaceChildren(
+    sec('Text', row(byK(['title', 'head', 'bold', 'italic', 'under', 'strike', 'mark', 'code']))),
+    sec('Lists', row(byK(['bullet', 'num', 'check', 'quote', 'outdent', 'indent']))),
+    sec('Insert', row(byK(['line', 'date', 'clear']))),
+    sec('Card', row(src.filter(b => b.dataset.c).map(copy)), row(src.filter(b => b.dataset.p).map(copy), byK(['smaller', 'bigger', 'fit'])), row(byK(['topic', 'keep']), others, byK(['dup', 'del'])))); noteMenu.hidden = false; if (typeof toolHintUsed === 'function') { const n = selNote(); if (n && n.it) toolHintUsed(n.it.id); }
   const w = noteMenu.offsetWidth, h = noteMenu.offsetHeight;
   noteMenu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
   noteMenu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';

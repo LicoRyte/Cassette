@@ -88,7 +88,7 @@ async function nextTrack(ms) { // on to the next track: it comes in underneath w
   if (isRadio(trackAt(s))) { stopEl(was, ms); radioPlay(trackAt(s), ms); musicDraw(); return; } // (the next one is a station)
   if (await startOn(other(was), s, ms)) stopEl(was, ms); musicDraw();
 }
-// skip to the next track on the side that's playing (N, the deck's Next key, the mini deck, the cassette)
+// on to the next track on the side that's playing (the deck's F.F key, the mini deck, the cassette)
 function musicNext() {
   const s = sideNow(); if (!M[s].length) { deskToast('Nothing on ' + SIDE_NAME[s] + ' yet: add music in Tapes'); return; }
   if (!player.paused && player._side === s) { player._xf = true; nextTrack(700); } // it fades into the next one
@@ -180,8 +180,27 @@ function libDelete(id) { // gone from this browser, and from every mixtape
   if (!/^r/.test(id)) MUSIC.del(id).catch(() => {}); mixApply();
 }
 function mixSwitch(id) { if (id === M.mix) return; M.mix = id; deskSfx('pin'); if (typeof tapeSound === 'function') tapeSound(); mixApply(true); }
-function mixNew() { const name = (prompt('Name the new mixtape:', 'Mixtape ' + (M.mixes.length + 1)) || '').trim().slice(0, 40); if (!name) return; const id = 'x' + Date.now(); M.mixes.push({ id, name, A: [], B: [] }); M.mix = id; mixApply(true); }
-function mixRename() { const mx = mixNow(), name = (prompt('Rename this mixtape:', mx.name) || '').trim().slice(0, 40); if (name) { mx.name = name; save(); musicDraw(); } }
+// naming in place (no pop-up box): the name becomes a text box right where it is; Enter keeps it, Esc (or clicking away) doesn't
+let musName = null; // { kind: 'new' | 'mix' | 'track', id, value }
+function mixNew() { musName = { kind: 'new', value: 'Mixtape ' + (M.mixes.length + 1) }; musicDraw(); }
+function mixRename() { musName = { kind: 'mix', value: mixNow().name }; musicDraw(); }
+function musNameDone(keep) {
+  const n = musName; musName = null; if (!n) return; const v = String(n.value || '').trim();
+  if (keep && v) {
+    if (n.kind === 'new') { const id = 'x' + Date.now(); M.mixes.push({ id, name: v.slice(0, 40), A: [], B: [] }); M.mix = id; mixApply(true); return; }
+    if (n.kind === 'mix') { mixNow().name = v.slice(0, 40); save(); }
+    if (n.kind === 'track') { const t = libOf(n.id); if (t) { t.name = v.slice(0, 80); mixApply(); return; } }
+  }
+  musicDraw();
+}
+function musNameBox(cls, label) { // the box for whatever is being named (it keeps its words and the pen if the drawer redraws)
+  const inp = el('input', { class: 'sx-mus-name ' + (cls || ''), type: 'text', value: musName.value, 'aria-label': label, spellcheck: 'false', maxlength: musName.kind === 'track' ? '80' : '40' });
+  inp.addEventListener('input', () => { if (musName) musName.value = inp.value; });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); musNameDone(true); } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); musNameDone(false); } });
+  inp.addEventListener('blur', () => setTimeout(() => { if (musName && !tapesMusic.querySelector('.sx-mus-name:focus')) musNameDone(true); }, 0));
+  setTimeout(() => { if (!inp.isConnected) return; const fresh = document.activeElement !== inp; inp.focus({ preventScroll: true }); if (fresh && !inp._sel) { inp.select(); inp._sel = true; } }, 0);
+  return inp;
+}
 function mixDelete() { if (M.mixes.length < 2) return; M.mixes = M.mixes.filter(m => m.id !== M.mix); M.mix = M.mixes[0].id; mixApply(true); } // (the files stay in your music)
 async function libLengths() { // tracks from before lengths were kept: measure them once
   let changed = false;
@@ -192,7 +211,7 @@ async function libLengths() { // tracks from before lengths were kept: measure t
 /* ---------- the cassette: your music and the mixtape, side by side ---------- */
 const tapesMusic = el('div', { class: 'sx-mus' });
 const tapesGrip = el('div', { class: 'sx-tapes-grip' }, el('i', { class: 'sx-hole' }), el('span', {}, 'Cassette'), el('i', { class: 'sx-hole' }));
-const tapesSave = el('button', { type: 'button', class: 'sx-ws-b sx-tapes-save', title: 'Save cassette and put it away (T or Esc)', onclick: () => tapesOpen(null) }, 'Save cassette');
+const tapesSave = el('button', { type: 'button', class: 'sx-ws-b sx-tapes-save', title: 'Save cassette and put it away (Esc)', onclick: () => tapesOpen(null) }, 'Save cassette');
 const tapesDrawer = el('div', { class: 'sx-tapes sx-dock', role: 'dialog', 'aria-label': 'Tapes', hidden: true },
   tapesGrip, tapesMusic, el('div', { class: 'sx-tapes-f' }, el('i', { class: 'sx-screw' }), tapesSave, el('i', { class: 'sx-screw' })));
 document.body.append(tapesDrawer); // a panel under the keys at the top left (it used to sit on the desk)
@@ -203,13 +222,11 @@ function tapesOpen(k) {
   if (was) deskSfx('pick');
   musicDraw();
 }
-const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Your music and mixtapes (T)');
+const tapesB = deskBtn('Tapes', () => tapesOpen(tapesDrawer.hidden ? true : null), '', 'Your music and mixtapes');
 deskTray.prepend(tapesB);
 addEventListener('keydown', e => {
   const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || e.ctrlKey || e.metaKey || e.altKey) return;
-  if (e.code === 'KeyT') { e.preventDefault(); e.stopPropagation(); tapesOpen(tapesDrawer.hidden ? true : null); }
-  else if ((e.code === 'KeyN' || (e.key || '').toLowerCase() === 'n') && !e.shiftKey && !e.repeat) { e.preventDefault(); e.stopPropagation(); nextB.click(); }
-  else if (e.key === 'Escape' && !tapesDrawer.hidden) { e.preventDefault(); e.stopPropagation(); tapesOpen(null); }
+  if (e.key === 'Escape' && !tapesDrawer.hidden) { e.preventDefault(); e.stopPropagation(); tapesOpen(null); }
 }, true);
 
 let musicDrag = null; // what's being dragged: { from: 'A' | 'B' | 'L', i }
@@ -237,8 +254,9 @@ function musicDraw() {
   const vol = el('input', { type: 'range', min: 0, max: 100, value: Math.round(M.vol * 100), 'aria-label': 'Music volume' });
   vol.addEventListener('input', () => { M.vol = vol.value / 100; if (!player.paused) { clearInterval(player._ft); player.volume = M.vol * duck; } if (!radioEl.paused) { clearInterval(radioEl._ft); radioEl.volume = rvol(); } save(); });
   // the mixtape in the deck
-  const pick = el('select', { 'aria-label': 'Mixtape in the deck' }, ...M.mixes.map(m => el('option', { value: m.id, selected: m.id === mx.id || null }, m.name)));
-  pick.addEventListener('change', () => mixSwitch(pick.value));
+  const naming = musName && (musName.kind === 'new' || musName.kind === 'mix');
+  const pick = naming ? musNameBox('sx-mus-mixname', musName.kind === 'new' ? 'Name of the new mixtape' : 'New name for this mixtape') : el('select', { 'aria-label': 'Mixtape in the deck' }, ...M.mixes.map(m => el('option', { value: m.id, selected: m.id === mx.id || null }, m.name)));
+  if (!naming) pick.addEventListener('change', () => mixSwitch(pick.value));
   const mixRow = el('div', { class: 'sx-mixrow' }, pick,
     el('div', { class: 'sx-mix-acts' }, el('button', { type: 'button', class: 'sx-mini-b', title: 'A new, empty mixtape', onclick: mixNew }, 'New'), el('button', { type: 'button', class: 'sx-mini-b', title: 'Rename this mixtape', onclick: mixRename }, 'Rename'),
       M.mixes.length > 1 ? armBtn('Delete', 'Sure?', mixDelete, 'sx-mini-b') : null));
@@ -263,7 +281,8 @@ function musicDraw() {
     el('button', { type: 'button', class: 'sx-add-b', title: 'Add to Side A', onclick: () => { mx.A.push(t.id); deskSfx('pin'); mixApply(); } }, '+A'),
     el('button', { type: 'button', class: 'sx-add-b sx-add-bb', title: 'Add to Side B', onclick: () => { mx.B.push(t.id); deskSfx('pin'); mixApply(); } }, '+B'),
     armBtn('🗑', 'Delete?', () => libDelete(t.id), 'sx-trk-del')); dragRow(li, 'L', i);
-    li.querySelector('.sx-trk-n').addEventListener('dblclick', () => { const n = (prompt('Rename this track:', t.name) || '').trim().slice(0, 80); if (n) { t.name = n; mixApply(); } });
+    if (musName && musName.kind === 'track' && musName.id === t.id) li.querySelector('.sx-trk-n').replaceWith(musNameBox('sx-mus-trkname', 'New name for this track'));
+    else li.querySelector('.sx-trk-n').addEventListener('dblclick', () => { musName = { kind: 'track', id: t.id, value: t.name }; musicDraw(); });
     return li; }));
   const libBox = el('section', { class: 'sx-mcol sx-libbox' },
     el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Your music'), el('span', { class: 'sx-store' }, M.lib.length + (M.lib.length === 1 ? ' track' : ' tracks')),
@@ -274,7 +293,7 @@ function musicDraw() {
   dropZone(libBox, null, 'L');
   if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(est => { const st = libBox.querySelector('.sx-store'); if (st && est.usage) st.textContent += ' (' + Math.round(est.usage / 1048576) + ' MB used)'; }).catch(() => {});
   const mixBox = el('section', { class: 'sx-mcol sx-mixbox' },
-    el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Mixtape'), el('span', { class: 'sx-gap' }), el('button', { type: 'button', class: 'sx-mini-b sx-nextb', title: 'Next track (N)', 'aria-label': 'Next track', onclick: () => musicNext() }, '⏭'), onB, el('label', { class: 'sx-mus-vol', title: 'Volume' }, vol)),
+    el('div', { class: 'sx-mcol-h' }, el('b', {}, 'Mixtape'), el('span', { class: 'sx-gap' }), el('button', { type: 'button', class: 'sx-mini-b sx-nextb', title: 'Next track', 'aria-label': 'Next track', onclick: () => musicNext() }, '⏭'), onB, el('label', { class: 'sx-mus-vol', title: 'Volume' }, vol)),
     el('div', { class: 'sx-mcol-b' }, mixRow, side('A'), side('B')),
     el('p', { class: 'sx-mus-note' }, 'Plays only while the timer runs. Drag to reorder, move between sides, or off.'));
   tapesMusic.replaceChildren(typeof radioOpen !== 'undefined' && radioOpen ? radioPane() : libBox, mixBox);

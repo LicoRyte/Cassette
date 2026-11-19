@@ -228,7 +228,7 @@ drawBoard = function () {
 /* ---------- the Room key (top right, js/chrome.js) and its panel ---------- */
 const roomN = el('span', { class: 'sx-mem-n', hidden: true });
 const roomB = deskBtn('Room', () => roomPanel.hidden ? roomOpen() : roomClose(), 'sx-room-key', 'A room with friends: send each other notes, photos and tables');
-roomB.append(roomN); deskKeys.before(roomB);
+roomB.append(roomN); deskTray.append(roomB);
 const roomPanel = el('div', { class: 'sx-mem sx-room', hidden: true, role: 'dialog', 'aria-label': 'Room' });
 document.body.append(roomPanel);
 function roomOpen() { roomPanel.hidden = false; roomB.classList.add('on'); roomDraw(); requestAnimationFrame(() => roomPanel.classList.add('on')); deskSfx('pick'); }
@@ -237,15 +237,6 @@ const roomNameI = el('input', { class: 'sx-room-i', type: 'text', maxlength: 24,
 let roomNameT = 0; roomNameI.addEventListener('input', () => { ROOM.name = roomNameI.value.slice(0, 24); save(); clearTimeout(roomNameT); roomNameT = setTimeout(() => { if (roomSay) roomSay(roomHello()); }, 600); });
 const roomMsgI = el('input', { class: 'sx-talk-i', type: 'text', maxlength: ROOM_MSG_LEN, placeholder: 'Say something...', 'aria-label': 'A message to friends', enterkeyhint: 'send' });
 roomMsgI.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); if (roomTalk(roomMsgI.value)) roomMsgI.value = ''; } else if (e.key === 'Escape') { e.preventDefault(); roomMsgI.blur(); } });
-// "/" anywhere (except while writing in something): straight into the message box
-addEventListener('keydown', e => {
-  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
-  const t = e.target; if (t && (t.isContentEditable || (t.closest && t.closest('input, textarea, select')))) return;
-  if (page && !page.hidden) return;
-  e.preventDefault(); e.stopPropagation();
-  if (roomTalkBox.hidden) { deskToast(room ? 'Nobody else is in the room yet' : 'Join a room with friends to chat (Room, at the top right)'); return; }
-  roomMsgI.focus(); roomMsgI.select();
-}, true);
 function roomTalkDraw() { // the box shows while you're in a room with someone; with two or more, who it's to
   const online = room ? roomOnline() : [], show = online.length > 0; roomTalkBox.hidden = !show; if (!show) return;
   if (roomMsgTo && !online.some(([pid]) => pid === roomMsgTo)) roomMsgTo = null;
@@ -294,7 +285,7 @@ function roomDraw(focusName) {
             clearTimeout(armT); ROOM.block.push({ id: p.id, name: p.name }); save(); deskToast('Blocked ' + p.name + ': their cards and messages won\'t reach you'); roomDraw(); roomSendState(); } }, roomSvg(ROOM_ICON.ban), el('span', {}, ''));
           return el('li', {}, roomAv(p), el('b', {}, p.name), ban); }))
       : el('p', { class: 'sx-rp-empty' }, 'Nobody yet. Send them the code.')));
-    if (online.length) parts.push(sec('', el('div', { class: 'sx-rp-hint' }, el('kbd', {}, '/'), 'chat with them'),
+    if (online.length) parts.push(sec('', el('div', { class: 'sx-rp-hint' }, 'Chat with them in the line at the top'),
       el('div', { class: 'sx-rp-hint' }, el('kbd', {}, '\u2197'), 'pick a card, then Send to'),
       el('div', { class: 'sx-rp-mini' }, el('code', {}, roomCode), el('button', { type: 'button', class: 'sx-rp-icon', title: 'Copy the room code', 'aria-label': 'Copy the room code', onclick: roomCopy }, roomSvg(ROOM_ICON.copy)))));
     const me = roomEditName || !(ROOM.name || '').trim() ? roomNameI

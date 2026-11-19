@@ -3,9 +3,8 @@
      only blinks once you stop
    - the line you're typing stays in view: in a long note the paper scrolls under it, and near the edge of the screen the
      desk glides along
-   - while writing in a note: Shift+Enter or Alt+W/A/S/D a new tied note that way (and you write on in it), Alt+P a photo
-     tied beside it, a pasted picture tied to it, Alt+Backspace back to the note you came from (the cards tied to it are in a column
-     at the left: js/tied.js) */
+   - while writing in a note: Shift+Enter a new note tied to it, on its right (and you write on in it); a pasted picture tied
+     to it (the cards tied to it are in the strip along the bottom: js/tied.js) */
 'use strict';
 
 const FLOW_PAPER = '.sx-note-t, .sx-cap-t';
@@ -59,9 +58,8 @@ function flowAfterType(box) {
   if (dx || dy) glideTo(cam.x + dx / cam.z, cam.y + dy / cam.z, cam.z, true);
 }
 
-/* ---------- making tied cards while you write: Shift+Enter or Alt+D a note to the right, Alt+A left, Alt+W above, Alt+S
-   below (and you're writing in it); Alt+P a photo beside the note, and a picture pasted while you write, tied to it (you
-   stay where you were). New cards are added on their own, without drawing the whole desk again ---------- */
+/* ---------- making tied cards while you write: Shift+Enter a note to the right (and you're writing in it); a picture pasted
+   while you write, tied to it (you stay where you were). New cards are added on their own, without drawing the whole desk again ---------- */
 function flowAddCard(it) {
   B_().items.push(it); const c = cardMade(paperCard(it), it); els.set(it.id, c); layer.append(c); layerTop += 2; c.style.zIndex = String(layerTop); return c;
 }
@@ -105,24 +103,8 @@ async function flowPhotos(files, card, write = true) {
   if (txt && txt.isConnected) { txt.focus({ preventScroll: true }); if (keep) { s.removeAllRanges(); s.addRange(keep); } flowSoon(true); } // (back to writing, where you were)
   return k;
 }
-const flowPick = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
-document.body.append(flowPick);
-let flowPickCard = null, flowPickRange = null, flowPickWrite = true;
-function flowPickPhoto(t, write = true) {
-  flowPickWrite = write; flowPickCard = t.closest('.sx-bcard'); const s = getSelection(); flowPickRange = s.rangeCount ? s.getRangeAt(0).cloneRange() : null;
-  flowPick.value = ''; flowPick.click();
-}
-function flowPickBack() { // the picker closed without a photo: back to writing
-  const c = flowPickCard; flowPickCard = null; if (c && !flowPickWrite) { if (c.isConnected) select(c.dataset.id); return; }
-  const txt = c && c.isConnected && c.querySelector('.sx-note-t'); if (!txt) return;
-  txt.focus({ preventScroll: true }); if (flowPickRange) { const s = getSelection(); s.removeAllRanges(); s.addRange(flowPickRange); } flowSoon(true);
-}
-flowPick.addEventListener('change', () => { const c = flowPickCard; flowPickCard = null; if (!c || !flowPick.files.length) { flowPickBack(); return; }
-  const s = getSelection(); const txt = flowPickWrite && c.querySelector('.sx-note-t'); if (txt) { txt.focus({ preventScroll: true }); if (flowPickRange) { s.removeAllRanges(); s.addRange(flowPickRange); } }
-  flowPhotos(flowPick.files, c, flowPickWrite); });
-flowPick.addEventListener('cancel', flowPickBack);
 
-/* ---------- Alt+Backspace: back to the card you came from (writing: with the pen where you left it); again, and further back ---------- */
+/* ---------- the trail: the cards you've been on, so Back (in the Tied to strip, js/tied.js) goes to the one you came from; again, further back ---------- */
 const flowTrail = [], flowAt = new Map(); let flowCur = null, flowBacking = false; // (the cards you've been on, picked or written in, oldest first; where the pen was in each note)
 function flowVisit(id) { if (!id || id === flowCur) return; if (flowCur && !flowBacking) { flowTrail.push(flowCur); if (flowTrail.length > 60) flowTrail.shift(); } flowCur = id; flowBacking = false; }
 { const select0 = select; select = function (...a) { const r = select0.apply(this, a); if (picked.size === 1 && selId) flowVisit(selId); return r; }; } // (picking one card counts as being on it)
@@ -143,37 +125,6 @@ function flowBack(t, write = true) {
   const it = itemOf(id); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true, () => flowSoon(true)); flowSoon(true); deskSfx('pick');
 }
 
-
-/* ---------- the keys, while writing in a note (js/notes.js asks here first); with a card picked, at the end ---------- */
-const FLOW_DIRS = { KeyW: 'up', KeyA: 'left', KeyS: 'down', KeyD: 'right' };
-function flowKeys(e, t) {
-  if (!e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return false;
-  const k = e.code;
-  if (FLOW_DIRS[k]) { e.preventDefault(); if (!e.repeat) noteChain(t, FLOW_DIRS[k]); return true; }
-  if (k === 'KeyP') { e.preventDefault(); if (!e.repeat) flowPickPhoto(t); return true; }
-  if (k === 'Backspace') { e.preventDefault(); if (!e.repeat) flowBack(t); return true; }
-  return false;
-}
-// the browser's own Alt keys (the address bar, the menus) don't fire while you write on the desk's paper
-addEventListener('keydown', e => { if (e.altKey && !e.ctrlKey && /^(Key[WASDP]|Backspace)$/.test(e.code) && flowBox()) e.preventDefault(); }, true);
-// Alt+Left / Alt+Right: the pen jumps a word at a time (Shift too: selects as it goes), instead of the browser going Back
-addEventListener('keydown', e => {
-  if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || !flowBox()) return;
-  e.preventDefault(); e.stopPropagation();
-  const s = getSelection(); if (s.modify) s.modify(e.shiftKey ? 'extend' : 'move', e.key === 'ArrowLeft' ? 'backward' : 'forward', 'word');
-}, true);
-
-// the same keys with a card picked, not writing in it: Alt+W/A/S/D a tied note that way (and you're writing in it), Alt+P a
-// tied photo beside it (it stays picked), Alt+Backspace back to the card you were on before (picked)
-addEventListener('keydown', e => {
-  if (!e.altKey || e.ctrlKey || e.metaKey || flowBox() || !/^(Key[WASDP]|Backspace)$/.test(e.code)) return;
-  const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return;
-  const c = selId && picked.size === 1 && els.get(selId); if (!c) return;
-  e.preventDefault(); e.stopPropagation(); if (e.repeat) return;
-  if (FLOW_DIRS[e.code]) noteChain(c, FLOW_DIRS[e.code]);
-  else if (e.code === 'KeyP') flowPickPhoto(c, false);
-  else flowBack(c, false);
-}, true);
 
 // while you write on the desk's paper, the strings let clicks through to it (no cutting or plucking one by accident)
 const flowWriting = () => world.classList.toggle('writing', !!flowBox());

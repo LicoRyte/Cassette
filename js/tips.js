@@ -10,16 +10,16 @@ document.body.append(tipBox);
 let tipOn = null;
 // the keys whose titles are a bare phrase get a name and a line on what they do
 const TIP_WORDS = {
-  'Find on your boards (Ctrl+F)': 'Find: words on any of your boards (Ctrl+F)',
+  'Find on your boards': 'Find: words on any of your boards',
   'Undo (Ctrl+Z)': 'Undo: take back the last change (Ctrl+Z)',
   'Redo (Ctrl+Shift+Z)': 'Redo: put it back again (Ctrl+Shift+Z)',
   'Settings': 'Settings: the timer, sounds, the look and the desk',
   'How it works (?)': 'How it works: every key and gesture (?)',
-  'Your music and mixtapes (T)': 'Tapes: your music and mixtapes (T)',
-  'A small clock that stays on top of your other windows (M)': 'Mini: a small deck that stays on top of your other windows (M)',
-  'Only the clock, full screen (F)': 'Full: only the clock, full screen (F)',
-  'Group them, so they move together like one thing (Ctrl+G)': 'Group: they move together like one thing (Ctrl+G)',
-  'Ungroup (Ctrl+Shift+G)': 'Ungroup: each moves on its own again (Ctrl+Shift+G)',
+  'Your music and mixtapes': 'Tapes: your music and mixtapes',
+  'A small clock that stays on top of your other windows': 'Mini: a small deck that stays on top of your other windows',
+  'Only the clock, full screen': 'Full: only the clock, full screen',
+  'Group them, so they move together like one thing': 'Group: they move together like one thing',
+  'Ungroup': 'Ungroup: each moves on its own again',
   'Delete what is picked (Delete)': 'Delete: what is picked (Delete)',
   'A room with friends: send each other notes, photos, tables and labels, and messages': 'Room: send friends notes, photos, tables, labels and messages',
   'You, and the room': 'You: your name, your picture and the room panel',

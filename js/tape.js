@@ -31,9 +31,9 @@ function tapeKey(btn, icons, hint) {
 }
 const tapePlayLbl = tapeKey(startB, ['play', 'pause'], 'Space');
 tapeKey(resetB, ['rew'], 'R');
-// Next: the next track on the side that's playing (N)
-const nextB = el('button', { type: 'button', class: 'btn', title: 'Next track (N)', onclick: () => { tapeKeySound(resetB); musicNext(); } }, 'Next');
-resetB.after(nextB); tapeKey(nextB, ['next'], 'N');
+// Next: the next track on the side that's playing
+const nextB = el('button', { type: 'button', class: 'btn', title: 'Next track', onclick: () => { tapeKeySound(resetB); musicNext(); } }, 'Next');
+resetB.after(nextB); tapeKey(nextB, ['next'], 'Track');
 startB.classList.add('go');
 // the timer writes the button's words (Start, Pause, Resume...); they go to the label, and the icon follows
 Object.defineProperty(startB, 'textContent', {
@@ -161,15 +161,9 @@ function rewStop() {
 resetB.addEventListener('pointerdown', e => { if (e.button === 0 && !resetB.disabled) rewStart(); });
 ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => resetB.addEventListener(k, rewStop));
 resetB.addEventListener('click', e => { e.stopImmediatePropagation(); e.preventDefault(); }, true); // (a press never starts the part over: only holding winds it back)
-// R works the same: hold it to wind back (Shift+R is the whole tape)
-addEventListener('keydown', e => {
-  const t = e.target; if (e.code !== 'KeyR' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea'))) || page && !page.hidden) return;
-  e.preventDefault(); e.stopPropagation(); if (!e.repeat) rewStart();
-}, true);
-addEventListener('keyup', e => { if (e.code === 'KeyR') rewStop(); }, true);
 addEventListener('blur', rewStop);
 resetB.title = 'Hold to wind the time back (R works too)';
-const rewHint = resetB.querySelector('.sx-th'); if (rewHint) rewHint.textContent = 'Hold R';
+const rewHint = resetB.querySelector('.sx-th'); if (rewHint) rewHint.textContent = 'Hold';
 /* ---------- each key sounds like itself: Play latches, Pause pops back up, Rewind whirrs ---------- */
 function tapeKeySound(b) {
   if (!feelSoundOn()) return; const c = feelCtx(); if (!c) return; const t = c.currentTime;

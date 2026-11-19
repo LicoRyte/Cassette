@@ -41,7 +41,7 @@ function tblCard(it) {
     el('button', { type: 'button', class: k === it.view ? 'on' : null, role: 'radio', 'aria-checked': String(k === it.view), 'data-v': k, title: name, 'aria-label': name, onclick: e => { e.stopPropagation(); tblView(it, k); } }, icon(d))));
   const c = el('div', { class: 'sx-bcard sx-btbl', 'data-id': it.id, 'data-view': it.view, style: 'left:' + it.x + 'px;top:' + it.y + 'px;width:' + it.w + 'px;--tilt:0deg' },
     ...[el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' }), el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Take the table down', onclick: () => removeOne(it) }, '×'),
-      keyBadge(it), tabs, el('div', { class: 'sx-tbl-in' }, tblBody(it)), el('span', { class: 'sx-resize', title: 'Drag to make it wider or narrower' })].filter(Boolean));
+      tabs, el('div', { class: 'sx-tbl-in' }, tblBody(it)), el('span', { class: 'sx-resize', title: 'Drag to make it wider or narrower' })].filter(Boolean));
   c.addEventListener('input', e => { const t = e.target.closest && e.target.closest('.sx-tc'); if (!t) return;
     it.rows[+t.dataset.r][+t.dataset.c] = t.innerText.replace(/\n+/g, ' ').slice(0, 200); save(); tblLive(it, c); });
   c.addEventListener('focusin', e => { const t = e.target.closest && e.target.closest('.sx-tc'); if (t) tblCur = { id: it.id, r: +t.dataset.r, c: +t.dataset.c }; });

@@ -1,8 +1,8 @@
-/* Cassie: a note kept on screen. Alt+K (writing in a note, or with it picked), or Keep in a note's toolbar, keeps
+/* Cassie: a note kept on screen. Keep, in a note's right-click panel, keeps
    that note at the bottom of the screen on every board: a slim strip of its own paper showing its title and a few lines
    (it scrolls inside, so even a long note never covers the desk). Writing in the strip is writing in the note itself, and
    the other way round. Its header: Go to (the note, on whichever board it is), fold it to just its title, or let it go.
-   One note at a time: keeping another one swaps it; Alt+K on the kept note lets it go. */
+   One note at a time: keeping another one swaps it; Keep again (or × on the strip) lets it go. */
 'use strict';
 
 const keepT = el('div', { class: 'sx-keep-t', contenteditable: 'true', spellcheck: 'false', 'aria-label': 'The kept note', 'data-ph': 'Write something...' });
@@ -12,7 +12,7 @@ const keepFoldB = keepBtn('–', 'Fold it to its title', () => { S.board.keepMin
 const keepBox = el('section', { class: 'sx-keep', role: 'region', 'aria-label': 'Kept note', hidden: true },
   el('div', { class: 'sx-keep-h' }, el('i', { class: 'sx-keep-pin', 'aria-hidden': 'true' }), keepTitle, el('span', { class: 'sx-gap' }),
     keepBtn('Go to', 'Go to the note', () => { const id = S.board.keep; if (id) deskGoTo(id); }), keepFoldB,
-    keepBtn('×', 'Stop keeping it on screen (Alt+K)', () => keepSet(null))),
+    keepBtn('×', 'Stop keeping it on screen', () => keepSet(null))),
   keepT);
 document.body.append(keepBox);
 keepBox.addEventListener('pointerdown', e => e.stopPropagation());
@@ -22,7 +22,7 @@ function keepSet(id) { // keep this note on screen (null: none)
   const was = S.board.keep; if (document.activeElement === keepT) keepT.blur(); // (writing in the strip: the pen comes out first)
   S.board.keep = id && id !== was ? id : null; if (!S.board.keep) delete S.board.keep;
   save(); keepDraw(true); deskSfx('pin'); if (typeof noteBarState === 'function') noteBarState(); setTimeout(keepPlace, 220);
-  if (S.board.keep) deskToast('Kept on screen: it stays at the bottom, on every board (Alt+K lets it go)'); else if (was) deskToast('No longer kept on screen');
+  if (S.board.keep) deskToast('Kept on screen: it stays at the bottom, on every board'); else if (was) deskToast('No longer kept on screen');
 }
 function keepToggle(id) { keepSet(S.board.keep === id ? null : id); }
 
@@ -66,15 +66,6 @@ keepT.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefa
 // and writing in the note's card shows in the strip
 document.addEventListener('input', e => { const t = e.target; if (!t.matches || !t.matches('.sx-note-t') || t === keepT) return; const c = t.closest('.sx-bcard'); if (c && c.dataset.id === S.board.keep) keepDraw(); });
 
-// Alt+K: keep the note you're writing in (or the picked one) on screen; on the kept one, let it go
-addEventListener('keydown', e => {
-  if (!e.altKey || e.ctrlKey || e.metaKey || e.code !== 'KeyK' || e.repeat) return;
-  const a = document.activeElement, card = a && a.isContentEditable && a.matches('.sx-note-t') && a.closest('.sx-world .sx-bcard');
-  let id = card ? card.dataset.id : null;
-  if (!id) { const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return; const it = selId && picked.size === 1 && itemOf(selId); if (it && it.type === 'note') id = it.id; }
-  if (a === keepT) id = S.board.keep;
-  if (!id) return; e.preventDefault(); e.stopPropagation(); keepToggle(id);
-}, true);
 
 // kept up to date: when the desk is drawn again (Undo, a friend's card...), when what's picked changes, when the window changes size
 { const draw0 = drawBoard; drawBoard = function (...a) { const r = draw0.apply(this, a); keepDraw(); if (document.activeElement === keepT && typeof keepTools === 'function') keepTools(); return r; }; } // (writing in the strip: the toolbar stays on it)

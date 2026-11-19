@@ -354,7 +354,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-world .sx-bcard { z-index: auto; }
 .sx-bcard.sel { outline: 2px solid var(--deck); outline-offset: 4px; }
 .sx-note-t, .sx-cap-t { white-space: pre-wrap; }
-.sx-bkey { position: absolute; left: -10px; top: -10px; min-width: 24px; height: 24px; padding: 0 6px; display: grid; place-items: center; background: var(--k-030710); color: var(--deck); border: 1px solid var(--deck); font: 700 14px/1 var(--ui); transform: rotate(calc(var(--tilt) * -1)); pointer-events: none; z-index: 4; }
 /* the bar along the bottom: quiet until you reach for it */
 .sx-ws-bar { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 18px; max-width: calc(100vw - 32px); padding: 8px 14px; background: rgb(var(--k-030710-rgb) / .82); border: 1px solid var(--k-293b49); opacity: .55; transition: opacity .3s; }
 .sx-ws-bar:hover, .sx-ws-bar:focus-within { opacity: 1; }
@@ -363,8 +362,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-ws-b { padding: 4px 10px; background: none; border: 1px solid var(--k-293b49); color: var(--k-ffdaac); font: 600 14px var(--ui); letter-spacing: .04em; cursor: pointer; }
 .sx-ws-b:hover { border-color: var(--deck); color: var(--k-ffffe4); }
 
-.sx-ws-keys { display: flex; gap: 4px; }
-.sx-ws-keys .sx-ws-b { min-width: 28px; padding: 4px 6px; color: var(--deck); }
 
 [data-clock="focus"] .sx-ws-bar, [data-clock="last"] .sx-ws-bar { opacity: .25; }
 [data-clock="focus"] .sx-ws-bar:hover, [data-clock="last"] .sx-ws-bar:hover, [data-clock="focus"] .sx-ws-bar:focus-within { opacity: 1; }
@@ -556,7 +553,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 #app :is(.sx-ws-bar, .sx-tray) .sx-ws-b:disabled { color: var(--k-293b49); box-shadow: 0 3px 0 rgb(var(--k-293b49-rgb) / .4); cursor: default; }
 #app .sx-ws-bar .sx-ws-ic { min-width: 34px; padding: 0 6px; font-size: 16px; letter-spacing: 0; }
 
-#app :is(.sx-ws-bar, .sx-tray) .sx-ws-keys .sx-ws-b { min-width: 30px; padding: 0 6px; color: var(--k-77d6c1); }
 #app .sx-ws-bar .sx-ws-selg .sx-ws-b { color: var(--k-77d6c1); }
 #app .sx-ws-bar .sx-ws-n { color: var(--k-77d6c1); }
 /* the menu: over its button, never faded, the same keys inside */
@@ -855,8 +851,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 /* the tray at the top left, beside the ? key: Tapes, Mini, Full and your bookmarks; it fades with the bar while you focus */
 #app .sx-tray { position: fixed; left: calc(max(16px, env(safe-area-inset-left)) + 48px); top: 16px; z-index: 6; display: flex; align-items: center; gap: 6px; transition: opacity .35s ease-out; }
 #app .sx-tray .sx-ws-b { height: 34px; }
-#app .sx-tray .sx-ws-keys { display: flex; gap: 4px; margin-left: 6px; }
-#app .sx-tray .sx-ws-keys:empty { display: none; }
 
 #app .sx-tray:hover, #app .sx-tray:focus-within { opacity: 1 !important; }
 #app.sx-full .sx-tray, #app.paged .sx-tray { opacity: 0; pointer-events: none; }
@@ -1796,3 +1790,20 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-world .sx-bnote.topic .sx-note-t > :first-child { margin: 0 0 .12em; padding: 0; border: 0; }
 .sx-world .sx-bnote.topic .sx-note-t:empty::before { font-style: normal; }
 .sx-world .sx-bnote.topic[data-paper] { background-image: none; }
+
+/* ---------- naming in place, instead of the browser's pop-up box (a new board from a folder's tab, a mixtape, a track) ---------- */
+.sx-hop-in, .sx-mus-name { box-sizing: border-box; padding: 6px 9px; background: var(--k-041528); border: 1px solid var(--deck); border-radius: 3px; color: var(--k-ffffe4); font: 600 14px var(--ui); outline: none; }
+.sx-hop-in { display: block; width: calc(100% - 12px); margin: 2px 6px 6px; }
+.sx-hop-keys { display: flex; gap: 4px; padding: 0 6px 4px; } .sx-hop-keys .sx-hop-mi { width: auto; flex: 1; text-align: center; padding: 6px; border: 1px solid var(--k-293b49); } .sx-hop-keys .on-k { border-color: var(--deck); color: var(--k-ffffe4); }
+.sx-mus-mixname { flex: 1; min-width: 0; }
+.sx-mus-trkname { flex: 1; min-width: 0; padding: 2px 6px; font-size: 13px; }
+
+/* ---------- the note's right-click panel, sorted: a small label on the left of each group ---------- */
+.sx-fmt.sx-note-menu { gap: 0; padding: 4px 8px 6px; max-width: min(470px, calc(100vw - 16px)); }
+.sx-nm-sec { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; }
+.sx-nm-sec + .sx-nm-sec { border-top: 1px solid var(--k-293b49); }
+.sx-nm-l { flex: none; width: 44px; padding-top: 8px; font: 700 9.5px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--k-6d8a8d); }
+.sx-nm-rows { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.sx-note-menu .sx-nm-rows .sx-fmt-row { flex-wrap: wrap; row-gap: 3px; padding: 0; border: 0; }
+.sx-note-menu .sx-fmt-row + .sx-fmt-row { padding-top: 0; border-top: 0; }
+
