@@ -1825,7 +1825,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-book-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .sx-book-pic.none { background: none; border-top: 3px double color-mix(in srgb, var(--cink) 38%, transparent); border-bottom: 3px double color-mix(in srgb, var(--cink) 38%, transparent); border-radius: 0; margin: 4px 6px; }
 .sx-book-n { position: absolute; right: 12px; bottom: 9px; padding: 1px 7px; border-radius: 9px; background: color-mix(in srgb, var(--cink) 14%, transparent); font: 700 10.5px var(--ui); letter-spacing: .06em; }
-.sx-book-ribbon { position: absolute; left: 44px; bottom: -13px; width: 10px; height: 26px; background: #d1401f; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); } /* (the bookmark ribbon hangs out of the bottom, clear of the title) */
+.sx-book-ribbon { position: absolute; right: 22px; top: -15px; z-index: -1; width: 11px; height: 22px; background: linear-gradient(90deg, #b8331a, #d1401f 45%, #e05a3a); clip-path: polygon(0 0, 50% 26%, 100% 0, 100% 100%, 0 100%); } /* (the bookmark: a ribbon peeking out of the top, between the pages, near the corner) */
 .sx-world .sx-bbook .sx-bnote-x { color: var(--cink); }
 
 .sx-book-view { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 24px; background: rgb(var(--shade) / .38); }
