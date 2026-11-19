@@ -91,7 +91,7 @@ function bookWrite() { const t = bookPgEl && bookPgEl.querySelector('.sx-note-t,
 function bookDraw(fresh, dir) { bookSideDraw(); bookPageDraw(fresh, dir); }
 function bookSideDraw() {
   const b = bookOf(bookId); if (!b) return; const pages = bookPages(b), [, bg, ink] = bookColor(b);
-  [bookSide, bookSide.parentNode].forEach(n => { n.style.setProperty('--cover', bg); n.style.setProperty('--cink', ink); }); // (the contents and the binding wear the cover's colour)
+  [bookSide, bookSide.parentNode].forEach(n => { n.style.setProperty('--cover', bg); n.style.setProperty('--cink', ink); if (PALETTE.includes(b.spine)) n.style.setProperty('--spine', b.spine); else n.style.removeProperty('--spine'); }); // (the contents and the binding wear the cover's colour)
   const pic = el('button', { type: 'button', class: 'sx-book-thumb' + (b.cover ? '' : ' none'), title: 'Decorate the cover', 'aria-label': 'Decorate the cover', onclick: () => decoOpen(b.id) });
   if (b.cover) photoUrls(b.id).then(u => { if (u) pic.prepend(el('img', { src: u.small || u.full, alt: '' })); }); else if (!(b.stickers || []).length && !b.band && !b.corners) pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
   bookDress(pic, b);

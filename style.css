@@ -2038,3 +2038,14 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-kao-in:focus { border-color: #c76e46; }
 .sx-kao-row .sx-deco-st.own { flex: none; max-width: 48%; background: #fffaf0; border-color: #c76e46; border-style: dashed; }
 .sx-kao-picks { display: flex; flex-wrap: wrap; gap: 5px; max-height: 210px; overflow-y: auto; scrollbar-width: thin; }
+
+/* ---------- a book's spine (js/deco.js): its own colour (--spine) and a pattern in the title's colour (data-sp) ---------- */
+.sx-book-spine { --sp-shade: linear-gradient(90deg, rgb(0 0 0 / .28), rgb(0 0 0 / .12) 70%, rgb(255 255 255 / .12) 72%, transparent 80%); --sp-ink: color-mix(in srgb, var(--cink, #ffffe4) 62%, transparent); background-color: var(--spine, transparent); }
+[data-sp="stripes"] > .sx-book-spine, .sx-deco-sp[data-sp="stripes"] { background-image: var(--sp-shade), repeating-linear-gradient(-45deg, var(--sp-ink) 0 2px, transparent 2px 6px); }
+[data-sp="bands"] > .sx-book-spine, .sx-deco-sp[data-sp="bands"] { background-image: var(--sp-shade), linear-gradient(180deg, transparent 9%, var(--sp-ink) 9% 12%, transparent 12% 15%, var(--sp-ink) 15% 18%, transparent 18% 82%, var(--sp-ink) 82% 85%, transparent 85% 88%, var(--sp-ink) 88% 91%, transparent 91%); }
+[data-sp="dots"] > .sx-book-spine, .sx-deco-sp[data-sp="dots"] { background-image: var(--sp-shade), radial-gradient(circle, var(--sp-ink) 1.4px, transparent 1.8px); background-size: auto, 100% 8px; background-repeat: no-repeat, repeat-y; }
+[data-sp="stitch"] > .sx-book-spine, .sx-deco-sp[data-sp="stitch"] { background-image: var(--sp-shade), repeating-linear-gradient(180deg, var(--sp-ink) 0 4px, transparent 4px 8px); background-size: auto, 1.5px 100%; background-position: 0 0, calc(100% - 3px) 0; background-repeat: no-repeat, repeat-y; }
+.sx-deco-sp { --sp-shade: linear-gradient(90deg, rgb(0 0 0 / .25), transparent); --sp-ink: color-mix(in srgb, #ffffe4 70%, transparent); width: 12px; height: 20px; border-radius: 2px 0 0 2px; background-color: var(--spine); }
+.sx-book-open { border-left-color: var(--spine, var(--cover, #293b49)); }
+.sx-book-thumb { box-shadow: inset 5px 0 0 var(--spine, rgb(0 0 0 / .12)), 2px 2px 0 rgb(115 57 46 / .25); }
+.sx-tied-c.t-book { box-shadow: 2px 3px 0 rgb(115 57 46 / .25), inset 5px 0 0 var(--spine, rgb(0 0 0 / .18)); }

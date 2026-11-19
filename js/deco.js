@@ -78,6 +78,7 @@ function kaoPanel(use, carry) {
 }
 // the title's look, the corner pieces, and the elastic band (any of the 32 colours, or none)
 const TITLE_STYLES = [['', 'Bold'], ['round', 'Round'], ['type', 'Typewriter'], ['script', 'Script'], ['stamp', 'Stamp']];
+const SPINES = [['', 'Plain'], ['stripes', 'Stripes'], ['bands', 'Bands'], ['dots', 'Dots'], ['stitch', 'Stitched']]; // (the spine: its colour, b.spine, and a pattern on it, b.spineP)
 const CORNERS = [['', 'None'], ['brass', 'Brass'], ['leather', 'Leather'], ['cream', 'Cream'], ['ink', 'Like the title']];
 // what may be kept (from a backup, or a friend): known stickers, on the cover, a dozen at most; known styles; palette colours
 function bookStkClean(v) {
@@ -89,6 +90,8 @@ function bookDecoClean(it, o) {
   if (TITLE_STYLES.some(t => t[0] && t[0] === it.tf)) o.tf = it.tf;
   if (CORNERS.some(c => c[0] && c[0] === it.corners)) o.corners = it.corners;
   if (PALETTE.includes(it.band)) o.band = it.band;
+  if (PALETTE.includes(it.spine)) o.spine = it.spine;
+  if (SPINES.some(p => p[0] && p[0] === it.spineP)) o.spineP = it.spineP;
 }
 // the stickers on a cover: a layer of them over it, placed in % so they sit the same on a big cover or a little one
 function bookStk(b) {
@@ -98,6 +101,8 @@ function bookStk(b) {
 }
 // a cover dressed: the title's look, then the corner pieces and the band, then the stickers on top. c: the cover's element
 function bookDress(c, b) {
+  if (PALETTE.includes(b.spine)) c.style.setProperty('--spine', b.spine); else c.style.removeProperty('--spine');
+  if (b.spineP) c.dataset.sp = b.spineP; else delete c.dataset.sp;
   if (b.tf) c.dataset.tf = b.tf; else delete c.dataset.tf;
   if (b.corners) c.append(el('i', { class: 'sx-corner-pc tr c-' + b.corners, 'aria-hidden': 'true' }), el('i', { class: 'sx-corner-pc br c-' + b.corners, 'aria-hidden': 'true' }));
   if (PALETTE.includes(b.band)) c.append(el('i', { class: 'sx-band', style: '--band:' + b.band, 'aria-hidden': 'true' }));
@@ -171,6 +176,9 @@ function decoSideDraw() {
     sec('Title', chips(...TITLE_STYLES.map(([k, name]) => chip([el('b', { 'data-tf': k }, 'Aa'), el('span', {}, name)], (b.tf || '') === k, set(() => { if (k) b.tf = k; else delete b.tf; }), { class: 'sx-deco-chip tf' + ((b.tf || '') === k ? ' on' : '') }))),
       el('button', { type: 'button', class: 'sx-book-auto' + (!ink ? ' on' : ''), onclick: set(() => { delete b.ink; }) }, el('i', { style: 'background:' + bookAuto(bg) }), 'Auto colour: readable on the cover'),
       el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === ink, set(() => { b.ink = hex; }))))),
+    sec('Spine', chips(...SPINES.map(([k, name]) => chip([el('i', { class: 'sx-deco-sp', 'data-sp': k, style: '--spine:' + (PALETTE.includes(b.spine) ? b.spine : bg) }), el('span', {}, name)], (b.spineP || '') === k, set(() => { if (k) b.spineP = k; else delete b.spineP; })))),
+      chips(chip('Like the cover', !PALETTE.includes(b.spine), set(() => { delete b.spine; }))),
+      el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.spine, set(() => { b.spine = hex; }))))),
     sec('Corners', chips(...CORNERS.map(([k, name]) => chip([k ? el('i', { class: 'sx-deco-cn c-' + k }) : null, el('span', {}, name)].filter(Boolean), (b.corners || '') === k, set(() => { if (k) b.corners = k; else delete b.corners; }))))),
     sec('Elastic band', chips(chip('None', !PALETTE.includes(b.band), set(() => { delete b.band; }))),
       el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.band, set(() => { b.band = hex; }))))),
