@@ -424,9 +424,9 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-note-t li::marker { color: color-mix(in srgb, var(--ink) 60%, transparent); }
 .sx-note-t blockquote { margin: .4em 0; padding: .1em 0 .1em .7em; border-left: 3px solid color-mix(in srgb, var(--ink) 40%, transparent); font-style: italic; opacity: .85; }
 .sx-note-t ul.sx-chk { list-style: none; padding-left: 0; }
-.sx-note-t ul.sx-chk > li { position: relative; padding-left: 22px; }
+.sx-note-t ul.sx-chk > li { position: relative; width: fit-content; max-width: 100%; box-sizing: border-box; padding-left: 22px; padding-right: 2px; background: linear-gradient(currentColor, currentColor) 22px .76em / 0 1.5px no-repeat; transition: background-size .28s cubic-bezier(.3, .8, .4, 1), opacity .28s; }
 .sx-note-t ul.sx-chk > li::before { content: ''; position: absolute; left: 1px; top: .32em; width: 11px; height: 11px; border: 1.5px solid currentColor; border-radius: 2px; cursor: pointer; }
-.sx-note-t ul.sx-chk > li.done { text-decoration: line-through; text-decoration-thickness: 1.5px; opacity: .55; }
+.sx-note-t ul.sx-chk > li.done { background-size: calc(100% - 22px) 1.5px; opacity: .55; } /* (the line through it is drawn, left to right) */
 .sx-note-t ul.sx-chk > li.done::before { background: currentColor; box-shadow: inset 0 0 0 2px var(--note, #ffd832); }
 .sx-resize { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; opacity: 0; transition: opacity .15s;
   background: linear-gradient(135deg, transparent 50%, color-mix(in srgb, var(--ink) 40%, transparent) 50%, color-mix(in srgb, var(--ink) 40%, transparent) 60%, transparent 60%, transparent 72%, color-mix(in srgb, var(--ink) 40%, transparent) 72%, color-mix(in srgb, var(--ink) 40%, transparent) 82%, transparent 82%); }
@@ -1808,3 +1808,10 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-note-menu .sx-nm-rows .sx-fmt-row { flex-wrap: wrap; row-gap: 3px; padding: 0; border: 0; }
 .sx-note-menu .sx-fmt-row + .sx-fmt-row { padding-top: 0; border-top: 0; }
 
+
+/* ---------- writing feel (js/typing.js): the wash over a new letter, and a checklist's count ---------- */
+.sx-ink { position: fixed; z-index: 3; pointer-events: none; }
+.sx-chk-n { position: absolute; left: 9px; top: 6px; padding: 1px 6px; border-radius: 9px; background: color-mix(in srgb, var(--ink, #34111f) 12%, transparent); color: var(--ink, #34111f); font: 700 10.5px var(--ui); letter-spacing: .06em; pointer-events: none; transition: background .3s, color .3s; }
+.sx-chk-n.all { background: #458239; color: #ffffe4; }
+.sx-world .sx-bnote.topic .sx-chk-n { top: 22px; }
+@media (prefers-reduced-motion: reduce) { .sx-note-t ul.sx-chk > li { transition: none; } }

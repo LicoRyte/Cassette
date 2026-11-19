@@ -2,6 +2,9 @@
    - the space bar has a deeper thunk than the letters (and every letter's click is a little different)
    - the note eases taller (or shorter) as lines come and go, instead of jumping
    - "--" becomes an em dash, "->" an arrow, and straight quotes curl the right way
+   - each new letter settles from light to full ink, and the note gives a typewriter's small sideways knock
+   - the typing shortcuts (# - [] >) ease the line into its new style; a ticked box gets a drawn line, a soft tick, a
+     done/total count in the note's corner, and a warm glow when the last one is ticked
    (the ink-coloured selection and no spellcheck squiggles are in style.css and js/desk.js) */
 'use strict';
 
@@ -52,3 +55,61 @@ document.addEventListener('input', e => {
   const box = typePaper(e.target); if (!box || e.inputType !== 'insertText' || !/^[-">']$/.test(e.data || '')) return;
   Promise.resolve().then(() => typeSmart(box)); // (after the typing itself has finished)
 });
+
+/* ---------- more feel while you write: ink that settles, a typewriter's jolt, shortcuts that grow into place, and
+   checklists that answer back ---------- */
+// ink that settles: each new letter shows a moment lighter, then darkens to full ink (a wash of the paper's own colour
+// over it fades away, so the words themselves are never touched)
+function typeInk(box) {
+  const s = getSelection(); if (!s.rangeCount || !s.isCollapsed) return; const n = s.anchorNode, o = s.anchorOffset;
+  if (!n || n.nodeType !== 3 || o < 1 || /\s/.test(n.data[o - 1])) return;
+  const r = document.createRange(); r.setStart(n, o - 1); r.setEnd(n, o); const rc = r.getBoundingClientRect(); if (!rc.width) return;
+  const card = box.closest('.sx-bcard'), bg = getComputedStyle(card).backgroundColor;
+  const v = el('i', { class: 'sx-ink', 'aria-hidden': 'true' });
+  v.style.cssText = 'left:' + rc.left + 'px;top:' + rc.top + 'px;width:' + (rc.width + 1) + 'px;height:' + rc.height + 'px;background:' + bg;
+  document.body.append(v); v.animate([{ opacity: .62 }, { opacity: 0 }], { duration: 170, easing: 'ease-out' }).onfinish = () => v.remove();
+}
+// the typewriter's jolt: the note you're writing in gives a small sideways knock with each letter
+function typeJolt(card) {
+  if (card._jolt) card._jolt.cancel();
+  const k = .7 + Math.random() * .5;
+  card._jolt = card.animate([{ translate: '0 0' }, { translate: (1.1 * k).toFixed(2) + 'px 0' }, { translate: (-.6 * k).toFixed(2) + 'px 0' }, { translate: '0 0' }], { duration: 120, easing: 'ease-out' });
+  card._jolt.onfinish = () => { card._jolt = null; };
+}
+addEventListener('input', e => {
+  const box = typePaper(e.target); if (!box || e.inputType !== 'insertText' || stillUI()) return;
+  Promise.resolve().then(() => typeInk(box)); // (once the letter is in)
+  const card = box.closest('.sx-bnote'); if (card) typeJolt(card);
+}, true);
+
+// shortcuts that grow into place: # becoming a title, - a bullet, [] a box, > a quote; the line eases into its new self
+function typeBlockAt() { const s = getSelection(); let n = s && s.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentNode; return n.closest ? n.closest('h2, h3, li, blockquote, div, p') : null; }
+{ const md0 = noteMarkdown; noteMarkdown = function (t, ...a) {
+    const b0 = typeBlockAt(), tag0 = b0 && b0.tagName, r = md0.call(this, t, ...a), b1 = typeBlockAt();
+    if (b1 && t.contains(b1) && b1 !== t && (b1 !== b0 || b1.tagName !== tag0) && !stillUI()) {
+      const big = /^H[23]$/.test(b1.tagName); b1.style.transformOrigin = '0 70%';
+      b1.animate([{ opacity: .3, transform: 'translateY(3px) scale(' + (big ? .82 : .96) + ')' }, { opacity: 1, transform: 'none' }], { duration: big ? 260 : 200, easing: 'cubic-bezier(.2, .9, .3, 1.25)' });
+    }
+    return r; }; }
+
+// checklists: a soft tick (and a lower tock when you take one back); how many are done, in the note's corner; and the
+// whole note glows warm for a moment when the last box is ticked
+DESK_SFX.check = c => { const t = c.currentTime; feelBurst(c, t, { dur: .012, type: 'highpass', f0: 3000, vol: .03 }); feelTone(c, t, 1180, { dur: .08, vol: .02, to: 1560 }); };
+DESK_SFX.uncheck = c => { const t = c.currentTime; feelBurst(c, t, { dur: .012, type: 'highpass', f0: 2200, vol: .022 }); feelTone(c, t, 900, { dur: .07, vol: .014, to: 700 }); };
+DESK_SFX.alldone = c => { const t = c.currentTime; [880, 1175, 1568].forEach((f, i) => feelTone(c, t + i * .07, f, { dur: .22, vol: .018 })); };
+function typeChecks(card) {
+  if (!card) return null;
+  const lis = card.querySelectorAll('.sx-note-t ul.sx-chk > li'), done = [...lis].filter(li => li.classList.contains('done')).length;
+  let b = card.querySelector(':scope > .sx-chk-n');
+  if (!lis.length) { if (b) b.remove(); return null; }
+  if (!b) { b = el('span', { class: 'sx-chk-n', 'aria-hidden': 'true' }); card.append(b); }
+  const txt = done + '/' + lis.length; if (b.textContent !== txt) b.textContent = txt; b.classList.toggle('all', done === lis.length);
+  return { done, all: lis.length };
+}
+{ const ns0 = noteSetup; noteSetup = function (it, txt, c) { ns0(it, txt, c); typeChecks(c); }; }
+document.addEventListener('input', e => { const c = e.target.closest && e.target.closest('.sx-world .sx-bnote'); if (c) typeChecks(c); });
+{ const tick0 = noteTickAt; noteTickAt = function (txt, x, y) {
+    const card = txt.closest('.sx-bnote'), before = typeChecks(card), r = tick0(txt, x, y); if (!r) return r;
+    const after = typeChecks(card), allNow = after && after.done === after.all, was = before && before.done === before.all;
+    if (allNow && !was && after.all > 1) { deskSfx('alldone'); if (!stillUI()) card.animate([{ boxShadow: '0 0 0 0 rgb(255 183 98 / 0)' }, { boxShadow: '0 0 0 10px rgb(255 183 98 / .55)', offset: .35 }, { boxShadow: '0 0 0 18px rgb(255 183 98 / 0)' }], { duration: 700, easing: 'ease-out' }); }
+    return r; }; }
