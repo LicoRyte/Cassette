@@ -729,8 +729,8 @@ ws.addEventListener('pointerdown', e => {
   }
   if (e.target.closest('button, input, select, a, [contenteditable]')) return; // the clock's own buttons
   if (e.shiftKey) { deskMarquee(e); return; }
-  // the empty desk (or the clock's face): let go of what's picked, and move the camera
-  select(null); if (document.activeElement && document.activeElement.isContentEditable) { document.activeElement.blur(); getSelection().removeAllRanges(); } // put the pen down, and let go of any highlighted words
+  // the empty desk (or the clock's face): the pen comes down and the camera moves, but what's picked stays picked (Esc lets go)
+  if (document.activeElement && document.activeElement.isContentEditable) { document.activeElement.blur(); getSelection().removeAllRanges(); } // put the pen down, and let go of any highlighted words
   deskPan(e);
 });
 ws.addEventListener('dblclick', e => { if (e.target.closest('.sx-bcard, .sx-corner, .sx-tapes')) return; addNoteAt((p => ({ x: p.x - 100, y: p.y - 20 }))(toWorld(e.clientX, e.clientY))); });
