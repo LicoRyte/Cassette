@@ -84,6 +84,7 @@ function noteToBoard(id) {
   B.boards.push({ id: nb, name });
   const dx = 380 - me.x, dy = -200 - me.y; // (on the new board the note sits just right of the clock, the rest around it as they were)
   seen.forEach(x => { const it = itemOf(x); it.board = nb; it.x = Math.round(it.x + dx); it.y = Math.round(it.y + dy); });
+  B.items.forEach(x => { if (x.book && seen.has(x.book)) x.board = nb; }); // (a book's pages go with it)
   B.items.push({ id: 'h' + t, type: 'hop', board: from, x: ox, y: oy, to: nb }, { id: 'h' + t + 'r', type: 'hop', board: nb, x: 380, y: -460, to: from });
   select('h' + t); save(); drawBoard(); deskBoardTools(); deskSfx('flip');
   deskToast('Made a board: ' + name + ' (' + seen.size + (seen.size === 1 ? ' card' : ' cards') + '). The folder opens it');
@@ -93,5 +94,6 @@ noteBar.querySelector('[data-k="keep"]').after(boardB);
 noteBar.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || b.dataset.k !== 'board') return; e.stopImmediatePropagation();
   const n = selNote(); if (!n || !els.has(n.it.id)) return; // (not the kept note's strip on another board)
+  if (n.it.book) { deskToast('A page can\'t become a board: take it out of the book first'); return; }
   if (typeof noteMenuClose === 'function') noteMenuClose(); noteToBoard(n.it.id);
 }, true);

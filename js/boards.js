@@ -106,6 +106,7 @@ async function bmCopy(id) { // a copy, just after it: its cards (photos too), st
     if (it.type === 'photo') { try { const p = await PHOTOS.get(it.id); if (p) await PHOTOS.put(c.id, p); } catch (e) { continue; } }
     imap.set(it.id, c.id); out.push(c);
   }
+  if (typeof bookRemap === 'function') await bookRemap(out, imap); // (books point at their own copied pages, and their covers come along)
   B.items.push(...out);
   B.links.push(...B.links.filter(l => imap.has(l[0]) && imap.has(l[1])).map(l => [imap.get(l[0]), imap.get(l[1])]));
   const at = B.boards.indexOf(b); B.boards.splice(at + 1, 0, { id: nb, name: (b.name + ' copy').slice(0, 40) });

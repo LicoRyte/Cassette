@@ -16,7 +16,7 @@ const deskSlug = s => String(s || 'board').toLowerCase().replace(/[^a-z0-9]+/g, 
 // b: another workspace's desk (from the front page); without it, the one open
 async function deskExportBackup(b) {
   const B = b || S.board, photos = {};
-  for (const it of B.items) if (it.type === 'photo') { try { const src = await PHOTOS.get(it.id); if (src) photos[it.id] = src; } catch (e) { /* skip */ } }
+  for (const it of B.items) if (it.type === 'photo' || (it.type === 'book' && it.cover)) { /* (a book's cover picture is kept under the book's own id) */ try { const src = await PHOTOS.get(it.id); if (src) photos[it.id] = src; } catch (e) { /* skip */ } }
   const name = B.name || 'My workspace', data = { app: 'cassette-desk', v: 1, name, saved: new Date().toISOString(), boards: B.boards, items: B.items, links: B.links, photos };
   deskDownload(new Blob([JSON.stringify(data)], { type: 'application/json' }), 'cassie-' + deskSlug(name) + '-' + deskStamp() + '.json');
   B.backedAt = Date.now(); if (!b) save(); deskToast('Backup saved'); // (the front page says when you last saved one)
@@ -32,7 +32,7 @@ function deskImportBackup(asSpace) {
     const tag = '-' + Date.now().toString(36), num = v => isFinite(+v) ? Math.round(+v) : 0, str = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
     const bmap = new Map(), names = new Set(asSpace ? [] : S.board.boards.map(b => b.name));
     const boards = d.boards.filter(b => b && b.id).slice(0, 50).map(b => { const id = 'b' + tag + bmap.size; bmap.set(b.id, id); let name = str(b.name, 40) || 'Board'; if (names.has(name)) name += ' (loaded)'; return { id, name }; });
-    const imap = new Map(), TYPES = ['note', 'photo', 'hop', 'tbl']; // (labels and drawings in an old backup stay behind)
+    const imap = new Map(), TYPES = ['note', 'photo', 'hop', 'tbl', 'book']; // (labels and drawings in an old backup stay behind)
     const items = d.items.filter(it => it && TYPES.includes(it.type) && bmap.has(it.board)).slice(0, 5000).map(it => {
       const id = String(it.id).replace(/[^\w-]/g, '').slice(0, 40) + tag; imap.set(it.id, id);
       const o = { id, type: it.type, board: bmap.get(it.board), x: num(it.x), y: num(it.y) };
@@ -40,7 +40,13 @@ function deskImportBackup(asSpace) {
       if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, NOTE_MAX)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; if (it.topic === true) o.topic = true; }
       if (it.type === 'tbl') Object.assign(o, tblClean(it));
       if (it.type === 'hop' && bmap.has(it.to)) o.to = bmap.get(it.to); // (a folder to a board that came in the same backup)
+      if (it.type === 'book') { o.title = str(it.title, 80); if (NOTE_COLORS.some(c => c[0] === it.color)) o.color = it.color; if (it.cover) o.cover = true; o._pages = Array.isArray(it.pages) ? it.pages.slice(0, 2000) : []; o.at = num(it.at); }
+      if (typeof it.book === 'string') o._book = it.book; // (a book's page: tied back to its book below, once every card has its new name)
       return o;
+    });
+    items.forEach(o => { // a book and its pages, by their new names (a page whose book didn't come along is a loose card)
+      if (o._book) { if (imap.has(o._book)) o.book = imap.get(o._book); delete o._book; }
+      if (o._pages) { o.pages = o._pages.filter(p => imap.has(p)).map(p => imap.get(p)); delete o._pages; }
     });
     const links = (Array.isArray(d.links) ? d.links : []).filter(l => Array.isArray(l) && imap.has(l[0]) && imap.has(l[1])).map(l => [imap.get(l[0]), imap.get(l[1])]);
     if (!boards.length) { deskToast('That backup has no boards in it'); return; }

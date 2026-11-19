@@ -57,7 +57,7 @@ function noteSetup(it, txt, c) {
 // ticking a checklist box under the pointer (the desk calls this for a click on a note you weren't writing in)
 function noteTickAt(txt, x, y) {
   const n = document.elementFromPoint(x, y), li = n && n.closest && n.closest('ul.sx-chk > li');
-  if (!li || !txt.contains(li) || x - li.getBoundingClientRect().left >= 22 * cam.z) return false;
+  if (!li || !txt.contains(li) || x - li.getBoundingClientRect().left >= 22 * (li.closest('.sx-book-view') ? 1 : cam.z)) return false;
   deskMark(); li.classList.toggle('done'); deskSfx(li.classList.contains('done') ? 'check' : 'uncheck'); txt.dispatchEvent(new Event('input')); return true; // (the sounds: js/typing.js)
 }
 function noteClosest(txt, sel) { const s = getSelection(); let n = s && s.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentNode; const hit = n.closest && n.closest(sel); return hit && txt.contains(hit) ? hit : null; }

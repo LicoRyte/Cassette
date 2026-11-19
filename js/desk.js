@@ -261,6 +261,7 @@ async function deskDuplicate() { // Ctrl+D: a copy of what's picked, just beside
     const c = JSON.parse(JSON.stringify(it)); c.id = ((String(it.id).match(/^[a-z]+/i) || ['n'])[0]) + now + '-' + k; c.x = it.x + 28; c.y = it.y + 28; delete c.key;
     if (c.group) { const g0 = c.group; c.group = gmap[g0] || (gmap[g0] = 'g' + now + '-' + k); if (B.gnames[g0]) B.gnames[c.group] = B.gnames[g0]; } // (a copied group is a group of its own, with the same name)
     if (it.type === 'photo') { try { const p = await PHOTOS.get(it.id); if (p) await PHOTOS.put(c.id, p); } catch (e) { continue; } }
+    if (typeof bookCopyOf === 'function') await bookCopyOf(it, c, now + '-' + k); // (a book: its pages and cover too; a page: the copy goes just after it)
     B.items.push(c); ids.push(c.id);
   }
   save(); drawBoard(); select(ids[0]); ids.slice(1).forEach(id => { if (!picked.has(id)) select(id, true); }); deskSfx('pin');
@@ -298,7 +299,7 @@ function gtagPlace() {
 ws.addEventListener('pointerover', e => { const c = e.target.closest && e.target.closest('.sx-world .sx-bcard'), it = c && itemOf(c.dataset.id), g = it && it.group || null; if (g !== gtagHover) { gtagHover = g; gtagSync(); } });
 ws.addEventListener('pointerleave', () => { if (gtagHover) { gtagHover = null; gtagSync(); } });
 function deskDelete() { const ids = [...picked]; if (!ids.length) return; deskMark(); deskSfx('pick'); removeItems(ids); select(null); save(); drawBoard(); }
-function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
+function deskSelectAll() { picked.clear(); B_().items.filter(it => it.board === B_().cur && !it.book).forEach(it => picked.add(it.id)); selId = [...picked].pop() || null; els.forEach((c, k) => c.classList.toggle('sel', picked.has(k))); noteBarTo(null); deskSelBar(); selBoxUpdate(); }
 
 /* ---------- what's on the desk ---------- */
 function removeOne(it) { deskMark(); deskSfx('pick'); removeItems([it.id]); picked.delete(it.id); if (selId === it.id) selId = null; save(); drawBoard(); }
@@ -371,7 +372,7 @@ function deskRaise(it, c) {
 const cardSnap = it => JSON.stringify(it, (k, v) => k === 'x' || k === 'y' || k === 'mt' || k === 'html' || k === 'text' ? undefined : v);
 function cardMade(c, it) { c._it = it; c._snap = cardSnap(it); return c; }
 function drawBoard() {
-  const B = B_(), items = B.items.filter(it => it.board === B.cur);
+  const B = B_(), items = B.items.filter(it => it.board === B.cur && !it.book); // (a book's pages live in the book: js/book.js)
   const old = new Map(els), keep = new Map();
   items.forEach(it => { const c = old.get(it.id); if (c && c._it === it && it.type !== 'hop' && c.isConnected && c._snap === cardSnap(it)) keep.set(it.id, c); });
   old.forEach((c, id) => { if (keep.get(id) !== c) c.remove(); });
@@ -718,9 +719,10 @@ ws.addEventListener('pointerdown', e => {
         movers.forEach((m, i) => { if (m.it.type === 'note' || m.it.type === 'photo' || m.it.type === 'tbl') swingKick(m.c, Math.max(-2, Math.min(2, -sx * .12)) + (i % 2 ? -.5 : .5)); });
         wobKick(moverIds, sx * 1.5 / cam.z, (sy * 1.5 - 14) / cam.z);
         const ids = new Set(movers.map(m => m.it.id)); B_().items = B_().items.filter(x => !ids.has(x.id)).concat(movers.map(m => m.it)); // what you moved is on top now
-        if (snap && deskSnap() !== snap) deskMark(snap); save(); return;
+        if (snap && deskSnap() !== snap) deskMark(snap); if (typeof bookDropAt === 'function') bookDropAt(ev, movers.map(m => m.it)); save(); return; // (dropped on a book: into it)
       }
       if (ev.type === 'pointerup' && it.type === 'hop') { hopGo(it); return; } // a click on a folder: through it
+      if (ev.type === 'pointerup' && it.type === 'book') { bookOpen(it.id); return; } // a click on a book: it opens (js/book.js)
       if (ev.type !== 'pointerup' || !txt) return;
       if (it.type === 'note' && noteTickAt(txt, ev.clientX, ev.clientY)) return; // a checklist box (it ticks on the first click)
       if (wasPicked) deskEditAt(txt, ev.clientX, ev.clientY); // picked already: the pen goes where you clicked

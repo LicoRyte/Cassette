@@ -12,6 +12,7 @@ const flowCaret = el('i', { class: 'sx-caret', 'aria-hidden': 'true' });
 let flowIdleT = 0, flowRaf = 0;
 
 /* ---------- the cursor ---------- */
+const flowZ = el => el && el.closest && el.closest('.sx-book-view') ? 1 : (cam.z || 1); // (an open book's page isn't zoomed with the desk)
 function flowBox() { const a = document.activeElement; return a && a.isContentEditable && a.matches(FLOW_PAPER) && a.closest('.sx-world .sx-bcard') ? a : null; }
 function flowCaretRect(box) { // where the cursor is, on the screen (an empty line has no letters to measure: its line is used instead)
   const s = getSelection(); if (!s.rangeCount || !s.isCollapsed || !box.contains(s.anchorNode)) return null;
@@ -19,16 +20,16 @@ function flowCaretRect(box) { // where the cursor is, on the screen (an empty li
   if (!r || !r.height) { const n = s.anchorNode.nodeType === 1 ? s.anchorNode.childNodes[s.anchorOffset] || s.anchorNode : s.anchorNode.parentElement;
     const e = n && n.nodeType === 1 ? n : n && n.parentElement; if (!e) return null;
     const er = e.getBoundingClientRect(), lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(box).fontSize) * 1.5 || 22;
-    const pl = parseFloat(getComputedStyle(e).paddingLeft) || 0; r = { left: er.left + pl * cam.z, top: er.top, height: Math.min(er.height || lh * cam.z, lh * cam.z) }; }
+    const zz = flowZ(box), pl = parseFloat(getComputedStyle(e).paddingLeft) || 0; r = { left: er.left + pl * zz, top: er.top, height: Math.min(er.height || lh * zz, lh * zz) }; }
   return r;
 }
 function flowPlace(jump) {
   flowRaf = 0; const box = flowBox(); if (typeof flowWriting === 'function') flowWriting(); // (strings step aside while you write)
   if (!box) { flowCaret.remove(); return; }
   const r = flowCaretRect(box), card = box.closest('.sx-bcard'); if (!r) { flowCaret.remove(); return; }
-  const cr = card.getBoundingClientRect(), z = cam.z || 1;
+  const cr = card.getBoundingClientRect(), z = flowZ(card);
   if (flowCaret.parentNode !== card) { card.append(flowCaret); jump = true; } // (a new card, or the desk was drawn again)
-  flowCaret.classList.toggle('jump', !!jump); flowCaret.style.setProperty('--cz', String(cam.z));
+  flowCaret.classList.toggle('jump', !!jump); flowCaret.style.setProperty('--cz', String(z));
   flowCaret.style.color = getComputedStyle(box).color;
   flowCaret.style.height = (r.height / z).toFixed(1) + 'px';
   flowCaret.style.translate = ((r.left - cr.left) / z - card.clientLeft).toFixed(1) + 'px ' + ((r.top - cr.top) / z - card.clientTop).toFixed(1) + 'px';
@@ -46,6 +47,8 @@ function flowAfterType(box) {
   flowPlace(false);
   const r = flowCaretRect(box); if (!r) return;
   const card = box.closest('.sx-bcard');
+  const page = card.closest('.sx-book-page'); // in an open book: its page scrolls under the line, the desk stays put
+  if (page) { const pr = page.getBoundingClientRect(); if (r.top + r.height > pr.bottom - 24) page.scrollBy({ top: r.top + r.height - pr.bottom + 60 }); else if (r.top < pr.top + 8) page.scrollBy({ top: r.top - pr.top - 40 }); return; }
   if (card.classList.contains('sized') && box.scrollHeight > box.clientHeight) { // a long note: the paper moves up under the line, like a typewriter
     const br = box.getBoundingClientRect(), y = r.top - br.top, mark = br.height * .62;
     if (y > mark) box.scrollBy({ top: (y - mark) / (cam.z || 1) + 4, behavior: stillUI() ? 'auto' : 'smooth' });
