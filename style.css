@@ -1508,9 +1508,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 @keyframes sx-caret-blink { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .sx-caret { transition: none; } .sx-caret.idle { animation: none; } }
 
-/* Alt+Q: the card that's lit while you step through the ones tied to a note, with where you are in the round */
-.sx-world .sx-bcard.sx-cyc { outline: 2.5px solid var(--deck); outline-offset: 6px; }
-.sx-world .sx-bcard.sx-cyc::before { content: attr(data-cyc); position: absolute; right: -6px; top: -30px; z-index: 7; padding: 3px 7px 4px; background: var(--deck); color: var(--k-030710); border-radius: 3px; font: 700 11px/1 var(--ui); letter-spacing: .12em; rotate: calc(var(--tilt, 0deg) * -1); }
 /* a long key name wraps inside its card instead of running out of it */
 .sx-tip-n { white-space: normal; overflow-wrap: anywhere; }
 
@@ -1728,3 +1725,74 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-r-row .sx-add-b:not(.on):not(:hover) { opacity: .7; }
 .cz-front .cz-warn .cz-in { background: #fff; color: #34111f; border-color: #eb9c6e; } /* (the card is cream on both desks: so is its box) */
 .cz-front .cz-warn .cz-in:focus { border-color: #c76e46; }
+
+/* ---------- the bottom dock (js/tied.js): the kept note in the middle, and the cards tied to the picked one beside it ---------- */
+.sx-bdock { position: fixed; left: 50%; bottom: 14px; z-index: 7; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); display: flex; flex-direction: column; align-items: center; pointer-events: none; transition: bottom .18s ease-out; }
+.sx-bdock > * { pointer-events: auto; }
+#app.sx-full ~ .sx-bdock, #app.paged ~ .sx-bdock { display: none; }
+.sx-bdock .sx-keep { position: relative; left: auto; bottom: auto; transform: none; transition: none; }
+
+/* tied to: a cream strip with the kept note's header, its cards in a row that scrolls sideways */
+.sx-tied { --ink: var(--k-ffffe4); width: min(620px, calc(100vw - 32px)); background: var(--k-030710); color: var(--k-ffffe4); border-radius: 3px 3px 6px 6px; box-shadow: 0 2px 0 color-mix(in srgb, var(--k-ffffe4) 14%, transparent), 0 10px 24px rgb(var(--shade) / .28); }
+.sx-tied[hidden] { display: none; }
+.sx-tied.side { position: absolute; left: calc(100% + 12px); bottom: 0; }
+.sx-tied.side .sx-tied-list { padding-block: 8px; }
+.sx-tied.side .sx-tied-list { scrollbar-width: none; } .sx-tied.side .sx-tied-list::-webkit-scrollbar { display: none; }
+.sx-tied-list.more-r { mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); } .sx-tied-list.more-l { mask-image: linear-gradient(90deg, transparent, #000 36px); }
+.sx-tied-list.more-l.more-r { mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); } /* (more to scroll to: the row fades at that edge) */
+.sx-tied.tiny .sx-tied-c { padding: 14px 9px 6px; } .sx-tied.tiny .sx-tied-c b { -webkit-line-clamp: 1; } .sx-tied.tiny .sx-tied-c > span:not(.sx-tied-cap) { display: none; }
+.sx-tied.tiny .sx-tied-pin { top: 3px; }
+.sx-tied.above { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%); }
+.sx-tied.in { animation: sx-tied-in .26s cubic-bezier(.2, .8, .2, 1); }
+.sx-tied.above.in { animation-name: sx-tied-up; }
+@keyframes sx-tied-in { from { opacity: 0; translate: 0 10px; } }
+@keyframes sx-tied-up { from { opacity: 0; translate: -50% 10px; } to { translate: -50% 0; } }
+.sx-tied .sx-keep-h { border-bottom-color: color-mix(in srgb, var(--k-ffffe4) 12%, transparent); }
+.sx-tied.min .sx-keep-h { border-bottom: 0; }
+.sx-tied .sx-keep-n { flex: none; color: var(--k-6d8a8d); }
+.sx-tied-knot { flex: none; width: 14px; height: 10px; background: linear-gradient(#d9243c, #d9243c) 0 50% / 100% 2px no-repeat; position: relative; }
+.sx-tied-knot::before, .sx-tied-knot::after { content: ''; position: absolute; top: 1px; width: 8px; height: 8px; border-radius: 50%; background: #d9243c; box-shadow: inset -2px -2px 0 #890027; }
+.sx-tied-knot::before { left: -3px; } .sx-tied-knot::after { right: -3px; }
+.sx-tied-n { flex: none; min-width: 18px; padding: 1px 6px; border-radius: 9px; background: var(--deck); color: var(--k-030710); font: 700 11px var(--ui); text-align: center; }
+.sx-tied .sx-keep-b { color: var(--k-bfc3c6); border-color: var(--k-293b49); }
+.sx-tied .sx-keep-b:hover { background: var(--k-293b49); color: var(--k-ffffe4); }
+.sx-tied-back { display: inline-flex; max-width: 170px; text-transform: none !important; letter-spacing: .02em !important; }
+.sx-tied-back span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx-tied-list { display: flex; gap: 12px; padding: 14px 14px 14px; overflow-x: auto; overscroll-behavior: contain; scroll-snap-type: x proximity; scroll-padding-inline: 14px; scrollbar-width: thin; scrollbar-color: var(--k-293b49) transparent; }
+
+/* each copy: a little card of its own, pinned and a touch crooked; it straightens and lifts when you point at it */
+.sx-tied-c { --paper: #ffffe4; --ink: #34111f; position: relative; flex: 0 0 148px; height: var(--ch, 112px); display: flex; flex-direction: column; gap: 3px; padding: 17px 10px 9px; overflow: hidden; background: var(--paper); border: 0; color: var(--ink); text-align: left; cursor: pointer; scroll-snap-align: start; rotate: var(--tilt); box-shadow: 2px 3px 0 rgb(115 57 46 / .25); transition: rotate .18s, translate .18s, box-shadow .18s; }
+.sx-tied-c:hover, .sx-tied-c:focus-visible { rotate: 0deg; translate: 0 -3px; box-shadow: 3px 6px 0 rgb(115 57 46 / .2); outline: none; }
+.sx-tied-c:focus-visible { box-shadow: 3px 6px 0 rgb(115 57 46 / .2), 0 0 0 2px var(--deck); }
+.sx-tied-c b { flex: none; overflow: hidden; font: 700 13.5px/1.25 var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.sx-tied-c > span { overflow: hidden; font: 12px/1.35 var(--text); opacity: .8; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.sx-tied-ic { display: inline-block; vertical-align: -2px; margin-right: 4px; }
+.sx-tied-pin { position: absolute; top: 5px; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff6157, #d1401f 60%, #833f34); box-shadow: 1px 1px 1px rgb(52 17 31 / .35); }
+.sx-tied-c.t-photo { padding: 7px 7px 8px; background: #fff; }
+.sx-tied-c.t-photo .sx-tied-pin { top: -2px; z-index: 1; }
+.sx-tied-c.t-photo img { display: block; width: 100%; flex: 1; min-height: 0; object-fit: cover; background: #ececec; }
+.sx-tied-cap { flex: none; font: 11.5px/1.3 var(--text); color: #34111f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx-tied-none { flex: 1; display: grid; place-items: center; background: #ececec; color: #73392e; font: 12px var(--ui); }
+.sx-tied-c.t-tbl { background: linear-gradient(rgb(131 63 52 / .12) 1px, transparent 1px) 0 6px / 100% 16px, #ffffe4; }
+.sx-tied-c.t-hop { background: #e9c27a; }
+.sx-tied-list .sx-tied-c { animation: sx-tied-c .3s cubic-bezier(.2, .9, .3, 1.2) both; animation-delay: calc(var(--i) * 35ms); }
+@keyframes sx-tied-c { from { opacity: 0; translate: 0 8px; } }
+
+/* the card on the desk whose copy you're pointing at */
+.sx-world .sx-bcard.sx-tied-hot { outline: 2.5px solid var(--deck); outline-offset: 6px; }
+@media (prefers-reduced-motion: reduce) { .sx-bdock { transition: none; } .sx-tied.in, .sx-tied-list .sx-tied-c { animation: none; } .sx-tied-c { transition: none; } }
+
+/* ---------- tidy (js/tidy.js): its menu, and the cards gliding into line ---------- */
+.sx-tidy-mi { display: flex; align-items: center; gap: 10px; }
+.sx-tidy-mi .sx-ic { opacity: .75; }
+.sx-world.tidying .sx-bcard { transition: left .42s cubic-bezier(.2, .8, .2, 1), top .42s cubic-bezier(.2, .8, .2, 1) !important; }
+
+/* ---------- a topic card (js/tidy.js): a heading for the board. Its first line in big condensed capitals fitted to the card,
+   between two printed double rules; what follows, a small italic subtitle; TOPIC and how many cards are tied, in its corner ---------- */
+.sx-world .sx-bnote.topic { container-type: inline-size; padding: 30px 16px 18px; }
+.sx-world .sx-bnote.topic::before { content: 'Topic' attr(data-count); position: absolute; top: 9px; left: 12px; font: 700 9.5px/1 var(--ui); letter-spacing: .24em; text-transform: uppercase; color: color-mix(in srgb, var(--ink, #34111f) 55%, transparent); pointer-events: none; }
+.sx-world .sx-bnote.topic .sx-note-t { min-height: 0; padding: .55em 2px .6em; text-align: center; border-block: 3px double color-mix(in srgb, var(--ink, #34111f) 42%, transparent); font-size: 13.5px; font-style: italic; text-shadow: none; }
+.sx-world .sx-bnote.topic .sx-note-t::first-line, .sx-world .sx-bnote.topic .sx-note-t > :first-child { font: 700 clamp(22px, 15cqi, 88px)/1.02 var(--ui); font-style: normal; letter-spacing: .03em; text-transform: uppercase; }
+.sx-world .sx-bnote.topic .sx-note-t > :first-child { margin: 0 0 .12em; padding: 0; border: 0; }
+.sx-world .sx-bnote.topic .sx-note-t:empty::before { font-style: normal; }
+.sx-world .sx-bnote.topic[data-paper] { background-image: none; }

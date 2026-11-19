@@ -4,8 +4,8 @@
    - the line you're typing stays in view: in a long note the paper scrolls under it, and near the edge of the screen the
      desk glides along
    - while writing in a note: Shift+Enter or Alt+W/A/S/D a new tied note that way (and you write on in it), Alt+P a photo
-     tied beside it, a pasted picture tied to it, Alt+Backspace back to the note you came from, and Alt+Q (hold Alt) to
-     step through the cards tied to it, dropping into one when you let go */
+     tied beside it, a pasted picture tied to it, Alt+Backspace back to the note you came from (the cards tied to it are in a column
+     at the left: js/tied.js) */
 'use strict';
 
 const FLOW_PAPER = '.sx-note-t, .sx-cap-t';
@@ -143,67 +143,25 @@ function flowBack(t, write = true) {
   const it = itemOf(id); glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true, () => flowSoon(true)); flowSoon(true); deskSfx('pick');
 }
 
-/* ---------- Alt+Q: hold Alt and tap Q to step through the cards tied to this one (clockwise, from the right), the view gliding
-   to each; let go of Alt and you're on the lit one: writing in it if you were writing, otherwise it's picked. Esc while
-   Alt is held goes back ---------- */
-let flowCyc = null;
-function flowCycle(t, step, edit) {
-  if (!flowCyc) {
-    const card = t.closest('.sx-bcard'), id = card && card.dataset.id, B = B_(), me = itemOf(id); if (!me) return;
-    const cx = me.x + card.offsetWidth / 2, cy = me.y + card.offsetHeight / 2;
-    const list = B.links.filter(l => l.includes(id)).map(l => l[0] === id ? l[1] : l[0]).filter(o => els.has(o))
-      .map(o => { const c = els.get(o), it = itemOf(o); return { id: o, a: (Math.atan2(it.y + c.offsetHeight / 2 - cy, it.x + c.offsetWidth / 2 - cx) + Math.PI * 2) % (Math.PI * 2) }; })
-      .sort((a, b) => a.a - b.a).map(o => o.id);
-    if (!list.length) { deskToast('No strings from this note yet'); return; }
-    flowCyc = { from: id, list, i: step > 0 ? 0 : list.length - 1, edit: edit !== false };
-  } else flowCyc.i = (flowCyc.i + step + flowCyc.list.length) % flowCyc.list.length;
-  layer.querySelectorAll('.sx-cyc').forEach(c => c.classList.remove('sx-cyc'));
-  const c = els.get(flowCyc.list[flowCyc.i]); if (!c) return;
-  c.classList.add('sx-cyc'); c.dataset.cyc = (flowCyc.i + 1) + ' / ' + flowCyc.list.length; deskSfx('pick');
-  flowShow(c);
-}
-function flowShow(c) { // the view glides to each lit card in turn (at the same zoom)
-  const it = itemOf(c.dataset.id); if (it) glideTo(it.x + c.offsetWidth / 2, it.y + c.offsetHeight / 2, cam.z, true);
-}
-function flowCycleEnd(go) {
-  const cyc = flowCyc; flowCyc = null; if (!cyc) return;
-  layer.querySelectorAll('.sx-cyc').forEach(c => c.classList.remove('sx-cyc'));
-  if (!go) { const back = els.get(cyc.from), it = itemOf(cyc.from); if (!cyc.edit) select(cyc.from); if (back && it) glideTo(it.x + back.offsetWidth / 2, it.y + back.offsetHeight / 2, cam.z, true, () => flowSoon(true)); else flowSoon(true); return; } // (Esc: back to where you were)
-  const id = cyc.list[cyc.i]; select(id); if (cyc.edit) { deskWriteIn(id); flowSoon(true); } // (writing: you're writing in it; a photo: its caption; a table: its first cell. Not writing: it's just picked)
-}
-addEventListener('keyup', e => { if (e.key === 'Alt' && flowCyc) { e.preventDefault(); flowCycleEnd(true); } }, true);
-addEventListener('blur', () => flowCycleEnd(false));
 
 /* ---------- the keys, while writing in a note (js/notes.js asks here first); with a card picked, at the end ---------- */
 const FLOW_DIRS = { KeyW: 'up', KeyA: 'left', KeyS: 'down', KeyD: 'right' };
 function flowKeys(e, t) {
-  if (flowCyc && e.key === 'Escape') { e.preventDefault(); flowCycleEnd(false); return true; }
   if (!e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return false;
   const k = e.code;
   if (FLOW_DIRS[k]) { e.preventDefault(); if (!e.repeat) noteChain(t, FLOW_DIRS[k]); return true; }
   if (k === 'KeyP') { e.preventDefault(); if (!e.repeat) flowPickPhoto(t); return true; }
   if (k === 'Backspace') { e.preventDefault(); if (!e.repeat) flowBack(t); return true; }
-  if (k === 'KeyQ') { e.preventDefault(); flowCycle(t, e.shiftKey ? -1 : 1, true); return true; }
   return false;
 }
 // the browser's own Alt keys (the address bar, the menus) don't fire while you write on the desk's paper
-addEventListener('keydown', e => { if (e.altKey && !e.ctrlKey && /^(Key[WASDPQ]|Backspace)$/.test(e.code) && flowBox()) e.preventDefault(); }, true);
+addEventListener('keydown', e => { if (e.altKey && !e.ctrlKey && /^(Key[WASDP]|Backspace)$/.test(e.code) && flowBox()) e.preventDefault(); }, true);
 // Alt+Left / Alt+Right: the pen jumps a word at a time (Shift too: selects as it goes), instead of the browser going Back
 addEventListener('keydown', e => {
   if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || !flowBox()) return;
   e.preventDefault(); e.stopPropagation();
   const s = getSelection(); if (s.modify) s.modify(e.shiftKey ? 'extend' : 'move', e.key === 'ArrowLeft' ? 'backward' : 'forward', 'word');
 }, true);
-
-// Alt+Q with a card picked (not writing in it): the same steps, and letting go of Alt just picks the lit card
-addEventListener('keydown', e => {
-  if (!e.altKey || e.ctrlKey || e.metaKey || e.code !== 'KeyQ' || flowBox()) return;
-  const t = e.target; if (t && (t.isContentEditable || t.closest && t.closest('input, select, textarea')) || page && !page.hidden) return;
-  if (flowCyc) { e.preventDefault(); e.stopPropagation(); flowCycle(null, e.shiftKey ? -1 : 1); return; }
-  const c = selId && els.get(selId); if (!c) return;
-  e.preventDefault(); e.stopPropagation(); flowCycle(c, e.shiftKey ? -1 : 1, false);
-}, true);
-addEventListener('keydown', e => { if (e.key === 'Escape' && flowCyc && !flowCyc.edit) { e.preventDefault(); e.stopImmediatePropagation(); flowCycleEnd(false); } }, true);
 
 // the same keys with a card picked, not writing in it: Alt+W/A/S/D a tied note that way (and you're writing in it), Alt+P a
 // tied photo beside it (it stays picked), Alt+Backspace back to the card you were on before (picked)
