@@ -271,7 +271,7 @@ function noteMenuOpen(x, y) {
   noteMenu.replaceChildren(
     row(byK(['title', 'head']), sep(), byK(['bold', 'italic', 'under', 'strike', 'mark', 'code']), sep(), byK(['clear'])),
     row(byK(['bullet', 'num', 'check', 'quote']), sep(), byK(['outdent', 'indent']), sep(), byK(['line', 'date'])),
-    row(chip([swatch, el('span', {}, '▾')], src.filter(b => b.dataset.c || b.dataset.bg).map(copy), 'sx-nm-cols'),
+    row((() => { const n = selNote(); return n && n.it && n.it.book; })() ? null : chip([swatch, el('span', {}, '▾')], src.filter(b => b.dataset.c || b.dataset.bg).map(copy), 'sx-nm-cols'), // (a page in a book is the book's paper: no colours)
       chip([paperName, el('span', {}, '▾')], src.filter(b => b.dataset.p).map(copy), 'sx-nm-papers'),
       sep(), byK(['smaller', 'bigger', 'fit']), el('span', { class: 'sx-gap' }),
       chip([el('span', {}, 'More'), el('span', {}, '▾')], more, 'sx-nm-more')));

@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8800", "--bind", "127.0.0.1"],
       "port": 8800
+    },
+    {
+      "name": "bookshelf",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8801", "--bind", "127.0.0.1", "--directory", "../bookshelf"],
+      "port": 8801
     }
   ]
 }
