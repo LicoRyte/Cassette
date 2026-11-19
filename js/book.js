@@ -259,6 +259,13 @@ async function bookRemap(out, imap) { // a copied board: books point at their ow
     if (bookId) { if (!bookOf(bookId)) { bookLeavePage(); bookId = null; bookView.hidden = true; }
       else { if (bookPgEl && bookPgId && itemOf(bookPgId) === bookPgIt) els.set(bookPgId, bookPgEl); else bookPageDraw(true); bookSideDraw(); } }
     return r; }; }
+// the note tools (the right-click panel, Ctrl+B and the rest) work on the open book's page: they look for "the note you're
+// on" through keepNote (js/notes.js asks it first), so the page answers there, picked or written in
+{ const kn0 = keepNote; keepNote = function (...a) {
+    if (bookPgEl && bookPgId && !bookView.hidden && bookPgEl.classList.contains('sx-bnote') && (selId === bookPgId || bookPgEl.contains(document.activeElement))) {
+      const it = itemOf(bookPgId), t = bookPgEl.querySelector('.sx-note-t'); if (it && t) return { c: bookPgEl, t, it };
+    }
+    return kn0.apply(this, a); }; }
 // the contents follow what you write
 let bookNameT = 0; bookPageBox.addEventListener('input', () => { clearTimeout(bookNameT); bookNameT = setTimeout(() => { const b = bookOf(bookId), row = bookSide.querySelector('.sx-book-row.on span'), p = b && bookPages(b)[b.at]; if (row && p) row.textContent = bookName(p); }, 300); });
 // keys while it's open: ← → turn the pages (not while writing), Esc closes (once the pen is down)

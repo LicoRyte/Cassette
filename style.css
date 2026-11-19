@@ -1906,3 +1906,4 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-book-prev { margin-top: 10px; padding: 9px 10px; border-radius: 3px 6px 6px 3px; font: 700 14px var(--ui); letter-spacing: .06em; text-transform: uppercase; text-align: center; box-shadow: inset 6px 0 0 rgb(0 0 0 / .18); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .sx-book-sq { transition: none; } }
 .sx-world .sx-bcard.sx-bbook .sx-book-title, .sx-world .sx-bcard.sx-bbook .sx-book-n { color: var(--cink); } /* (the title's own colour, over the desk's ink for words on cards) */
+.sx-book-page .sx-bcard.sel { outline: none; animation: none; } /* (a page in a book isn't 'picked' on a desk) */
