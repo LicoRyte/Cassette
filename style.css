@@ -1825,7 +1825,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-book-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .sx-book-pic.none { background: none; border-top: 3px double color-mix(in srgb, var(--cink) 38%, transparent); border-bottom: 3px double color-mix(in srgb, var(--cink) 38%, transparent); border-radius: 0; margin: 4px 6px; }
 .sx-book-n { position: absolute; right: 12px; bottom: 9px; padding: 1px 7px; border-radius: 9px; background: color-mix(in srgb, var(--cink) 14%, transparent); font: 700 10.5px var(--ui); letter-spacing: .06em; }
-.sx-book-ribbon { position: absolute; right: 34px; top: -3px; width: 10px; height: 44px; background: #d1401f; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); }
+.sx-book-ribbon { position: absolute; left: 44px; bottom: -13px; width: 10px; height: 26px; background: #d1401f; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); } /* (the bookmark ribbon hangs out of the bottom, clear of the title) */
 .sx-world .sx-bbook .sx-bnote-x { color: var(--cink); }
 
 .sx-book-view { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 24px; background: rgb(var(--shade) / .38); }
@@ -1886,3 +1886,23 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-book-page .sx-btbl *, .sx-book-page .sx-polaroid * { animation: none !important; transition: none !important; }
 @media (max-width: 720px) { .sx-book-open { flex-direction: column; height: calc(100vh - 32px); } .sx-book-side { width: auto; max-height: 38%; } }
 @media (prefers-reduced-motion: reduce) { .sx-book-view.in .sx-book-open { animation: none; } }
+
+/* ---------- a book's colours: two keys in the contents, and the 32-colour palette under them ---------- */
+.sx-book-cols { display: flex; gap: 6px; }
+.sx-book-colk { flex: 1; display: flex; align-items: center; gap: 7px; padding: 5px 8px; background: #fffaf0; border: 1px solid #e6d6b8; border-radius: 3px; color: #34111f; font: 600 12px var(--ui); cursor: pointer; }
+.sx-book-colk i { width: 16px; height: 16px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgb(52 17 31 / .2); }
+.sx-book-colk small { margin-left: auto; font: 600 10px var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #833f34; }
+.sx-book-colk:hover { border-color: #c76e46; }
+.sx-book-pal { position: fixed; z-index: 2; width: 230px; padding: 10px; background: #fffaf0; border: 1px solid #e6d6b8; border-radius: 5px; box-shadow: 0 10px 26px rgb(115 57 46 / .3); color: #34111f; }
+.sx-book-pal[hidden] { display: none; }
+.sx-book-palh { margin-bottom: 8px; font: 700 10.5px var(--ui); letter-spacing: .2em; text-transform: uppercase; color: #833f34; }
+.sx-book-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.sx-book-sq { aspect-ratio: 1; padding: 0; border: 0; border-radius: 3px; box-shadow: inset 0 0 0 1px rgb(52 17 31 / .18); cursor: pointer; transition: transform .1s; }
+.sx-book-sq:hover { transform: scale(1.18); position: relative; z-index: 1; }
+.sx-book-sq.on { box-shadow: 0 0 0 2px #fffaf0, 0 0 0 3.5px #c76e46; }
+.sx-book-auto { display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 8px; padding: 5px 7px; background: none; border: 1px solid #e6d6b8; border-radius: 3px; color: #34111f; font: 600 12px var(--ui); text-align: left; cursor: pointer; }
+.sx-book-auto i { width: 14px; height: 14px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgb(52 17 31 / .2); }
+.sx-book-auto.on { border-color: #c76e46; }
+.sx-book-prev { margin-top: 10px; padding: 9px 10px; border-radius: 3px 6px 6px 3px; font: 700 14px var(--ui); letter-spacing: .06em; text-transform: uppercase; text-align: center; box-shadow: inset 6px 0 0 rgb(0 0 0 / .18); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .sx-book-sq { transition: none; } }
+.sx-world .sx-bcard.sx-bbook .sx-book-title, .sx-world .sx-bcard.sx-bbook .sx-book-n { color: var(--cink); } /* (the title's own colour, over the desk's ink for words on cards) */

@@ -381,7 +381,7 @@ function drawBoard() {
   [...picked].forEach(id => { if (!items.some(i => i.id === id)) picked.delete(id); }); if (selId && !picked.has(selId)) selId = null;
   items.forEach(it => {
     // (folders and tables come from files loaded after this one: until they're in, those wait for start.js to draw the desk again)
-    if (it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function') return; 
+    if (it.type === 'hop' && typeof hopCard !== 'function' || it.type === 'tbl' && typeof tblCard !== 'function' || it.type === 'book' && typeof bookCard !== 'function') return; // (a book too: drawn as a note, its card would stay one) 
     let c = keep.get(it.id);
     if (c) { const l = it.x + 'px', t = it.y + 'px'; if (c.style.left !== l) c.style.left = l; if (c.style.top !== t) c.style.top = t; }
     else { c = cardMade(it.type === 'hop' ? hopCard(it) : it.type === 'tbl' ? tblCard(it) : paperCard(it), it);

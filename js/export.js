@@ -40,7 +40,7 @@ function deskImportBackup(asSpace) {
       if (it.type === 'note') { if (it.html) o.html = noteClean(str(it.html, NOTE_MAX)); if (it.color) o.color = str(it.color, 12); if (it.fs) o.fs = num(it.fs); if (it.w) o.w = num(it.w); if (it.h) o.h = num(it.h); if (PAPERS.some(p => p[0] === it.paper)) o.paper = it.paper; if (it.topic === true) o.topic = true; }
       if (it.type === 'tbl') Object.assign(o, tblClean(it));
       if (it.type === 'hop' && bmap.has(it.to)) o.to = bmap.get(it.to); // (a folder to a board that came in the same backup)
-      if (it.type === 'book') { o.title = str(it.title, 80); if (NOTE_COLORS.some(c => c[0] === it.color)) o.color = it.color; if (it.cover) o.cover = true; o._pages = Array.isArray(it.pages) ? it.pages.slice(0, 2000) : []; o.at = num(it.at); }
+      if (it.type === 'book') { o.title = str(it.title, 80); if (NOTE_COLORS.some(c => c[0] === it.color)) o.color = it.color; if (typeof PALETTE !== 'undefined') { if (PALETTE.includes(it.bg)) o.bg = it.bg; if (PALETTE.includes(it.ink)) o.ink = it.ink; } if (it.cover) o.cover = true; o._pages = Array.isArray(it.pages) ? it.pages.slice(0, 2000) : []; o.at = num(it.at); }
       if (typeof it.book === 'string') o._book = it.book; // (a book's page: tied back to its book below, once every card has its new name)
       return o;
     });

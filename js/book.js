@@ -15,7 +15,19 @@ tableKey.after(bookKey);
 
 const bookOf = id => { const it = itemOf(id); return it && it.type === 'book' ? it : null; };
 const bookPages = b => { const ids = Array.isArray(b.pages) ? b.pages : []; const out = ids.map(itemOf).filter(p => p && p.book === b.id); if (out.length !== ids.length) b.pages = out.map(p => p.id); return out; };
-const bookColor = b => NOTE_COLORS.find(c => c[0] === b.color) || NOTE_COLORS.find(c => c[0] === 'slate');
+// the cover's colours: any of the 32 in Cassie's palette (by BurakoIRL), in four rows of eight; the title's colour is one of
+// them too, or Auto (cream on a dark cover, dark ink on a light one). b.bg and b.ink are kept; b.color is a book from before
+const PALETTE = ['#43002a', '#890027', '#d9243c', '#ff6157', '#ffe0dc', '#ff88a9', '#c03b94', '#601761',
+  '#310c1b', '#34111f', '#73392e', '#833f34', '#c76e46', '#eb9c6e', '#ffdaac', '#ffb762',
+  '#7c191a', '#d1401f', '#ff823b', '#ffd832', '#9cb93b', '#458239', '#273b2d', '#030710',
+  '#041528', '#033e5e', '#1c92a7', '#77d6c1', '#ffffe4', '#bfc3c6', '#6d8a8d', '#293b49'];
+const bookLight = hex => { const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return (r * 299 + g * 587 + b * 114) / 255000 > .58; };
+const bookAuto = bg => bookLight(bg) ? '#34111f' : '#ffffe4';
+function bookColor(b) {
+  const named = NOTE_COLORS.find(c => c[0] === b.color) || NOTE_COLORS.find(c => c[0] === 'slate');
+  const bg = PALETTE.includes(b.bg) ? b.bg : named[1];
+  return [b.color || '', bg, PALETTE.includes(b.ink) ? b.ink : (PALETTE.includes(b.bg) ? bookAuto(bg) : named[2])];
+}
 function bookName(p) { // a page as the contents list it
   if (p.type === 'photo') return p.text ? String(p.text).split('\n')[0].slice(0, 60) : 'A photo';
   if (p.type === 'tbl') return ((p.rows && p.rows[0]) || []).filter(Boolean).slice(0, 3).join(' · ') || 'A table';
@@ -35,6 +47,8 @@ function bookCard(it) {
     el('b', { class: 'sx-book-title' }, it.title || 'A book'), cover,
     el('span', { class: 'sx-book-n' }, n + (n === 1 ? ' page' : ' pages')), n ? el('i', { class: 'sx-book-ribbon', 'aria-hidden': 'true' }) : null);
 }
+// (before version 197 a book could be drawn as a note after a reload, and words typed into it were kept on the book: they're let go)
+S.board.items.forEach(it => { if (it.type === 'book') ['html', 'text', 'fs', 'h', 'paper', 'rcd', 'mt'].forEach(k => delete it[k]); });
 { const pc0 = paperCard; paperCard = function (it, ...a) { return it.type === 'book' ? bookCard(it) : pc0.call(this, it, ...a); }; }
 function addBook() {
   const p = freeSpot(), t = Date.now(), id = 'k' + t, pg = 'n' + t + 'p';
@@ -63,7 +77,7 @@ function bookOpen(id, at) {
   bookDraw(true); deskSfx('flip');
 }
 function bookClose() {
-  if (!bookId) return; bookLeavePage(); bookId = null; bookView.hidden = true; save(); drawBoard(); deskSfx('drop');
+  if (!bookId) return; bookPal.hidden = true; bookLeavePage(); bookId = null; bookView.hidden = true; save(); drawBoard(); deskSfx('drop');
 }
 function bookLeavePage() { if (bookPgEl) { if (bookPgId && els.get(bookPgId) === bookPgEl) els.delete(bookPgId); bookPgEl.remove(); } bookPgEl = null; bookPgId = null; bookPgIt = null; }
 function bookGo(i, write) {
@@ -80,8 +94,10 @@ function bookSideDraw() {
   const pic = el('button', { type: 'button', class: 'sx-book-thumb' + (b.cover ? '' : ' none'), title: b.cover ? 'Change the cover picture' : 'Add a cover picture', onclick: () => bookCoverPick() });
   if (b.cover) photoUrls(b.id).then(u => { if (u) pic.append(el('img', { src: u.small || u.full, alt: '' })); }); else pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
   const title = el('button', { type: 'button', class: 'sx-book-name', title: 'Rename the book', onclick: () => bookTitleEdit() }, b.title || 'A book');
-  const swatches = el('div', { class: 'sx-book-sw', role: 'radiogroup', 'aria-label': 'Cover colour' }, ...NOTE_COLORS.map(([k, c]) =>
-    el('button', { type: 'button', class: 'sx-sw' + (k === (b.color || 'slate') ? ' on' : ''), role: 'radio', 'aria-checked': String(k === (b.color || 'slate')), title: k[0].toUpperCase() + k.slice(1), style: 'background:' + c, onclick: () => { deskMark(); b.color = k; save(); bookSideDraw(); drawBoard(); deskSfx('pick'); } })));
+  // the cover's colour and its title's colour: a swatch each, and a click opens the palette under it
+  const colKey = (label, kind, hex, auto) => el('button', { type: 'button', class: 'sx-book-colk', 'aria-haspopup': 'true', title: label === 'Cover' ? 'The cover\'s colour' : 'The colour of the title on the cover', onclick: e => bookPalOpen(kind, e.currentTarget) },
+    el('i', { style: 'background:' + hex }), el('span', {}, label), auto ? el('small', {}, 'auto') : null);
+  const swatches = el('div', { class: 'sx-book-cols' }, colKey('Cover', 'bg', bg), colKey('Title', 'ink', ink, !PALETTE.includes(b.ink)));
   const coverRow = el('div', { class: 'sx-book-covrow' }, el('button', { type: 'button', class: 'sx-book-link', onclick: () => bookCoverPick() }, b.cover ? 'Change picture' : 'Add a cover picture'),
     b.cover ? el('button', { type: 'button', class: 'sx-book-link', onclick: () => { deskMark(); delete b.cover; b.coverV = Date.now(); PHOTOS.del(b.id).catch(() => {}); photoCache.delete(b.id); save(); bookSideDraw(); drawBoard(); } }, 'Remove') : null);
   const list = el('ol', { class: 'sx-book-idx' }, ...pages.map((p, i) => {
@@ -124,6 +140,27 @@ function bookPageDraw(fresh, dir) {
   }
   bookMain.replaceChildren(top, bookPageBox, nav);
 }
+
+/* ---------- the palette under a colour key: 32 colours (and Auto, for the title) ---------- */
+const bookPal = el('div', { class: 'sx-book-pal', hidden: true, role: 'dialog', 'aria-label': 'Colours' });
+bookView.append(bookPal);
+function bookPalOpen(kind, at) {
+  const b = bookOf(bookId); if (!b) return;
+  if (!bookPal.hidden && bookPal.dataset.k === kind) { bookPal.hidden = true; return; }
+  const [, bg, ink] = bookColor(b), cur = kind === 'bg' ? bg : (PALETTE.includes(b.ink) ? b.ink : '');
+  const pick = hex => { deskMark(); if (kind === 'bg') { b.bg = hex; delete b.color; } else if (hex) b.ink = hex; else delete b.ink; save(); bookPal.hidden = true; bookSideDraw(); drawBoard(); deskSfx('pick'); };
+  bookPal.replaceChildren(...[el('div', { class: 'sx-book-palh' }, kind === 'bg' ? 'Cover colour' : 'Title colour'),
+    kind === 'ink' ? el('button', { type: 'button', class: 'sx-book-auto' + (!cur ? ' on' : ''), onclick: () => pick('') }, el('i', { style: 'background:' + bookAuto(bg) }), 'Auto: readable on the cover') : null,
+    el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => el('button', { type: 'button', class: 'sx-book-sq' + (hex === cur ? ' on' : ''), style: 'background:' + hex, title: hex, 'aria-label': hex, onclick: () => pick(hex) }))),
+    el('div', { class: 'sx-book-prev', style: 'background:' + bg + ';color:' + ink }, b.title || 'A book')].filter(Boolean)); // (the page's own replaceChildren writes a missing one as null)
+  bookPal.dataset.k = kind; bookPal.hidden = false;
+  const r = at.getBoundingClientRect(), w = bookPal.offsetWidth, h = bookPal.offsetHeight;
+  bookPal.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + 'px'; bookPal.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.bottom + 6)) + 'px';
+  // pointing at a colour shows it on the little preview first
+  bookPal.querySelectorAll('.sx-book-sq').forEach(q => q.addEventListener('pointerenter', () => { const pv = bookPal.querySelector('.sx-book-prev'); if (kind === 'bg') { pv.style.background = q.title; if (!PALETTE.includes(b.ink)) pv.style.color = bookAuto(q.title); } else pv.style.color = q.title; }));
+}
+bookView.addEventListener('pointerdown', e => { if (!bookPal.hidden && !e.target.closest('.sx-book-pal, .sx-book-colk')) bookPal.hidden = true; }, true);
+addEventListener('keydown', e => { if (e.key === 'Escape' && !bookPal.hidden) { e.preventDefault(); e.stopImmediatePropagation(); bookPal.hidden = true; } }, true);
 
 /* ---------- changing a book: adding, moving, deleting, taking out ---------- */
 async function bookAdd(kind, files) {
