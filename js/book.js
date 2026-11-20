@@ -73,21 +73,8 @@ function bookOpen(id, at) {
   if (bookId !== id) { bookLeavePage(); bookId = id; }
   const n = bookPages(b).length; if (at != null) b.at = at; b.at = Math.max(0, Math.min(n - 1, b.at || 0));
   select(null); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  const was = bookView.hidden; bookView.hidden = false; if (!stillUI()) animAgain(bookView, 'in');
+  bookView.hidden = false; if (!stillUI()) animAgain(bookView, 'in');
   bookDraw(true); deskSfx('flip');
-  if (was && !stillUI()) bookSwing(b);
-}
-// opening a book: its cover swings open on the binding, as the pages come into view
-function bookSwing(b) {
-  const box = bookView.querySelector('.sx-book-open'); if (!box) return; const r = box.getBoundingClientRect(), [, bg, ink] = bookColor(b);
-  const sw = el('div', { class: 'sx-book-swing', 'aria-hidden': 'true', style: 'left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px;height:' + r.height + 'px;--cover:' + bg + ';--cink:' + ink },
-    el('i', { class: 'sx-book-spine' }), el('b', { class: 'sx-book-title' }, b.title || 'A book'));
-  if (b.cover) { const pic = el('div', { class: 'sx-book-pic sx-swing-pic' }); sw.append(pic); photoUrls(b.id).then(u => { if (u) pic.append(el('img', { src: u.full, alt: '' })); }); } // (and its picture)
-  sw.style.setProperty('--edge', Math.min(10, 3 + (b.pages || []).length * .6).toFixed(1) + 'px');
-  if (typeof bookDress === 'function') bookDress(sw, b);
-  document.body.append(sw);
-  const a = sw.animate([{ transform: 'perspective(2200px) rotateY(0deg)', opacity: 1 }, { transform: 'perspective(2200px) rotateY(-92deg)', opacity: 1, offset: .62 }, { transform: 'perspective(2200px) rotateY(-150deg)', opacity: 0 }], { duration: 720, easing: 'cubic-bezier(.45, 0, .3, 1)' });
-  a.onfinish = a.oncancel = () => sw.remove(); setTimeout(() => sw.remove(), 1200); // (and gone in any case, even where animations are held up)
 }
 function bookClose() {
   if (!bookId) return; bookLeavePage(); bookId = null; bookView.hidden = true; save(); drawBoard(); deskSfx('drop');

@@ -191,6 +191,18 @@ function bookStk(b) {
 }
 // a cover dressed: its material under everything, the title's look (foil, a subtitle under it),
 // the spine, the pages' edges, the corner pieces, the strap, the little extras, and the stickers on top. c: the cover's element
+// a title fits its cover: if a word is too long for the line, the title gets smaller (down to 11px) until every word fits whole,
+// rather than breaking one in two. It's measured once the cover is on the screen, and again if it's drawn before that
+function bookFit(t, tries = 0) {
+  requestAnimationFrame(() => {
+    if (!t.isConnected) { if (tries < 20) bookFit(t, tries + 1); return; }
+    if (!t.clientWidth) return; t.style.fontSize = '';
+    let fs = parseFloat(getComputedStyle(t).fontSize) || 20; const min = Math.min(11, fs);
+    const box = t.parentElement, cs = getComputedStyle(box), room = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); // (the room inside the cover)
+    const over = () => t.scrollWidth > t.clientWidth + 1 || t.offsetWidth > room - (t.closest('[data-tf="stamp"]') ? 8 : 0) + 1; // (a word wider than its line, or a stamp box wider than the cover, with room for its tilt and outline)
+    while (fs > min && over()) { fs -= .5; t.style.fontSize = fs + 'px'; }
+  });
+}
 function bookDress(c, b) {
   if (!c.querySelector(':scope > .sx-book-edge')) c.prepend(el('i', { class: 'sx-book-edge', 'aria-hidden': 'true' })); // (the small covers and the swinging one: thick like the book on the desk)
   if (!c.querySelector(':scope > .sx-book-base')) c.prepend(el('i', { class: 'sx-book-base', 'aria-hidden': 'true' }));
@@ -205,6 +217,7 @@ function bookDress(c, b) {
   if (PALETTE.includes(b.edgeCol)) c.style.setProperty('--edgec', b.edgeCol); else c.style.removeProperty('--edgec');
   if (b.mat) c.prepend(el('i', { class: 'sx-cov-mat', 'data-mat': b.mat, 'aria-hidden': 'true' }));
   const t = c.querySelector(':scope > .sx-book-title') || (c.classList.contains('sx-tied-c') ? c.querySelector(':scope > b') : null);
+  if (t && t.classList.contains('sx-book-title')) bookFit(t);
   if (t && b.foil && !t.querySelector('.sx-foil')) { const f = el('span', { class: 'sx-foil' }); f.append(...t.childNodes); t.append(f); }
   if (t && b.sub && t.classList.contains('sx-book-title')) t.after(el('span', { class: 'sx-book-sub' }, b.sub));
   if (b.corners) c.append(el('i', { class: 'sx-corner-pc tr c-' + b.corners, 'aria-hidden': 'true' }), el('i', { class: 'sx-corner-pc br c-' + b.corners, 'aria-hidden': 'true' }));
@@ -244,7 +257,7 @@ function decoCoverDraw() {
   const b = bookOf(decoId); if (!b) return; const [, bg, ink] = bookColor(b);
   decoCover.style.setProperty('--cover', bg); decoCover.style.setProperty('--cink', ink);
   const pic = el('div', { class: 'sx-book-pic' + (b.cover ? '' : ' none') }); if (b.cover) photoUrls(b.id).then(u => { if (u) pic.append(el('img', { src: u.full, alt: '' })); });
-  decoCover.style.setProperty('--edge', Math.min(10, 3 + (b.pages || []).length * .6).toFixed(1) + 'px');
+  decoCover.style.setProperty('--edge', Math.min(9, 2 + (b.pages || []).length * .6).toFixed(1) + 'px'); // (just as on the desk)
   decoCover.replaceChildren(el('i', { class: 'sx-book-edge' }), el('i', { class: 'sx-book-base' }), el('i', { class: 'sx-book-spine' }), el('b', { class: 'sx-book-title' }, b.title || 'A book'), pic, el('span', { class: 'sx-book-n' }, (b.pages || []).length + ((b.pages || []).length === 1 ? ' page' : ' pages')));
   bookDress(decoCover, b); const stks = decoCover.querySelector('.sx-stks');
   if (stks) { stks.classList.add('live'); if (decoSel >= 0 && stks.children[decoSel]) stks.children[decoSel].classList.add('sel'); }
