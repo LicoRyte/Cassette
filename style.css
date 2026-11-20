@@ -2349,3 +2349,9 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 /* the pages are a little narrower than the covers: the cover's colour shows past the end of the pages, at the open side */
 :is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-base::after { right: 6px; }
 .sx-book-thumb > .sx-book-base::after { right: 2px; }
+/* the bottom of the book is one fixed depth (however many pages), most of it the pages: the cover's board is only a thin
+   edge above and below them */
+:is(.sx-world .sx-bbook, .sx-deco-cover) { --bh: 22px; }
+.sx-deco-cover { margin-bottom: 30px; }
+:is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-base::after { top: 3px; bottom: 3px; }
+.sx-book-thumb > .sx-book-base::after { top: 1.5px; bottom: 1.5px; }
