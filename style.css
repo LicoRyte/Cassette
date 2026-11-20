@@ -2319,3 +2319,30 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 :is(.sx-world .sx-bbook, .sx-deco-cover) { border-radius: 0 5px 0 0; }
 .sx-book-spine { border-radius: 0 !important; }
 :is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-spine { background-color: var(--spc); }
+
+/* ---------- tidying the book (version 236) ---------- */
+/* a stamped title stays inside the cover, its outline and tilt too */
+:is(.sx-world .sx-bbook, .sx-deco-cover)[data-tf="stamp"] .sx-book-title { max-width: calc(100% - 10px); font-size: 22px; }
+/* the page count always sits at the bottom left, clear of the strap, the seal and the picture */
+:is(.sx-world .sx-bbook, .sx-deco-cover) .sx-book-n { left: 26px; right: auto; }
+/* the extras keep out of each other's way and out of the page count's */
+.sx-xtra[data-x="flower"] { bottom: 13%; left: 5%; }
+.sx-xtra[data-x="badge"] { bottom: 6%; left: 42%; width: 16%; }
+.sx-xtra[data-x="ticket"] { bottom: 36%; }
+/* the little cover in the open book: its spine, and its bottom under it */
+.sx-book-thumb > .sx-book-spine { width: 4px; }
+/* picked or tied: the outline goes round the whole book, its bottom too */
+.sx-world .sx-bbook:is(.sel, .kin) { outline: none; animation: none; }
+.sx-world .sx-bbook:is(.sel, .kin)::after { content: ''; position: absolute; inset: -5px -5px calc(-1 * var(--bh, 20px) - 5px) -5px; border-radius: 4px; pointer-events: none; }
+.sx-world .sx-bbook.sel::after { border: 2px solid var(--k-ffffe4, #ffffe4); }
+.sx-world .sx-bbook.kin:not(.sel)::after { border: 2.5px dashed #ff3048; }
+/* flags start right at the book's side and stick out from it (none of the tab is laid over the cover's edge) */
+.sx-world .sx-bbook .sx-flag { right: -12px; width: 12px; min-height: 14px; border-radius: 0 3px 3px 0; background: linear-gradient(90deg, rgb(3 7 16 / .22), transparent 45%), var(--flag); box-shadow: 1px 1px 0 rgb(115 57 46 / .25); }
+
+/* ---------- tidying the book, again (version 238) ---------- */
+/* an embossed title in foil: the foil shows, without the pressed-in shadows greying it */
+[data-tf="emboss"][data-foil] .sx-book-title, [data-tf="emboss"][data-foil] .sx-book-title .sx-foil { text-shadow: none !important; }
+/* flags show over a charm's chain, not hidden behind it */
+.sx-world .sx-bbook .sx-flag { z-index: 3; }
+/* picked up and carried: the shadow falls under the whole book, its bottom too */
+.sx-world .sx-bbook.lift { box-shadow: none; filter: drop-shadow(2px 3px 0 rgb(115 57 46 / .2)) drop-shadow(12px 20px 16px rgb(3 7 16 / .32)); }

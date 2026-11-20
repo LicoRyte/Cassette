@@ -127,7 +127,7 @@ function bookPageDraw(fresh, dir) {
     el('button', { type: 'button', class: 'sx-book-tb', title: 'Put this page back on the desk, beside the book', onclick: () => bookTakeOut() }, 'Take out'), del, close);
   const nav = el('div', { class: 'sx-book-nav' },
     el('button', { type: 'button', class: 'sx-book-turn', 'aria-label': 'The page before', title: 'The page before (←)', disabled: b.at <= 0 || null, onclick: () => bookGo(b.at - 1) }, '‹'),
-    el('span', {}, (b.at + 1) + ' / ' + pages.length),
+    el('span', { class: 'sx-gap' }),
     el('button', { type: 'button', class: 'sx-book-turn', 'aria-label': 'The next page', title: 'The next page (→)', disabled: b.at >= pages.length - 1 || null, onclick: () => bookGo(b.at + 1) }, '›'));
   if (fresh || p.id !== bookPgId || itemOf(p.id) !== bookPgIt) { // the page itself: a card, just like on the desk
     bookLeavePage();

@@ -220,18 +220,21 @@ function bookStk(b) {
 // a title fits its cover: if a word is too long for the line, the title gets smaller (down to 11px) until every word fits whole,
 // rather than breaking one in two. It's measured once the cover is on the screen, and again if it's drawn before that
 function bookFit(t, tries = 0) {
-  requestAnimationFrame(() => {
-    if (!t.isConnected) { if (tries < 20) bookFit(t, tries + 1); return; }
-    if (!t.clientWidth) return; t.style.fontSize = '';
+  setTimeout(() => { // (a timer, not an animation frame: it runs even in a tab that isn't being drawn)
+    if (!t.isConnected || !t.clientWidth) { if (tries < 40) bookFit(t, tries + 1); return; } // (not on the screen yet: the desk still hidden, say. Tried again)
+    t.style.fontSize = '';
     let fs = parseFloat(getComputedStyle(t).fontSize) || 20; const min = Math.min(11, fs);
     const box = t.parentElement, cs = getComputedStyle(box), room = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); // (the room inside the cover)
-    const over = () => t.scrollWidth > t.clientWidth + 1 || t.offsetWidth > room - (t.closest('[data-tf="stamp"]') ? 8 : 0) + 1; // (a word wider than its line, or a stamp box wider than the cover, with room for its tilt and outline)
+    const over = () => t.scrollWidth > t.clientWidth + 1 || t.offsetWidth > room + 1; // (a word wider than its line, or the title wider than the cover)
     while (fs > min && over()) { fs -= .5; t.style.fontSize = fs + 'px'; }
-  });
+  }, tries ? 250 : 0);
 }
+// a title style's own font (Round, Script) may arrive after the title was measured: once it has, every title is fitted again
+if (document.fonts) { const refit = () => document.querySelectorAll('.sx-book-title').forEach(t => bookFit(t)); document.fonts.addEventListener('loadingdone', refit); document.fonts.ready.then(refit); }
 function bookDress(c, b) {
   if (!c.querySelector(':scope > .sx-book-edge')) c.prepend(el('i', { class: 'sx-book-edge', 'aria-hidden': 'true' })); // (the small covers and the swinging one: thick like the book on the desk)
   if (!c.querySelector(':scope > .sx-book-base')) c.prepend(el('i', { class: 'sx-book-base', 'aria-hidden': 'true' }));
+  if (c.classList.contains('sx-book-thumb') && !c.querySelector(':scope > .sx-book-spine')) c.prepend(el('i', { class: 'sx-book-spine', 'aria-hidden': 'true' })); // (the little cover in the open book)
   const attr = (k, v) => { if (v) c.dataset[k] = v; else delete c.dataset[k]; };
   if (PALETTE.includes(b.spine)) c.style.setProperty('--spine', b.spine); else c.style.removeProperty('--spine');
   attr('sp', b.spineP);
