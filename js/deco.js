@@ -161,7 +161,7 @@ function charmEl(k) {
 }
 // a book's look: everything about how it looks, but not what it says (its title, the line under it, the seal's letters),
 // its picture or its stickers. Copied from one book, pasted onto another (kept until Cassie closes)
-const BOOK_LOOK = ['bg', 'color', 'ink', 'tf', 'foil', 'spine', 'spineP', 'spineInk', 'edge', 'edgeCol', 'band', 'strap', 'extras', 'seal', 'sealI', 'charm'];
+const BOOK_LOOK = ['bg', 'color', 'ink', 'tf', 'foil', 'spine', 'spineP', 'spineInk', 'edge', 'edgeCol', 'band', 'strap', 'strapP', 'extras', 'seal', 'sealI', 'charm'];
 let bookLookCopied = null;
 function bookLookCopy(id) { const b = bookOf(id); if (!b) return; bookLookCopied = {}; BOOK_LOOK.forEach(k => { if (b[k] !== undefined) bookLookCopied[k] = JSON.parse(JSON.stringify(b[k])); }); deskToast('Copied the look of ' + (b.title || 'the book') + ': paste it onto another book'); deskSfx('pick'); }
 function bookLookPaste(id, marked) {
@@ -198,7 +198,7 @@ function bookStkClean(v) {
 function bookDecoClean(it, o) {
   if (Array.isArray(it.stickers) && it.stickers.length) o.stickers = bookStkClean(it.stickers);
   if (TITLE_STYLES.some(t => t[0] && t[0] === it.tf)) o.tf = it.tf;
-  if (PALETTE.includes(it.band)) o.band = it.band;
+  if (PALETTE.includes(it.band)) o.band = it.band; if (Number.isFinite(+it.strapP) && it.strapP !== null && it.strapP !== '') o.strapP = Math.max(0, Math.min(100, Math.round(+it.strapP)));
   if (PALETTE.includes(it.spine)) o.spine = it.spine;
   if (SPINES.some(p => p[0] && p[0] === it.spineP)) o.spineP = it.spineP;
   if (PALETTE.includes(it.spineInk)) o.spineInk = it.spineInk;
@@ -245,7 +245,7 @@ function bookDress(c, b) {
   if (t && t.classList.contains('sx-book-title')) bookFit(t);
   if (t && b.foil && !t.querySelector('.sx-foil')) { const f = el('span', { class: 'sx-foil' }); f.append(...t.childNodes); t.append(f); }
   if (t && b.sub && t.classList.contains('sx-book-title')) t.after(el('span', { class: 'sx-book-sub' }, b.sub));
-  if (PALETTE.includes(b.band)) { const band = el('i', { class: 'sx-band', 'data-strap': b.strap || null, style: '--band:' + b.band, 'aria-hidden': 'true' });
+  if (PALETTE.includes(b.band)) { const band = el('i', { class: 'sx-band', 'data-strap': b.strap || null, style: '--band:' + b.band + (Number.isFinite(b.strapP) ? ';--sp:' + b.strapP + '%' : ''), 'aria-hidden': 'true' });
     if (STRAP_BITS[b.strap]) { const bit = el('i', { class: 'sx-strap-bit' }); bit.innerHTML = decoSvg(...STRAP_BITS[b.strap]); band.append(bit); }
     c.append(band); }
   (b.extras || []).forEach(k => { const x = EXTRAS.find(e => e[0] === k); if (!x) return; const e = el('i', { class: 'sx-xtra', 'data-x': k, 'aria-hidden': 'true' }); e.innerHTML = decoSvg(x[2], x[3]); c.append(e); });
@@ -332,6 +332,18 @@ function decoTabsApply() { // the sections of the tab you're on; the tabs above 
   const bar = el('div', { class: 'sx-deco-tabbar', role: 'tablist' }, ...DECO_TABS.map(([k, name]) => el('button', { type: 'button', role: 'tab', class: 'sx-deco-tabb' + (k === decoTab ? ' on' : ''), 'aria-selected': String(k === decoTab), onclick: () => { decoTab = k; decoSide.querySelector('.sx-deco-tabbar').replaceWith(decoTabsApply()); decoSide.scrollTop = 0; } }, name)));
   return bar;
 }
+// where the strap goes: a slider, left to right for the elastic (it runs down the cover), top to bottom for the others
+const STRAP_AT = { '': [87, 'Across the cover', 'Left', 'Right', 20, 96], ribbon: [58, 'Up and down the cover', 'Top', 'Bottom', 6, 90], buckle: [46, 'Up and down the cover', 'Top', 'Bottom', 6, 86], clasp: [42, 'Up and down the cover', 'Top', 'Bottom', 6, 82] };
+function decoStrapPlace(b) {
+  const [def, what, lo, hi, min, max] = STRAP_AT[b.strap || ''] || STRAP_AT[''];
+  const v = Number.isFinite(b.strapP) ? b.strapP : def;
+  const r = el('input', { type: 'range', class: 'sx-deco-range', min: String(min), max: String(max), step: '1', value: String(v), 'aria-label': 'Where the strap goes: ' + what });
+  let marked = false;
+  r.addEventListener('input', () => { if (!marked) { decoMark(); marked = true; } b.strapP = +r.value; decoCoverDraw(); });
+  r.addEventListener('change', () => { decoChanged(true); }); // (let go: saved, and the desk's book and Reset follow)
+  const back = el('button', { type: 'button', class: 'sx-book-tb', title: 'Back to where this strap goes at first', onclick: () => { decoMark(); delete b.strapP; decoChanged(true); } }, 'Reset');
+  return el('div', { class: 'sx-deco-place' }, el('div', { class: 'sx-deco-sub' }, 'Where it goes: ' + what.toLowerCase()), el('div', { class: 'sx-deco-placer' }, el('span', {}, lo), r, el('span', {}, hi), Number.isFinite(b.strapP) ? back : null));
+}
 function decoSideDraw() {
   const b = bookOf(decoId); if (!b) return; const [, bg] = bookColor(b), ink = PALETTE.includes(b.ink) ? b.ink : '';
   const set = fn => () => { decoMark(); fn(); decoChanged(true); deskSfx('pick'); };
@@ -366,7 +378,8 @@ function decoSideDraw() {
       b.spineP ? el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.spineInk, set(() => { b.spineInk = hex; })))) : null),
     sec('Page edges', chips(...EDGES.map(([k, name]) => chip([el('i', { class: 'sx-deco-ed', 'data-edge': k, style: PALETTE.includes(b.edgeCol) ? '--edgec:' + b.edgeCol : null }), el('span', {}, name)], (b.edge || '') === k, set(() => { if (k) b.edge = k; else delete b.edge; if (k === 'tint' && !PALETTE.includes(b.edgeCol)) b.edgeCol = '#ff88a9'; })))),
       b.edge === 'tint' ? el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.edgeCol, set(() => { b.edgeCol = hex; })))) : null),
-    sec('Strap', chips(...STRAPS.map(([k, name]) => chip(name, PALETTE.includes(b.band) && (b.strap || '') === k, set(() => { if (k) b.strap = k; else delete b.strap; if (!PALETTE.includes(b.band)) b.band = k === 'buckle' ? '#73392e' : '#ff88a9'; }))), chip('None', !PALETTE.includes(b.band), set(() => { delete b.band; }))),
+    sec('Strap', chips(...STRAPS.map(([k, name]) => chip(name, PALETTE.includes(b.band) && (b.strap || '') === k, set(() => { if ((b.strap || '') !== k) delete b.strapP; if (k) b.strap = k; else delete b.strap; if (!PALETTE.includes(b.band)) b.band = k === 'buckle' ? '#73392e' : '#ff88a9'; }))), chip('None', !PALETTE.includes(b.band), set(() => { delete b.band; }))),
+      PALETTE.includes(b.band) ? decoStrapPlace(b) : null,
       PALETTE.includes(b.band) ? el('div', { class: 'sx-deco-sub' }, 'Its colour') : null,
       PALETTE.includes(b.band) ? el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.band, set(() => { b.band = hex; })))) : null),
     sec('Little extras', chips(...EXTRAS.map(([k, name, box, inner]) => { const on = (b.extras || []).includes(k), ic = el('i', { class: 'sx-deco-xi' }); ic.innerHTML = decoSvg(box, inner);

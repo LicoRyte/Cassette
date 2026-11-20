@@ -2355,3 +2355,11 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 .sx-deco-cover { margin-bottom: 30px; }
 :is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-base::after { top: 3px; bottom: 3px; }
 .sx-book-thumb > .sx-book-base::after { top: 1.5px; bottom: 1.5px; }
+
+/* ---------- the strap, wherever you put it (version 242): --sp is its place on the cover, in % ---------- */
+:is(.sx-world .sx-bbook, .sx-deco-cover, .sx-book-thumb, .sx-tied-c) .sx-band:not([data-strap]) { right: calc(100% - var(--sp, 87%)); }
+.sx-band[data-strap="ribbon"] { top: var(--sp, 58%); }
+.sx-band[data-strap="buckle"] { top: var(--sp, 46%); }
+.sx-band[data-strap="clasp"] { top: var(--sp, 42%); }
+.sx-deco-placer { display: flex; align-items: center; gap: 8px; color: #833f34; font: 600 11.5px var(--ui); }
+.sx-deco-range { flex: 1; min-width: 0; accent-color: #c76e46; }
