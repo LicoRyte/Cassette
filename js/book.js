@@ -129,51 +129,16 @@ function bookPageDraw(fresh, dir) {
     el('button', { type: 'button', class: 'sx-book-turn', 'aria-label': 'The page before', title: 'The page before (←)', disabled: b.at <= 0 || null, onclick: () => bookGo(b.at - 1) }, '‹'),
     el('span', {}, (b.at + 1) + ' / ' + pages.length),
     el('button', { type: 'button', class: 'sx-book-turn', 'aria-label': 'The next page', title: 'The next page (→)', disabled: b.at >= pages.length - 1 || null, onclick: () => bookGo(b.at + 1) }, '›'));
-  let turned = null;
   if (fresh || p.id !== bookPgId || itemOf(p.id) !== bookPgIt) { // the page itself: a card, just like on the desk
-    const was = dir && bookPgEl && !stillUI() ? bookPgEl.cloneNode(true) : null; // (the page you're leaving, for it to turn over)
     bookLeavePage();
     const c = p.type === 'tbl' ? tblCard(p) : paperCard(p); c.classList.add('sx-book-pg'); bookPgEl = c; bookPgId = p.id; bookPgIt = p; c._snap = cardSnap(p); els.set(p.id, c);
     bookPageBox.replaceChildren(c); bookPageBox.scrollTop = 0;
-    if (dir && !stillUI()) turned = { dir, was, now: c };
   }
-  // the ribbon inside: it lies down the page you're on, in its own colour (or the cover's), and lifts and settles as you turn
+  // the ribbon inside: it lies down the page you're on, in its own colour (or the cover's)
   const rib = b.ribbon === 'none' ? null : el('i', { class: 'sx-book-rib', style: '--rib:' + (PALETTE.includes(b.ribbon) ? b.ribbon : bookColor(b)[1]), 'aria-hidden': 'true' });
   const folio = el('span', { class: 'sx-book-folio', 'aria-hidden': 'true' }, String(b.at + 1)); // (the page number, printed at its foot)
   bookMain.replaceChildren(...[top, bookPageBox, folio, nav, rib].filter(Boolean));
-  if (turned) bookTurn(turned.dir, turned.was, turned.now);
-  if (rib && dir && !stillUI()) rib.animate([{ transform: 'translateY(-26px)', opacity: 0 }, { transform: 'translateY(-26px)', opacity: 0, offset: .45 }, { transform: 'none', opacity: 1 }], { duration: 640, easing: 'cubic-bezier(.3, 1.4, .5, 1)' });
 }
-// a page turning over: forward, the page you leave lifts from the right and folds over to the left; back, the page you
-// return to comes over from the left and lies down. (Only the turning sheet moves: the page under it is already there)
-function bookTurn(dir, was, now) {
-  const h = bookMain.getBoundingClientRect(), r = bookPageBox.getBoundingClientRect(); if (!r.width) return;
-  const sheet = (dir > 0 ? was : now.cloneNode(true)); if (!sheet) return;
-  sheet.removeAttribute('data-id'); sheet.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
-  const turn = el('div', { class: 'sx-turn', 'aria-hidden': 'true', inert: '', style: 'left:' + (r.left - h.left) + 'px;top:' + (r.top - h.top) + 'px;width:' + r.width + 'px;height:' + r.height + 'px' },
-    el('div', { class: 'sx-turn-in' }, sheet), el('i', { class: 'sx-turn-shade' }));
-  bookMain.append(turn);
-  const fwd = dir > 0, flat = 'perspective(3200px) rotateY(0deg)', up = 'perspective(3200px) rotateY(-90deg)';
-  const a = turn.animate(fwd ? [{ transform: flat }, { transform: up }] : [{ transform: up }, { transform: flat }], { duration: 430, easing: fwd ? 'cubic-bezier(.45, 0, .8, .6)' : 'cubic-bezier(.2, .5, .4, 1)' });
-  turn.lastChild.animate(fwd ? [{ opacity: 0 }, { opacity: .55 }] : [{ opacity: .55 }, { opacity: 0 }], { duration: 430 });
-  if (!fwd) now.animate([{ opacity: 0 }, { opacity: 0, offset: .9 }, { opacity: 1 }], { duration: 430 }); // (the page under it shows once the sheet has landed)
-  a.onfinish = a.oncancel = () => turn.remove(); setTimeout(() => turn.remove(), 900);
-}
-
-// flagging a page: a little row of flag colours under the button (or no flag)
-function bookFlagPop(btn, p) {
-  document.querySelectorAll('.sx-flag-pop').forEach(n => n.remove());
-  const pick = hex => { deskMark(); if (hex) p.flag = hex; else delete p.flag; save(); const c = els.get(bookId); if (c) c._snap = ''; pop.remove(); bookSideDraw(); bookPageDraw(false); deskSfx(hex ? 'pin' : 'pick'); };
-  const pop = el('div', { class: 'sx-flag-pop', role: 'menu' },
-    ...BOOK_FLAGS.map(hex => el('button', { type: 'button', class: 'sx-flag-sw' + (p.flag === hex ? ' on' : ''), style: '--flag:' + hex, 'aria-label': 'Flag it ' + hex, onclick: () => pick(hex) })),
-    el('button', { type: 'button', class: 'sx-flag-none', onclick: () => pick(null) }, 'No flag'));
-  const r = btn.getBoundingClientRect(), h = bookMain.getBoundingClientRect();
-  pop.style.top = (r.bottom - h.top + 6) + 'px'; pop.style.right = Math.max(8, h.right - r.right) + 'px';
-  bookMain.append(pop);
-  const off = e => { if (!pop.contains(e.target) && e.target !== btn) { pop.remove(); removeEventListener('pointerdown', off, true); } };
-  setTimeout(() => addEventListener('pointerdown', off, true), 0);
-}
-
 /* ---------- changing a book: adding, moving, deleting, taking out ---------- */
 async function bookAdd(kind, files) {
   const b = bookOf(bookId); if (!b) return; bookPages(b);
