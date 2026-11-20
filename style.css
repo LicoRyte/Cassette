@@ -2346,3 +2346,6 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 .sx-world .sx-bbook .sx-flag { z-index: 3; }
 /* picked up and carried: the shadow falls under the whole book, its bottom too */
 .sx-world .sx-bbook.lift { box-shadow: none; filter: drop-shadow(2px 3px 0 rgb(115 57 46 / .2)) drop-shadow(12px 20px 16px rgb(3 7 16 / .32)); }
+/* the pages are a little narrower than the covers: the cover's colour shows past the end of the pages, at the open side */
+:is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-base::after { right: 6px; }
+.sx-book-thumb > .sx-book-base::after { right: 2px; }
