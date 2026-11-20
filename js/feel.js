@@ -54,6 +54,7 @@ function feelChimeRing(high) {
 const DESK_SFX = {
   pick: c => { const t = c.currentTime; feelBurst(c, t, { dur: .12, f0: 2600, f1: 1800, q: .8, vol: .05, grain: 5 }); },
   lift: c => { const t = c.currentTime; feelTone(c, t, 150 + Math.random() * 20, { dur: .07, vol: .075, to: 95 }); feelBurst(c, t, { dur: .02, type: 'lowpass', f0: 700, vol: .05 }); }, // a pinned note pulled off the board: a low, soft tock
+  page: c => { const t = c.currentTime; feelBurst(c, t, { dur: .32, f0: 3400, f1: 900, q: .7, vol: .05, attack: .03, grain: 9 }); feelBurst(c, t + .05, { dur: .22, type: 'highpass', f0: 4200, vol: .018, grain: 6 }); feelBurst(c, t + .3, { dur: .05, type: 'lowpass', f0: 700, vol: .045 }); }, // a page turning over: paper sliding past paper, then settling
   flip: c => { const t = c.currentTime; [0, .045, .09].forEach((d, i) => feelBurst(c, t + d, { dur: .05, type: 'lowpass', f0: 1500 - i * 250, vol: .04 - i * .008 })); feelTone(c, t + .1, 130, { dur: .06, vol: .02, to: 90 }); }, // a folder's pages riffling: soft, low, no hiss
   drop: c => { const t = c.currentTime; feelBurst(c, t, { dur: .07, type: 'lowpass', f0: 900, vol: .07 }); feelTone(c, t, 110, { dur: .06, vol: .03, to: 70 }); },
   pin: c => { const t = c.currentTime; feelTone(c, t, 2100, { dur: .03, vol: .065, to: 1300 }); feelBurst(c, t, { dur: .02, type: 'highpass', f0: 3000, vol: .05 }); },

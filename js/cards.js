@@ -20,7 +20,7 @@ function cardMenuOpen(it, x, y) {
   const rows = [];
   if (it.type === 'photo') rows.push(cardItem(it.text ? 'Edit the caption' : 'Write a caption', () => { select(it.id); deskWriteIn(it.id); }), cardItem('Put in a book…', () => cardBookPick([it.id], x, y)));
   if (it.type === 'hop') rows.push(cardItem('Open its board', () => hopGo(it), '', !it.to), cardItem('Pick its board…', () => { const c = els.get(it.id), tab = c && c.querySelector('.sx-hop-tabb'); if (tab) hopMenuOpen(it, tab); }));
-  if (it.type === 'book') { const n = (it.pages || []).length; rows.push(cardItem('Open', () => bookOpen(it.id)), cardItem('Rename', () => { bookOpen(it.id); setTimeout(bookTitleEdit, 60); }), cardItem('Decorate the cover…', () => decoOpen(it.id)), cardItem('Take all its pages out', () => cardUnbind(it.id), '', !n)); }
+  if (it.type === 'book') { const n = (it.pages || []).length; rows.push(cardItem('Open', () => bookOpen(it.id)), cardItem('Rename', () => { bookOpen(it.id); setTimeout(bookTitleEdit, 60); }), cardItem('Decorate the cover…', () => decoOpen(it.id)), cardItem('Copy its look', () => bookLookCopy(it.id)), cardItem('Paste the look', () => bookLookPaste(it.id), '', !bookLookCopied), cardItem('Take all its pages out', () => cardUnbind(it.id), '', !n)); }
   rows.push(cardSep());
   if (it.type !== 'hop') rows.push(cardItem('Make a board', () => noteToBoard(it.id)));
   rows.push(cardItem('Duplicate', () => { select(it.id); deskDuplicate(); }), cardItem('Delete', () => { select(it.id); deskDelete(); }, 'del'));
