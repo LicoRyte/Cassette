@@ -362,7 +362,6 @@ h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--ui); color: var(--white); }
 .sx-ws-b { padding: 4px 10px; background: none; border: 1px solid var(--k-293b49); color: var(--k-ffdaac); font: 600 14px var(--ui); letter-spacing: .04em; cursor: pointer; }
 .sx-ws-b:hover { border-color: var(--deck); color: var(--k-ffffe4); }
 
-
 [data-clock="focus"] .sx-ws-bar, [data-clock="last"] .sx-ws-bar { opacity: .25; }
 [data-clock="focus"] .sx-ws-bar:hover, [data-clock="last"] .sx-ws-bar:hover, [data-clock="focus"] .sx-ws-bar:focus-within { opacity: 1; }
 @media (max-width: 700px) {  .sx-ws-bar { gap: 6px 10px; } }
@@ -1803,7 +1802,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-fmt.sx-note-menu { gap: 0; padding: 4px 8px 6px; max-width: min(470px, calc(100vw - 16px)); }
 .sx-note-menu .sx-fmt-row + .sx-fmt-row { padding-top: 0; border-top: 0; }
 
-
 /* ---------- writing feel (js/typing.js): the wash over a new letter, and a checklist's count ---------- */
 .sx-ink { position: fixed; z-index: 3; pointer-events: none; }
 .sx-chk-n { position: absolute; left: 9px; top: 6px; padding: 1px 6px; border-radius: 9px; background: color-mix(in srgb, var(--ink, #34111f) 12%, transparent); color: var(--ink, #34111f); font: 700 10.5px var(--ui); letter-spacing: .06em; pointer-events: none; transition: background .3s, color .3s; }
@@ -2056,14 +2054,8 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 /* ---------- more for a book's cover (js/deco.js): material, pattern, label, subtitle, foil, page edges, straps, extras ---------- */
 /* the layers under everything on the cover: the cover keeps them inside itself (isolation), under its words and picture */
 :is(.sx-bbook, .sx-deco-cover, .sx-book-thumb, .sx-tied-c.t-book, .sx-book-swing) { isolation: isolate; }
-:is(.sx-bbook, .sx-deco-cover, .sx-book-thumb, .sx-tied-c.t-book, .sx-book-swing, .sx-deco-mat) { container-type: size; }
-.sx-cov-mat { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; }
-.sx-cov-mat[data-mat="cloth"] { background: repeating-linear-gradient(0deg, rgb(3 7 16 / .08) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgb(255 255 228 / .07) 0 1px, transparent 1px 3px); }
-.sx-cov-mat[data-mat="linen"] { background: repeating-linear-gradient(90deg, rgb(255 255 228 / .09) 0 1px, transparent 1px 4px), repeating-linear-gradient(0deg, rgb(3 7 16 / .07) 0 2px, transparent 2px 5px), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.08 1.2' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.sx-cov-mat[data-mat="leather"] { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .32 -.06'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); box-shadow: inset 0 0 18cqw rgb(3 7 16 / .28); }
-.sx-cov-mat[data-mat="kraft"] { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .25' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45  0 0 0 0 .22  0 0 0 0 .18  0 0 0 .3 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), rgb(199 110 70 / .2); }
-.sx-cov-mat[data-mat="velvet"] { background: radial-gradient(ellipse at 32% 28%, rgb(255 255 228 / .2), transparent 58%), radial-gradient(ellipse at 72% 88%, rgb(3 7 16 / .26), transparent 62%); }
-.sx-cov-mat[data-mat="gloss"] { background: linear-gradient(115deg, rgb(255 255 255 / .42) 0%, rgb(255 255 255 / .08) 26%, transparent 42%, transparent 72%, rgb(255 255 255 / .14) 86%, transparent 94%); }
+:is(.sx-bbook, .sx-deco-cover, .sx-book-thumb, .sx-tied-c.t-book, .sx-book-swing) { container-type: size; }
+
 /* a line under the title */
 .sx-book-sub { align-self: center; max-width: 100%; margin-top: -4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: color-mix(in srgb, var(--cink) 82%, transparent); font: 600 10.5px/1.2 var(--ui); letter-spacing: .2em; text-transform: uppercase; }
 .sx-deco-cover .sx-book-sub { font-size: 12.5px; }
@@ -2104,7 +2096,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-book-swing > .sx-book-title { font: 700 clamp(28px, 5vw, 54px)/1.1 var(--ui); letter-spacing: .05em; text-transform: uppercase; text-align: center; color: var(--cink); }
 .sx-book-swing > .sx-book-sub { font-size: 15px; }
 /* the decorator's little previews */
-.sx-deco-mat { position: relative; display: block; width: 18px; height: 22px; border-radius: 2px 4px 4px 2px; background: var(--cover); overflow: hidden; isolation: isolate; box-shadow: inset 2px 0 0 rgb(0 0 0 / .18); }
+
 .sx-deco-fo { font: 700 14px var(--ui); }
 .sx-deco-fo[data-fo="gold"] { background: linear-gradient(105deg, #c76e46, #ffd832, #ffffe4, #ffd832, #c76e46); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .sx-deco-fo[data-fo="holo"] { background: linear-gradient(100deg, #ff88a9, #ffd832, #77d6c1, #1c92a7, #c03b94); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -2118,7 +2110,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-deco-side .sx-kao-in { width: 100%; box-sizing: border-box; }
 @media (prefers-reduced-motion: reduce) { :is(.sx-bbook, .sx-deco-cover, .sx-book-thumb, .sx-tied-c) { transition: none; } }
 
-/* ---------- the embossed title, the wax seal, the lift on the desk, the page turn and the ribbon inside ---------- */
+/* ---------- the embossed title, the wax seal, the lift on the desk ---------- */
 /* embossed: pressed into the cover, a shade darker than it, lit from above */
 :is([data-tf="emboss"] .sx-book-title, .sx-tied-c[data-tf="emboss"] > b) { color: color-mix(in srgb, var(--cover, #293b49) 66%, #030710) !important; text-shadow: 0 1px 0 rgb(255 255 255 / .38), 0 -1px 0 rgb(3 7 16 / .55), 0 0 1px rgb(3 7 16 / .3); letter-spacing: .08em; }
 .sx-tied-c[data-tf="emboss"] > b { color: color-mix(in srgb, var(--paper, #293b49) 78%, #030710) !important; }
@@ -2141,8 +2133,6 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 .sx-turn-in > .sx-bnote .sx-note-t { min-height: 220px; }
 .sx-turn-in .sx-pin, .sx-turn-in .sx-bnote-x, .sx-turn-in .sx-resize, .sx-turn-in .sx-from { display: none !important; }
 .sx-turn-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(115 57 46 / .45), transparent 70%); opacity: 0; }
-/* the ribbon inside: down the page's right side, from the top bar to its notched end at the bottom */
-.sx-book-rib { position: absolute; right: 9px; top: 44px; bottom: 52px; z-index: 3; width: 13px; pointer-events: none; background: linear-gradient(90deg, rgb(3 7 16 / .2), transparent 30%, rgb(255 255 255 / .2) 55%, transparent 75%, rgb(3 7 16 / .15)), var(--rib); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%); filter: drop-shadow(1px 1px 1px rgb(3 7 16 / .25)); }
 @media (prefers-reduced-motion: reduce) { .sx-world .sx-bbook { transition: none; } }
 
 /* ---------- a charm on the cover ---------- */
@@ -2200,22 +2190,6 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 .sx-world .sx-bbook .sx-book-n { right: 15px; bottom: 11px; padding: 1px 9px; font-size: 12.5px; }
 .sx-world .sx-bbook .sx-book-sub { font-size: 12.5px; }
 
-/* ---------- notebook kinds (js/deco.js, b.kind) ---------- */
-/* spiral: no cloth spine; wire rings down the left, through holes punched in the cover; softer, rounder corners */
-[data-kind="spiral"] { border-radius: 6px !important; }
-[data-kind="spiral"] > .sx-book-spine { display: none; }
-.sx-coil { position: absolute; left: -6%; top: 3%; bottom: 3%; z-index: 3; width: 13%; min-width: 7px; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='14'%3E%3Ccircle cx='17' cy='7' r='2.6' fill='%23030710' fill-opacity='.55'/%3E%3Cpath d='M17 5.2C11 3 4 3.4 3 7s7 4.6 14 2' fill='none' stroke='%236d8a8d' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M17 5.2C11 3 4 3.4 3 7' fill='none' stroke='%23ffffe4' stroke-width='.9' stroke-linecap='round' stroke-opacity='.8'/%3E%3C/svg%3E") left top / 100% auto repeat-y; filter: drop-shadow(0 1px 0 rgb(3 7 16 / .25)); }
-.sx-book-thumb .sx-coil, .sx-tied-c .sx-coil { background-size: 100% auto; }
-/* composition: a black-and-white marbled cover, a wide black cloth spine (in the spine's colour, if you set one) */
-.sx-marble { position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='turbulence' baseFrequency='.08 .14' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 .9  -2.4 -2.4 0 0 1.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E") center / 120px auto; mix-blend-mode: screen; opacity: .85; }
-[data-kind="comp"] > .sx-book-spine { width: 17% !important; background-color: var(--spine, #030710); box-shadow: 1px 0 0 rgb(255 255 255 / .12); }
-[data-kind="comp"] > .sx-book-base { background-image: linear-gradient(transparent calc(100% - 4px), color-mix(in srgb, var(--cover, #293b49) 62%, #030710) calc(100% - 4px)), linear-gradient(90deg, var(--spine, #030710) 0 17%, rgb(3 7 16 / .22) 17% calc(17% + 1px), transparent calc(17% + 1px)), linear-gradient(90deg, transparent calc(100% - var(--edge, 4px) - 1px), rgb(115 57 46 / .18) calc(100% - var(--edge, 4px) - 1px)), repeating-linear-gradient(0deg, #fffdf0 0 1px, #e6d6b8 1px 2px); }
-/* diary: a strap across the open side, with a little brass-and-gold padlock */
-.sx-lock { position: absolute; right: -5%; top: 42%; z-index: 3; width: 30%; height: 15%; pointer-events: none; border-radius: 3px 0 0 3px; background: linear-gradient(180deg, rgb(255 255 255 / .14), transparent 40%, rgb(3 7 16 / .2)), color-mix(in srgb, var(--band, var(--cover, #293b49)) 62%, #030710); box-shadow: 0 2px 2px rgb(3 7 16 / .3), inset 0 0 0 1px rgb(3 7 16 / .2); }
-.sx-lock::before { content: ''; position: absolute; left: 7%; top: 50%; width: 9%; aspect-ratio: 1; translate: 0 -50%; border-radius: 50%; background: #ffd832; box-shadow: inset 0 0 0 1px #c76e46; }
-.sx-lock svg { position: absolute; left: 24%; top: 50%; width: 62%; height: 170%; translate: 0 -50%; overflow: visible; filter: drop-shadow(0 1px 1px rgb(3 7 16 / .35)); }
-.sx-tied-c .sx-lock { display: none; }
-
 /* ---------- page flags: sticky tabs poking out of the closed book's edge (js/book.js) ---------- */
 .sx-flag { position: absolute; right: calc(-1 * var(--edge, 4px) - 12px); z-index: -1; width: 18px; height: 6.5%; min-height: 12px; translate: 0 -50%; border-radius: 0 3px 3px 0; background: linear-gradient(90deg, rgb(3 7 16 / .18), transparent 30%), var(--flag); box-shadow: 1px 1px 0 rgb(115 57 46 / .25); cursor: pointer; transition: right .2s cubic-bezier(.3, 1.4, .5, 1); }
 .sx-book-rflag { flex: none; width: 8px; height: 13px; margin-left: auto; border-radius: 0 2px 2px 0; background: var(--flag); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
@@ -2255,14 +2229,7 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
     linear-gradient(90deg, color-mix(in srgb, var(--spine, var(--cover, #293b49)) 70%, #030710) 0 calc(var(--spw, 14px) + var(--th) * .5), transparent calc(var(--spw, 14px) + var(--th) * .5)),
     linear-gradient(rgb(115 57 46 / .14), transparent 70%), repeating-linear-gradient(0deg, #fffdf0 0 1px, #e6d6b8 1px 2px); }
 .sx-world .sx-bbook { --spw: 17px; }
-[data-kind="comp"] { --spw: 17%; }
-[data-kind="comp"] > .sx-book-base { background:
-    linear-gradient(transparent calc(100% - 2px), color-mix(in srgb, var(--cover, #293b49) 62%, #030710) calc(100% - 2px)),
-    linear-gradient(90deg, var(--spine, #030710) 0 calc(var(--spw) + var(--th) * .5), transparent calc(var(--spw) + var(--th) * .5)),
-    linear-gradient(rgb(115 57 46 / .14), transparent 70%), repeating-linear-gradient(0deg, #fffdf0 0 1px, #e6d6b8 1px 2px); }
-[data-kind="spiral"] > .sx-book-base { background:
-    linear-gradient(transparent calc(100% - 2px), color-mix(in srgb, var(--cover, #293b49) 62%, #030710) calc(100% - 2px)),
-    linear-gradient(rgb(115 57 46 / .14), transparent 70%), repeating-linear-gradient(0deg, #fffdf0 0 1px, #e6d6b8 1px 2px); }
+
 /* the Tied to mini cover keeps its thin strip inside the little card */
 .sx-tied-c.t-book > .sx-book-base { top: auto; bottom: 0; right: 0; height: 6px; clip-path: none; }
 /* flags tuck in between the pages, at the side */
@@ -2279,7 +2246,7 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 :is(.sx-world .sx-bbook, .sx-deco-cover) .sx-book-sub { font-size: 12.5px; }
 :is(.sx-world .sx-bbook, .sx-deco-cover) .sx-book-n { right: 15px; bottom: 11px; padding: 1px 9px; font-size: 12.5px; }
 :is(.sx-world .sx-bbook, .sx-deco-cover):has(.sx-corner-pc, .sx-band) .sx-book-n { right: auto; left: 26px; }
-[data-kind="comp"]:is(.sx-bbook, .sx-deco-cover) { --spw: 17%; }
+
 /* straps go round the book: they end flush with the outside of the pages, not out in the air past them */
 .sx-band[data-strap="buckle"] { right: calc(-1 * var(--th, 0px)); }
 .sx-band[data-strap="clasp"] { right: calc(-1 * var(--th, 0px)); }
@@ -2299,14 +2266,10 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
   background: linear-gradient(225deg, var(--bb) calc(var(--th) * .7071 + 3px), transparent calc(var(--th) * .7071 + 3px)),
     linear-gradient(var(--fb) 0 2px, transparent 2px calc(100% - 3px), var(--bb) calc(100% - 3px)); }
 .sx-book-thumb > :is(.sx-book-edge, .sx-book-base)::after { display: none; } /* (too small to show) */
-/* a spiral notebook has thin card covers, no boards */
-[data-kind="spiral"] > :is(.sx-book-edge, .sx-book-base)::after { background: linear-gradient(90deg, transparent calc(100% - 2px), var(--bb) calc(100% - 2px)); }
-[data-kind="spiral"] > .sx-book-base::after { background: linear-gradient(transparent calc(100% - 2px), var(--bb) calc(100% - 2px)); }
 
 /* the hinge: a soft groove pressed into the front board, just past the spine, where the cover bends open */
 .sx-book-spine::after { content: ''; position: absolute; top: 0; bottom: 0; left: 128%; width: 16%; min-width: 1px; max-width: 4px; pointer-events: none;
   background: linear-gradient(90deg, rgb(3 7 16 / .2), rgb(3 7 16 / .08) 50%, rgb(255 255 255 / .2)); }
-[data-kind="comp"] > .sx-book-spine::after { left: 100%; width: 3px; }
 
 /* a soft shadow under the whole book, as well as the crisp one, so it rests on the desk */
 :is(.sx-world .sx-bbook, .sx-deco-cover) { filter: drop-shadow(2px 3px 0 rgb(115 57 46 / .2)) drop-shadow(5px 10px 9px rgb(115 57 46 / .22)); }

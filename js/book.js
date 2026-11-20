@@ -134,10 +134,8 @@ function bookPageDraw(fresh, dir) {
     const c = p.type === 'tbl' ? tblCard(p) : paperCard(p); c.classList.add('sx-book-pg'); bookPgEl = c; bookPgId = p.id; bookPgIt = p; c._snap = cardSnap(p); els.set(p.id, c);
     bookPageBox.replaceChildren(c); bookPageBox.scrollTop = 0;
   }
-  // the ribbon inside: it lies down the page you're on, in its own colour (or the cover's)
-  const rib = b.ribbon === 'none' ? null : el('i', { class: 'sx-book-rib', style: '--rib:' + (PALETTE.includes(b.ribbon) ? b.ribbon : bookColor(b)[1]), 'aria-hidden': 'true' });
   const folio = el('span', { class: 'sx-book-folio', 'aria-hidden': 'true' }, String(b.at + 1)); // (the page number, printed at its foot)
-  bookMain.replaceChildren(...[top, bookPageBox, folio, nav, rib].filter(Boolean));
+  bookMain.replaceChildren(...[top, bookPageBox, folio, nav]);
 }
 /* ---------- changing a book: adding, moving, deleting, taking out ---------- */
 async function bookAdd(kind, files) {
