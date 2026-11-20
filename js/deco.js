@@ -87,7 +87,7 @@ const STICKER_PACKS = [['Cute', ['cat', 'bang', 'what', 'rainbow', 'star', 'hear
   ['School', ['pencil', 'aplus', 'ruler', 'clip', 'apple', 'tick']], ['Nature', ['leaf', 'cactus', 'bee', 'clover', 'tulip', 'butterfly']],
   ['Animals', ['bunny', 'bear', 'frog', 'duck', 'fish', 'chick', 'penguin']], ['Cozy', ['cassette', 'candle', 'teacup', 'books', 'plant', 'phones', 'letter', 'gift']],
   ['Space', ['planet', 'rocket', 'comet', 'ufo', 'alien', 'earth']], ['Party', ['balloon', 'cake', 'crown', 'bow', 'trophy', 'popper']]];
-const stickerSvg = k => '<svg viewBox="0 0 48 48" aria-hidden="true">' + (STICKERS[k] || STICKERS.star)[1] + '</svg>';
+const stickerSvg = k => { const s = STICKERS[k] || STICKERS.star; return '<svg viewBox="' + (s[2] || '0 0 48 48') + '" aria-hidden="true">' + s[1] + '</svg>'; }; // (an extra has its own shape: s[2])
 // and a pack of words and faces: kaomoji and ASCII emoji, or anything you type (a sticker { k: 'txt', t: 'what it says' })
 const KAOMOJI = ['(=^･ω･^=)', '(◕‿◕)', 'ʕ•ᴥ•ʔ', '(｡♥‿♥｡)', '(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧', '(•̀ᴗ•́)و', '¯\\_(ツ)_/¯', '(╯°□°)╯︵ ┻━┻', '(T_T)', '(>_<)', '(・_・;)', '( ˘ω˘ )ｽﾔｧ',
   ':)', ':D', ';)', ':3', '<3', '^_^', 'xD', 'o_O', 'owo', '~♪', '★', 'OK!', 'TODO', 'wow!'];
@@ -110,7 +110,7 @@ const TITLE_STYLES = [['', 'Bold'], ['round', 'Round'], ['type', 'Typewriter'], 
 const SPINES = [['', 'Plain'], ['stripes', 'Stripes'], ['bands', 'Bands'], ['dots', 'Dots'], ['stitch', 'Stitched']]; // (the spine: its colour, b.spine, a pattern on it, b.spineP, and the pattern's colour, b.spineInk)
 // more of the cover: a
 // subtitle (b.sub), foil on the title (b.foil), the pages' edges (b.edge, b.edgeCol), how it's held shut (b.strap, in the
-// band's colour b.band), and little extras on it (b.extras)
+// band's colour b.band)
 const FOILS = [['', 'None'], ['gold', 'Gold'], ['holo', 'Holographic']];
 const EDGES = [['', 'Plain'], ['gold', 'Gilded'], ['rainbow', 'Rainbow'], ['speckle', 'Speckled'], ['tint', 'Coloured']];
 const STRAPS = [['', 'Elastic'], ['ribbon', 'Ribbon bow'], ['buckle', 'Buckle strap'], ['clasp', 'Clasp']];
@@ -119,6 +119,7 @@ const STRAP_BITS = {
   buckle: ['0 0 40 40', '<rect x="4" y="4" width="32" height="32" rx="5" fill="none" stroke="#ffb762" stroke-width="5"/><rect x="4" y="4" width="32" height="32" rx="5" fill="none" stroke="#73392e" stroke-opacity=".45" stroke-width="1"/><path d="M20 4v32" stroke="#ffd832" stroke-width="3"/>'],
   clasp: ['0 0 40 40', '<rect x="6" y="10" width="28" height="20" rx="6" fill="#ffd832" stroke="#c76e46" stroke-width="2"/><rect x="10" y="13" width="20" height="4" rx="2" fill="#ffffe4" fill-opacity=".6"/><circle cx="20" cy="21" r="4" fill="#c76e46"/>'],
 };
+const STK_MAX = 24; // (stickers on one cover or card, at most)
 const EXTRAS = [['pen', 'Pen', '0 0 20 100', '<rect x="6" y="14" width="8" height="74" rx="3" fill="#293b49"/><path d="M6 86h8l-4 12z" fill="#ffdaac"/><path d="M8.8 94.5h2.4L10 98z" fill="#34111f"/><path d="M13 10h4v42a2 2 0 0 1-4 0z" fill="#bfc3c6"/><rect x="5" y="8" width="10" height="10" rx="2" fill="#bfc3c6"/><rect x="6" y="2" width="8" height="8" rx="3" fill="#d9243c"/>'],
   ['note', 'Sticky note', '0 0 40 40', '<path d="M2 2h36v28l-8 8H2z" fill="#ffd832"/><path d="M30 38v-8h8z" fill="#ffb762"/><path d="M8 12h22M8 19h22M8 26h14" stroke="#c76e46" stroke-width="1.6" stroke-opacity=".55"/>'],
   ['flower', 'Pressed flower', '0 0 40 60', '<path d="M20 58C19 46 21 36 20 24" stroke="#458239" stroke-width="1.6" fill="none"/><path d="M20 44q-9-2-11-9 8 1 11 7z" fill="#9cb93b"/><path d="M20 38q8-3 11-10-8 1-11 8z" fill="#9cb93b"/>' + [0, 45, 90, 135, 180, 225, 270, 315].map(a => '<ellipse cx="20" cy="10" rx="3.2" ry="7" fill="#ffffe4" fill-opacity=".92" transform="rotate(' + a + ' 20 18)"/>').join('') + '<circle cx="20" cy="18" r="4" fill="#ffb762"/>'],
@@ -132,6 +133,16 @@ const EXTRAS = [['pen', 'Pen', '0 0 20 100', '<rect x="6" y="14" width="8" heigh
   ['leaf', 'Pressed leaf', '0 0 40 60', '<path d="M20 58V28" stroke="#73392e" stroke-width="1.6"/><path d="M20 4C6 16 6 34 20 44 34 34 34 16 20 4z" fill="#d1401f"/><path d="M20 8v34M20 18l-7-5M20 18l7-5M20 27l-9-5M20 27l9-5M20 35l-7-4M20 35l7-4" stroke="#7c191a" stroke-width="1" fill="none"/>'],
   ['feather', 'Feather', '0 0 24 80', '<path d="M12 78C10 50 12 20 20 4 6 14 2 40 8 62z" fill="#77d6c1"/><path d="M12 78C11 52 13 26 20 4" stroke="#033e5e" stroke-width="1.2" fill="none"/><path d="M9 30l6 4M7 40l6 4M6 50l7 4M8 22l7 3" stroke="#ffffe4" stroke-width="1" opacity=".7"/>'],
   ['tag', 'Gift tag', '0 0 30 50', '<path d="M15 0q-2 8 0 14" stroke="#c76e46" stroke-width="1.4" fill="none"/><path d="M6 18l9-6 9 6v28H6z" fill="#ffdaac" stroke="#c76e46" stroke-width="1"/><circle cx="15" cy="18" r="2" fill="#fffaf0" stroke="#c76e46"/><path d="M10 28h10M10 34h8" stroke="#c76e46" stroke-width="1.4" stroke-linecap="round"/><path d="M15 42s-3-1.8-3-3.6a1.5 1.5 0 0 1 3-.5 1.5 1.5 0 0 1 3 .5c0 1.8-3 3.6-3 3.6z" fill="#d9243c"/>']];
+// the little extras are stickers now: moved, turned, sized and peeled off like any other, drawn as they are (no white edge)
+EXTRAS.forEach(([k, name, box, inner]) => { STICKERS['x-' + k] = [name, inner, box]; });
+STICKER_PACKS.splice(STICKER_PACKS.findIndex(p => p[0] === 'Kaomoji'), 0, ['Extras', EXTRAS.map(x => 'x-' + x[0])]);
+// a book's extras from before (b.extras) go onto its cover as stickers, where they used to sit
+const EXTRA_AT = { pen: [98, 20, 0, 1.45], note: [70, 5, 7, 1.12], flower: [16, 74, -12, 1.37], clip: [24, 3, 0, .88], washi: [11, 7, -34, 1.5], stamp: [83, 15, 6, .85], badge: [50, 88, 0, .67],
+  polaroid: [78, 80, 8, 1.35], ticket: [10, 57, -10, 1.58], tassel: [67, 104, 0, 1.17], leaf: [100, 39, 22, 1], feather: [12, 25, -10, 1.25], tag: [104, 62, -12, .9] };
+S.board.items.forEach(it => { if (it.type !== 'book' || !Array.isArray(it.extras)) return;
+  const st = Array.isArray(it.stickers) ? it.stickers : [];
+  it.extras.forEach(k => { const a = EXTRA_AT[k]; if (a && st.length < STK_MAX) st.push({ k: 'x-' + k, x: a[0], y: a[1], r: a[2], s: a[3] }); });
+  if (st.length) it.stickers = st; delete it.extras; });
 S.board.items.forEach(it => { if (it.type === 'book') ['pat', 'patInk', 'label', 'dc', 'ribbon', 'mat', 'kind', 'corners'].forEach(k => delete it[k]); }); // (and drop caps, versions 219 to 223, and the ribbon inside, 218 to 230) // (labels and patterns were here briefly, in version 216)
 // the wax seal (b.seal, its colour): a blob of wax pressed with an initial (b.sealT, the title's first letter if not said)
 // or a little picture (b.sealI)
@@ -161,7 +172,7 @@ function charmEl(k) {
 }
 // a book's look: everything about how it looks, but not what it says (its title, the line under it, the seal's letters),
 // its picture or its stickers. Copied from one book, pasted onto another (kept until Cassie closes)
-const BOOK_LOOK = ['bg', 'color', 'ink', 'tf', 'foil', 'spine', 'spineP', 'spineInk', 'edge', 'edgeCol', 'band', 'strap', 'strapP', 'extras', 'seal', 'sealI', 'charm'];
+const BOOK_LOOK = ['bg', 'color', 'ink', 'tf', 'foil', 'spine', 'spineP', 'spineInk', 'edge', 'edgeCol', 'band', 'strap', 'strapP', 'seal', 'sealI', 'charm'];
 let bookLookCopied = null;
 function bookLookCopy(id) { const b = bookOf(id); if (!b) return; bookLookCopied = {}; BOOK_LOOK.forEach(k => { if (b[k] !== undefined) bookLookCopied[k] = JSON.parse(JSON.stringify(b[k])); }); deskToast('Copied the look of ' + (b.title || 'the book') + ': paste it onto another book'); deskSfx('pick'); }
 function bookLookPaste(id, marked) {
@@ -187,13 +198,12 @@ function bookSurprise(b) {
   if (maybe(.35)) { b.band = pick(PALETTE.filter(h => Math.abs(shade(h) - shade(bg)) > 50)); const st = pick(STRAPS)[0]; if (st) b.strap = st; }
   if (maybe(.3)) { b.seal = pick(['#d9243c', '#7c191a', '#601761', '#033e5e', '#458239', '#c76e46']); if (maybe(.4)) b.sealI = pick(SEAL_ICONS)[0]; }
   if (maybe(.25)) b.charm = pick(CHARMS)[0];
-  if (maybe(.45)) { const n = 1 + Math.floor(Math.random() * 3), ks = EXTRAS.map(e => e[0]).sort(() => Math.random() - .5); b.extras = ks.slice(0, n); }
 }
 const decoSvg = (box, inner) => '<svg viewBox="' + box + '" aria-hidden="true">' + inner + '</svg>';
 // what may be kept (from a backup, or a friend): known stickers, on the cover, a dozen at most; known styles; palette colours
 function bookStkClean(v) {
   const n = (x, lo, hi, d) => isFinite(+x) ? Math.max(lo, Math.min(hi, +x)) : d;
-  return (Array.isArray(v) ? v : []).filter(s => s && (STICKERS[s.k] || (s.k === 'txt' && stkText(s.t)))).slice(0, 12).map(s => Object.assign(s.k === 'txt' ? { t: stkText(s.t) } : {}, { k: s.k, x: Math.round(n(s.x, 0, 100, 50)), y: Math.round(n(s.y, 0, 100, 50)), r: Math.round(n(s.r, -180, 180, 0)), s: Math.round(n(s.s, .4, 2.5, 1) * 100) / 100 }, s.f ? { f: 1 } : {}));
+  return (Array.isArray(v) ? v : []).filter(s => s && (STICKERS[s.k] || (s.k === 'txt' && stkText(s.t)))).slice(0, STK_MAX).map(s => Object.assign(s.k === 'txt' ? { t: stkText(s.t) } : {}, { k: s.k, x: Math.round(n(s.x, -15, 115, 50)), y: Math.round(n(s.y, -15, 115, 50)), r: Math.round(n(s.r, -180, 180, 0)), s: Math.round(n(s.s, .4, 2.5, 1) * 100) / 100 }, s.f ? { f: 1 } : {}));
 }
 function bookDecoClean(it, o) {
   if (Array.isArray(it.stickers) && it.stickers.length) o.stickers = bookStkClean(it.stickers);
@@ -207,7 +217,6 @@ function bookDecoClean(it, o) {
   if (one(EDGES, it.edge)) o.edge = it.edge; if (PALETTE.includes(it.edgeCol)) o.edgeCol = it.edgeCol; if (one(STRAPS, it.strap)) o.strap = it.strap;
   if (PALETTE.includes(it.seal)) o.seal = it.seal; if (typeof it.sealT === 'string' && it.sealT.trim()) o.sealT = it.sealT.trim().slice(0, 2); if (SEAL_ICONS.some(x => x[0] === it.sealI)) o.sealI = it.sealI;
   if (CHARMS.some(x => x[0] === it.charm)) o.charm = it.charm;
-  if (Array.isArray(it.extras)) { const x = EXTRAS.map(e => e[0]).filter(k => it.extras.includes(k)); if (x.length) o.extras = x; }
 }
 // the stickers on a cover: a layer of them over it, placed in % so they sit the same on a big cover or a little one
 function bookStk(b) {
@@ -216,7 +225,7 @@ function bookStk(b) {
   return layer;
 }
 // a cover dressed: its material under everything, the title's look (foil, a subtitle under it),
-// the spine, the pages' edges, the strap, the little extras, and the stickers on top. c: the cover's element
+// the spine, the pages' edges, the strap, and the stickers on top (the little extras among them). c: the cover's element
 // a title fits its cover: if a word is too long for the line, the title gets smaller (down to 11px) until every word fits whole,
 // rather than breaking one in two. It's measured once the cover is on the screen, and again if it's drawn before that
 function bookFit(t, tries = 0) {
@@ -248,7 +257,6 @@ function bookDress(c, b) {
   if (PALETTE.includes(b.band)) { const band = el('i', { class: 'sx-band', 'data-strap': b.strap || null, style: '--band:' + b.band + (Number.isFinite(b.strapP) ? ';--sp:' + b.strapP + '%' : ''), 'aria-hidden': 'true' });
     if (STRAP_BITS[b.strap]) { const bit = el('i', { class: 'sx-strap-bit' }); bit.innerHTML = decoSvg(...STRAP_BITS[b.strap]); band.append(bit); }
     c.append(band); }
-  (b.extras || []).forEach(k => { const x = EXTRAS.find(e => e[0] === k); if (!x) return; const e = el('i', { class: 'sx-xtra', 'data-x': k, 'aria-hidden': 'true' }); e.innerHTML = decoSvg(x[2], x[3]); c.append(e); });
   if (b.charm) { const ch = charmEl(b.charm); if (ch) c.append(ch); }
   if (PALETTE.includes(b.seal)) { const e = el('i', { class: 'sx-seal', style: 'color:' + b.seal, 'aria-hidden': 'true' }); e.innerHTML = sealSvg(b); c.append(e); }
   if ((b.stickers || []).length) c.append(bookStk(b));
@@ -292,7 +300,7 @@ decoCover.addEventListener('pointerdown', e => {
   e.preventDefault(); const i = +st.dataset.i, s = b.stickers[i]; decoSel = i; decoCoverDraw(); decoToolsDraw();
   const el2 = decoCover.querySelector('.sx-stk[data-i="' + i + '"]'), r = decoCover.getBoundingClientRect(); let moved = false;
   decoCover.setPointerCapture(e.pointerId);
-  const move = ev => { const x = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)), y = Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100));
+  const move = ev => { const x = Math.max(-15, Math.min(115, (ev.clientX - r.left) / r.width * 100)), y = Math.max(-15, Math.min(115, (ev.clientY - r.top) / r.height * 100));
     if (!moved) { moved = true; decoMark(); } s.x = Math.round(x); s.y = Math.round(y); el2.style.left = s.x + '%'; el2.style.top = s.y + '%'; };
   const up = () => { decoCover.removeEventListener('pointermove', move); decoCover.removeEventListener('pointerup', up); decoCover.removeEventListener('pointercancel', up); if (moved) { save(); deskSfx('drop'); } };
   decoCover.addEventListener('pointermove', move); decoCover.addEventListener('pointerup', up); decoCover.addEventListener('pointercancel', up);
@@ -310,7 +318,7 @@ function decoToolsDraw() {
     k('Peel off', 'Take it off the cover', () => { b.stickers.splice(decoSel, 1); decoSel = -1; deskSfx('pick'); }, 'del'));
 }
 // the side: the sticker tray (in packs), the cover (colour, material), the title (look, colour, foil, a line
-// under it), the spine, the pages' edges, the strap, little extras, and the picture
+// under it), the spine, the pages' edges, the strap, the seal and charm, and the picture
 function decoSealIn(b) { // the seal's initial: one or two letters (the title's first, if left empty)
   const inp = el('input', { type: 'text', class: 'sx-kao-in sx-seal-in', maxlength: '2', value: b.sealT || '', placeholder: sealText(Object.assign({}, b, { sealT: '' })), 'aria-label': 'The letters on the seal', spellcheck: 'false' });
   inp.addEventListener('input', () => { decoMark(); const v = inp.value.trim().slice(0, 2); if (v) b.sealT = v; else delete b.sealT; save(); decoCoverDraw(); });
@@ -325,8 +333,8 @@ function decoSubIn(b) { // the line under the title: written straight onto the c
 }
 let decoPack = 0;
 let decoTab = 'stickers';
-const DECO_TABS = [['stickers', 'Stickers'], ['cover', 'Cover'], ['title', 'Title'], ['edges', 'Spine & edges'], ['extras', 'Extras']];
-const DECO_TAB_OF = { 'Stickers': 'stickers', 'Cover colour': 'cover', 'Picture': 'cover', 'Title': 'title', 'Spine': 'edges', 'Page edges': 'edges', 'Strap': 'edges', 'Little extras': 'extras', 'Wax seal': 'extras', 'Charm': 'extras' };
+const DECO_TABS = [['stickers', 'Stickers'], ['cover', 'Cover'], ['title', 'Title'], ['edges', 'Spine & edges'], ['extras', 'Seal & charm']];
+const DECO_TAB_OF = { 'Stickers': 'stickers', 'Cover colour': 'cover', 'Picture': 'cover', 'Title': 'title', 'Spine': 'edges', 'Page edges': 'edges', 'Strap': 'edges', 'Wax seal': 'extras', 'Charm': 'extras' };
 function decoTabsApply() { // the sections of the tab you're on; the tabs above them
   decoSide.querySelectorAll(':scope > .sx-deco-sec').forEach(sc => { const l = sc.querySelector('.sx-deco-lbl'); sc.hidden = (DECO_TAB_OF[l && l.textContent] || 'extras') !== decoTab; });
   const bar = el('div', { class: 'sx-deco-tabbar', role: 'tablist' }, ...DECO_TABS.map(([k, name]) => el('button', { type: 'button', role: 'tab', class: 'sx-deco-tabb' + (k === decoTab ? ' on' : ''), 'aria-selected': String(k === decoTab), onclick: () => { decoTab = k; decoSide.querySelector('.sx-deco-tabbar').replaceWith(decoTabsApply()); decoSide.scrollTop = 0; } }, name)));
@@ -352,7 +360,7 @@ function decoSideDraw() {
   const chips = (...cs) => el('div', { class: 'sx-deco-chips' }, ...cs);
   const chip = (label, on, fn, extra) => el('button', Object.assign({ type: 'button', class: 'sx-deco-chip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: fn }, extra || {}), ...[].concat(label));
   const tabs = el('div', { class: 'sx-deco-tabs', role: 'tablist' }, ...STICKER_PACKS.map(([name], i) => el('button', { type: 'button', role: 'tab', class: 'sx-deco-tab' + (i === decoPack ? ' on' : ''), 'aria-selected': i === decoPack ? 'true' : 'false', onclick: () => { decoPack = i; decoSideDraw(); } }, name)));
-  const add = (key, txt) => { if ((b.stickers || []).length >= 12) { deskToast('A dozen stickers at most'); return; }
+  const add = (key, txt) => { if ((b.stickers || []).length >= STK_MAX) { deskToast(STK_MAX + ' stickers at most'); return; }
     decoMark(); b.stickers = b.stickers || []; b.stickers.push(Object.assign(txt ? { t: txt } : {}, { k: key, x: 30 + Math.round(Math.random() * 40), y: 45 + Math.round(Math.random() * 30), r: Math.round(Math.random() * 30 - 15), s: 1 })); decoSel = b.stickers.length - 1; deskSfx('pin'); decoChanged(); };
   const tray = !STICKER_PACKS[decoPack][1] ? kaoPanel(t => add('txt', t)) : el('div', { class: 'sx-deco-tray' }, ...STICKER_PACKS[decoPack][1].map(key => { const name = STICKERS[key][0], t = el('button', { type: 'button', class: 'sx-deco-st', title: name, 'aria-label': 'Add a ' + name.toLowerCase() + ' sticker', onclick: () => add(key) });
     t.innerHTML = stickerSvg(key); return t; }));
@@ -382,8 +390,6 @@ function decoSideDraw() {
       PALETTE.includes(b.band) ? decoStrapPlace(b) : null,
       PALETTE.includes(b.band) ? el('div', { class: 'sx-deco-sub' }, 'Its colour') : null,
       PALETTE.includes(b.band) ? el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.band, set(() => { b.band = hex; })))) : null),
-    sec('Little extras', chips(...EXTRAS.map(([k, name, box, inner]) => { const on = (b.extras || []).includes(k), ic = el('i', { class: 'sx-deco-xi' }); ic.innerHTML = decoSvg(box, inner);
-      return chip([ic, el('span', {}, name)], on, set(() => { const x = (b.extras || []).filter(v => v !== k); if (!on) x.push(k); if (x.length) b.extras = x; else delete b.extras; })); }))),
     sec('Wax seal', chips(chip('None', !PALETTE.includes(b.seal), set(() => { delete b.seal; }))),
       el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.seal, set(() => { b.seal = hex; })))),
       PALETTE.includes(b.seal) ? el('div', { class: 'sx-deco-sub' }, 'Pressed with') : null,
@@ -463,7 +469,7 @@ function stkDrop(x, y) {
   const k = stkCarry && stkCarry.k, txt = stkCarry && stkCarry.t, t = stkTarget(x, y); stkCarryEnd(); if (!k) return;
   if (!t) { deskToast('Stick it on a card or the cassette'); return; }
   const list = t.deck ? (S.deckStk = S.deckStk || []) : (t.it.stickers || []);
-  if (list.length >= 12) { deskToast('A dozen stickers at most'); return; }
+  if (list.length >= STK_MAX) { deskToast(STK_MAX + ' stickers at most'); return; }
   const r = t.c.getBoundingClientRect(), s = Object.assign(k === 'txt' ? { t: txt } : {}, { k, x: Math.round((x - r.left) / r.width * 100), y: Math.round((y - r.top) / r.height * 100), r: Math.round(Math.random() * 24 - 12), s: 1 });
   if (t.deck) { list.push(s); save(); deckStkDraw(); }
   else { deskMark(); t.it.stickers = list; list.push(s); save(); drawBoard(); }

@@ -210,7 +210,7 @@ async function roomReceive(d, pid) {
     if (it.type === 'book') { o.title = str(it.title, 80); if (NOTE_COLORS.some(c => c[0] === it.color)) o.color = it.color; if (typeof PALETTE !== 'undefined') { if (PALETTE.includes(it.bg)) o.bg = it.bg; if (PALETTE.includes(it.ink)) o.ink = it.ink; } if (typeof bookDecoClean === 'function') bookDecoClean(it, o); o.at = 0;
       const src = d.photos && d.photos[it.id]; if (it.cover && typeof src === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,/.test(src) && src.length <= 3e6) { try { await PHOTOS.put(id, src); o.cover = true; } catch (e) { /* no cover */ } }
       refs.set(o, Array.isArray(it.pages) ? it.pages.slice(0, 400) : []); }
-    if (typeof it.book === 'string') { refs.set(o, it.book); delete o.from; if (PALETTE.includes(it.flag)) o.flag = it.flag; }
+    if (typeof it.book === 'string') { refs.set(o, it.book); delete o.from; if (PALETTE.includes(it.flag)) o.flag = it.flag; if (typeof it.pname === 'string' && it.pname.trim()) o.pname = it.pname.trim().slice(0, 60); }
     if (it.type !== 'book' && Array.isArray(it.stickers) && it.stickers.length && typeof bookStkClean === 'function') o.stickers = bookStkClean(it.stickers); // (stickers on any card)
     if (typeof it.group === 'string' && typeof it.book !== 'string') o.group = gmap[it.group] || (gmap[it.group] = 'g' + tag + out.length);
     imap.set(it.id, id); out.push(o);

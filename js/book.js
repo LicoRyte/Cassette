@@ -23,7 +23,8 @@ function bookColor(b) {
   const bg = PALETTE.includes(b.bg) ? b.bg : named[1];
   return [b.color || '', bg, PALETTE.includes(b.ink) ? b.ink : (PALETTE.includes(b.bg) ? bookAuto(bg) : named[2])];
 }
-function bookName(p) { // a page as the contents list it
+function bookName(p) { // a page as the contents list it: its own name if it has one (p.pname), or its first line
+  if (typeof p.pname === 'string' && p.pname.trim()) return p.pname.trim();
   if (p.type === 'photo') return p.text ? String(p.text).split('\n')[0].slice(0, 60) : 'A photo';
   if (p.type === 'tbl') return ((p.rows && p.rows[0]) || []).filter(Boolean).slice(0, 3).join(' · ') || 'A table';
   return String(p.text || '').split('\n').map(s => s.trim()).filter(Boolean)[0] || 'An empty page';
@@ -83,7 +84,7 @@ function bookLeavePage() { if (bookPgEl) { if (bookPgId && els.get(bookPgId) ===
 function bookGo(i, write) {
   const b = bookOf(bookId); if (!b) return; const n = bookPages(b).length; if (!n) return;
   const to = Math.max(0, Math.min(n - 1, i)); const dir = to > (b.at || 0) ? 1 : -1; if (to === b.at && bookPgEl) return;
-  b.at = to; save(); bookDraw(false, dir); if (write) bookWrite();
+  b.at = to; save(); bookDraw(false, dir); deskSfx('page'); if (write) bookWrite();
 }
 function bookWrite() { const t = bookPgEl && bookPgEl.querySelector('.sx-note-t, .sx-tc'); if (!t) return; t.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(t); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
 
@@ -98,8 +99,11 @@ function bookSideDraw() {
   const list = el('ol', { class: 'sx-book-idx' }, ...pages.map((p, i) => {
     const row = el('li', { class: 'sx-book-row' + (i === b.at ? ' on' : '') + (p.topic ? ' topic' : ''), draggable: 'true', 'data-i': i },
       el('b', {}, String(i + 1)), bookIcon(p.type === 'photo' ? '<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>' : p.type === 'tbl' ? '<path d="M4 5h16v14H4z"/><path d="M4 10h16M4 14.5h16M10 5v14"/>' : '<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h4"/>'),
-      el('span', {}, bookName(p)), PALETTE.includes(p.flag) ? el('i', { class: 'sx-book-rflag', style: '--flag:' + p.flag, title: 'Flagged' }) : null);
-    row.addEventListener('click', () => bookGo(i));
+      el('span', { class: 'sx-book-rname', title: 'Double-click to rename this page' }, bookName(p)),
+      el('button', { type: 'button', class: 'sx-book-ren', title: 'Rename this page', 'aria-label': 'Rename page ' + (i + 1), onclick: e => { e.stopPropagation(); bookPageRename(row, p); } }, '✎'),
+      PALETTE.includes(p.flag) ? el('i', { class: 'sx-book-rflag', style: '--flag:' + p.flag, title: 'Flagged' }) : null);
+    row.addEventListener('click', e => { if (!e.target.closest('input')) bookGo(i); });
+    row.addEventListener('dblclick', e => { if (!e.target.closest('input')) bookPageRename(row, p); });
     row.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', String(i)); e.dataTransfer.effectAllowed = 'move'; row.classList.add('drag'); });
     row.addEventListener('dragend', () => row.classList.remove('drag'));
     row.addEventListener('dragover', e => { e.preventDefault(); const r = row.getBoundingClientRect(), after = e.clientY > r.top + r.height / 2; list.querySelectorAll('.over-t, .over-b').forEach(n => n.classList.remove('over-t', 'over-b')); row.classList.add(after ? 'over-b' : 'over-t'); });
@@ -137,6 +141,21 @@ function bookPageDraw(fresh, dir) {
   const folio = el('span', { class: 'sx-book-folio', 'aria-hidden': 'true' }, String(b.at + 1)); // (the page number, printed at its foot)
   bookMain.replaceChildren(...[top, bookPageBox, folio, nav]);
 }
+// renaming a page: its name in the contents (and on its flag), written over its first line; left empty, the first line again
+function bookPageRename(row, p) {
+  const span = row.querySelector('.sx-book-rname'); if (!span || row.querySelector('input')) return;
+  const inp = el('input', { class: 'sx-book-pgname', type: 'text', maxlength: '60', value: typeof p.pname === 'string' ? p.pname : bookName(p), placeholder: 'Its first line', 'aria-label': 'The page\'s name', spellcheck: 'false' });
+  row.draggable = false; let done = false;
+  const fin = keep => { if (done) return; done = true; if (keep) { const v = inp.value.trim().slice(0, 60), was = typeof p.pname === 'string' ? p.pname : '';
+      const auto = (() => { const q = Object.assign({}, p); delete q.pname; return bookName(q); })();
+      const nv = v === auto ? '' : v; if (nv !== was) { deskMark(); if (nv) p.pname = nv; else delete p.pname; save(); const c = els.get(bookId); if (c) c._snap = ''; } }
+    bookSideDraw(); };
+  inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); fin(true); } else if (e.key === 'Escape') { e.preventDefault(); fin(false); } });
+  inp.addEventListener('blur', () => fin(true));
+  inp.addEventListener('pointerdown', e => e.stopPropagation());
+  span.replaceWith(inp); inp.focus(); inp.select();
+}
+
 /* ---------- changing a book: adding, moving, deleting, taking out ---------- */
 async function bookAdd(kind, files) {
   const b = bookOf(bookId); if (!b) return; bookPages(b);
@@ -234,7 +253,7 @@ async function bookRemap(out, imap) { // a copied board: books point at their ow
     }
     return kn0.apply(this, a); }; }
 // the contents follow what you write
-let bookNameT = 0; bookPageBox.addEventListener('input', () => { clearTimeout(bookNameT); bookNameT = setTimeout(() => { const b = bookOf(bookId), row = bookSide.querySelector('.sx-book-row.on span'), p = b && bookPages(b)[b.at]; if (row && p) row.textContent = bookName(p); }, 300); });
+let bookNameT = 0; bookPageBox.addEventListener('input', () => { clearTimeout(bookNameT); bookNameT = setTimeout(() => { const b = bookOf(bookId), row = bookSide.querySelector('.sx-book-row.on .sx-book-rname'), p = b && bookPages(b)[b.at]; if (row && p) row.textContent = bookName(p); }, 300); });
 // keys while it's open: ← → turn the pages (not while writing), Esc closes (once the pen is down)
 addEventListener('keydown', e => {
   if (!bookId || bookView.hidden || e.defaultPrevented || (typeof decoId !== 'undefined' && decoId) || (typeof stkTray !== 'undefined' && (!stkTray.hidden || stkCarry || !stkMenu.hidden))) return; // (the decorator and the stickers take Esc first)
