@@ -41,7 +41,7 @@ function bookCard(it) {
     el('i', { class: 'sx-book-edge', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-base', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-spine', 'aria-hidden': 'true' }),
     el('b', { class: 'sx-book-title' }, it.title || 'A book'), cover,
     el('span', { class: 'sx-book-n' }, n + (n === 1 ? ' page' : ' pages')));
-  if (typeof bookDress === 'function') bookDress(c, it); // (its title's look, corners, band and stickers: js/deco.js)
+  if (typeof bookDress === 'function') bookDress(c, it); // (its title's look, band and stickers: js/deco.js)
   // page flags: a sticky tab poking out of the edge for every flagged page, as far down as the page is far through the book
   const pgs = bookPages(it); pgs.forEach((p, i) => { if (!PALETTE.includes(p.flag)) return;
     c.append(el('i', { class: 'sx-flag', 'data-i': i, title: 'Page ' + (i + 1) + ': ' + bookName(p), style: '--flag:' + p.flag + ';top:' + (9 + 76 * i / Math.max(1, pgs.length - 1)).toFixed(1) + '%' })); });
@@ -92,7 +92,7 @@ function bookSideDraw() {
   const b = bookOf(bookId); if (!b) return; const pages = bookPages(b), [, bg, ink] = bookColor(b);
   [bookSide, bookSide.parentNode].forEach(n => { n.style.setProperty('--cover', bg); n.style.setProperty('--cink', ink); if (PALETTE.includes(b.spine)) n.style.setProperty('--spine', b.spine); else n.style.removeProperty('--spine'); }); // (the contents and the binding wear the cover's colour)
   const pic = el('button', { type: 'button', class: 'sx-book-thumb' + (b.cover ? '' : ' none'), title: 'Decorate the cover', 'aria-label': 'Decorate the cover', onclick: () => decoOpen(b.id) });
-  if (b.cover) photoUrls(b.id).then(u => { if (u) pic.prepend(el('img', { src: u.small || u.full, alt: '' })); }); else if (!(b.stickers || []).length && !b.band && !b.corners) pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
+  if (b.cover) photoUrls(b.id).then(u => { if (u) pic.prepend(el('img', { src: u.small || u.full, alt: '' })); }); else if (!(b.stickers || []).length && !b.band) pic.append(bookIcon('<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>'));
   bookDress(pic, b);
   const title = el('button', { type: 'button', class: 'sx-book-name', title: 'Rename the book', onclick: () => bookTitleEdit() }, b.title || 'A book');
   const list = el('ol', { class: 'sx-book-idx' }, ...pages.map((p, i) => {

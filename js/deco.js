@@ -105,10 +105,9 @@ function kaoPanel(use, carry) {
   const picks = KAOMOJI.map(t => { const b = el('button', { type: 'button', class: 'sx-deco-st txt', 'data-k': 'txt', 'data-t': t, title: t }, t); if (!carry) b.addEventListener('click', () => use(t)); return b; });
   return el('div', { class: 'sx-kao' }, el('div', { class: 'sx-kao-row' }, inp, own), el('div', { class: 'sx-kao-picks' }, ...picks));
 }
-// the title's look, the corner pieces, and the elastic band (any of the 32 colours, or none)
+// the title's look and the elastic band (any of the 32 colours, or none)
 const TITLE_STYLES = [['', 'Bold'], ['round', 'Round'], ['type', 'Typewriter'], ['script', 'Script'], ['stamp', 'Stamp'], ['emboss', 'Embossed']];
 const SPINES = [['', 'Plain'], ['stripes', 'Stripes'], ['bands', 'Bands'], ['dots', 'Dots'], ['stitch', 'Stitched']]; // (the spine: its colour, b.spine, a pattern on it, b.spineP, and the pattern's colour, b.spineInk)
-const CORNERS = [['', 'None'], ['brass', 'Brass'], ['leather', 'Leather'], ['cream', 'Cream'], ['ink', 'Like the title']];
 // more of the cover: a
 // subtitle (b.sub), foil on the title (b.foil), the pages' edges (b.edge, b.edgeCol), how it's held shut (b.strap, in the
 // band's colour b.band), and little extras on it (b.extras)
@@ -133,7 +132,7 @@ const EXTRAS = [['pen', 'Pen', '0 0 20 100', '<rect x="6" y="14" width="8" heigh
   ['leaf', 'Pressed leaf', '0 0 40 60', '<path d="M20 58V28" stroke="#73392e" stroke-width="1.6"/><path d="M20 4C6 16 6 34 20 44 34 34 34 16 20 4z" fill="#d1401f"/><path d="M20 8v34M20 18l-7-5M20 18l7-5M20 27l-9-5M20 27l9-5M20 35l-7-4M20 35l7-4" stroke="#7c191a" stroke-width="1" fill="none"/>'],
   ['feather', 'Feather', '0 0 24 80', '<path d="M12 78C10 50 12 20 20 4 6 14 2 40 8 62z" fill="#77d6c1"/><path d="M12 78C11 52 13 26 20 4" stroke="#033e5e" stroke-width="1.2" fill="none"/><path d="M9 30l6 4M7 40l6 4M6 50l7 4M8 22l7 3" stroke="#ffffe4" stroke-width="1" opacity=".7"/>'],
   ['tag', 'Gift tag', '0 0 30 50', '<path d="M15 0q-2 8 0 14" stroke="#c76e46" stroke-width="1.4" fill="none"/><path d="M6 18l9-6 9 6v28H6z" fill="#ffdaac" stroke="#c76e46" stroke-width="1"/><circle cx="15" cy="18" r="2" fill="#fffaf0" stroke="#c76e46"/><path d="M10 28h10M10 34h8" stroke="#c76e46" stroke-width="1.4" stroke-linecap="round"/><path d="M15 42s-3-1.8-3-3.6a1.5 1.5 0 0 1 3-.5 1.5 1.5 0 0 1 3 .5c0 1.8-3 3.6-3 3.6z" fill="#d9243c"/>']];
-S.board.items.forEach(it => { if (it.type === 'book') ['pat', 'patInk', 'label', 'dc', 'ribbon', 'mat', 'kind'].forEach(k => delete it[k]); }); // (and drop caps, versions 219 to 223, and the ribbon inside, 218 to 230) // (labels and patterns were here briefly, in version 216)
+S.board.items.forEach(it => { if (it.type === 'book') ['pat', 'patInk', 'label', 'dc', 'ribbon', 'mat', 'kind', 'corners'].forEach(k => delete it[k]); }); // (and drop caps, versions 219 to 223, and the ribbon inside, 218 to 230) // (labels and patterns were here briefly, in version 216)
 // the wax seal (b.seal, its colour): a blob of wax pressed with an initial (b.sealT, the title's first letter if not said)
 // or a little picture (b.sealI)
 const SEAL_ICONS = [['heart', 'Heart', '<path d="M30 41s-10-6.3-10-12.2a5 5 0 0 1 10-1.4 5 5 0 0 1 10 1.4C40 34.7 30 41 30 41z"/>'],
@@ -162,7 +161,7 @@ function charmEl(k) {
 }
 // a book's look: everything about how it looks, but not what it says (its title, the line under it, the seal's letters),
 // its picture or its stickers. Copied from one book, pasted onto another (kept until Cassie closes)
-const BOOK_LOOK = ['bg', 'color', 'ink', 'tf', 'foil', 'spine', 'spineP', 'spineInk', 'edge', 'edgeCol', 'corners', 'band', 'strap', 'extras', 'seal', 'sealI', 'charm'];
+const BOOK_LOOK = ['bg', 'color', 'ink', 'tf', 'foil', 'spine', 'spineP', 'spineInk', 'edge', 'edgeCol', 'band', 'strap', 'extras', 'seal', 'sealI', 'charm'];
 let bookLookCopied = null;
 function bookLookCopy(id) { const b = bookOf(id); if (!b) return; bookLookCopied = {}; BOOK_LOOK.forEach(k => { if (b[k] !== undefined) bookLookCopied[k] = JSON.parse(JSON.stringify(b[k])); }); deskToast('Copied the look of ' + (b.title || 'the book') + ': paste it onto another book'); deskSfx('pick'); }
 function bookLookPaste(id, marked) {
@@ -171,7 +170,7 @@ function bookLookPaste(id, marked) {
   save(); drawBoard(); deskSfx('pin'); deskToast('Pasted the look onto ' + (b.title || 'the book'));
 }
 // Surprise me: a good-looking combination, rolled at random: a cover colour, a spine and title that go with it, and now
-// and then a material, foil, edges, corners, a strap, a seal or a charm. (Press it again for another; Undo goes back)
+// and then a material, foil, edges, a strap, a seal or a charm. (Press it again for another; Undo goes back)
 function bookSurprise(b) {
   const pick = a => a[Math.floor(Math.random() * a.length)], maybe = p => Math.random() < p;
   const shade = hex => { const n = parseInt(hex.slice(1), 16), l = ((n >> 16 & 255) * 299 + (n >> 8 & 255) * 587 + (n & 255) * 114) / 1000; return l; };
@@ -185,7 +184,6 @@ function bookSurprise(b) {
   if (darker.length && maybe(.7)) b.spine = pick(darker);
   if (maybe(.4)) b.spineP = pick(SPINES.slice(1))[0];
   if (maybe(.35)) b.edge = pick(EDGES.slice(1, 4))[0];
-  if (maybe(.3)) b.corners = pick(CORNERS.slice(1, 4))[0];
   if (maybe(.35)) { b.band = pick(PALETTE.filter(h => Math.abs(shade(h) - shade(bg)) > 50)); const st = pick(STRAPS)[0]; if (st) b.strap = st; }
   if (maybe(.3)) { b.seal = pick(['#d9243c', '#7c191a', '#601761', '#033e5e', '#458239', '#c76e46']); if (maybe(.4)) b.sealI = pick(SEAL_ICONS)[0]; }
   if (maybe(.25)) b.charm = pick(CHARMS)[0];
@@ -200,7 +198,6 @@ function bookStkClean(v) {
 function bookDecoClean(it, o) {
   if (Array.isArray(it.stickers) && it.stickers.length) o.stickers = bookStkClean(it.stickers);
   if (TITLE_STYLES.some(t => t[0] && t[0] === it.tf)) o.tf = it.tf;
-  if (CORNERS.some(c => c[0] && c[0] === it.corners)) o.corners = it.corners;
   if (PALETTE.includes(it.band)) o.band = it.band;
   if (PALETTE.includes(it.spine)) o.spine = it.spine;
   if (SPINES.some(p => p[0] && p[0] === it.spineP)) o.spineP = it.spineP;
@@ -219,7 +216,7 @@ function bookStk(b) {
   return layer;
 }
 // a cover dressed: its material under everything, the title's look (foil, a subtitle under it),
-// the spine, the pages' edges, the corner pieces, the strap, the little extras, and the stickers on top. c: the cover's element
+// the spine, the pages' edges, the strap, the little extras, and the stickers on top. c: the cover's element
 // a title fits its cover: if a word is too long for the line, the title gets smaller (down to 11px) until every word fits whole,
 // rather than breaking one in two. It's measured once the cover is on the screen, and again if it's drawn before that
 function bookFit(t, tries = 0) {
@@ -245,7 +242,6 @@ function bookDress(c, b) {
   if (t && t.classList.contains('sx-book-title')) bookFit(t);
   if (t && b.foil && !t.querySelector('.sx-foil')) { const f = el('span', { class: 'sx-foil' }); f.append(...t.childNodes); t.append(f); }
   if (t && b.sub && t.classList.contains('sx-book-title')) t.after(el('span', { class: 'sx-book-sub' }, b.sub));
-  if (b.corners) c.append(el('i', { class: 'sx-corner-pc tr c-' + b.corners, 'aria-hidden': 'true' }), el('i', { class: 'sx-corner-pc br c-' + b.corners, 'aria-hidden': 'true' }));
   if (PALETTE.includes(b.band)) { const band = el('i', { class: 'sx-band', 'data-strap': b.strap || null, style: '--band:' + b.band, 'aria-hidden': 'true' });
     if (STRAP_BITS[b.strap]) { const bit = el('i', { class: 'sx-strap-bit' }); bit.innerHTML = decoSvg(...STRAP_BITS[b.strap]); band.append(bit); }
     c.append(band); }
@@ -311,7 +307,7 @@ function decoToolsDraw() {
     k('Peel off', 'Take it off the cover', () => { b.stickers.splice(decoSel, 1); decoSel = -1; deskSfx('pick'); }, 'del'));
 }
 // the side: the sticker tray (in packs), the cover (colour, material), the title (look, colour, foil, a line
-// under it), the spine, the pages' edges, the corners, the strap, little extras, and the picture
+// under it), the spine, the pages' edges, the strap, little extras, and the picture
 function decoSealIn(b) { // the seal's initial: one or two letters (the title's first, if left empty)
   const inp = el('input', { type: 'text', class: 'sx-kao-in sx-seal-in', maxlength: '2', value: b.sealT || '', placeholder: sealText(Object.assign({}, b, { sealT: '' })), 'aria-label': 'The letters on the seal', spellcheck: 'false' });
   inp.addEventListener('input', () => { decoMark(); const v = inp.value.trim().slice(0, 2); if (v) b.sealT = v; else delete b.sealT; save(); decoCoverDraw(); });
@@ -327,7 +323,7 @@ function decoSubIn(b) { // the line under the title: written straight onto the c
 let decoPack = 0;
 let decoTab = 'stickers';
 const DECO_TABS = [['stickers', 'Stickers'], ['cover', 'Cover'], ['title', 'Title'], ['edges', 'Spine & edges'], ['extras', 'Extras']];
-const DECO_TAB_OF = { 'Stickers': 'stickers', 'Cover colour': 'cover', 'Picture': 'cover', 'Title': 'title', 'Spine': 'edges', 'Page edges': 'edges', 'Corners': 'edges', 'Strap': 'edges', 'Little extras': 'extras', 'Wax seal': 'extras', 'Charm': 'extras' };
+const DECO_TAB_OF = { 'Stickers': 'stickers', 'Cover colour': 'cover', 'Picture': 'cover', 'Title': 'title', 'Spine': 'edges', 'Page edges': 'edges', 'Strap': 'edges', 'Little extras': 'extras', 'Wax seal': 'extras', 'Charm': 'extras' };
 function decoTabsApply() { // the sections of the tab you're on; the tabs above them
   decoSide.querySelectorAll(':scope > .sx-deco-sec').forEach(sc => { const l = sc.querySelector('.sx-deco-lbl'); sc.hidden = (DECO_TAB_OF[l && l.textContent] || 'extras') !== decoTab; });
   const bar = el('div', { class: 'sx-deco-tabbar', role: 'tablist' }, ...DECO_TABS.map(([k, name]) => el('button', { type: 'button', role: 'tab', class: 'sx-deco-tabb' + (k === decoTab ? ' on' : ''), 'aria-selected': String(k === decoTab), onclick: () => { decoTab = k; decoSide.querySelector('.sx-deco-tabbar').replaceWith(decoTabsApply()); decoSide.scrollTop = 0; } }, name)));
@@ -367,7 +363,6 @@ function decoSideDraw() {
       b.spineP ? el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.spineInk, set(() => { b.spineInk = hex; })))) : null),
     sec('Page edges', chips(...EDGES.map(([k, name]) => chip([el('i', { class: 'sx-deco-ed', 'data-edge': k, style: PALETTE.includes(b.edgeCol) ? '--edgec:' + b.edgeCol : null }), el('span', {}, name)], (b.edge || '') === k, set(() => { if (k) b.edge = k; else delete b.edge; if (k === 'tint' && !PALETTE.includes(b.edgeCol)) b.edgeCol = '#ff88a9'; })))),
       b.edge === 'tint' ? el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.edgeCol, set(() => { b.edgeCol = hex; })))) : null),
-    sec('Corners', chips(...CORNERS.map(([k, name]) => chip([k ? el('i', { class: 'sx-deco-cn c-' + k }) : null, el('span', {}, name)].filter(Boolean), (b.corners || '') === k, set(() => { if (k) b.corners = k; else delete b.corners; }))))),
     sec('Strap', chips(...STRAPS.map(([k, name]) => chip(name, PALETTE.includes(b.band) && (b.strap || '') === k, set(() => { if (k) b.strap = k; else delete b.strap; if (!PALETTE.includes(b.band)) b.band = k === 'buckle' ? '#73392e' : '#ff88a9'; }))), chip('None', !PALETTE.includes(b.band), set(() => { delete b.band; }))),
       PALETTE.includes(b.band) ? el('div', { class: 'sx-deco-sub' }, 'Its colour') : null,
       PALETTE.includes(b.band) ? el('div', { class: 'sx-book-grid' }, ...PALETTE.map(hex => sq(hex, hex === b.band, set(() => { b.band = hex; })))) : null),

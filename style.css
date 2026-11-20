@@ -1972,14 +1972,7 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 :is([data-tf="stamp"] .sx-book-title, .sx-tied-c[data-tf="stamp"] > b, b[data-tf="stamp"]) { align-self: center; padding: .15em .45em; border: 2px solid currentColor; border-radius: 3px; outline: 1px solid currentColor; outline-offset: 2px; rotate: -4deg; letter-spacing: .14em; opacity: .9; }
 [data-tf="stamp"] .sx-book-title { font-size: .82em; margin: 4px 0 2px; }
 .sx-tied-c[data-tf="stamp"] > b { border-width: 1.5px; outline-offset: 1px; }
-/* corner pieces on the outer corners, and an elastic band down the cover */
-.sx-corner-pc { position: absolute; right: 0; z-index: 1; width: 15%; aspect-ratio: 1; pointer-events: none; }
-.sx-corner-pc.tr { top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); border-top-right-radius: 7px; }
-.sx-corner-pc.br { bottom: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); border-bottom-right-radius: 7px; }
-:is(.sx-corner-pc, .sx-deco-cn).c-brass { background: linear-gradient(135deg, #ffd832, #ffb762 55%, #c76e46); }
-:is(.sx-corner-pc, .sx-deco-cn).c-leather { background: linear-gradient(135deg, #73392e, #34111f); }
-:is(.sx-corner-pc, .sx-deco-cn).c-cream { background: linear-gradient(135deg, #ffffe4, #ffdaac); }
-:is(.sx-corner-pc, .sx-deco-cn).c-ink { background: var(--cink, var(--ink, #34111f)); }
+/* an elastic band down the cover */
 .sx-band { position: absolute; top: -2px; bottom: -2px; right: 13%; z-index: 1; width: 4.5%; min-width: 3px; border-radius: 1px; background: linear-gradient(90deg, rgb(0 0 0 / .25), transparent 35%, transparent 65%, rgb(0 0 0 / .25)), var(--band); box-shadow: 1px 0 1px rgb(52 17 31 / .3); pointer-events: none; }
 /* the decorator's tabs and keys */
 .sx-deco-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
@@ -1993,8 +1986,6 @@ body:has(#app.sx-full) .sx-tapes.sx-dock { display: none; } /* (full-screen focu
 .sx-deco-chip.tf b { font-size: 15px; line-height: 1; }
 .sx-deco-chip.tf b:not([data-tf]), .sx-deco-chip.tf b[data-tf=""] { font-family: var(--ui); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .sx-deco-chip.tf b[data-tf="stamp"] { padding: 0 3px; border-width: 1.5px; outline: 0; font-size: 11px; rotate: -4deg; }
-.sx-deco-cn { width: 14px; height: 14px; clip-path: polygon(0 0, 100% 0, 100% 100%); border-top-right-radius: 4px; }
-.sx-deco-cn.c-ink { background: #34111f; }
 :is(.sx-bbook, .sx-deco-cover):has(.sx-corner-pc, .sx-band) .sx-book-n { right: auto; left: 20px; } /* (the page count moves out from under the corner and the band) */
 
 /* ---------- stickers anywhere (js/deco.js): the tray by the left column, the one being carried, and the ones on cards ---------- */
@@ -2319,3 +2310,12 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 [data-edge="rainbow"] > .sx-book-base::after { background: repeating-linear-gradient(0deg, rgb(255 255 228 / .35) 0 1px, transparent 1px 3px), linear-gradient(90deg, #ff6157, #ffb762, #ffd832, #9cb93b, #77d6c1, #1c92a7, #c03b94); }
 [data-edge="speckle"] > .sx-book-base::after { background: radial-gradient(circle, #73392e .8px, transparent 1.2px) 0 0 / 6px 5px, radial-gradient(circle, #c76e46 .7px, transparent 1.1px) 3px 2px / 7px 6px, #fffdf0; }
 [data-edge="tint"] > .sx-book-base::after { background: repeating-linear-gradient(0deg, color-mix(in srgb, var(--edgec, #ff88a9) 65%, #ffffe4) 0 2px, var(--edgec, #ff88a9) 2px 3px); }
+
+/* ---------- the bottom, plainly (version 235): under the spine, the spine's colour; the rest, the cover's colour, with the
+   pages as a straight cream strip from the spine to the open edge. Square corners on the spine side ---------- */
+:is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-base { border-radius: 0 0 3px 0;
+  background: linear-gradient(rgb(3 7 16 / .14), transparent 3px), linear-gradient(90deg, var(--spc) 0 var(--spw, 14px), var(--cover, #293b49) var(--spw, 14px)); }
+:is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-base::after { left: var(--spw, 14px); border-radius: 0; }
+:is(.sx-world .sx-bbook, .sx-deco-cover) { border-radius: 0 5px 0 0; }
+.sx-book-spine { border-radius: 0 !important; }
+:is(.sx-bbook, .sx-deco-cover, .sx-book-thumb) > .sx-book-spine { background-color: var(--spc); }
