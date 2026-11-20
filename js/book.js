@@ -83,7 +83,7 @@ function bookLeavePage() { if (bookPgEl) { if (bookPgId && els.get(bookPgId) ===
 function bookGo(i, write) {
   const b = bookOf(bookId); if (!b) return; const n = bookPages(b).length; if (!n) return;
   const to = Math.max(0, Math.min(n - 1, i)); const dir = to > (b.at || 0) ? 1 : -1; if (to === b.at && bookPgEl) return;
-  b.at = to; save(); bookDraw(false, dir); deskSfx('page'); if (write) bookWrite();
+  b.at = to; save(); bookDraw(false, dir); if (write) bookWrite();
 }
 function bookWrite() { const t = bookPgEl && bookPgEl.querySelector('.sx-note-t, .sx-tc'); if (!t) return; t.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(t); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
 
