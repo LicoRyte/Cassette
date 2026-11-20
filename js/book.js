@@ -13,6 +13,7 @@ const BOOK_D = '<path d="M5 4.5h11.5a2 2 0 0 1 2 2V19.5H7a2 2 0 0 1-2-2z"/><path
 const bookKey = deskBtn(bookIcon(BOOK_D), () => addBook(), 'sx-ws-ic', 'Book: notes, photos and tables bound together, in order');
 tableKey.after(bookKey);
 
+const BOOK_FLAGS = ['#ff6157', '#ffb762', '#ffd832', '#9cb93b', '#77d6c1', '#1c92a7', '#ff88a9', '#c03b94']; // (a flagged page's sticky tab: one of these, all from the 32)
 const bookOf = id => { const it = itemOf(id); return it && it.type === 'book' ? it : null; };
 const bookPages = b => { const ids = Array.isArray(b.pages) ? b.pages : []; const out = ids.map(itemOf).filter(p => p && p.book === b.id); if (out.length !== ids.length) b.pages = out.map(p => p.id); return out; };
 // the cover's colours: any of the 32 in Cassie's palette (PALETTE, in js/notes.js); the title's colour is one of them too, or
@@ -40,7 +41,11 @@ function bookCard(it) {
     el('i', { class: 'sx-book-edge', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-base', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-spine', 'aria-hidden': 'true' }),
     el('b', { class: 'sx-book-title' }, it.title || 'A book'), cover,
     el('span', { class: 'sx-book-n' }, n + (n === 1 ? ' page' : ' pages')));
-  return typeof bookDress === 'function' ? bookDress(c, it) : c; // (its title's look, corners, band and stickers: js/deco.js)
+  if (typeof bookDress === 'function') bookDress(c, it); // (its title's look, corners, band and stickers: js/deco.js)
+  // page flags: a sticky tab poking out of the edge for every flagged page, as far down as the page is far through the book
+  const pgs = bookPages(it); pgs.forEach((p, i) => { if (!PALETTE.includes(p.flag)) return;
+    c.append(el('i', { class: 'sx-flag', 'data-i': i, title: 'Page ' + (i + 1) + ': ' + bookName(p), style: '--flag:' + p.flag + ';top:' + (9 + 76 * i / Math.max(1, pgs.length - 1)).toFixed(1) + '%' })); });
+  return c;
 }
 // (before version 197 a book could be drawn as a note after a reload, and words typed into it were kept on the book: they're let go)
 S.board.items.forEach(it => { if (it.type === 'book') ['html', 'text', 'fs', 'h', 'paper', 'rcd', 'mt'].forEach(k => delete it[k]); });
@@ -106,7 +111,7 @@ function bookSideDraw() {
   const list = el('ol', { class: 'sx-book-idx' }, ...pages.map((p, i) => {
     const row = el('li', { class: 'sx-book-row' + (i === b.at ? ' on' : '') + (p.topic ? ' topic' : ''), draggable: 'true', 'data-i': i },
       el('b', {}, String(i + 1)), bookIcon(p.type === 'photo' ? '<path d="M4 6h16v12H4z"/><path d="M4 15l5-4 4 3 3-2 4 3"/>' : p.type === 'tbl' ? '<path d="M4 5h16v14H4z"/><path d="M4 10h16M4 14.5h16M10 5v14"/>' : '<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h4"/>'),
-      el('span', {}, bookName(p)));
+      el('span', {}, bookName(p)), PALETTE.includes(p.flag) ? el('i', { class: 'sx-book-rflag', style: '--flag:' + p.flag, title: 'Flagged' }) : null);
     row.addEventListener('click', () => bookGo(i));
     row.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', String(i)); e.dataTransfer.effectAllowed = 'move'; row.classList.add('drag'); });
     row.addEventListener('dragend', () => row.classList.remove('drag'));
@@ -131,6 +136,7 @@ function bookPageDraw(fresh, dir) {
     clearTimeout(armT); bookDelPage(); } }, 'Delete');
   const top = el('div', { class: 'sx-book-top' }, el('span', { class: 'sx-book-pn' }, 'Page ' + (b.at + 1) + ' of ' + pages.length), el('span', { class: 'sx-gap' }),
     typeof stkTrayOpen === 'function' ? el('button', { type: 'button', class: 'sx-book-tb', title: 'Stickers: drag one onto the page', onclick: e => stkTrayOpen(e.currentTarget) }, 'Stickers') : null,
+    el('button', { type: 'button', class: 'sx-book-tb sx-book-flagb' + (PALETTE.includes(p.flag) ? ' on' : ''), style: PALETTE.includes(p.flag) ? '--flag:' + p.flag : null, title: 'Flag this page: a sticky tab pokes out of the closed book, to open it right here', onclick: e => bookFlagPop(e.currentTarget, p) }, PALETTE.includes(p.flag) ? 'Flagged' : 'Flag'),
     el('button', { type: 'button', class: 'sx-book-tb', title: 'Put this page back on the desk, beside the book', onclick: () => bookTakeOut() }, 'Take out'), del, close);
   const nav = el('div', { class: 'sx-book-nav' },
     el('button', { type: 'button', class: 'sx-book-turn', 'aria-label': 'The page before', title: 'The page before (←)', disabled: b.at <= 0 || null, onclick: () => bookGo(b.at - 1) }, '‹'),
@@ -146,9 +152,8 @@ function bookPageDraw(fresh, dir) {
   }
   // the ribbon inside: it lies down the page you're on, in its own colour (or the cover's), and lifts and settles as you turn
   const rib = b.ribbon === 'none' ? null : el('i', { class: 'sx-book-rib', style: '--rib:' + (PALETTE.includes(b.ribbon) ? b.ribbon : bookColor(b)[1]), 'aria-hidden': 'true' });
-  // drop caps: the first letter of the page's words, big, in the cover's colour (or the title's, on a pale cover)
-  const [, dcBg, dcInk] = bookColor(b); bookPageBox.classList.toggle('dropcaps', b.dc !== 'off'); bookPageBox.style.setProperty('--dc', bookLight(dcBg) ? dcInk : dcBg);
-  bookMain.replaceChildren(...[top, bookPageBox, nav, rib].filter(Boolean));
+  const folio = el('span', { class: 'sx-book-folio', 'aria-hidden': 'true' }, String(b.at + 1)); // (the page number, printed at its foot)
+  bookMain.replaceChildren(...[top, bookPageBox, folio, nav, rib].filter(Boolean));
   if (turned) bookTurn(turned.dir, turned.was, turned.now);
   if (rib && dir && !stillUI()) rib.animate([{ transform: 'translateY(-26px)', opacity: 0 }, { transform: 'translateY(-26px)', opacity: 0, offset: .45 }, { transform: 'none', opacity: 1 }], { duration: 640, easing: 'cubic-bezier(.3, 1.4, .5, 1)' });
 }
@@ -166,6 +171,20 @@ function bookTurn(dir, was, now) {
   turn.lastChild.animate(fwd ? [{ opacity: 0 }, { opacity: .55 }] : [{ opacity: .55 }, { opacity: 0 }], { duration: 430 });
   if (!fwd) now.animate([{ opacity: 0 }, { opacity: 0, offset: .9 }, { opacity: 1 }], { duration: 430 }); // (the page under it shows once the sheet has landed)
   a.onfinish = a.oncancel = () => turn.remove(); setTimeout(() => turn.remove(), 900);
+}
+
+// flagging a page: a little row of flag colours under the button (or no flag)
+function bookFlagPop(btn, p) {
+  document.querySelectorAll('.sx-flag-pop').forEach(n => n.remove());
+  const pick = hex => { deskMark(); if (hex) p.flag = hex; else delete p.flag; save(); const c = els.get(bookId); if (c) c._snap = ''; pop.remove(); bookSideDraw(); bookPageDraw(false); deskSfx(hex ? 'pin' : 'pick'); };
+  const pop = el('div', { class: 'sx-flag-pop', role: 'menu' },
+    ...BOOK_FLAGS.map(hex => el('button', { type: 'button', class: 'sx-flag-sw' + (p.flag === hex ? ' on' : ''), style: '--flag:' + hex, 'aria-label': 'Flag it ' + hex, onclick: () => pick(hex) })),
+    el('button', { type: 'button', class: 'sx-flag-none', onclick: () => pick(null) }, 'No flag'));
+  const r = btn.getBoundingClientRect(), h = bookMain.getBoundingClientRect();
+  pop.style.top = (r.bottom - h.top + 6) + 'px'; pop.style.right = Math.max(8, h.right - r.right) + 'px';
+  bookMain.append(pop);
+  const off = e => { if (!pop.contains(e.target) && e.target !== btn) { pop.remove(); removeEventListener('pointerdown', off, true); } };
+  setTimeout(() => addEventListener('pointerdown', off, true), 0);
 }
 
 /* ---------- changing a book: adding, moving, deleting, taking out ---------- */

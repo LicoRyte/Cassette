@@ -728,7 +728,7 @@ ws.addEventListener('pointerdown', e => {
         if (snap && deskSnap() !== snap) deskMark(snap); if (typeof bookDropAt === 'function') bookDropAt(ev, movers.map(m => m.it)); save(); return; // (dropped on a book: into it)
       }
       if (ev.type === 'pointerup' && it.type === 'hop') { hopGo(it); return; } // a click on a folder: through it
-      if (ev.type === 'pointerup' && it.type === 'book') { bookOpen(it.id); return; } // a click on a book: it opens (js/book.js)
+      if (ev.type === 'pointerup' && it.type === 'book') { const f = ev.target.closest && ev.target.closest('.sx-flag'); bookOpen(it.id, f ? +f.dataset.i : undefined); return; } // a click on a book: it opens (js/book.js); on one of its flags, at that page
       if (ev.type !== 'pointerup' || !txt) return;
       if (it.type === 'note' && noteTickAt(txt, ev.clientX, ev.clientY)) return; // a checklist box (it ticks on the first click)
       if (wasPicked) deskEditAt(txt, ev.clientX, ev.clientY); // picked already: the pen goes where you clicked

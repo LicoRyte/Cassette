@@ -41,7 +41,7 @@ async function deskReadSpace(d, taken, n) {
     if (it.type === 'photo') { if (it.ar) o.ar = Math.max(.1, Math.min(10, +it.ar || 1)); if (it.w) o.w = Math.max(120, Math.min(1600, num(it.w))); }
     if (it.type === 'hop' && bmap.has(it.to)) o.to = bmap.get(it.to); // (a folder to a board that came in the same backup)
     if (it.type === 'book') { o.title = str(it.title, 80); if (NOTE_COLORS.some(c => c[0] === it.color)) o.color = it.color; if (typeof PALETTE !== 'undefined') { if (PALETTE.includes(it.bg)) o.bg = it.bg; if (PALETTE.includes(it.ink)) o.ink = it.ink; } if (it.cover) o.cover = true; if (typeof bookDecoClean === 'function') bookDecoClean(it, o); o._pages = Array.isArray(it.pages) ? it.pages.slice(0, 2000) : []; o.at = num(it.at); }
-    if (typeof it.book === 'string') o._book = it.book; // (a book's page: tied back to its book below, once every card has its new name)
+    if (typeof it.book === 'string') { o._book = it.book; if (PALETTE.includes(it.flag)) o.flag = it.flag; } // (a book's page: tied back to its book below, once every card has its new name)
     if (it.type !== 'book' && Array.isArray(it.stickers) && it.stickers.length && typeof bookStkClean === 'function') o.stickers = bookStkClean(it.stickers); // (stickers on any card)
     if (typeof it.group === 'string' && !it.book) o.group = 'g' + tag + it.group.replace(/[^\w-]/g, '').slice(0, 20);
     return o;
