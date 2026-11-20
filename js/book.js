@@ -36,7 +36,7 @@ function bookCard(it) {
   if (it.cover) photoUrls(it.id).then(u => { if (u) cover.append(el('img', { src: u.small || u.full, alt: '', draggable: 'false' })); });
   const x = el('button', { type: 'button', class: 'sx-bnote-x', 'aria-label': 'Take the book away', title: 'Take the book away (its pages too)', onclick: () => removeOne(it) }, '×');
   const c = el('div', { class: 'sx-bcard sx-bbook', 'data-id': it.id, title: 'Open ' + (it.title || 'the book'),
-      style: 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:' + (tilt(it.id) / 2).toFixed(2) + 'deg;--cover:' + bg + ';--cink:' + ink + ';--edge:' + Math.min(9, 2 + n * .6).toFixed(1) + 'px' },
+      style: 'left:' + it.x + 'px;top:' + it.y + 'px;--tilt:0deg;--cover:' + bg + ';--cink:' + ink + ';--edge:' + Math.min(9, 2 + n * .6).toFixed(1) + 'px' },
     el('span', { class: 'sx-pin', title: 'Drag to something else to tie a string' }), x,
     el('i', { class: 'sx-book-edge', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-base', 'aria-hidden': 'true' }), el('i', { class: 'sx-book-spine', 'aria-hidden': 'true' }),
     el('b', { class: 'sx-book-title' }, it.title || 'A book'), cover,
