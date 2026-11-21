@@ -111,10 +111,17 @@ function bookSideDraw() {
     return row; }));
   list.addEventListener('dragleave', e => { if (!list.contains(e.relatedTarget)) list.querySelectorAll('.over-t, .over-b').forEach(n => n.classList.remove('over-t', 'over-b')); });
   const add = (label, kind, tip) => el('button', { type: 'button', class: 'sx-book-add', title: tip, onclick: () => bookAdd(kind) }, '+ ' + label);
+  const old = bookSide.querySelector('.sx-book-idx'), keep = old && bookSide._bk === b.id ? old.scrollTop : null; bookSide._bk = b.id; // (the contents stay scrolled where they were)
   bookSide.replaceChildren(el('div', { class: 'sx-book-head' }, pic, el('div', { class: 'sx-book-headt' }, title, el('span', {}, pages.length + (pages.length === 1 ? ' page' : ' pages')))),
     el('div', { class: 'sx-book-lbl' }, 'Contents'), list,
     el('div', { class: 'sx-book-adds' }, add('Note', 'note', 'A new page just after this one (Shift+Enter in a page does too)'), add('Photo', 'photo', 'A photo page just after this one'), add('Table', 'tbl', 'A table page just after this one')));
-  const on = list.querySelector('.on'); if (on) on.scrollIntoView({ block: 'nearest' });
+  // the contents don't jump: they stay where you had them scrolled, and only move if the page you're on is out of sight
+  // (turned to with the arrows, say), just far enough to bring it in, with a row's room around it
+  if (keep != null) list.scrollTop = keep;
+  const on = list.querySelector('.on');
+  if (on) { const top = on.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop, pad = on.offsetHeight;
+    if (top < list.scrollTop) list.scrollTop = Math.max(0, top - pad);
+    else if (top + on.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + on.offsetHeight + pad - list.clientHeight; }
 }
 function bookPageDraw(fresh, dir) {
   const b = bookOf(bookId); if (!b) return; const pages = bookPages(b), p = pages[b.at];

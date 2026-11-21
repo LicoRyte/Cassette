@@ -2370,3 +2370,9 @@ b[data-tf="emboss"] { color: #73392e; text-shadow: 0 1px 0 rgb(255 255 255 / .6)
 .sx-book-row .sx-book-rflag { margin-left: 4px; }
 .sx-book-row > .sx-book-rname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sx-book-pgname { flex: 1; min-width: 0; padding: 2px 6px; border: 1px solid #c76e46; border-radius: 3px; background: #fffaf0; color: #34111f; font: 14px/1.3 var(--text); outline: none; }
+
+/* ---------- a slight texture on every cover (version 246): a fine grain and the faintest run of fibres, like book cloth
+   (not a pattern); it shows on light and dark covers alike, under the title, the strap and the stickers ---------- */
+:is(.sx-world .sx-bbook, .sx-deco-cover, .sx-book-thumb, .sx-tied-c.t-book)::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23t)'/%3E%3C/svg%3E") 0 0 / 160px 160px, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .9' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0 / 220px 220px; mix-blend-mode: overlay; opacity: .2; }
+.sx-book-thumb::before, .sx-tied-c.t-book::before { opacity: .14; }
